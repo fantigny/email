@@ -2,6 +2,7 @@ package net.anfoya.downloads.javafx.entrypoint;
 
 import java.net.CookieHandler;
 import java.net.CookieManager;
+import java.net.CookiePolicy;
 import java.net.URL;
 
 import net.anfoya.downloads.javafx.ComponentBuilder;
@@ -52,7 +53,7 @@ public class DownloadApp extends Application {
 		});
 
 		cookieStore.load();
-		CookieHandler.setDefault(new CookieManager(cookieStore, null));
+		CookieHandler.setDefault(new CookieManager(cookieStore, CookiePolicy.ACCEPT_ALL));
 
 		urlFilter.loadFilters();
 		URL.setURLStreamHandlerFactory(new TorrentHandlerFactory(urlFilter));
