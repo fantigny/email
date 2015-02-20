@@ -44,7 +44,7 @@ import net.anfoya.movies.model.Section;
 import net.anfoya.movies.model.Status;
 import net.anfoya.movies.model.Tag;
 import net.anfoya.movies.service.MovieService;
-import net.anfoya.tools.net.FilteredStreamHandlerFactory;
+import net.anfoya.tools.net.FilteredHandlerFactory;
 import net.anfoya.tools.net.PersistentCookieStore;
 import net.anfoya.tools.net.UrlFilter;
 import net.anfoya.tools.util.ThreadPool;
@@ -108,7 +108,7 @@ public class BrowserApp extends Application {
 		});
 
 		urlFilter.loadFilters();
-		URL.setURLStreamHandlerFactory(new FilteredStreamHandlerFactory(urlFilter));
+		URL.setURLStreamHandlerFactory(new FilteredHandlerFactory(urlFilter));
 
 		cookieStore.load();
 		CookieHandler.setDefault(new CookieManager(cookieStore, null));

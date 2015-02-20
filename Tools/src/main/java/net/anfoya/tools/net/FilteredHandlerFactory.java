@@ -3,10 +3,10 @@ package net.anfoya.tools.net;
 import java.net.URLStreamHandler;
 import java.net.URLStreamHandlerFactory;
 
-public class FilteredStreamHandlerFactory implements URLStreamHandlerFactory {
+public class FilteredHandlerFactory implements URLStreamHandlerFactory {
 	private final UrlFilter filter;
 
-	public FilteredStreamHandlerFactory(final UrlFilter filter) {
+	public FilteredHandlerFactory(final UrlFilter filter) {
 		this.filter = filter;
 	}
 
