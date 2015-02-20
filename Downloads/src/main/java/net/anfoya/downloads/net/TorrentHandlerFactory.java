@@ -1,4 +1,4 @@
-package net.anfoya.downloads.javafx.util;
+package net.anfoya.downloads.net;
 
 import java.net.URLStreamHandler;
 import java.net.URLStreamHandlerFactory;

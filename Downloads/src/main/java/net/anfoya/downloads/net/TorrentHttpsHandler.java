@@ -1,4 +1,4 @@
-package net.anfoya.downloads.javafx.util;
+package net.anfoya.downloads.net;
 
 import java.io.IOException;
 import java.net.URL;

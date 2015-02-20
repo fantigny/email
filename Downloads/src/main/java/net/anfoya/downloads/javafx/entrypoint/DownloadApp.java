@@ -7,7 +7,7 @@ import java.net.URL;
 import net.anfoya.downloads.javafx.ComponentBuilder;
 import net.anfoya.downloads.javafx.SearchPane;
 import net.anfoya.downloads.javafx.SearchTabs;
-import net.anfoya.downloads.javafx.util.TorrentHandlerFactory;
+import net.anfoya.downloads.net.TorrentHandlerFactory;
 import net.anfoya.tools.net.PersistentCookieStore;
 import net.anfoya.tools.net.UrlFilter;
 import net.anfoya.tools.util.ThreadPool;
