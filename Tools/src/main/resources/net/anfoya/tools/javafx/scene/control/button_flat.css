@@ -1,0 +1,13 @@
+.button{
+	-fx-background-color: transparent;
+}
+  
+.button:hover {
+    -fx-background-color: -fx-hover-base, -fx-outer-border, -fx-inner-border, -fx-body-color;
+    -fx-background-insets: -1.4, 0, 1, 2;
+}
+ 
+.button:armed {
+    -fx-background-color: -fx-pressed-base, -fx-outer-border, -fx-inner-border, -fx-body-color;
+    -fx-background-insets: -1.4, 0, 1, 2;
+}
