@@ -1,4 +1,4 @@
-package net.anfoya.tools.net;
+package net.anfoya.tools.net.filter;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

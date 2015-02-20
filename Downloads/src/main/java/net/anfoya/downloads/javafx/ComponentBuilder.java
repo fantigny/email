@@ -1,8 +1,8 @@
 package net.anfoya.downloads.javafx;
 
-import net.anfoya.tools.net.EasyListFilter;
 import net.anfoya.tools.net.PersistentCookieStore;
-import net.anfoya.tools.net.UrlFilter;
+import net.anfoya.tools.net.filter.EasyListFilter;
+import net.anfoya.tools.net.filter.UrlFilter;
 
 public class ComponentBuilder {
 	private final PersistentCookieStore cookieStore;

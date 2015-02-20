@@ -1,4 +1,4 @@
-package net.anfoya.downloads.net;
+package net.anfoya.downloads.javafx.net;
 
 import java.awt.Desktop;
 import java.io.BufferedReader;
@@ -43,6 +43,6 @@ public class MagnetHandler extends URLStreamHandler {
 			}
 		}
 		
-		return null;
+		return new GoBackUrlConnection();
 	}
 }

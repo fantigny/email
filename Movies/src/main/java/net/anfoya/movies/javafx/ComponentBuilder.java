@@ -19,9 +19,9 @@ import net.anfoya.movies.service.MovieFileService;
 import net.anfoya.movies.service.MovieService;
 import net.anfoya.movies.service.ProfileService;
 import net.anfoya.movies.service.TagService;
-import net.anfoya.tools.net.EasyListFilter;
 import net.anfoya.tools.net.PersistentCookieStore;
-import net.anfoya.tools.net.UrlFilter;
+import net.anfoya.tools.net.filter.EasyListFilter;
+import net.anfoya.tools.net.filter.UrlFilter;
 
 import org.jgroups.JChannel;
 import org.slf4j.Logger;

@@ -46,7 +46,7 @@ import net.anfoya.movies.model.Tag;
 import net.anfoya.movies.service.MovieService;
 import net.anfoya.tools.net.FilteredHandlerFactory;
 import net.anfoya.tools.net.PersistentCookieStore;
-import net.anfoya.tools.net.UrlFilter;
+import net.anfoya.tools.net.filter.UrlFilter;
 import net.anfoya.tools.util.ThreadPool;
 
 import org.slf4j.bridge.SLF4JBridgeHandler;

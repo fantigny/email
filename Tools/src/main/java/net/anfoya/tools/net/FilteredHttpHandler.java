@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 
+import net.anfoya.tools.net.filter.UrlFilter;
 import sun.net.www.protocol.http.Handler;
 
 public class FilteredHttpHandler extends Handler {

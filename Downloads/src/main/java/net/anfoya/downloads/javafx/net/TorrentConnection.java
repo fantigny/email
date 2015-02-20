@@ -1,4 +1,4 @@
-package net.anfoya.downloads.net;
+package net.anfoya.downloads.javafx.net;
 
 import java.awt.Desktop;
 import java.io.BufferedInputStream;
@@ -16,17 +16,26 @@ import org.slf4j.LoggerFactory;
 
 import sun.net.www.protocol.http.Handler;
 
-public class TorrentHandler {
-	private static final Logger LOGGER = LoggerFactory.getLogger(TorrentHandler.class);
+public class TorrentConnection extends GoBackUrlConnection {
+	private static final Logger LOGGER = LoggerFactory.getLogger(TorrentConnection.class);
 	private static final String TEMP_DIR = System.getProperty("java.io.tmpdir") +"/";
 
-	public void launch(final URL url) {
-		LOGGER.info("handling {}", url);
-		File file = getTempFilename(url);
-		
+	private final File file;
+	
+	protected TorrentConnection(URL url) {
+		super(url);
+
+		String filename = url.toString();
+		filename = filename.substring(filename.lastIndexOf('/')+1, filename.length());
+		filename = TEMP_DIR + filename;
+		this.file = new File(filename);
+	}
+
+	@Override
+	public void connect() throws IOException {
 		LOGGER.info("downloading to {}", file);
 		try {
-			download(url, file);
+			download();
 		} catch (IOException e) {
 			LOGGER.error("download {}", file,e);
 			return;
@@ -40,22 +49,15 @@ public class TorrentHandler {
 			return;
 		}
 	}
-	
-	private File getTempFilename(URL url) {
-		String filename = url.toString();
-		filename = filename.substring(filename.lastIndexOf('/')+1, filename.length());
-		filename = TEMP_DIR + filename;
-		return new File(filename);
-	}
 
-	private void download(URL fromUrl, File toFile) throws MalformedURLException, IOException {
+	private void download() throws MalformedURLException, IOException {
 		BufferedInputStream bis = null;
 		BufferedOutputStream bos = null;
 		try {
-			InputStream in = new URL(null, fromUrl.toString(), new Handler()).openStream(); // avoid handler factory re-entrance
+			InputStream in = new URL(null, url.toString(), new Handler()).openStream(); // avoid handler factory re-entrance
 			bis = new BufferedInputStream(in);
 			
-			OutputStream out = new FileOutputStream(toFile);
+			OutputStream out = new FileOutputStream(file);
 			bos = new BufferedOutputStream(out);
 
 			int data;
