@@ -3,6 +3,7 @@ package net.anfoya.movies.javafx.entrypoint;
 import java.awt.SplashScreen;
 import java.net.CookieHandler;
 import java.net.CookieManager;
+import java.net.CookiePolicy;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.Map;
@@ -111,7 +112,7 @@ public class BrowserApp extends Application {
 		URL.setURLStreamHandlerFactory(new FilteredHandlerFactory(urlFilter));
 
 		cookieStore.load();
-		CookieHandler.setDefault(new CookieManager(cookieStore, null));
+		CookieHandler.setDefault(new CookieManager(cookieStore, CookiePolicy.ACCEPT_ALL));
 
 		initGui(primaryStage);
 		initData();
