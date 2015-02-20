@@ -15,10 +15,8 @@ public class FilteredHttpsHandler extends Handler {
 
 	@Override
 	protected URLConnection openConnection(final URL url) throws IOException {
-		if (filter.filtered(url)) {
-			throw new UnsupportedOperationException("filtered by easylist");
-		}
-
-		return super.openConnection(url);
+		return filter.filtered(url)
+				? new EmptyUrlConnection()
+				: super.openConnection(url);
 	}
 }

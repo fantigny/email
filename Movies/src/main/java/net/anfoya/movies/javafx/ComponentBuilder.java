@@ -1,8 +1,6 @@
 package net.anfoya.movies.javafx;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.CookieManager;
 
 import net.anfoya.movies.cluster.LockManager;
 import net.anfoya.movies.cluster.StatusManager;
@@ -85,7 +83,7 @@ public class ComponentBuilder {
 		this.movieDao = new MovieDao(dataSource);
 		this.movieTagDao = new MovieTagDao(dataSource);
 
-		this.cookieStore = new PersistentCookieStore(new CookieManager().getCookieStore(), new File(PersistentCookieStore.COOKIE_FILEPATH));
+		this.cookieStore = new PersistentCookieStore();
 		this.urlFilter = new EasyListFilter();
 
 		this.updateMgr = new UpdateManager(statusMgr);

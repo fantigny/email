@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.CookieManager;
 import java.net.CookieStore;
 import java.net.HttpCookie;
 import java.net.URI;
@@ -22,14 +23,14 @@ import com.google.gson.reflect.TypeToken;
 
 public class PersistentCookieStore implements CookieStore {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PersistentCookieStore.class);
-	public static final String COOKIE_FILEPATH = System.getProperty("java.io.tmpdir") + "/cookie_store.json";
+	private static final String COOKIE_FILEPATH = System.getProperty("java.io.tmpdir") + "/cookie_store.json";
 
 	private final File file;
-    private final CookieStore store;
+    private final CookieStore delegate;
 
-    public PersistentCookieStore(final CookieStore store, final File cookieFile) {
-    	this.store = store;
-        this.file = cookieFile;
+    public PersistentCookieStore() {
+        this.file = new File(PersistentCookieStore.COOKIE_FILEPATH);
+    	this.delegate = new CookieManager().getCookieStore();
     }
 
 	public void load() {
@@ -57,7 +58,7 @@ public class PersistentCookieStore implements CookieStore {
         		final URI uri = entry.getKey();
         		for(final HttpCookie cookie: entry.getValue()) {
             		LOGGER.debug("adding cookie {} -- {}", uri.toString(), cookie.toString());
-        			store.add(uri, cookie);
+        			delegate.add(uri, cookie);
         		}
         	}
         }
@@ -67,8 +68,8 @@ public class PersistentCookieStore implements CookieStore {
     	LOGGER.info("saving to {}", file.getPath());
 
     	final Map<URI, List<HttpCookie>> cookieMap = new HashMap<URI, List<HttpCookie>>();
-    	for(final URI uri: store.getURIs()) {
-    		final List<HttpCookie> cookies = store.get(uri);
+    	for(final URI uri: delegate.getURIs()) {
+    		final List<HttpCookie> cookies = delegate.get(uri);
     		cookieMap.put(uri, cookies);
     		LOGGER.debug("adding cookie {} -- {}", uri.toString(), cookies.toString());
     	}
@@ -85,34 +86,34 @@ public class PersistentCookieStore implements CookieStore {
 			} catch (final IOException e) {}
 		}
     }
+	
+	@Override
+	public void add(URI uri, HttpCookie cookie) {
+		delegate.add(uri, cookie);
+	}
 
-    @Override
-	public void	add(final URI uri, final HttpCookie cookie) {
-        store.add(uri, cookie);
-    }
+	@Override
+	public List<HttpCookie> get(URI uri) {
+		return delegate.get(uri);
+	}
 
-    @Override
-	public List<HttpCookie> get(final URI uri) {
-        return store.get(uri);
-    }
-
-    @Override
+	@Override
 	public List<HttpCookie> getCookies() {
-        return store.getCookies();
-    }
+		return delegate.getCookies();
+	}
 
-    @Override
+	@Override
 	public List<URI> getURIs() {
-        return store.getURIs();
-    }
+		return delegate.getURIs();
+	}
 
-    @Override
-	public boolean remove(final URI uri, final HttpCookie cookie) {
-        return store.remove(uri, cookie);
-    }
+	@Override
+	public boolean remove(URI uri, HttpCookie cookie) {
+		return delegate.remove(uri, cookie);
+	}
 
-    @Override
-	public boolean removeAll()  {
-        return store.removeAll();
-    }
+	@Override
+	public boolean removeAll() {
+		return delegate.removeAll();
+	}
 }
