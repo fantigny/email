@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 
-import net.anfoya.tools.net.EmptyUrlConnection;
 import net.anfoya.tools.net.FilteredHttpsHandler;
 import net.anfoya.tools.net.UrlFilter;
 
@@ -21,7 +20,7 @@ public class TorrentHttpsHandler extends FilteredHttpsHandler {
 		final URLConnection urlConnection = super.openConnection(url);
 		if (url.toString().endsWith(".torrent")) {
 			delegate.launch(url);
-			return new EmptyUrlConnection();
+			return null;
 		}
 
 		return urlConnection;

@@ -10,11 +10,10 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
 
+import net.anfoya.tools.util.OperatingSystem;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import net.anfoya.tools.net.EmptyUrlConnection;
-import net.anfoya.tools.util.OperatingSystem;
 
 public class MagnetHandler extends URLStreamHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MagnetHandler.class);
@@ -44,6 +43,6 @@ public class MagnetHandler extends URLStreamHandler {
 			}
 		}
 		
-		return new EmptyUrlConnection();
+		return null;
 	}
 }
