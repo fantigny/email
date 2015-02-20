@@ -11,9 +11,6 @@
 		</encoder>
 	</appender>
 
-	<logger name="org.jgroups.protocols.UDP" level="error"/>
-	<logger name="com.sun.webkit.network.URLLoader" level="error"/>
-
 	<root level="info">
 		<appender-ref ref="STDOUT" />
 	</root>
