@@ -8,8 +8,8 @@ import net.anfoya.tools.net.filtered.UrlFilter;
 public class TorrentHandlerFactory implements URLStreamHandlerFactory {
 	private final UrlFilter filter;
 
-	public TorrentHandlerFactory(final UrlFilter filter) {
-		this.filter = filter;
+	public TorrentHandlerFactory(final UrlFilter urlFilter) {
+		this.filter = urlFilter;
 	}
 
 	@Override
