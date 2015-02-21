@@ -1,8 +1,8 @@
 package net.anfoya.downloads.javafx;
 
+import net.anfoya.easylist.net.filtered.EasyListFilterImpl;
 import net.anfoya.tools.net.PersistentCookieStore;
-import net.anfoya.tools.net.filter.EasyListFilter;
-import net.anfoya.tools.net.filter.UrlFilter;
+import net.anfoya.tools.net.filtered.UrlFilter;
 
 public class ComponentBuilder {
 	private final PersistentCookieStore cookieStore;
@@ -13,7 +13,7 @@ public class ComponentBuilder {
 
 	public ComponentBuilder() {
 		cookieStore = new PersistentCookieStore();
-		urlFilter = new EasyListFilter();
+		urlFilter = new EasyListFilterImpl();
 
 		searchTabs = new SearchTabs();
 		searchPane = new SearchPane();

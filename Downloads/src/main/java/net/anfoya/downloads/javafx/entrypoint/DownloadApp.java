@@ -10,7 +10,7 @@ import net.anfoya.downloads.javafx.SearchPane;
 import net.anfoya.downloads.javafx.SearchTabs;
 import net.anfoya.downloads.javafx.net.TorrentHandlerFactory;
 import net.anfoya.tools.net.PersistentCookieStore;
-import net.anfoya.tools.net.filter.UrlFilter;
+import net.anfoya.tools.net.filtered.UrlFilter;
 import net.anfoya.tools.util.ThreadPool;
 import javafx.application.Application;
 import javafx.event.ActionEvent;

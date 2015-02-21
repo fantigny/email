@@ -1,4 +1,4 @@
-package net.anfoya.tools.net.filter;
+package net.anfoya.tools.net.filtered;
 
 import java.net.URL;
 

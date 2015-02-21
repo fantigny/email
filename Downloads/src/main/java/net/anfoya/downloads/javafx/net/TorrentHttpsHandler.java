@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 
-import net.anfoya.tools.net.FilteredHttpsHandler;
-import net.anfoya.tools.net.filter.UrlFilter;
+import net.anfoya.tools.net.filtered.FilteredHttpsHandler;
+import net.anfoya.tools.net.filtered.UrlFilter;
 
 public class TorrentHttpsHandler extends FilteredHttpsHandler {
 	public TorrentHttpsHandler(final UrlFilter filter) {

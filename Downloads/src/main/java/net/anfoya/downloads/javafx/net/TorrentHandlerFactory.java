@@ -3,7 +3,7 @@ package net.anfoya.downloads.javafx.net;
 import java.net.URLStreamHandler;
 import java.net.URLStreamHandlerFactory;
 
-import net.anfoya.tools.net.filter.UrlFilter;
+import net.anfoya.tools.net.filtered.UrlFilter;
 
 public class TorrentHandlerFactory implements URLStreamHandlerFactory {
 	private final UrlFilter filter;

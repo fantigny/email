@@ -1,9 +1,7 @@
-package net.anfoya.tools.net;
+package net.anfoya.tools.net.filtered;
 
 import java.net.URLStreamHandler;
 import java.net.URLStreamHandlerFactory;
-
-import net.anfoya.tools.net.filter.UrlFilter;
 
 public class FilteredHandlerFactory implements URLStreamHandlerFactory {
 	private final UrlFilter filter;
