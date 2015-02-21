@@ -2,7 +2,7 @@ package net.anfoya.movies.javafx;
 
 import java.io.IOException;
 
-import net.anfoya.easylist.net.filtered.EasyListFilterImpl;
+import net.anfoya.easylist.net.filtered.EasyListFilterImplOld;
 import net.anfoya.movies.cluster.LockManager;
 import net.anfoya.movies.cluster.StatusManager;
 import net.anfoya.movies.cluster.UpdateManager;
@@ -84,7 +84,7 @@ public class ComponentBuilder {
 		this.movieTagDao = new MovieTagDao(dataSource);
 
 		this.cookieStore = new PersistentCookieStore();
-		this.urlFilter = new EasyListFilterImpl();
+		this.urlFilter = new EasyListFilterImplOld();
 
 		this.updateMgr = new UpdateManager(statusMgr);
 		this.tagService = new TagService(updateMgr, tagDao, movieTagDao);
