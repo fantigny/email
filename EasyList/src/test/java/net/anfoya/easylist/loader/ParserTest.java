@@ -1,9 +1,9 @@
 package net.anfoya.easylist.loader;
 
+import net.anfoya.easylist.model.Rule2;
 import net.anfoya.easylist.model.rules.Contains;
 import net.anfoya.easylist.model.rules.ContainsHttpWildcard;
 import net.anfoya.easylist.model.rules.EmptyRule;
-import net.anfoya.easylist.model.rules.Rule;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -12,7 +12,7 @@ public class ParserTest {
 
 	@Test
 	public void pattern() {
-		Rule rule;
+		Rule2 rule;
 		final Parser parser = new Parser();
 
 		rule = parser.parse("imdb.com###top_rhs_1_wrapper");
