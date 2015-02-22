@@ -35,24 +35,45 @@ public abstract class Rule {
 	public List<String> getParts() {
 		return parts;
 	}
+	
+	@Override
+	public String toString() {
+		return String.format("%s %s (%s) (%s)"
+				, getClass().getSimpleName()
+				, getParts()
+				, getEffectiveLine()
+				, getLine());
+	}
 
 	private String clean() {
 		String line = this.line;
 		if (line.contains("$")) {
 			line = line.substring(0, line.indexOf("$"));
 		}
-		if (line.contains("~")) {
+		if (line.contains("##") || line.contains("#@#")) { // todo: div selector
+			line = "";
+		}
+		if (line.contains("~")) { // todo: opposite
 			line = line.substring(0, line.indexOf("~"));
+			if (line.length() == 1) {
+				line = "";
+			}
 		}
 
 		return line;
 	}
 
 	private List<String> parse() {
-		final List<String> urlParts = new ArrayList<String>();
-		final String[] elements = line.split("[\\^\\*]");
-		urlParts.addAll(Arrays.asList(elements));
+		final List<String> parts = new ArrayList<String>();
+		final String[] elements = effectiveLine.split("[\\^\\*]");
+		if (elements.length > 0 && !elements[0].isEmpty()) {
+			parts.addAll(Arrays.asList(elements));
+		}
+		
+		return parts;
+	}
 
-		return urlParts;
+	public boolean isEmpty() {
+		return parts.isEmpty();
 	}
 }

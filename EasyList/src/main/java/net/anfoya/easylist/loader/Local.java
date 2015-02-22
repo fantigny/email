@@ -33,7 +33,7 @@ public class Local {
 			reader = new BufferedReader(new FileReader(file));
 			final String json = reader.readLine();
 			easyList = new Gson().fromJson(json, EasyList.class);
-		} catch (final IOException e) {
+		} catch (final Exception e) {
 			LOGGER.warn("reading {}", file, e);
 			easyList = new EasyList();
 		} finally {

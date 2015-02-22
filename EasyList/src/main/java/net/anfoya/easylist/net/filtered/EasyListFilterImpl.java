@@ -32,7 +32,7 @@ public class EasyListFilterImpl implements UrlFilter {
 	public void loadFilters() {
 		final File file = new File(EASYLIST_FILEPATH);
 		Local local = null;
-		if (file.exists()) {
+		if (false && file.exists()) { //todo
 			local = new Local(file);
 			easyList.add(local.load());
 		}

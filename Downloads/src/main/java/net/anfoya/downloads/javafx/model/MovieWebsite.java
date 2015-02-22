@@ -6,41 +6,14 @@ import java.net.URLEncoder;
 public class MovieWebsite {
 
 	public static final MovieWebsite[] LIST = {
-		  	new MovieWebsite("DVD Release"
-		  			, "www.dvdrip-fr.com"
-		  			, "/Site/dernieres_releases.php?type=letter"
-		  			, "/Site/recherche.php?recherche=%s"
-		  			, "")
-		  	, new MovieWebsite("AlloCine"
-		  			, "www.allocine.fr"
-		  			, ""
-		  			, "/recherche/?q=%s"
-		  			, "fichefilm_gen_cfilm=")
-			, new MovieWebsite("Rotten Tomatoes"
-					, "www.rottentomatoes.com"
-		  			, ""
-					, "/search/?search=%s"
-					,".com/m/")
-			, new MovieWebsite("IMDb"
-					, "www.imdb.com"
-		  			, ""
-					, "/find?ref_=nv_sr_fn&q=%s&s=all"
-					,"/title/")
-			, new MovieWebsite("Pirate Bay"
-					, "https://pirateproxy.sx"
-		  			, ""
-					, "/search.php?q=%s"
-					, "")
-			, new MovieWebsite("C Pas Bien"
-					, "www.cpasbien.pw"
-		  			, ""
-					, "/recherche/%s.html"
-					, "")
-			, new MovieWebsite("Google"
-					, "www.google.com"
-		  			, ""
-					, "/search?q=%s"
-					, "")
+//		  	new MovieWebsite("DVD Release", "www.dvdrip-fr.com", "/Site/dernieres_releases.php?type=letter", "/Site/recherche.php?recherche=%s", "")
+//		  	, new MovieWebsite("AlloCine", "www.allocine.fr", "", "/recherche/?q=%s", "fichefilm_gen_cfilm=")
+//			, new MovieWebsite("Rotten Tomatoes", "www.rottentomatoes.com", "", "/search/?search=%s",".com/m/")
+//			,
+		new MovieWebsite("IMDb", "www.imdb.com", "", "/find?ref_=nv_sr_fn&q=%s&s=all","/title/")
+//			, new MovieWebsite("Pirate Bay", "https://pirateproxy.sx", "", "/search.php?q=%s", "")
+//			, new MovieWebsite("C Pas Bien", "www.cpasbien.pw", "", "/recherche/%s.html", "")
+//			, new MovieWebsite("Google", "www.google.com", "", "/search?q=%s", "")
 	};
 
 	private final String name;

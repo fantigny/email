@@ -3,12 +3,11 @@ package net.anfoya.easylist.model.rules;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class StartsWildcardTest {
+public class ContainsWildcardTest {
 
 	@Test
 	public void pattern() {
-
-		final StartsWildcard rule = new StartsWildcard("||cacheserve.*/promodisplay/");
+		final ContainsWildcard rule = new ContainsWildcard("||cacheserve.*/promodisplay/");
 		Assert.assertTrue(rule.applies("http://+++++.cacheserve.+/+/+/+/+/+/promodisplay/++++++++"));
 	}
 }

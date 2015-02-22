@@ -4,7 +4,6 @@ import java.util.regex.Pattern;
 
 public class StartsWildcard extends Rule {
 	public static final String TERM = "||";
-
 	private static final String REG_EX = "https?:\\/\\/.*\\.%s.*";
 
 	private final Pattern regex;

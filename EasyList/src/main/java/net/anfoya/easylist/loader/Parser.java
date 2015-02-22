@@ -26,6 +26,10 @@ public class Parser {
 		} else {
 			rule = new Contains(line);
 		}
+		
+		if (!(rule instanceof EmptyRule) && rule.isEmpty()) {
+			rule = new EmptyRule();
+		}
 
 		return rule;
 	}

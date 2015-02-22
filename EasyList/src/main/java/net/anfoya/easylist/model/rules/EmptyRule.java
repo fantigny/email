@@ -1,8 +1,5 @@
 package net.anfoya.easylist.model.rules;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
-
 public class EmptyRule extends Rule {
 
 	public EmptyRule() {
@@ -11,6 +8,6 @@ public class EmptyRule extends Rule {
 
 	@Override
 	public boolean applies(final String url) {
-		throw new NotImplementedException();
+		throw new RuntimeException("empty rule doesn't apply");
 	}
 }

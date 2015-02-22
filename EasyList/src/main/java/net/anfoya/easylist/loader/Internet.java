@@ -27,6 +27,7 @@ public class Internet {
 		EasyList easyList;
 		try {
 			// avoid handler factory re-entrance
+			@SuppressWarnings("restriction")
 			final URLStreamHandler handler = "https".equals(url.getProtocol())
 					? new sun.net.www.protocol.https.Handler()
 					: new sun.net.www.protocol.http.Handler();
@@ -37,9 +38,7 @@ public class Internet {
 			final Parser parser = new Parser();
 			String line;
 			while((line=reader.readLine()) != null) {
-				LOGGER.debug("parsing {}", line);
 				final Rule rule = parser.parse(line);
-				LOGGER.debug("adding rule {}", rule);
 				easyList.add(rule);
 			}
 			LOGGER.info("loaded {} filters", easyList.getRuleCount());
