@@ -45,11 +45,11 @@ public class EasyList {
 		if (!(rule instanceof EmptyRule)) {
 			if (rule instanceof Exception
 					|| rule instanceof ExceptionHttpWildcard) {
-				LOGGER.debug("*** rule added {}", rule);
+				LOGGER.debug("Exception added {}", rule);
 				exceptions.add((Exception)rule);
 			} else if (rule instanceof Contains
 					|| rule instanceof ContainsHttpWildcard) {
-				LOGGER.debug("*** rule added {}", rule);
+				LOGGER.debug("Contains added {}", rule);
 				contains.add((Contains)rule);
 			}
 		}
@@ -58,14 +58,14 @@ public class EasyList {
 	public boolean applies(final String url) {
 		for(final Rule exception: exceptions) {
 			if (exception.applies(url)) {
-				LOGGER.info("++ applied {} to \"{}\"", exception, url);
+				LOGGER.info("applied {} to \"{}\"", exception, url);
 				return false;
 			}
 		}
 
 		for(final Rule contain: contains) {
 			if (contain.applies(url)) {
-				LOGGER.info("-- applied {} to \"{}\"", contain, url);
+				LOGGER.info("applied {} to \"{}\"", contain, url);
 				return true;
 			}
 		}
