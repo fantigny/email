@@ -28,7 +28,7 @@ public class Rule {
 
 	@Override
 	public String toString() {
-		return exception? "exception": "exclusion" + " " + line;
+		return exception? "exception": "exclusion" + " \"" + line + "\" (" + regex.toString() + ")";
 	}
 
 	public static Rule getEmptyRule() {

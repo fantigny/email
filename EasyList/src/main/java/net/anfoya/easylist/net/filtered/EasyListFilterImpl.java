@@ -59,6 +59,6 @@ public class EasyListFilterImpl implements UrlFilter {
 
 	@Override
 	public boolean filtered(final URL url) {
-		return easyList.applies(url.getFile());
+		return easyList.applies(url.toString());
 	}
 }
