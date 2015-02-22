@@ -1,14 +1,14 @@
 package net.anfoya.easylist.model.rules;
 
 
-public class ContainsWildcard extends Contains {
+public class ContainsHttpWildcard extends Contains {
 	public static final String TERM = "||";
 
-	private final StartsWildcard wildcard;
+	private final HttpWildcard wildcard;
 
-	public ContainsWildcard(final String line) {
+	public ContainsHttpWildcard(final String line) {
 		super(line.substring(TERM.length()));
-		wildcard = new StartsWildcard(line);
+		wildcard = new HttpWildcard(line);
 	}
 
 	@Override

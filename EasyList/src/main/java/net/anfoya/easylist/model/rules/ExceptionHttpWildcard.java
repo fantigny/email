@@ -1,10 +1,10 @@
 package net.anfoya.easylist.model.rules;
 
 
-public class ExceptionWildcard extends ContainsWildcard {
+public class ExceptionHttpWildcard extends ContainsHttpWildcard {
 	public static final String TERM = "@@||";
 
-	public ExceptionWildcard(final String line) {
+	public ExceptionHttpWildcard(final String line) {
 		super(line.substring("@@".length()));
 	}
 }

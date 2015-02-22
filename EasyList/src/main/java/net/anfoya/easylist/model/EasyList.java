@@ -7,10 +7,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import net.anfoya.easylist.model.rules.Contains;
-import net.anfoya.easylist.model.rules.ContainsWildcard;
+import net.anfoya.easylist.model.rules.ContainsHttpWildcard;
 import net.anfoya.easylist.model.rules.EmptyRule;
 import net.anfoya.easylist.model.rules.Exception;
-import net.anfoya.easylist.model.rules.ExceptionWildcard;
+import net.anfoya.easylist.model.rules.ExceptionHttpWildcard;
 import net.anfoya.easylist.model.rules.Rule;
 
 public class EasyList {
@@ -48,10 +48,10 @@ public class EasyList {
 		
 		if (!(rule instanceof EmptyRule)) {
 			if (rule instanceof Exception
-					|| rule instanceof ExceptionWildcard) {
-//				exceptions.add(rule);
+					|| rule instanceof ExceptionHttpWildcard) {
+				exceptions.add(rule);
 			} else if (rule instanceof Contains
-					|| rule instanceof ContainsWildcard) {
+					|| rule instanceof ContainsHttpWildcard) {
 				LOGGER.debug("*** rule added {}", rule);
 				contains.add(rule);
 			}

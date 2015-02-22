@@ -34,7 +34,7 @@ public class Local {
 			final String json = reader.readLine();
 			easyList = new Gson().fromJson(json, EasyList.class);
 		} catch (final Exception e) {
-			LOGGER.warn("reading {}", file, e);
+			LOGGER.warn("reading {}", file);
 			easyList = new EasyList();
 		} finally {
 			try {
@@ -48,7 +48,8 @@ public class Local {
 
 	public void save(final EasyList easyList) {
 		LOGGER.info("saving {}", file);
-		final String json = new Gson().toJson(easyList);
+//TODO:		final String json = new Gson().toJson(easyList);
+		final String json = new Gson().toJson(new EasyList());
 
 		BufferedWriter writer = null;
 		try {

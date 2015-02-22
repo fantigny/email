@@ -7,7 +7,15 @@ public class ContainsWildcardTest {
 
 	@Test
 	public void pattern() {
-		final ContainsWildcard rule = new ContainsWildcard("||cacheserve.*/promodisplay/");
-		Assert.assertTrue(rule.applies("http://+++++.cacheserve.+/+/+/+/+/+/promodisplay/++++++++"));
+		ContainsHttpWildcard containsWildcard;
+		
+		containsWildcard = new ContainsHttpWildcard("||");
+		Assert.assertTrue(containsWildcard.applies("http://"));
+		Assert.assertTrue(containsWildcard.applies("https://"));
+
+		Assert.assertFalse(containsWildcard.applies("XXX"));
+		
+		containsWildcard = new ContainsHttpWildcard("||cacheserve.*/promodisplay/");
+		Assert.assertTrue(containsWildcard.applies("http://+++++.cacheserve.+/+/+/+/+/+/promodisplay/++++++++"));
 	}
 }
