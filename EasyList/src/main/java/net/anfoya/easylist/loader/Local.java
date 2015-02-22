@@ -46,7 +46,7 @@ public class Local {
 	}
 
 	public void save(final EasyList easyList) {
-		LOGGER.info("saving {}", file);
+		LOGGER.info("saving {} filters to {}", easyList.getRuleCount(), file);
 
 		BufferedWriter writer = null;
 		try {

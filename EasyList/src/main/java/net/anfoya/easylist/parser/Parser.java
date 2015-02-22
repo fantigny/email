@@ -16,7 +16,7 @@ public class Parser {
 			return "";
 		}
 		if (line.contains("$")) {
-			if (line.startsWith("@@")) {
+			if (line.startsWith(Terminal.EXCEPTION.get())) {
 				return "";
 			} else {
 				line = line.substring(0, line.indexOf("$"));
