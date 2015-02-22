@@ -1,7 +1,7 @@
 package net.anfoya.easylist.model;
 
-import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import net.anfoya.easylist.model.rules.Contains;
 import net.anfoya.easylist.model.rules.ContainsHttpWildcard;
@@ -16,12 +16,12 @@ import org.slf4j.LoggerFactory;
 public class EasyList {
 	private static final Logger LOGGER = LoggerFactory.getLogger(EasyList.class);
 
-	private final Set<Rule> exceptions;
-	private final Set<Rule> contains;
+	private final Set<Exception> exceptions;
+	private final Set<Contains> contains;
 
 	public EasyList() {
-		exceptions = new HashSet<Rule>();
-		contains = new HashSet<Rule>();
+		exceptions = new CopyOnWriteArraySet<Exception>();
+		contains = new CopyOnWriteArraySet<Contains>();
 	}
 
 	public int getRuleCount() {
@@ -34,14 +34,10 @@ public class EasyList {
 	}
 
 	public void clearAdd(final EasyList easyList) {
-		synchronized (exceptions) {
-			exceptions.clear();
-			exceptions.addAll(easyList.exceptions);
-		}
-		synchronized (contains) {
-			contains.clear();
-			contains.addAll(easyList.contains);
-		}
+		exceptions.clear();
+		exceptions.addAll(easyList.exceptions);
+		contains.clear();
+		contains.addAll(easyList.contains);
 	}
 
 	public void add(final Rule rule) {
@@ -49,11 +45,12 @@ public class EasyList {
 		if (!(rule instanceof EmptyRule)) {
 			if (rule instanceof Exception
 					|| rule instanceof ExceptionHttpWildcard) {
-				exceptions.add(rule);
+				LOGGER.debug("*** rule added {}", rule);
+				exceptions.add((Exception)rule);
 			} else if (rule instanceof Contains
 					|| rule instanceof ContainsHttpWildcard) {
 				LOGGER.debug("*** rule added {}", rule);
-				contains.add(rule);
+				contains.add((Contains)rule);
 			}
 		}
 	}

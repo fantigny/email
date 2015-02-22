@@ -1,10 +1,12 @@
 package net.anfoya.easylist.model.rules;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-public abstract class Rule {
+
+public class Rule {
 	private final String line;
 
-	protected Rule() {
+	public Rule() {
 		this(null);
 	}
 
@@ -12,21 +14,21 @@ public abstract class Rule {
 		this.line = line == null? "": line;
 	}
 
-	public abstract boolean applies(final String url);
+	public boolean applies(final String url) {
+		throw new NotImplementedException();
+	}
 
 	public String getLine() {
 		return line;
 	}
 
 	public String getStart() {
-		String start = getLine();
-		if (start.contains("^")) {
-			start = start.substring(0, start.indexOf("^"));
-		}
-		if (start.contains("*")) {
-			start = start.substring(0, start.indexOf("*"));
-		}
-		return start;
+		return getParts()[0];
+	}
+
+	public String getEnds() {
+		final String[] parts = getParts();
+		return parts[parts.length-1];
 	}
 
 	@Override
@@ -38,5 +40,9 @@ public abstract class Rule {
 
 	public boolean isEmpty() {
 		return getLine().isEmpty();
+	}
+
+	public String[] getParts() {
+		return getLine().split("[\\^\\*]");
 	}
 }

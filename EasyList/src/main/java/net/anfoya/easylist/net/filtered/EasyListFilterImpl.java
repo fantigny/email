@@ -46,12 +46,12 @@ public class EasyListFilterImpl implements UrlFilter {
 						try {
 							final URL url = new URL(urlStr);
 							easyList.add(new Internet(url).load());
+							EasyListFilterImpl.this.easyList.clearAdd(easyList);
 						} catch (final MalformedURLException e) {
 							LOGGER.error("loading {}", urlStr, e);
 						}
 					}
 					new Local(file).save(easyList);
-					EasyListFilterImpl.this.easyList.clearAdd(easyList);
 				}
 			});
 		}

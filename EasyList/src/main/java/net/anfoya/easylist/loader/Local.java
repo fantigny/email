@@ -31,10 +31,9 @@ public class Local {
 		BufferedReader reader = null;
 		try {
 			reader = new BufferedReader(new FileReader(file));
-			final String json = reader.readLine();
-			easyList = new Gson().fromJson(json, EasyList.class);
+			easyList = new Gson().fromJson(reader, EasyList.class);
 		} catch (final Exception e) {
-			LOGGER.warn("reading {}", file);
+			LOGGER.warn("reading {}", file, e);
 			easyList = new EasyList();
 		} finally {
 			try {
@@ -48,13 +47,11 @@ public class Local {
 
 	public void save(final EasyList easyList) {
 		LOGGER.info("saving {}", file);
-//TODO:		final String json = new Gson().toJson(easyList);
-		final String json = new Gson().toJson(new EasyList());
 
 		BufferedWriter writer = null;
 		try {
 			writer = new BufferedWriter(new FileWriter(file));
-			writer.write(json);
+			new Gson().toJson(easyList, writer);
 		} catch (final IOException e) {
 			LOGGER.warn("writing {}", file, e);
 		} finally {

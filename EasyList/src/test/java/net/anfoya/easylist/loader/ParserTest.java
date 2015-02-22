@@ -13,19 +13,25 @@ public class ParserTest {
 	@Test
 	public void pattern() {
 		Rule rule;
-		Parser parser = new Parser();
-		
+		final Parser parser = new Parser();
+
 		rule = parser.parse("imdb.com###top_rhs_1_wrapper");
-		Assert.assertTrue(rule instanceof EmptyRule);
+		Assert.assertEquals(rule.getClass(), EmptyRule.class);
 
 		rule = parser.parse("||cacheserve.*/promodisplay/");
-		Assert.assertTrue(rule instanceof ContainsHttpWildcard);
+		Assert.assertEquals(rule.getClass(), ContainsHttpWildcard.class);
 
 		rule = parser.parse("france2.fr,france3.fr,france4.fr,france5.fr,franceo.fr,francetv.fr,francetvinfo.fr,la1ere.fr,pluzz.fr,~sport.francetv.fr##div[id^=\"eShowPub\"");
-		Assert.assertTrue(rule instanceof EmptyRule);
+		Assert.assertEquals(rule.getClass(), EmptyRule.class);
 
-		rule = new Contains("/cci-ads-");
-		Assert.assertTrue(rule instanceof Contains);
+		rule = parser.parse("/cci-ads-");
+		Assert.assertEquals(rule.getClass(), Contains.class);
+
+		rule = parser.parse("@@||196.30.218.174/admentor/sirius_sdo_top.htm$subdocument,domain=sharedata.co.za");
+		Assert.assertEquals(rule.getClass(), EmptyRule.class);
+
+		rule = parser.parse("192.168.*/images/adv_");
+		Assert.assertEquals(rule.getClass(), Contains.class);
 	}
 
 }

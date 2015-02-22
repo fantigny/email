@@ -13,8 +13,7 @@ public class Contains extends Rule {
 
 		String regex = "";
 		int lineIndex = 0;
-		final String[] parts = line.split("[\\^\\*]");
-		for(final String part: parts) {
+		for(final String part: getParts()) {
 			regex += part.isEmpty()? "": Pattern.quote(part);
 			if (line.length() > lineIndex + part.length()) {
 				switch (line.charAt(lineIndex + part.length())) {
