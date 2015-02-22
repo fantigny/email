@@ -8,7 +8,8 @@ import java.net.URL;
 import java.net.URLStreamHandler;
 
 import net.anfoya.easylist.model.EasyList;
-import net.anfoya.easylist.model.Rule2;
+import net.anfoya.easylist.model.Rule;
+import net.anfoya.easylist.parser.Parser;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +38,7 @@ public class Internet {
 			final Parser parser = new Parser();
 			String line;
 			while((line=reader.readLine()) != null) {
-				final Rule2 rule = parser.parse(line);
+				final Rule rule = parser.parse(line);
 				easyList.add(rule);
 			}
 			LOGGER.info("loaded {} filters", easyList.getRuleCount());

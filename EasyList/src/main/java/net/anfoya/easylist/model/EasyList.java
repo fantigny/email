@@ -9,12 +9,12 @@ import org.slf4j.LoggerFactory;
 public class EasyList {
 	private static final Logger LOGGER = LoggerFactory.getLogger(EasyList.class);
 
-	private final Set<Rule2> exceptions;
-	private final Set<Rule2> contains;
+	private final Set<Rule> exceptions;
+	private final Set<Rule> contains;
 
 	public EasyList() {
-		exceptions = new CopyOnWriteArraySet<Rule2>();
-		contains = new CopyOnWriteArraySet<Rule2>();
+		exceptions = new CopyOnWriteArraySet<Rule>();
+		contains = new CopyOnWriteArraySet<Rule>();
 	}
 
 	public int getRuleCount() {
@@ -28,7 +28,7 @@ public class EasyList {
 		contains.addAll(easyList.contains);
 	}
 
-	public void add(final Rule2 rule) {
+	public void add(final Rule rule) {
 		if (!rule.isEmpty()) {
 			if (rule.isException()) {
 				LOGGER.debug("Exception added {}", rule);
@@ -41,14 +41,14 @@ public class EasyList {
 	}
 
 	public boolean applies(final String url) {
-		for(final Rule2 exception: exceptions) {
+		for(final Rule exception: exceptions) {
 			if (exception.applies(url)) {
 				LOGGER.info("applied {} to \"{}\"", exception, url);
 				return false;
 			}
 		}
 
-		for(final Rule2 contain: contains) {
+		for(final Rule contain: contains) {
 			if (contain.applies(url)) {
 				LOGGER.info("applied {} to \"{}\"", contain, url);
 				return true;
