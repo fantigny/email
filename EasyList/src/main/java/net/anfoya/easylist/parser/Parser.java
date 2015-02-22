@@ -13,7 +13,7 @@ public class Parser {
 		if (line.isEmpty()
 				|| line.startsWith(Terminal.COMMENT.get())
 				|| line.startsWith(Terminal.SECTION.get())) {
-			return "";
+			line = "";
 		}
 		if (line.contains("$")) {
 			if (line.startsWith(Terminal.EXCEPTION.get())) {
