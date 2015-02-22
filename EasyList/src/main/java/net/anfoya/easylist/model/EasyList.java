@@ -58,14 +58,14 @@ public class EasyList {
 	public boolean applies(final String url) {
 		for(final Rule exception: exceptions) {
 			if (exception.applies(url)) {
-				LOGGER.debug("++ exception applied {}", exception);
+				LOGGER.info("++ applied {} to \"{}\"", exception, url);
 				return false;
 			}
 		}
 
 		for(final Rule contain: contains) {
 			if (contain.applies(url)) {
-				LOGGER.debug("-- exclusion applied {}", contain);
+				LOGGER.info("-- applied {} to \"{}\"", contain, url);
 				return true;
 			}
 		}
