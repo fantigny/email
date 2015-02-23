@@ -3,13 +3,14 @@ package net.anfoya.java.net.torrent;
 import java.net.URLStreamHandler;
 import java.net.URLStreamHandlerFactory;
 
+import net.anfoya.java.net.filtered.engine.Matcher;
 import net.anfoya.java.net.filtered.engine.RuleSet;
 
 public class TorrentHandlerFactory implements URLStreamHandlerFactory {
-	private final RuleSet filter;
+	private final Matcher matcher;
 
-	public TorrentHandlerFactory(final RuleSet urlFilter) {
-		this.filter = urlFilter;
+	public TorrentHandlerFactory(final RuleSet ruleSet) {
+		this.matcher = new Matcher(ruleSet);
 	}
 
 	@Override
@@ -17,9 +18,9 @@ public class TorrentHandlerFactory implements URLStreamHandlerFactory {
 		if ("magnet".equals(protocol)) {
 			return new MagnetHandler();
 		} else if ("http".equals(protocol)) {
-			return new TorrentHttpHandler(filter);
+			return new TorrentHttpHandler(matcher);
 		} else if ("https".equals(protocol)) {
-			return new TorrentHttpsHandler(filter);
+			return new TorrentHttpsHandler(matcher);
 		} else {
 			return null;
 		}

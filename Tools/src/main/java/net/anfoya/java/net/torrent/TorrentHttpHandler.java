@@ -5,11 +5,11 @@ import java.net.URL;
 import java.net.URLConnection;
 
 import net.anfoya.java.net.filtered.FilteredHttpHandler;
-import net.anfoya.java.net.filtered.engine.RuleSet;
+import net.anfoya.java.net.filtered.engine.Matcher;
 
 public class TorrentHttpHandler extends FilteredHttpHandler {
-	public TorrentHttpHandler(final RuleSet filter) {
-		super(filter);
+	public TorrentHttpHandler(final Matcher matcher) {
+		super(matcher);
 	}
 
 	@Override
