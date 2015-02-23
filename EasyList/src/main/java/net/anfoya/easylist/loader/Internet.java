@@ -35,7 +35,7 @@ public class Internet {
 			final InputStream in = new URL(null, url.toString(), handler).openStream();
 			final BufferedReader reader = new BufferedReader(new InputStreamReader(in));
 
-			easyList = new EasyList();
+			easyList = new EasyList(true);
 			final Parser parser = new Parser();
 			String line;
 			while((line=reader.readLine()) != null) {
@@ -45,7 +45,7 @@ public class Internet {
 			LOGGER.info("loaded {} filters", easyList.getRuleCount());
 		} catch (final IOException e) {
 			LOGGER.error("reading {}", url, e);
-			easyList = new EasyList();
+			easyList = new EasyList(true);
 		}
 
 		return easyList;

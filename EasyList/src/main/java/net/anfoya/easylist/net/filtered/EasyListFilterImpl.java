@@ -25,7 +25,17 @@ public class EasyListFilterImpl implements UrlFilter {
 	private final EasyList easyList;
 
 	public EasyListFilterImpl() {
-		easyList = new EasyList();
+		easyList = new EasyList(true);
+	}
+	
+	@Override
+	public void setWithException(boolean withException) {
+		easyList.setWithException(withException);
+	}
+	
+	@Override
+	public boolean isWithException() {
+		return easyList.isWithException();
 	}
 
 	@Override
@@ -41,7 +51,7 @@ public class EasyListFilterImpl implements UrlFilter {
 			ThreadPool.getInstance().submit(new Runnable() {
 				@Override
 				public void run() {
-					final EasyList easyList = new EasyList();
+					final EasyList easyList = new EasyList(true);
 					for(final String urlStr: EASY_LIST_URLS) {
 						try {
 							final URL url = new URL(urlStr);

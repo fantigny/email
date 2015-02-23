@@ -108,6 +108,7 @@ public class BrowserApp extends Application {
 			}
 		});
 
+		urlFilter.setWithException(false);
 		urlFilter.loadFilters();
 		URL.setURLStreamHandlerFactory(new FilteredHandlerFactory(urlFilter));
 

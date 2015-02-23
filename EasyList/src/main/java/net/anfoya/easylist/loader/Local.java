@@ -34,7 +34,7 @@ public class Local {
 			easyList = new Gson().fromJson(reader, EasyList.class);
 		} catch (final Exception e) {
 			LOGGER.warn("reading {}", file, e);
-			easyList = new EasyList();
+			easyList = new EasyList(true);
 		} finally {
 			try {
 				reader.close();

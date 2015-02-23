@@ -12,9 +12,20 @@ public class EasyList {
 	private final Set<Rule> exceptions;
 	private final Set<Rule> contains;
 
-	public EasyList() {
+	private boolean withException;
+
+	public EasyList(boolean withException) {
+		this.withException = withException;
 		exceptions = new CopyOnWriteArraySet<Rule>();
 		contains = new CopyOnWriteArraySet<Rule>();
+	}
+	
+	public boolean isWithException() {
+		return withException;
+	}
+
+	public void setWithException(boolean withException) {
+		this.withException = withException;
 	}
 
 	public int getRuleCount() {
@@ -41,10 +52,12 @@ public class EasyList {
 	}
 
 	public boolean applies(final String url) {
-		for(final Rule exception: exceptions) {
-			if (exception.applies(url)) {
-				LOGGER.info("applied {} to \"{}\"", exception, url);
-				return false;
+		if (withException) {
+			for(final Rule exception: exceptions) {
+				if (exception.applies(url)) {
+					LOGGER.info("applied {} to \"{}\"", exception, url);
+					return false;
+				}
 			}
 		}
 
