@@ -47,7 +47,7 @@ import net.anfoya.movies.model.Tag;
 import net.anfoya.movies.service.MovieService;
 import net.anfoya.tools.net.PersistentCookieStore;
 import net.anfoya.tools.net.filtered.FilteredHandlerFactory;
-import net.anfoya.tools.net.filtered.UrlFilter;
+import net.anfoya.tools.net.filtered.engine.RuleSet;
 import net.anfoya.tools.util.ThreadPool;
 
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -80,7 +80,7 @@ public class BrowserApp extends Application {
 	private final MoviePane moviePane;
 
 	private final PersistentCookieStore cookieStore;
-	private final UrlFilter urlFilter;
+	private final RuleSet urlFilter;
 
 	public BrowserApp() {
 		final ComponentBuilder compBuilder = new ComponentBuilder();
@@ -109,7 +109,7 @@ public class BrowserApp extends Application {
 		});
 
 		urlFilter.setWithException(false);
-		urlFilter.loadRules();
+		urlFilter.load();
 		URL.setURLStreamHandlerFactory(new FilteredHandlerFactory(urlFilter));
 
 		cookieStore.load();

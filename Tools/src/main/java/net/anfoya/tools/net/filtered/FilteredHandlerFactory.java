@@ -3,10 +3,12 @@ package net.anfoya.tools.net.filtered;
 import java.net.URLStreamHandler;
 import java.net.URLStreamHandlerFactory;
 
-public class FilteredHandlerFactory implements URLStreamHandlerFactory {
-	private final UrlFilter filter;
+import net.anfoya.tools.net.filtered.engine.RuleSet;
 
-	public FilteredHandlerFactory(final UrlFilter filter) {
+public class FilteredHandlerFactory implements URLStreamHandlerFactory {
+	private final RuleSet filter;
+
+	public FilteredHandlerFactory(final RuleSet filter) {
 		this.filter = filter;
 	}
 

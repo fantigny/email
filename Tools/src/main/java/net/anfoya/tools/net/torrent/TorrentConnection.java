@@ -23,14 +23,14 @@ public class TorrentConnection extends GoBackUrlConnection {
 	private static final String TEMP_DIR = System.getProperty("java.io.tmpdir") +"/";
 
 	private final File file;
-	
-	protected TorrentConnection(URL url) {
+
+	protected TorrentConnection(final URL url) {
 		super(url);
 
-		String filename = url.toString();
-		filename = filename.substring(filename.lastIndexOf('/')+1, filename.length());
-		filename = TEMP_DIR + filename;
-		this.file = new File(filename);
+		final String[] urlParts = url.getPath().split("/");
+		final String filename = urlParts[urlParts.length-1];
+
+		this.file = new File(TEMP_DIR + filename);
 	}
 
 	@Override
@@ -38,15 +38,15 @@ public class TorrentConnection extends GoBackUrlConnection {
 		LOGGER.info("downloading to {}", file);
 		try {
 			download();
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			LOGGER.error("download {}", file,e);
 			return;
 		}
-		
+
 		LOGGER.info("starting {}", file);
 		try {
 			Desktop.getDesktop().open(file);
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			LOGGER.error("starting {}", file,e);
 			return;
 		}
@@ -56,10 +56,10 @@ public class TorrentConnection extends GoBackUrlConnection {
 		BufferedInputStream bis = null;
 		BufferedOutputStream bos = null;
 		try {
-			InputStream in = new URL(null, url.toString(), new Handler()).openStream(); // avoid handler factory re-entrance
+			final InputStream in = new URL(null, url.toString(), new Handler()).openStream(); // avoid handler factory re-entrance
 			bis = new BufferedInputStream(in);
-			
-			OutputStream out = new FileOutputStream(file);
+
+			final OutputStream out = new FileOutputStream(file);
 			bos = new BufferedOutputStream(out);
 
 			int data;

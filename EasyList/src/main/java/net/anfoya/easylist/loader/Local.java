@@ -9,7 +9,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Calendar;
 
-import net.anfoya.easylist.model.EasyList;
+import net.anfoya.easylist.net.filtered.EasyListFilterImpl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,21 +26,21 @@ public class Local {
 		this.file = file;
 	}
 
-	public EasyList load() {
+	public EasyListFilterImpl load() {
 		LOGGER.info("loading {}", file);
 		final long start = System.currentTimeMillis();
-		EasyList easyList;
+		EasyListFilterImpl easyList;
 		BufferedReader reader = null;
 		try {
 			reader = new BufferedReader(new FileReader(file));
-			easyList = new Gson().fromJson(reader, EasyList.class);
+			easyList = new Gson().fromJson(reader, EasyListFilterImpl.class);
 		} catch (final Exception e) {
 			if (e instanceof FileNotFoundException) {
 				LOGGER.warn("reading {} ({})", file, e.getMessage());
 			} else {
 				LOGGER.error("reading {}", file, e);
 			}
-			easyList = new EasyList(true);
+			easyList = new EasyListFilterImpl(true);
 		} finally {
 			try {
 				reader.close();
@@ -51,7 +51,7 @@ public class Local {
 		return easyList;
 	}
 
-	public void save(final EasyList easyList) {
+	public void save(final EasyListFilterImpl easyList) {
 		LOGGER.info("saving {} rules to {}", easyList.getRuleCount(), file);
 
 		BufferedWriter writer = null;

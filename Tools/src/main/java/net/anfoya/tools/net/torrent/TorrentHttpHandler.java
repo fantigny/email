@@ -5,18 +5,17 @@ import java.net.URL;
 import java.net.URLConnection;
 
 import net.anfoya.tools.net.filtered.FilteredHttpHandler;
-import net.anfoya.tools.net.filtered.UrlFilter;
+import net.anfoya.tools.net.filtered.engine.RuleSet;
 
 public class TorrentHttpHandler extends FilteredHttpHandler {
-	public TorrentHttpHandler(final UrlFilter filter) {
+	public TorrentHttpHandler(final RuleSet filter) {
 		super(filter);
 	}
 
 	@Override
 	protected URLConnection openConnection(final URL url) throws IOException {
-		final URLConnection urlConnection = super.openConnection(url);
 		return url.toString().endsWith(".torrent")
 			? new TorrentConnection(url)
-			: urlConnection;
+			: super.openConnection(url);
 	}
 }

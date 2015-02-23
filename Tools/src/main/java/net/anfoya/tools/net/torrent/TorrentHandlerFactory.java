@@ -3,12 +3,12 @@ package net.anfoya.tools.net.torrent;
 import java.net.URLStreamHandler;
 import java.net.URLStreamHandlerFactory;
 
-import net.anfoya.tools.net.filtered.UrlFilter;
+import net.anfoya.tools.net.filtered.engine.RuleSet;
 
 public class TorrentHandlerFactory implements URLStreamHandlerFactory {
-	private final UrlFilter filter;
+	private final RuleSet filter;
 
-	public TorrentHandlerFactory(final UrlFilter urlFilter) {
+	public TorrentHandlerFactory(final RuleSet urlFilter) {
 		this.filter = urlFilter;
 	}
 

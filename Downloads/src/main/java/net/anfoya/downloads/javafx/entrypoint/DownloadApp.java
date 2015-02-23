@@ -5,13 +5,6 @@ import java.net.CookieManager;
 import java.net.CookiePolicy;
 import java.net.URL;
 
-import net.anfoya.downloads.javafx.ComponentBuilder;
-import net.anfoya.downloads.javafx.SearchPane;
-import net.anfoya.downloads.javafx.SearchTabs;
-import net.anfoya.tools.net.PersistentCookieStore;
-import net.anfoya.tools.net.filtered.UrlFilter;
-import net.anfoya.tools.net.torrent.TorrentHandlerFactory;
-import net.anfoya.tools.util.ThreadPool;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -21,6 +14,13 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.Callback;
+import net.anfoya.downloads.javafx.ComponentBuilder;
+import net.anfoya.downloads.javafx.SearchPane;
+import net.anfoya.downloads.javafx.SearchTabs;
+import net.anfoya.tools.net.PersistentCookieStore;
+import net.anfoya.tools.net.filtered.engine.RuleSet;
+import net.anfoya.tools.net.torrent.TorrentHandlerFactory;
+import net.anfoya.tools.util.ThreadPool;
 
 public class DownloadApp extends Application {
 
@@ -29,7 +29,7 @@ public class DownloadApp extends Application {
 	}
 
 	private final PersistentCookieStore cookieStore;
-	private final UrlFilter urlFilter;
+	private final RuleSet ruleSet;
 
 	private final SearchTabs searchTabs;
 	private final SearchPane searchPane;
@@ -37,7 +37,7 @@ public class DownloadApp extends Application {
 	public DownloadApp() {
 		final ComponentBuilder compBuilder = new ComponentBuilder();
 		cookieStore = compBuilder.buildCookieStore();
-		urlFilter = compBuilder.buildUrlFilter();
+		ruleSet = compBuilder.buildUrlFilter();
 		searchTabs = compBuilder.buildSearchTabs();
 		searchPane = compBuilder.buildSearchPane();
 	}
@@ -55,9 +55,8 @@ public class DownloadApp extends Application {
 		cookieStore.load();
 		CookieHandler.setDefault(new CookieManager(cookieStore, CookiePolicy.ACCEPT_ALL));
 
-		urlFilter.setWithException(false);
-		urlFilter.loadRules();
-		URL.setURLStreamHandlerFactory(new TorrentHandlerFactory(urlFilter));
+		ruleSet.load();
+		URL.setURLStreamHandlerFactory(new TorrentHandlerFactory(ruleSet));
 
 		initGui(primaryStage);
 		initData();
@@ -83,7 +82,7 @@ public class DownloadApp extends Application {
 		});
 
 		final Scene scene = new Scene(mainPane, 1150, 800);
-		String css = getClass().getResource("/net/anfoya/tools/javafx/scene/control/button_flat.css").toExternalForm();
+		final String css = getClass().getResource("/net/anfoya/tools/javafx/scene/control/button_flat.css").toExternalForm();
 		scene.getStylesheets().add(css);
 
 		primaryStage.setTitle("Movie Search");

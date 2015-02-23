@@ -2,18 +2,18 @@ package net.anfoya.downloads.javafx;
 
 import net.anfoya.easylist.net.filtered.EasyListFilterImpl;
 import net.anfoya.tools.net.PersistentCookieStore;
-import net.anfoya.tools.net.filtered.UrlFilter;
+import net.anfoya.tools.net.filtered.engine.RuleSet;
 
 public class ComponentBuilder {
 	private final PersistentCookieStore cookieStore;
-	private final UrlFilter urlFilter;
+	private final RuleSet urlFilter;
 
 	private final SearchTabs searchTabs;
 	private final SearchPane searchPane;
 
 	public ComponentBuilder() {
 		cookieStore = new PersistentCookieStore();
-		urlFilter = new EasyListFilterImpl();
+		urlFilter = new EasyListFilterImpl(false);
 
 		searchTabs = new SearchTabs();
 		searchPane = new SearchPane();
@@ -31,7 +31,7 @@ public class ComponentBuilder {
 		return searchPane;
 	}
 
-	public UrlFilter buildUrlFilter() {
+	public RuleSet buildUrlFilter() {
 		return urlFilter;
 	}
 }

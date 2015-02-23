@@ -21,7 +21,7 @@ import net.anfoya.movies.service.MovieService;
 import net.anfoya.movies.service.ProfileService;
 import net.anfoya.movies.service.TagService;
 import net.anfoya.tools.net.PersistentCookieStore;
-import net.anfoya.tools.net.filtered.UrlFilter;
+import net.anfoya.tools.net.filtered.engine.RuleSet;
 
 import org.jgroups.JChannel;
 import org.slf4j.Logger;
@@ -40,7 +40,7 @@ public class ComponentBuilder {
 	private final MovieFileService movieFileService;
 
 	private final PersistentCookieStore cookieStore;
-	private final UrlFilter urlFilter;
+	private final RuleSet urlFilter;
 
 	private final FileConsolidationService fileConsoService;
 	private final MovieConsolidationService movieConsoService;
@@ -84,7 +84,7 @@ public class ComponentBuilder {
 		this.movieTagDao = new MovieTagDao(dataSource);
 
 		this.cookieStore = new PersistentCookieStore();
-		this.urlFilter = new EasyListFilterImpl();
+		this.urlFilter = new EasyListFilterImpl(false);
 
 		this.updateMgr = new UpdateManager(statusMgr);
 		this.tagService = new TagService(updateMgr, tagDao, movieTagDao);
@@ -147,7 +147,7 @@ public class ComponentBuilder {
 		return updateMgr;
 	}
 
-	public UrlFilter buildUrlFilter() {
+	public RuleSet buildUrlFilter() {
 		return urlFilter;
 	}
 }
