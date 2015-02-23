@@ -1,8 +1,9 @@
 package net.anfoya.easylist.net.filtered;
 
 import java.io.File;
-import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import net.anfoya.easylist.loader.Internet;
 import net.anfoya.easylist.loader.Local;
@@ -22,53 +23,61 @@ public class EasyListFilterImpl implements UrlFilter {
 		, "https://easylist-downloads.adblockplus.org/liste_fr.txt"
 	};
 
-	private final EasyList easyList;
+	private final EasyList delegate;
 
 	public EasyListFilterImpl() {
-		easyList = new EasyList(true);
+		delegate = new EasyList(true);
 	}
-	
+
 	@Override
-	public void setWithException(boolean withException) {
-		easyList.setWithException(withException);
+	public void setWithException(final boolean withException) {
+		delegate.setWithException(withException);
 	}
-	
+
 	@Override
 	public boolean isWithException() {
-		return easyList.isWithException();
+		return delegate.isWithException();
 	}
 
 	@Override
 	public void loadFilters() {
-		final File file = new File(EASYLIST_FILEPATH);
-		Local local = null;
-		if (file.exists()) {
-			local = new Local(file);
-			easyList.add(local.load());
-		}
+		final Local local = new Local(new File(EASYLIST_FILEPATH));
+		final Future<?> futureLocal = ThreadPool.getInstance().submit(new Runnable() {
+			@Override
+			public void run() {
+				final EasyList easyList = local.load();
+				EasyListFilterImpl.this.delegate.addAll(easyList);
+			}
+		});
 
-		if (!file.exists() || easyList.isEmpty() || local.isOutdated()) {
-			ThreadPool.getInstance().submit(new Runnable() {
-				@Override
-				public void run() {
+		ThreadPool.getInstance().submit(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					futureLocal.get();
+				} catch (InterruptedException | ExecutionException e) {
+					LOGGER.error("loading {}", EASYLIST_FILEPATH, e);
+					return;
+				}
+				if (delegate.isEmpty() || local.isOutdated()) {
 					final EasyList easyList = new EasyList(true);
 					for(final String urlStr: EASY_LIST_URLS) {
 						try {
 							final URL url = new URL(urlStr);
-							easyList.add(new Internet(url).load());
-							EasyListFilterImpl.this.easyList.clearAdd(easyList);
-						} catch (final MalformedURLException e) {
+							easyList.addAll(new Internet(url).load());
+							EasyListFilterImpl.this.delegate.replaceAll(easyList);
+						} catch (final Exception e) {
 							LOGGER.error("loading {}", urlStr, e);
 						}
 					}
-					new Local(file).save(easyList);
+					local.save(easyList);
 				}
-			});
-		}
+			}
+		});
 	}
 
 	@Override
-	public boolean filtered(final URL url) {
-		return easyList.applies(url.toString());
+	public boolean matches(final URL url) {
+		return delegate.matches(url.toString());
 	}
 }

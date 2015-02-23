@@ -16,7 +16,7 @@ public class FilteredHttpHandler extends Handler {
 
 	@Override
 	protected URLConnection openConnection(final URL url) throws IOException {
-		return filter.filtered(url)
+		return filter.matches(url)
 				? new EmptyUrlConnection()
 				: super.openConnection(url);
 	}

@@ -6,15 +6,17 @@ public enum Regex {
 	, HTTP_WILDCARD("^https?:\\/\\/")
 	, STARTS("^")
 	, ENDS("$")
+
+	, SPLIT("[\\^\\*]")
 	;
 
-	private final String regexp;
+	private final String value;
 
-	private Regex(final String regexp) {
-		this.regexp = regexp;
+	private Regex(final String value) {
+		this.value = value;
 	}
 
-	public String get() {
-		return regexp;
+	public String value() {
+		return value;
 	}
 }

@@ -9,19 +9,23 @@ public enum Terminal {
 	, SECTION("[")
 	, SEPARATOR("^")
 	, WILDCARD("*")
+	, DIV("##")
+	, EXCEPT_DIV("#@#")
+	, NOT("~")
+	, RULE_OPT("$")
 	;
 
-	private final String term;
+	private final String value;
 
-	private Terminal(final String term) {
-		this.term = term;
+	private Terminal(final String value) {
+		this.value = value;
 	}
 
-	public String get() {
-		return term;
+	public String value() {
+		return value;
 	}
 
 	public int length() {
-		return term.length();
+		return value.length();
 	}
 }

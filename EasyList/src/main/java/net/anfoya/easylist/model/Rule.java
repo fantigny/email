@@ -4,34 +4,44 @@ import java.util.regex.Pattern;
 
 public class Rule {
 
-	private final boolean exception;
+	public static Rule getEmptyRule() {
+		return new Rule(RuleType.empty, null, null, null);
+	}
+
+	private final RuleType type;
 	private final Pattern regex;
+	private final String effLine;
 	private final String line;
 
-	public Rule(final boolean exception, final Pattern regex, final String line) {
-		this.exception = exception;
+	public Rule(final RuleType type, final Pattern regex, final String effLine, final String line) {
+		this.type = type;
 		this.regex = regex;
+		this.effLine = effLine;
 		this.line = line;
 	}
 
-	public boolean isException() {
-		return exception;
+	@Override
+	public String toString() {
+		return type.toString() + " \"" + effLine + "\" (" + regex.toString() + ")";
 	}
 
 	public boolean applies(final String url) {
 		return regex.matcher(url).matches();
 	}
 
-	public boolean isEmpty() {
-		return regex == null;
+	public Pattern getRegex() {
+		return regex;
 	}
 
-	@Override
-	public String toString() {
-		return exception? "exception": "exclusion" + " \"" + line + "\" (" + regex.toString() + ")";
+	public String getEffectiveLine() {
+		return effLine;
 	}
 
-	public static Rule getEmptyRule() {
-		return new Rule(false, null, null);
+	public String getLine() {
+		return line;
+	}
+
+	public RuleType getType() {
+		return type;
 	}
 }

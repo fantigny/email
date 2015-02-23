@@ -3,6 +3,7 @@ package net.anfoya.easylist.loader;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -33,7 +34,11 @@ public class Local {
 			reader = new BufferedReader(new FileReader(file));
 			easyList = new Gson().fromJson(reader, EasyList.class);
 		} catch (final Exception e) {
-			LOGGER.warn("reading {}", file, e);
+			if (e instanceof FileNotFoundException) {
+				LOGGER.warn("reading {} ({})", file, e.getMessage());
+			} else {
+				LOGGER.error("reading {}", file, e);
+			}
 			easyList = new EasyList(true);
 		} finally {
 			try {
@@ -71,5 +76,9 @@ public class Local {
 		} catch (final Exception e) {
 			return true;
 		}
+	}
+
+	public boolean exists() {
+		return file.exists();
 	}
 }

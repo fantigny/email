@@ -10,6 +10,7 @@ import java.net.URLStreamHandler;
 import net.anfoya.easylist.model.EasyList;
 import net.anfoya.easylist.model.Rule;
 import net.anfoya.easylist.parser.Parser;
+import net.anfoya.easylist.parser.ParserException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,8 +40,12 @@ public class Internet {
 			final Parser parser = new Parser();
 			String line;
 			while((line=reader.readLine()) != null) {
-				final Rule rule = parser.parse(line);
-				easyList.add(rule);
+				try {
+					final Rule rule = parser.parse(line);
+					easyList.add(rule);
+				} catch (final ParserException e) {
+					LOGGER.error("parsing {}", line, e);
+				}
 			}
 			LOGGER.info("loaded {} filters", easyList.getRuleCount());
 		} catch (final IOException e) {

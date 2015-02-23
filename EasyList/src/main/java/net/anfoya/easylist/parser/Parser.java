@@ -3,21 +3,50 @@ package net.anfoya.easylist.parser;
 import java.util.regex.Pattern;
 
 import net.anfoya.easylist.model.Rule;
+import net.anfoya.easylist.model.RuleType;
 
 public class Parser {
-	public Rule parse(final String line) {
-		return build(clean(line));
+	public Rule parse(final String line) throws ParserException {
+		// get effective line for parsing
+		String effLine;
+		try {
+			effLine = clean(line);
+		} catch(final Exception e) {
+			throw new ParserException("cleaning " + line, e);
+		}
+		if (effLine.isEmpty()) {
+			return Rule.getEmptyRule();
+		}
+
+		// check if regular or exception
+		final RuleType type;
+		if (effLine.startsWith(Terminal.EXCEPTION.value())) {
+			type = RuleType.exception;
+			effLine = effLine.substring(Terminal.EXCEPTION.length());
+		} else {
+			type = RuleType.exclusion;
+		}
+
+		// transform effective line to regular expression
+		Pattern regex;
+		try {
+			regex = buildRegex(effLine);
+		} catch(final Exception e) {
+			throw new ParserException("building regex for " + effLine, e);
+		}
+
+		return new Rule(type, regex, effLine, line);
 	}
 
 	private String clean(String line) {
 		if (line.isEmpty()
-				|| line.startsWith(Terminal.COMMENT.get())
-				|| line.startsWith(Terminal.SECTION.get())) {
+				|| line.startsWith(Terminal.COMMENT.value())
+				|| line.startsWith(Terminal.SECTION.value())) {
 			line = "";
 		}
 		if (line.contains("$")) {
-			if (line.startsWith(Terminal.EXCEPTION.get())) {
-				return "";
+			if (line.startsWith(Terminal.EXCEPTION.value())) {
+				line = "";
 			} else {
 				line = line.substring(0, line.indexOf("$"));
 			}
@@ -35,69 +64,65 @@ public class Parser {
 		return line;
 	}
 
-	private Rule build(final String line) {
-		if (line.isEmpty()) {
-			return Rule.getEmptyRule();
-		}
+	private Pattern buildRegex(final String line) {
+		String rule = line;
+		int ruleIndex = 0;
 
-		String ruleStr = line;
-		final boolean isException = ruleStr.startsWith(Terminal.EXCEPTION.get());
-		if (isException) {
-			ruleStr = ruleStr.substring(Terminal.EXCEPTION.length());
-		}
-		final boolean isHttpWildCard = ruleStr.startsWith(Terminal.HTTP_WILDCARD.get());
+		// check beginning and end
+		final boolean isHttpWildCard = rule.startsWith(Terminal.HTTP_WILDCARD.value());
 		if (isHttpWildCard) {
-			ruleStr = ruleStr.substring(Terminal.HTTP_WILDCARD.length());
+			rule = rule.substring(Terminal.HTTP_WILDCARD.length());
 		}
-		final boolean isStarts = ruleStr.startsWith(Terminal.STARTS.get());
+		final boolean isStarts = rule.startsWith(Terminal.STARTS.value());
 		if (isStarts) {
-			ruleStr = ruleStr.substring(Terminal.STARTS.length());
+			rule = rule.substring(Terminal.STARTS.length());
 		}
-		final boolean isEnds = ruleStr.startsWith(Terminal.ENDS.get());
+		final boolean isEnds = rule.startsWith(Terminal.ENDS.value());
 		if (isEnds) {
-			ruleStr = ruleStr.substring(Terminal.ENDS.length());
+			rule = rule.substring(Terminal.ENDS.length());
 		}
 
-		final String[] parts = line.split("[\\^\\*]");
+		// get wildcard parts
+		final String[] parts = line.split(Regex.SPLIT.value());
 
+		// build regex
 		String regex = "";
-		int lineIndex = 0;
 		for(final String part: parts) {
 			regex += part.isEmpty()? "": Pattern.quote(part);
-			if (ruleStr.length() > lineIndex + part.length()) {
-				switch (ruleStr.charAt(lineIndex + part.length())) {
+			if (rule.length() > ruleIndex + part.length()) {
+				switch (rule.charAt(ruleIndex + part.length())) {
 				case '^':
-					regex += Regex.SEPARATOR.get();
-					lineIndex += part.length() + 1;
+					regex += Regex.SEPARATOR.value();
+					ruleIndex += part.length() + 1;
 					break;
 				case '*':
-					regex += Regex.WILDCARD.get();
-					lineIndex += part.length() + 1;
+					regex += Regex.WILDCARD.value();
+					ruleIndex += part.length() + 1;
 					break;
 				}
 			}
 		}
 
-		if (regex.isEmpty() && !ruleStr.isEmpty()) {
-			regex = ruleStr
-					.replaceAll("\\" + Terminal.SEPARATOR.get(), Regex.SEPARATOR.get())
-					.replaceAll("\\" + Terminal.WILDCARD, Regex.WILDCARD.get());
+		if (regex.isEmpty() && !rule.isEmpty()) {
+			regex = rule
+					.replaceAll("\\" + Terminal.SEPARATOR.value(), Regex.SEPARATOR.value())
+					.replaceAll("\\" + Terminal.WILDCARD.value(), Regex.WILDCARD.value());
 		}
 
 		if (isHttpWildCard) {
-			regex = Regex.HTTP_WILDCARD.get() + regex;
+			regex = Regex.HTTP_WILDCARD.value() + regex;
 		} else if (isStarts) {
-			regex = Regex.STARTS.get() + regex;
-		} else if (!regex.startsWith(Regex.STARTS.get())) {
-			regex = Regex.WILDCARD.get() + regex;
+			regex = Regex.STARTS.value() + regex;
+		} else if (!regex.startsWith(Regex.STARTS.value())) {
+			regex = Regex.WILDCARD.value() + regex;
 		}
 
 		if (isEnds) {
-			regex += Regex.ENDS.get();
-		} else if (!regex.endsWith(Regex.WILDCARD.get())) {
-			regex += Regex.WILDCARD.get();
+			regex += Regex.ENDS.value();
+		} else if (!regex.endsWith(Regex.WILDCARD.value())) {
+			regex += Regex.WILDCARD.value();
 		}
 
-		return new Rule(isException, Pattern.compile(regex), line);
+		return Pattern.compile(regex);
 	}
 }
