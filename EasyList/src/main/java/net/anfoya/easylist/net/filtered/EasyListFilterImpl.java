@@ -2,11 +2,11 @@ package net.anfoya.easylist.net.filtered;
 
 import java.io.File;
 import java.net.URL;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import net.anfoya.easylist.loader.Internet;
 import net.anfoya.easylist.loader.Local;
+import net.anfoya.easylist.model.Config;
 import net.anfoya.easylist.model.EasyList;
 import net.anfoya.tools.net.filtered.UrlFilter;
 import net.anfoya.tools.util.ThreadPool;
@@ -17,15 +17,11 @@ import org.slf4j.LoggerFactory;
 public class EasyListFilterImpl implements UrlFilter {
 	private static final Logger LOGGER = LoggerFactory.getLogger(EasyListFilterImpl.class);
 
-	private static final String EASYLIST_FILEPATH = System.getProperty("java.io.tmpdir") + "/easylist.json";
-	private static final String[] EASY_LIST_URLS = {
-		"https://easylist-downloads.adblockplus.org/easylist.txt"
-		, "https://easylist-downloads.adblockplus.org/liste_fr.txt"
-	};
-
+	private final Config config;
 	private final EasyList delegate;
 
 	public EasyListFilterImpl() {
+		config = new Config();
 		delegate = new EasyList(true);
 	}
 
@@ -40,13 +36,13 @@ public class EasyListFilterImpl implements UrlFilter {
 	}
 
 	@Override
-	public void loadFilters() {
-		final Local local = new Local(new File(EASYLIST_FILEPATH));
+	public void loadRules() {
+		final Local local = new Local(new File(config.getFilePath()));
 		final Future<?> futureLocal = ThreadPool.getInstance().submit(new Runnable() {
 			@Override
 			public void run() {
-				final EasyList easyList = local.load();
-				EasyListFilterImpl.this.delegate.addAll(easyList);
+				final EasyList localList = local.load();
+				delegate.addAll(localList);
 			}
 		});
 
@@ -55,22 +51,21 @@ public class EasyListFilterImpl implements UrlFilter {
 			public void run() {
 				try {
 					futureLocal.get();
-				} catch (InterruptedException | ExecutionException e) {
-					LOGGER.error("loading {}", EASYLIST_FILEPATH, e);
+				} catch (final Exception e) {
+					LOGGER.error("loading {}", config.getFilePath(), e);
 					return;
 				}
 				if (delegate.isEmpty() || local.isOutdated()) {
-					final EasyList easyList = new EasyList(true);
-					for(final String urlStr: EASY_LIST_URLS) {
+					final EasyList internetList = new EasyList(true);
+					for(final String url: config.getUrls()) {
 						try {
-							final URL url = new URL(urlStr);
-							easyList.addAll(new Internet(url).load());
-							EasyListFilterImpl.this.delegate.replaceAll(easyList);
+							internetList.addAll(new Internet(new URL(url)).load());
+							delegate.replaceAll(internetList);
 						} catch (final Exception e) {
-							LOGGER.error("loading {}", urlStr, e);
+							LOGGER.error("loading {}", url, e);
 						}
 					}
-					local.save(easyList);
+					local.save(internetList);
 				}
 			}
 		});

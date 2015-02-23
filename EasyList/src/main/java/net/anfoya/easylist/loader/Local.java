@@ -46,12 +46,12 @@ public class Local {
 			} catch (final Exception e) {}
 		}
 
-		LOGGER.info("loaded {} filters", easyList.getRuleCount());
+		LOGGER.info("loaded {} rules", easyList.getRuleCount());
 		return easyList;
 	}
 
 	public void save(final EasyList easyList) {
-		LOGGER.info("saving {} filters to {}", easyList.getRuleCount(), file);
+		LOGGER.info("saving {} rules to {}", easyList.getRuleCount(), file);
 
 		BufferedWriter writer = null;
 		try {

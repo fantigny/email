@@ -56,7 +56,7 @@ public class DownloadApp extends Application {
 		CookieHandler.setDefault(new CookieManager(cookieStore, CookiePolicy.ACCEPT_ALL));
 
 		urlFilter.setWithException(false);
-		urlFilter.loadFilters();
+		urlFilter.loadRules();
 		URL.setURLStreamHandlerFactory(new TorrentHandlerFactory(urlFilter));
 
 		initGui(primaryStage);

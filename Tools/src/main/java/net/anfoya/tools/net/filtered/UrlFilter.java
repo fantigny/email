@@ -3,7 +3,7 @@ package net.anfoya.tools.net.filtered;
 import java.net.URL;
 
 public interface UrlFilter {
-	void loadFilters();
+	void loadRules();
 	boolean matches(URL url);
 	void setWithException(boolean withException);
 	boolean isWithException();

@@ -109,7 +109,7 @@ public class BrowserApp extends Application {
 		});
 
 		urlFilter.setWithException(false);
-		urlFilter.loadFilters();
+		urlFilter.loadRules();
 		URL.setURLStreamHandlerFactory(new FilteredHandlerFactory(urlFilter));
 
 		cookieStore.load();
