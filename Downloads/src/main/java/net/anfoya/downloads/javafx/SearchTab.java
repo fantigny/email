@@ -15,7 +15,7 @@ import javafx.scene.web.WebHistory;
 import javafx.scene.web.WebHistory.Entry;
 import javafx.scene.web.WebView;
 import javafx.util.Callback;
-import net.anfoya.tools.javafx.scene.control.TitledProgressBar;
+import net.anfoya.javafx.scene.control.TitledProgressBar;
 import net.anfoya.tools.model.Website;
 
 public class SearchTab extends Tab {

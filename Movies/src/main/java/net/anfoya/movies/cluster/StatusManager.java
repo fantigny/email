@@ -14,7 +14,7 @@ import java.util.concurrent.Future;
 
 import javafx.util.Callback;
 import net.anfoya.movies.model.Status;
-import net.anfoya.tools.util.ThreadPool;
+import net.anfoya.tools.ThreadPool;
 
 import org.jgroups.JChannel;
 import org.jgroups.Message;

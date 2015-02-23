@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 import net.anfoya.movies.model.Section;
 import net.anfoya.movies.model.Tag;
 import net.anfoya.movies.service.TagService;
-import net.anfoya.tools.util.ThreadPool;
+import net.anfoya.tools.ThreadPool;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;

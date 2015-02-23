@@ -31,6 +31,9 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.Callback;
 import javafx.util.Duration;
+import net.anfoya.java.net.PersistentCookieStore;
+import net.anfoya.java.net.filtered.FilteredHandlerFactory;
+import net.anfoya.java.net.filtered.engine.RuleSet;
 import net.anfoya.movies.cluster.StatusManager;
 import net.anfoya.movies.cluster.UpdateManager;
 import net.anfoya.movies.javafx.ComponentBuilder;
@@ -45,10 +48,7 @@ import net.anfoya.movies.model.Section;
 import net.anfoya.movies.model.Status;
 import net.anfoya.movies.model.Tag;
 import net.anfoya.movies.service.MovieService;
-import net.anfoya.tools.net.PersistentCookieStore;
-import net.anfoya.tools.net.filtered.FilteredHandlerFactory;
-import net.anfoya.tools.net.filtered.engine.RuleSet;
-import net.anfoya.tools.util.ThreadPool;
+import net.anfoya.tools.ThreadPool;
 
 import org.slf4j.bridge.SLF4JBridgeHandler;
 

@@ -3,6 +3,8 @@ package net.anfoya.movies.javafx;
 import java.io.IOException;
 
 import net.anfoya.easylist.net.filtered.EasyListFilterImpl;
+import net.anfoya.java.net.PersistentCookieStore;
+import net.anfoya.java.net.filtered.engine.RuleSet;
 import net.anfoya.movies.cluster.LockManager;
 import net.anfoya.movies.cluster.StatusManager;
 import net.anfoya.movies.cluster.UpdateManager;
@@ -20,8 +22,6 @@ import net.anfoya.movies.service.MovieFileService;
 import net.anfoya.movies.service.MovieService;
 import net.anfoya.movies.service.ProfileService;
 import net.anfoya.movies.service.TagService;
-import net.anfoya.tools.net.PersistentCookieStore;
-import net.anfoya.tools.net.filtered.engine.RuleSet;
 
 import org.jgroups.JChannel;
 import org.slf4j.Logger;

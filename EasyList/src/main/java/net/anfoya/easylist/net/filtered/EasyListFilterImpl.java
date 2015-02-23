@@ -1,6 +1,5 @@
 package net.anfoya.easylist.net.filtered;
 
-import java.io.File;
 import java.net.URL;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -10,8 +9,8 @@ import net.anfoya.easylist.loader.Internet;
 import net.anfoya.easylist.loader.Local;
 import net.anfoya.easylist.model.Config;
 import net.anfoya.easylist.model.Rule;
-import net.anfoya.tools.net.filtered.engine.RuleSet;
-import net.anfoya.tools.util.ThreadPool;
+import net.anfoya.java.net.filtered.engine.RuleSet;
+import net.anfoya.tools.ThreadPool;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +79,7 @@ public class EasyListFilterImpl implements RuleSet {
 
 	@Override
 	public void load() {
-		final Local local = new Local(new File(config.getFilePath()));
+		final Local local = new Local(config.getFilePath());
 		final Future<?> futureLocal = ThreadPool.getInstance().submit(new Runnable() {
 			@Override
 			public void run() {

@@ -1,23 +1,23 @@
-package net.anfoya.tools.net.filtered;
+package net.anfoya.java.net.filtered;
 
 import java.net.URLStreamHandler;
 import java.net.URLStreamHandlerFactory;
 
-import net.anfoya.tools.net.filtered.engine.RuleSet;
+import net.anfoya.java.net.filtered.engine.RuleSet;
 
 public class FilteredHandlerFactory implements URLStreamHandlerFactory {
-	private final RuleSet filter;
+	private final RuleSet ruleSet;
 
-	public FilteredHandlerFactory(final RuleSet filter) {
-		this.filter = filter;
+	public FilteredHandlerFactory(final RuleSet ruleSet) {
+		this.ruleSet = ruleSet;
 	}
 
 	@Override
 	public URLStreamHandler createURLStreamHandler(final String protocol) {
 		if ("http".equals(protocol)) {
-			return new FilteredHttpHandler(filter);
+			return new FilteredHttpHandler(ruleSet);
 		} else if ("https".equals(protocol)) {
-			return new FilteredHttpsHandler(filter);
+			return new FilteredHttpsHandler(ruleSet);
 		} else {
 			return null;
 		}

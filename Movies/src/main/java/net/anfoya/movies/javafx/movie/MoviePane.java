@@ -14,14 +14,14 @@ import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
+import net.anfoya.javafx.scene.control.Title;
+import net.anfoya.javafx.scene.control.TitledProgressBar;
 import net.anfoya.movies.model.Config;
 import net.anfoya.movies.model.Movie;
 import net.anfoya.movies.model.Profile;
 import net.anfoya.movies.model.Tag;
 import net.anfoya.movies.service.MovieService;
 import net.anfoya.movies.service.TagService;
-import net.anfoya.tools.javafx.scene.control.Title;
-import net.anfoya.tools.javafx.scene.control.TitledProgressBar;
 import net.anfoya.tools.model.Website;
 
 

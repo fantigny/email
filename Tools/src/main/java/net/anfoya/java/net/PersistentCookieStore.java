@@ -1,10 +1,5 @@
-package net.anfoya.tools.net;
+package net.anfoya.java.net;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.net.CookieManager;
 import java.net.CookieStore;
@@ -15,42 +10,34 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import net.anfoya.java.io.JsonFile;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
-public class PersistentCookieStore implements CookieStore {
+@SuppressWarnings("serial")
+public class PersistentCookieStore
+		extends JsonFile<Map<URI, List<HttpCookie>>>
+		implements CookieStore {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(PersistentCookieStore.class);
 	private static final String COOKIE_FILEPATH = System.getProperty("java.io.tmpdir") + "/cookie_store.json";
 
-	private final File file;
     private final CookieStore delegate;
 
     public PersistentCookieStore() {
-        this.file = new File(PersistentCookieStore.COOKIE_FILEPATH);
+    	super(COOKIE_FILEPATH);
     	this.delegate = new CookieManager().getCookieStore();
     }
 
 	public void load() {
-		File file = new File(COOKIE_FILEPATH);
-		if (!file.exists()) {
-			return;
-		}
-		
-        LOGGER.info("loading {}", file.getPath());
-    	BufferedReader reader = null;
-    	Map<URI, List<HttpCookie>> cookieMap = null;
+		Map<URI, List<HttpCookie>> cookieMap = null;
     	try {
-    		reader = new BufferedReader(new FileReader(file));
-    		cookieMap = new Gson().fromJson(reader.readLine(), new TypeToken<Map<URI, List<HttpCookie>>>(){}.getType());
+        	cookieMap = load(new TypeToken<Map<URI, List<HttpCookie>>>(){}.getType());
 		} catch (final Exception e) {
-			LOGGER.warn("reading {}", file.getPath(), e);
-		} finally {
-			try {
-				reader.close();
-			} catch (final Exception e) {}
+			LOGGER.warn("reading {}", this, e);
 		}
 
         if (cookieMap != null) {
@@ -61,12 +48,12 @@ public class PersistentCookieStore implements CookieStore {
         			delegate.add(uri, cookie);
         		}
         	}
+
+        	LOGGER.info("loaded {} cookies", cookieMap.values().size());
         }
 	}
 
 	public void save() {
-    	LOGGER.info("saving to {}", file.getPath());
-
     	final Map<URI, List<HttpCookie>> cookieMap = new HashMap<URI, List<HttpCookie>>();
     	for(final URI uri: delegate.getURIs()) {
     		final List<HttpCookie> cookies = delegate.get(uri);
@@ -74,26 +61,21 @@ public class PersistentCookieStore implements CookieStore {
     		LOGGER.debug("adding cookie {} -- {}", uri.toString(), cookies.toString());
     	}
 
-    	BufferedWriter writer = null;
+    	LOGGER.info("saving {} cookies", cookieMap.values().size());
         try {
-        	writer = new BufferedWriter(new FileWriter(file));
-        	writer.write(new Gson().toJson(cookieMap));
+        	save(cookieMap);
 		} catch (final IOException e) {
-			LOGGER.error("writing {}", file.getPath(), e);
-		} finally {
-			try {
-				writer.close();
-			} catch (final IOException e) {}
+			LOGGER.error("writing {}", this, e);
 		}
     }
-	
+
 	@Override
-	public void add(URI uri, HttpCookie cookie) {
+	public void add(final URI uri, final HttpCookie cookie) {
 		delegate.add(uri, cookie);
 	}
 
 	@Override
-	public List<HttpCookie> get(URI uri) {
+	public List<HttpCookie> get(final URI uri) {
 		return delegate.get(uri);
 	}
 
@@ -108,7 +90,7 @@ public class PersistentCookieStore implements CookieStore {
 	}
 
 	@Override
-	public boolean remove(URI uri, HttpCookie cookie) {
+	public boolean remove(final URI uri, final HttpCookie cookie) {
 		return delegate.remove(uri, cookie);
 	}
 

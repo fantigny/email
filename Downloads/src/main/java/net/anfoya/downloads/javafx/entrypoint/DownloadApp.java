@@ -17,10 +17,10 @@ import javafx.util.Callback;
 import net.anfoya.downloads.javafx.ComponentBuilder;
 import net.anfoya.downloads.javafx.SearchPane;
 import net.anfoya.downloads.javafx.SearchTabs;
-import net.anfoya.tools.net.PersistentCookieStore;
-import net.anfoya.tools.net.filtered.engine.RuleSet;
-import net.anfoya.tools.net.torrent.TorrentHandlerFactory;
-import net.anfoya.tools.util.ThreadPool;
+import net.anfoya.java.net.PersistentCookieStore;
+import net.anfoya.java.net.filtered.engine.RuleSet;
+import net.anfoya.java.net.torrent.TorrentHandlerFactory;
+import net.anfoya.tools.ThreadPool;
 
 public class DownloadApp extends Application {
 
@@ -82,7 +82,7 @@ public class DownloadApp extends Application {
 		});
 
 		final Scene scene = new Scene(mainPane, 1150, 800);
-		final String css = getClass().getResource("/net/anfoya/tools/javafx/scene/control/button_flat.css").toExternalForm();
+		final String css = getClass().getResource("/net/anfoya/javafx/scene/control/button_flat.css").toExternalForm();
 		scene.getStylesheets().add(css);
 
 		primaryStage.setTitle("Movie Search");

@@ -1,85 +1,50 @@
 package net.anfoya.easylist.loader;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Calendar;
 
 import net.anfoya.easylist.net.filtered.EasyListFilterImpl;
+import net.anfoya.java.io.JsonFile;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
 
-
-public class Local {
+@SuppressWarnings("serial")
+public class Local extends JsonFile<EasyListFilterImpl> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Local.class);
 
-	private final File file;
-
-	public Local(final File file) {
-		this.file = file;
+	public Local(final String filepath) {
+		super(filepath);
 	}
 
 	public EasyListFilterImpl load() {
-		LOGGER.info("loading {}", file);
 		final long start = System.currentTimeMillis();
 		EasyListFilterImpl easyList;
-		BufferedReader reader = null;
 		try {
-			reader = new BufferedReader(new FileReader(file));
-			easyList = new Gson().fromJson(reader, EasyListFilterImpl.class);
-		} catch (final Exception e) {
-			if (e instanceof FileNotFoundException) {
-				LOGGER.warn("reading {} ({})", file, e.getMessage());
-			} else {
-				LOGGER.error("reading {}", file, e);
-			}
+			easyList = load(EasyListFilterImpl.class);
+		} catch (final FileNotFoundException e) {
+			LOGGER.warn("file not fount {}", this);
 			easyList = new EasyListFilterImpl(true);
-		} finally {
-			try {
-				reader.close();
-			} catch (final Exception e) {}
 		}
 
 		LOGGER.info("loaded {} rules (in {}ms)", easyList.getRuleCount(), System.currentTimeMillis()-start);
 		return easyList;
 	}
 
+	@Override
 	public void save(final EasyListFilterImpl easyList) {
-		LOGGER.info("saving {} rules to {}", easyList.getRuleCount(), file);
+		LOGGER.info("saving {} rules", easyList.getRuleCount());
 
-		BufferedWriter writer = null;
 		try {
-			writer = new BufferedWriter(new FileWriter(file));
-			new Gson().toJson(easyList, writer);
+			super.save(easyList);
 		} catch (final IOException e) {
-			LOGGER.warn("writing {}", file, e);
-		} finally {
-			try {
-				writer.close();
-			} catch (final Exception e) {}
+			LOGGER.error("writing {}", this, e);
 		}
 	}
 
 	public boolean isOutdated() {
-		try {
-			final Calendar today = Calendar.getInstance();
-			today.set(Calendar.HOUR, 0);
-			today.set(Calendar.MINUTE, 0);
-			today.set(Calendar.SECOND, 0);
-			return file.lastModified() < today.getTimeInMillis();
-		} catch (final Exception e) {
-			return true;
-		}
-	}
-
-	public boolean exists() {
-		return file.exists();
+		return isOlder(Calendar.DAY_OF_YEAR, 1);
 	}
 }

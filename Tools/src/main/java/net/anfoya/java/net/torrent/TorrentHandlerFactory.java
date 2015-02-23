@@ -1,9 +1,9 @@
-package net.anfoya.tools.net.torrent;
+package net.anfoya.java.net.torrent;
 
 import java.net.URLStreamHandler;
 import java.net.URLStreamHandlerFactory;
 
-import net.anfoya.tools.net.filtered.engine.RuleSet;
+import net.anfoya.java.net.filtered.engine.RuleSet;
 
 public class TorrentHandlerFactory implements URLStreamHandlerFactory {
 	private final RuleSet filter;

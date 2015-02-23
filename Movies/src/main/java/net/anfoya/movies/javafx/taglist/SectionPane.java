@@ -5,7 +5,7 @@ import java.util.Set;
 import net.anfoya.movies.model.Section;
 import net.anfoya.movies.model.Tag;
 import net.anfoya.movies.service.TagService;
-import net.anfoya.tools.util.ThreadPool;
+import net.anfoya.tools.ThreadPool;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;

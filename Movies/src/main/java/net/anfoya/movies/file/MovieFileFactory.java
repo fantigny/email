@@ -6,7 +6,7 @@ import java.net.URL;
 import net.anfoya.movies.file.dependant.MacMovieFile;
 import net.anfoya.movies.file.dependant.UnxMovieFile;
 import net.anfoya.movies.file.dependant.WinMovieFile;
-import net.anfoya.tools.util.OperatingSystem;
+import net.anfoya.tools.OperatingSystem;
 
 public class MovieFileFactory {
 	private static final OperatingSystem.Family OS_FAMILY = OperatingSystem.getInstance().getFamily();

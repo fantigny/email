@@ -1,14 +1,14 @@
-package net.anfoya.tools.net.torrent;
+package net.anfoya.java.net.torrent;
 
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 
-import net.anfoya.tools.net.filtered.FilteredHttpHandler;
-import net.anfoya.tools.net.filtered.engine.RuleSet;
+import net.anfoya.java.net.filtered.FilteredHttpsHandler;
+import net.anfoya.java.net.filtered.engine.RuleSet;
 
-public class TorrentHttpHandler extends FilteredHttpHandler {
-	public TorrentHttpHandler(final RuleSet filter) {
+public class TorrentHttpsHandler extends FilteredHttpsHandler {
+	public TorrentHttpsHandler(final RuleSet filter) {
 		super(filter);
 	}
 

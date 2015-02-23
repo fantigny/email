@@ -1,4 +1,4 @@
-package net.anfoya.tools.javafx.scene.control;
+package net.anfoya.javafx.scene.control;
 
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.ObjectProperty;
@@ -23,7 +23,7 @@ public class TitledProgressBar extends StackPane {
         bar = new ProgressBar();
         bar.setEventDispatcher(title.getEventDispatcher());
 		bar.prefWidthProperty().bind(widthProperty());
-		
+
 		stateProperty = new SimpleObjectProperty<State>();
 		stateProperty.addListener(new ChangeListener<State>() {
 			@Override
@@ -45,7 +45,7 @@ public class TitledProgressBar extends StackPane {
 	public DoubleProperty progressProperty() {
 		return bar.progressProperty();
 	}
-	
+
 	public ObjectProperty<State> stateProperty() {
 		return stateProperty;
 	}

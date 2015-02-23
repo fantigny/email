@@ -7,10 +7,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import net.anfoya.javafx.scene.control.Title;
 import net.anfoya.movies.model.Section;
 import net.anfoya.movies.model.Tag;
 import net.anfoya.movies.service.TagService;
-import net.anfoya.tools.javafx.scene.control.Title;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;

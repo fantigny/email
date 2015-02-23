@@ -2,11 +2,11 @@ package net.anfoya.movies.javafx.movielist;
 
 import java.util.Set;
 
+import net.anfoya.javafx.scene.control.Title;
 import net.anfoya.movies.model.Movie;
 import net.anfoya.movies.model.Tag;
 import net.anfoya.movies.model.Movie.SortOrder;
 import net.anfoya.movies.service.MovieService;
-import net.anfoya.tools.javafx.scene.control.Title;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;

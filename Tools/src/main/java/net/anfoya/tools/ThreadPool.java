@@ -1,4 +1,4 @@
-package net.anfoya.tools.util;
+package net.anfoya.tools;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;

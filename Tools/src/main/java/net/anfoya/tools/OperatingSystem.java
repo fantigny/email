@@ -1,4 +1,4 @@
-package net.anfoya.tools.util;
+package net.anfoya.tools;
 
 
 public final class OperatingSystem {

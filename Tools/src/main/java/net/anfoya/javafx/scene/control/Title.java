@@ -1,4 +1,4 @@
-package net.anfoya.tools.javafx.scene.control;
+package net.anfoya.javafx.scene.control;
 
 import javafx.geometry.Pos;
 import javafx.scene.layout.HBox;
