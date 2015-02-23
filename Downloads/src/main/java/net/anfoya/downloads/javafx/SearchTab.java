@@ -15,16 +15,16 @@ import javafx.scene.web.WebHistory;
 import javafx.scene.web.WebHistory.Entry;
 import javafx.scene.web.WebView;
 import javafx.util.Callback;
-import net.anfoya.downloads.javafx.model.MovieWebsite;
 import net.anfoya.tools.javafx.scene.control.TitledProgressBar;
+import net.anfoya.tools.model.Website;
 
 public class SearchTab extends Tab {
-	private final MovieWebsite website;
+	private final Website website;
 
 	private final LocationPane locationPane;
 	private final WebView view;
 
-	public SearchTab(final MovieWebsite website) {
+	public SearchTab(final Website website) {
 		this.website = website;
 
 		final BorderPane content = new BorderPane();
@@ -40,14 +40,15 @@ public class SearchTab extends Tab {
 		});
 		content.setCenter(view);
 
-		WebHistory history = view.getEngine().getHistory();
-		BooleanBinding backwardDisableProperty = Bindings.equal(0, history.currentIndexProperty());
-		BooleanBinding forwardDisableProperty = Bindings.equal(new ListBinding<Entry>() {
-		  protected ObservableList<Entry> computeValue() {
+		final WebHistory history = view.getEngine().getHistory();
+		final BooleanBinding backwardDisableProperty = Bindings.equal(0, history.currentIndexProperty());
+		final BooleanBinding forwardDisableProperty = Bindings.equal(new ListBinding<Entry>() {
+		  @Override
+		protected ObservableList<Entry> computeValue() {
 		     return history.getEntries();
 		  }
 		}.sizeProperty(), Bindings.add(1, history.currentIndexProperty()));
-		
+
 		locationPane = new LocationPane();
 		locationPane.locationProperty().bind(view.getEngine().locationProperty());
 		locationPane.runningProperty().bind(view.getEngine().getLoadWorker().runningProperty());
@@ -55,7 +56,7 @@ public class SearchTab extends Tab {
 		locationPane.forwardDisableProperty().bind(forwardDisableProperty);
 		locationPane.setOnHomeAction(new EventHandler<ActionEvent>() {
 			@Override
-			public void handle(ActionEvent arg0) {
+			public void handle(final ActionEvent arg0) {
 				goHome();
 			}
 		});

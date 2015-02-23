@@ -13,9 +13,10 @@ import java.util.Set;
 
 import javax.sql.DataSource;
 
+import net.anfoya.movies.model.Config;
 import net.anfoya.movies.model.Movie;
-import net.anfoya.movies.model.MovieWebsite;
 import net.anfoya.movies.model.Tag;
+import net.anfoya.tools.model.Website;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -242,7 +243,7 @@ public class MovieDao {
 	protected String urlMapToString(final Map<String, String> map) {
 		final StringBuilder sb = new StringBuilder();
 		if (!map.isEmpty()) {
-			for(final MovieWebsite website: MovieWebsite.LIST) {
+			for(final Website website: new Config().getWebsites()) {
 				final String url = map.get(website.getName());
 				sb.append(url).append("~");
 			}
@@ -257,7 +258,7 @@ public class MovieDao {
 			final String[] urlList = urls.split("~");
 			for(int i=0, n=urlList.length; i<n; i++) {
 				if (!urlList[i].equals("null")) {
-					map.put(MovieWebsite.LIST[i].getName(), urlList[i]);
+					map.put(new Config().getWebsites()[i].getName(), urlList[i]);
 				}
 			}
 		}

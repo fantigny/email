@@ -4,14 +4,6 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import net.anfoya.movies.model.Movie;
-import net.anfoya.movies.model.MovieWebsite;
-import net.anfoya.movies.model.Profile;
-import net.anfoya.movies.model.Tag;
-import net.anfoya.movies.service.MovieService;
-import net.anfoya.movies.service.TagService;
-import net.anfoya.tools.javafx.scene.control.Title;
-import net.anfoya.tools.javafx.scene.control.TitledProgressBar;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
@@ -22,6 +14,15 @@ import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
+import net.anfoya.movies.model.Config;
+import net.anfoya.movies.model.Movie;
+import net.anfoya.movies.model.Profile;
+import net.anfoya.movies.model.Tag;
+import net.anfoya.movies.service.MovieService;
+import net.anfoya.movies.service.TagService;
+import net.anfoya.tools.javafx.scene.control.Title;
+import net.anfoya.tools.javafx.scene.control.TitledProgressBar;
+import net.anfoya.tools.model.Website;
 
 
 public class MoviePane extends TitledPane {
@@ -70,7 +71,7 @@ public class MoviePane extends TitledPane {
 		}
 
 		// initialize web tabs
-		for(final MovieWebsite website: MovieWebsite.LIST) {
+		for(final Website website: new Config().getWebsites()) {
 			final MovieWebPane webPanel = new MovieWebPane(website);
 			webPanel.setOnSavePage(toolboxPane.getOnSavePage());
 

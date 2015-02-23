@@ -21,7 +21,7 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.util.Callback;
 import net.anfoya.movies.model.Movie;
-import net.anfoya.movies.model.MovieWebsite;
+import net.anfoya.tools.model.Website;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +43,7 @@ public class MovieWebPane extends BorderPane {
 
 	private final WebEngine engine;
 
-	private final MovieWebsite website;
+	private final Website website;
 
 	private Mode mode;
 	private Set<Movie> movies;
@@ -51,7 +51,7 @@ public class MovieWebPane extends BorderPane {
 
 	private Callback<MovieWebPane, Void> savePageCallback;
 
-	public MovieWebPane(final MovieWebsite website) {
+	public MovieWebPane(final Website website) {
 		this.website = website;
 
 		this.mode = Mode.LOAD;
@@ -96,7 +96,7 @@ public class MovieWebPane extends BorderPane {
 	}
 
 	private void checkMoviePageUrl(final String url) {
-		if (!website.hasMoviePagePattern()) {
+		if (!website.hasDefaultPattern()) {
 			// no movie page for this website
 			return;
 		}
@@ -112,7 +112,7 @@ public class MovieWebPane extends BorderPane {
 			return;
 		}
 
-		if (url != null && url.contains(website.getMoviePagePattern())) {
+		if (url != null && url.contains(website.getDefaultPattern())) {
 			final Alert confirmDialog = new Alert(AlertType.CONFIRMATION
 					, "Save this page as default for " + movie.getName() + "?"
 					, new ButtonType[] { ButtonType.OK, ButtonType.CANCEL });
@@ -184,7 +184,7 @@ public class MovieWebPane extends BorderPane {
 
 		if (url.isEmpty()) {
 			// use website home page
-			url = website.getUrl();
+			url = website.getHomeUrl();
 		}
 
 		updateMode(url, visible);
@@ -222,7 +222,7 @@ public class MovieWebPane extends BorderPane {
 		engine.loadContent("<body><html>" + message + "</html></body>");
 	}
 
-	public MovieWebsite getWebsite() {
+	public Website getWebsite() {
 		return website;
 	}
 

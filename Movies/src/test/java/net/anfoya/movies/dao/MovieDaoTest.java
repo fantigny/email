@@ -10,12 +10,8 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-import net.anfoya.movies.dao.DataSource;
-import net.anfoya.movies.dao.MovieDao;
-import net.anfoya.movies.dao.MovieTagDao;
-import net.anfoya.movies.dao.TagDao;
+import net.anfoya.movies.model.Config;
 import net.anfoya.movies.model.Movie;
-import net.anfoya.movies.model.MovieWebsite;
 import net.anfoya.movies.model.Tag;
 
 import org.junit.AfterClass;
@@ -149,7 +145,7 @@ public class MovieDaoTest {
 		Assert.assertEquals(1, movies.size());
 		Assert.assertTrue(movies.iterator().next().getUrlMap().isEmpty());
 
-		final String name = MovieWebsite.LIST[0].getName();
+		final String name = new Config().getWebsites()[0].getName();
 		final String url = "=url_Allocine";
 		movieDao.updateUrls(movies.iterator().next().copyWithUrlMap(new HashMap<String, String>() {{ put(name, url); }}));
 
@@ -162,9 +158,9 @@ public class MovieDaoTest {
 	@Test
 	public void urlMapToString() {
 		final Map<String, String> map = new HashMap<String, String>();
-		map.put(MovieWebsite.LIST[0].getName(), "=url_Allocine");
-		map.put(MovieWebsite.LIST[1].getName(), "=url_RotTom");
-		map.put(MovieWebsite.LIST[3].getName(), "=url_Google");
+		map.put(new Config().getWebsites()[0].getName(), "=url_Allocine");
+		map.put(new Config().getWebsites()[1].getName(), "=url_RotTom");
+		map.put(new Config().getWebsites()[3].getName(), "=url_Google");
 
 		final String urls = movieDao.urlMapToString(map);
 		Assert.assertEquals("=url_Allocine~=url_RotTom~null~=url_Google~null~", urls);
@@ -174,12 +170,12 @@ public class MovieDaoTest {
 	public void stringToUrlMap() {
 		final Map<String, String> map = movieDao.stringToUrlMap("=url_Allocine~=url_RotTom~null~=url_Google~null~");
 
-		Assert.assertTrue(map.containsKey(MovieWebsite.LIST[0].getName()));
-		Assert.assertEquals(map.get(MovieWebsite.LIST[0].getName()), "=url_Allocine");
-		Assert.assertTrue(map.containsKey(MovieWebsite.LIST[1].getName()));
-		Assert.assertEquals(map.get(MovieWebsite.LIST[1].getName()), "=url_RotTom");
-		Assert.assertTrue(map.containsKey(MovieWebsite.LIST[3].getName()));
-		Assert.assertEquals(map.get(MovieWebsite.LIST[3].getName()), "=url_Google");
+		Assert.assertTrue(map.containsKey(new Config().getWebsites()[0].getName()));
+		Assert.assertEquals(map.get(new Config().getWebsites()[0].getName()), "=url_Allocine");
+		Assert.assertTrue(map.containsKey(new Config().getWebsites()[1].getName()));
+		Assert.assertEquals(map.get(new Config().getWebsites()[1].getName()), "=url_RotTom");
+		Assert.assertTrue(map.containsKey(new Config().getWebsites()[3].getName()));
+		Assert.assertEquals(map.get(new Config().getWebsites()[3].getName()), "=url_Google");
 	}
 
 	@Test

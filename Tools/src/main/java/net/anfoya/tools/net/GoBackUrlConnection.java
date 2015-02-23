@@ -1,4 +1,4 @@
-package net.anfoya.downloads.javafx.net;
+package net.anfoya.tools.net;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

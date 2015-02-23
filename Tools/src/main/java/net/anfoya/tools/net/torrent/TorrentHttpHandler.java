@@ -1,4 +1,4 @@
-package net.anfoya.downloads.javafx.net;
+package net.anfoya.tools.net.torrent;
 
 import java.io.IOException;
 import java.net.URL;

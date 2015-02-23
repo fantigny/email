@@ -5,10 +5,10 @@ import java.util.Optional;
 import java.util.Set;
 
 import net.anfoya.movies.model.Movie;
-import net.anfoya.movies.model.MovieWebsite;
 import net.anfoya.movies.model.Tag;
 import net.anfoya.movies.service.MovieService;
 import net.anfoya.movies.service.TagService;
+import net.anfoya.tools.model.Website;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
@@ -237,7 +237,7 @@ public class MovieToolboxPane extends TilePane {
 
 	private void savePage(final ActionEvent event) {
 		final MovieWebPane movieWebPane = (MovieWebPane) tabWebPane.getSelectionModel().getSelectedItem().getContent();
-		final MovieWebsite website = movieWebPane.getWebsite();
+		final Website website = movieWebPane.getWebsite();
 		final String url = movieWebPane.getUrl();
 
 		savePage(website.getName(), url, event);

@@ -1,4 +1,4 @@
-package net.anfoya.downloads.javafx.net;
+package net.anfoya.tools.net.torrent;
 
 import java.awt.Desktop;
 import java.io.BufferedReader;
@@ -10,6 +10,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
 
+import net.anfoya.tools.net.GoBackUrlConnection;
 import net.anfoya.tools.util.OperatingSystem;
 
 import org.slf4j.Logger;

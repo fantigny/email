@@ -3,7 +3,6 @@ package net.anfoya.downloads.javafx;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.anfoya.downloads.javafx.model.MovieWebsite;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
@@ -16,6 +15,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Callback;
+import net.anfoya.downloads.model.Config;
+import net.anfoya.tools.model.Website;
 
 public class SearchTabs extends TabPane {
 	private ContextMenu menu;
@@ -25,7 +26,7 @@ public class SearchTabs extends TabPane {
 		setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
 		getStyleClass().add(TabPane.STYLE_CLASS_FLOATING);
 
-		for(final MovieWebsite website: MovieWebsite.LIST) {
+		for(final Website website: new Config().getWebsites()) {
 			final SearchTab tab = new SearchTab(website);
 			tab.setOnViewClicked(new EventHandler<MouseEvent>() {
 				@Override

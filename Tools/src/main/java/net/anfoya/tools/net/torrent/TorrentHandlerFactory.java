@@ -1,4 +1,4 @@
-package net.anfoya.downloads.javafx.net;
+package net.anfoya.tools.net.torrent;
 
 import java.net.URLStreamHandler;
 import java.net.URLStreamHandlerFactory;
