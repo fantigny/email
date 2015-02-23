@@ -26,6 +26,7 @@ public class Internet {
 
 	public EasyList load() {
 		LOGGER.info("loading {}", url);
+		final long start = System.currentTimeMillis();
 		EasyList easyList;
 		try {
 			// avoid handler factory re-entrance
@@ -47,7 +48,7 @@ public class Internet {
 					LOGGER.error("parsing {}", line, e);
 				}
 			}
-			LOGGER.info("loaded {} filters", easyList.getRuleCount());
+			LOGGER.info("loaded {} rules (in {}ms)", easyList.getRuleCount(), System.currentTimeMillis()-start);
 		} catch (final IOException e) {
 			LOGGER.error("reading {}", url, e);
 			easyList = new EasyList(true);

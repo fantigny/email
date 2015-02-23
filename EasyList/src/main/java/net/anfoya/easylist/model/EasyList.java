@@ -79,11 +79,12 @@ public class EasyList {
 	private boolean matches(final Set<Rule> rules, final String url) {
 		for(final Rule rule: rules) {
 			if (rule.applies(url)) {
-				LOGGER.info("{} {} matches \"{}\" (regex={})"
+				LOGGER.info("{} \"{}\" matches \"{}\" (regex={}) (original line={})"
 						, rule.getType()
-						, rule.getLine()
+						, rule.getEffectiveLine()
 						, url
-						, rule.getRegex());
+						, rule.getRegex()
+						, rule.getLine());
 				return true;
 			}
 		}

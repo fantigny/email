@@ -28,6 +28,7 @@ public class Local {
 
 	public EasyList load() {
 		LOGGER.info("loading {}", file);
+		final long start = System.currentTimeMillis();
 		EasyList easyList;
 		BufferedReader reader = null;
 		try {
@@ -46,7 +47,7 @@ public class Local {
 			} catch (final Exception e) {}
 		}
 
-		LOGGER.info("loaded {} rules", easyList.getRuleCount());
+		LOGGER.info("loaded {} rules (in {}ms)", easyList.getRuleCount(), System.currentTimeMillis()-start);
 		return easyList;
 	}
 

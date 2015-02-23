@@ -54,12 +54,6 @@ public class Parser {
 		if (line.contains("##") || line.contains("#@#")) { // todo: div selector
 			line = "";
 		}
-		if (line.contains("~")) { // todo: opposite
-			line = line.substring(0, line.indexOf("~"));
-			if (line.length() == 1) {
-				line = "";
-			}
-		}
 
 		return line;
 	}
