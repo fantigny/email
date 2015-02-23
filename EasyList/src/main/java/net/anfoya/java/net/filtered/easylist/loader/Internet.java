@@ -1,4 +1,4 @@
-package net.anfoya.easylist.loader;
+package net.anfoya.java.net.filtered.easylist.loader;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -7,10 +7,10 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLStreamHandler;
 
-import net.anfoya.easylist.model.Rule;
-import net.anfoya.easylist.net.filtered.EasyListFilterImpl;
-import net.anfoya.easylist.parser.Parser;
-import net.anfoya.easylist.parser.ParserException;
+import net.anfoya.java.net.filtered.easylist.EasyListFilterImpl;
+import net.anfoya.java.net.filtered.easylist.model.Rule;
+import net.anfoya.java.net.filtered.easylist.parser.Parser;
+import net.anfoya.java.net.filtered.easylist.parser.ParserException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

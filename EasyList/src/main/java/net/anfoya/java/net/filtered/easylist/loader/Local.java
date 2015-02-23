@@ -1,11 +1,11 @@
-package net.anfoya.easylist.loader;
+package net.anfoya.java.net.filtered.easylist.loader;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Calendar;
 
-import net.anfoya.easylist.net.filtered.EasyListFilterImpl;
 import net.anfoya.java.io.JsonFile;
+import net.anfoya.java.net.filtered.easylist.EasyListFilterImpl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

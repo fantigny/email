@@ -1,9 +1,9 @@
-package net.anfoya.easylist.parser;
+package net.anfoya.java.net.filtered.easylist.parser;
 
 import java.util.regex.Pattern;
 
-import net.anfoya.easylist.model.Rule;
-import net.anfoya.easylist.model.RuleType;
+import net.anfoya.java.net.filtered.easylist.model.Rule;
+import net.anfoya.java.net.filtered.easylist.model.RuleType;
 
 public class Parser {
 	public Rule parse(final String line) throws ParserException {

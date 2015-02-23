@@ -1,4 +1,4 @@
-package net.anfoya.easylist.model;
+package net.anfoya.java.net.filtered.easylist.model;
 
 import java.util.regex.Pattern;
 

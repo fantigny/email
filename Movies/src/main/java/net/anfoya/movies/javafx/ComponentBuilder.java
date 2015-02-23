@@ -2,8 +2,8 @@ package net.anfoya.movies.javafx;
 
 import java.io.IOException;
 
-import net.anfoya.easylist.net.filtered.EasyListFilterImpl;
 import net.anfoya.java.net.PersistentCookieStore;
+import net.anfoya.java.net.filtered.easylist.EasyListFilterImpl;
 import net.anfoya.java.net.filtered.engine.RuleSet;
 import net.anfoya.movies.cluster.LockManager;
 import net.anfoya.movies.cluster.StatusManager;

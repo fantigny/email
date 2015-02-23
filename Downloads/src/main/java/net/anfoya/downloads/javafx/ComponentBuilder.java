@@ -1,7 +1,7 @@
 package net.anfoya.downloads.javafx;
 
-import net.anfoya.easylist.net.filtered.EasyListFilterImpl;
 import net.anfoya.java.net.PersistentCookieStore;
+import net.anfoya.java.net.filtered.easylist.EasyListFilterImpl;
 import net.anfoya.java.net.filtered.engine.RuleSet;
 
 public class ComponentBuilder {

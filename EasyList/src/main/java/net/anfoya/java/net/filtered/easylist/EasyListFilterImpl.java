@@ -1,14 +1,14 @@
-package net.anfoya.easylist.net.filtered;
+package net.anfoya.java.net.filtered.easylist;
 
 import java.net.URL;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Future;
 
-import net.anfoya.easylist.loader.Internet;
-import net.anfoya.easylist.loader.Local;
-import net.anfoya.easylist.model.Config;
-import net.anfoya.easylist.model.Rule;
+import net.anfoya.java.net.filtered.easylist.loader.Internet;
+import net.anfoya.java.net.filtered.easylist.loader.Local;
+import net.anfoya.java.net.filtered.easylist.model.Config;
+import net.anfoya.java.net.filtered.easylist.model.Rule;
 import net.anfoya.java.net.filtered.engine.RuleSet;
 import net.anfoya.tools.ThreadPool;
 

@@ -1,4 +1,4 @@
-package net.anfoya.easylist.model;
+package net.anfoya.java.net.filtered.easylist.model;
 
 public class Config {
 	private static final String EASYLIST_FILEPATH = System.getProperty("java.io.tmpdir") + "/easylist.json";

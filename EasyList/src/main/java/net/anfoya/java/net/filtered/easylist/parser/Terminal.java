@@ -1,4 +1,4 @@
-package net.anfoya.easylist.parser;
+package net.anfoya.java.net.filtered.easylist.parser;
 
 public enum Terminal {
 	EXCEPTION("@@")
