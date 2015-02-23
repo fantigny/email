@@ -77,7 +77,7 @@ public class Parser {
 		}
 
 		// get wildcard parts
-		final String[] parts = line.split(Regex.SPLIT.value());
+		final String[] parts = line.split(Regex.SPLIT_RULE.value());
 
 		// build regex
 		String regex = "";

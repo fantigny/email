@@ -53,7 +53,7 @@ public class JsonFile<K> extends File {
 	public boolean isOlder(final int field, final int value) {
 		try {
 			final Calendar refDate = Calendar.getInstance();
-			refDate.add(-1 * field, value);
+			refDate.add(field, -1 * value);
 			return lastModified() < refDate.getTimeInMillis();
 		} catch (final Exception e) {
 			return true;

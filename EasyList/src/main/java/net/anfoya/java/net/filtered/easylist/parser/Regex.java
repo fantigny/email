@@ -1,5 +1,7 @@
 package net.anfoya.java.net.filtered.easylist.parser;
 
+import java.util.regex.Pattern;
+
 public enum Regex {
 	SEPARATOR("[^A-Za-z0-9_%.-]")
 	, WILDCARD(".*")
@@ -7,7 +9,7 @@ public enum Regex {
 	, STARTS("^")
 	, ENDS("$")
 
-	, SPLIT("[\\^\\*]")
+	, SPLIT_RULE("[" + Pattern.quote(Terminal.SEPARATOR.value()) + Pattern.quote(Terminal.WILDCARD.value()) + "]")
 	;
 
 	private final String value;
