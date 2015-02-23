@@ -10,7 +10,7 @@ import net.anfoya.java.net.filtered.easylist.loader.Local;
 import net.anfoya.java.net.filtered.easylist.model.Config;
 import net.anfoya.java.net.filtered.easylist.model.Rule;
 import net.anfoya.java.net.filtered.engine.RuleSet;
-import net.anfoya.tools.ThreadPool;
+import net.anfoya.java.util.concurrent.ThreadPool;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

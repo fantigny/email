@@ -1,12 +1,12 @@
-package net.anfoya.movies.file;
+package net.anfoya.movies.io;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import net.anfoya.movies.file.dependant.MacMovieFile;
-import net.anfoya.movies.file.dependant.UnxMovieFile;
-import net.anfoya.movies.file.dependant.WinMovieFile;
-import net.anfoya.tools.OperatingSystem;
+import net.anfoya.java.util.system.OperatingSystem;
+import net.anfoya.movies.io.dependant.MacMovieFile;
+import net.anfoya.movies.io.dependant.UnxMovieFile;
+import net.anfoya.movies.io.dependant.WinMovieFile;
 
 public class MovieFileFactory {
 	private static final OperatingSystem.Family OS_FAMILY = OperatingSystem.getInstance().getFamily();

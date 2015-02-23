@@ -4,8 +4,8 @@ import static org.junit.Assert.assertEquals;
 
 import java.net.MalformedURLException;
 
-import net.anfoya.movies.file.MovieFile;
-import net.anfoya.movies.file.MovieFileFactory;
+import net.anfoya.movies.io.MovieFile;
+import net.anfoya.movies.io.MovieFileFactory;
 
 import org.junit.Test;
 

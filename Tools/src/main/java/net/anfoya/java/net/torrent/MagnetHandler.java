@@ -11,7 +11,7 @@ import java.net.URLConnection;
 import java.net.URLStreamHandler;
 
 import net.anfoya.java.net.GoBackUrlConnection;
-import net.anfoya.tools.OperatingSystem;
+import net.anfoya.java.util.system.OperatingSystem;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,23 +27,27 @@ public class MagnetHandler extends URLStreamHandler {
 		case MAC: {
 	        final Process process = Runtime.getRuntime().exec(new String[] { "open", magnet } );
 			final BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			String line; while((line = br.readLine()) != null) LOGGER.debug(line);
+			String line; while((line = br.readLine()) != null) {
+				LOGGER.debug(line);
+			}
 			break;
 		}
 		case UNX: {
 	        final Process process = Runtime.getRuntime().exec(new String[] { "xdg-open", magnet } );
 			final BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			String line; while((line = br.readLine()) != null) LOGGER.debug(line);
+			String line; while((line = br.readLine()) != null) {
+				LOGGER.debug(line);
+			}
 			break;
 		}
 		default:
 			try {
 				Desktop.getDesktop().open(new File(url.toURI()));
-			} catch (URISyntaxException e) {
+			} catch (final URISyntaxException e) {
 				LOGGER.error("opening {}", url, e);
 			}
 		}
-		
+
 		return new GoBackUrlConnection();
 	}
 }

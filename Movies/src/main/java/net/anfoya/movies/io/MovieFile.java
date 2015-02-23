@@ -1,4 +1,4 @@
-package net.anfoya.movies.file;
+package net.anfoya.movies.io;
 
 import java.io.IOException;
 import java.net.MalformedURLException;

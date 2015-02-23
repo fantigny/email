@@ -14,8 +14,8 @@ import javafx.scene.control.Alert.AlertType;
 import jcifs.smb.SmbException;
 import net.anfoya.movies.cluster.UpdateManager;
 import net.anfoya.movies.dao.MovieDao;
-import net.anfoya.movies.file.MovieFile;
-import net.anfoya.movies.file.MovieFileFactory;
+import net.anfoya.movies.io.MovieFile;
+import net.anfoya.movies.io.MovieFileFactory;
 import net.anfoya.movies.model.Movie;
 import net.anfoya.movies.model.Tag;
 

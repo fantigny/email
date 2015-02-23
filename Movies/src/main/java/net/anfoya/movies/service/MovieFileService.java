@@ -12,8 +12,8 @@ import java.util.Set;
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
 import jcifs.smb.SmbFileFilter;
-import net.anfoya.movies.file.MovieFile;
-import net.anfoya.movies.file.MovieFileFactory;
+import net.anfoya.movies.io.MovieFile;
+import net.anfoya.movies.io.MovieFileFactory;
 import net.anfoya.movies.model.Movie;
 
 import org.slf4j.Logger;

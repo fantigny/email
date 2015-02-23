@@ -20,7 +20,7 @@ import net.anfoya.downloads.javafx.SearchTabs;
 import net.anfoya.java.net.PersistentCookieStore;
 import net.anfoya.java.net.filtered.engine.RuleSet;
 import net.anfoya.java.net.torrent.TorrentHandlerFactory;
-import net.anfoya.tools.ThreadPool;
+import net.anfoya.java.util.concurrent.ThreadPool;
 
 public class DownloadApp extends Application {
 
