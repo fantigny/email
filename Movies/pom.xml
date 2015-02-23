@@ -122,11 +122,6 @@
 			<version>1.7.7</version>
 		</dependency>
 		<dependency>
-			<groupId>com.google.code.gson</groupId>
-			<artifactId>gson</artifactId>
-			<version>1.7.1</version>
-		</dependency>
-		<dependency>
 			<groupId>net.anfoya</groupId>
 			<artifactId>Tools</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
