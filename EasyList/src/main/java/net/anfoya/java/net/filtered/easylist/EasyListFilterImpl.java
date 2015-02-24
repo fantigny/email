@@ -59,9 +59,8 @@ public class EasyListFilterImpl implements RuleSet, Serializable {
 
 	public void replaceAll(final EasyListFilterImpl easyList) {
 		exceptions.clear();
-		exceptions.addAll(easyList.exceptions);
 		exclusions.clear();
-		exclusions.addAll(easyList.exclusions);
+		addAll(easyList);
 	}
 
 	public void add(final Rule rule) {
@@ -79,9 +78,9 @@ public class EasyListFilterImpl implements RuleSet, Serializable {
 		}
 	}
 
-	public void addAll(final EasyListFilterImpl easylist) {
-		exceptions.addAll(easylist.exceptions);
-		exclusions.addAll(easylist.exclusions);
+	public void addAll(final EasyListFilterImpl easyList) {
+		exceptions.addAll(easyList.exceptions);
+		exclusions.addAll(easyList.exclusions);
 	}
 
 	@Override
@@ -91,6 +90,7 @@ public class EasyListFilterImpl implements RuleSet, Serializable {
 			@Override
 			public void run() {
 				final EasyListFilterImpl localList = local.load();
+				setWithException(localList.isWithException());
 				addAll(localList);
 			}
 		});
@@ -108,7 +108,9 @@ public class EasyListFilterImpl implements RuleSet, Serializable {
 					final EasyListFilterImpl internetList = new EasyListFilterImpl(true);
 					for(final String url: internetUrls) {
 						try {
+							// add to incremental list
 							internetList.addAll(new Internet(new URL(url)).load());
+							// set as current list
 							replaceAll(internetList);
 						} catch (final Exception e) {
 							LOGGER.error("loading {}", url, e);
