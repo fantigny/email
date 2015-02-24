@@ -1,16 +1,14 @@
 package net.anfoya.movies.dao;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.Map;
 import java.util.Set;
 
-import net.anfoya.movies.model.Config;
+import net.anfoya.movies.Config;
 import net.anfoya.movies.model.Movie;
 import net.anfoya.movies.model.Tag;
 
@@ -153,40 +151,5 @@ public class MovieDaoTest {
 		Assert.assertEquals(1, movies.size());
 		Assert.assertTrue(movies.iterator().next().getUrlMap().containsKey(name));
 		Assert.assertEquals(url, movies.iterator().next().getUrlMap().get(name));
-	}
-
-	@Test
-	public void urlMapToString() {
-		final Map<String, String> map = new HashMap<String, String>();
-		map.put(new Config().getWebsites()[0].getName(), "=url_Allocine");
-		map.put(new Config().getWebsites()[1].getName(), "=url_RotTom");
-		map.put(new Config().getWebsites()[3].getName(), "=url_Google");
-
-		final String urls = movieDao.urlMapToString(map);
-		Assert.assertEquals("=url_Allocine~=url_RotTom~null~=url_Google~null~", urls);
-	}
-
-	@Test
-	public void stringToUrlMap() {
-		final Map<String, String> map = movieDao.stringToUrlMap("=url_Allocine~=url_RotTom~null~=url_Google~null~");
-
-		Assert.assertTrue(map.containsKey(new Config().getWebsites()[0].getName()));
-		Assert.assertEquals(map.get(new Config().getWebsites()[0].getName()), "=url_Allocine");
-		Assert.assertTrue(map.containsKey(new Config().getWebsites()[1].getName()));
-		Assert.assertEquals(map.get(new Config().getWebsites()[1].getName()), "=url_RotTom");
-		Assert.assertTrue(map.containsKey(new Config().getWebsites()[3].getName()));
-		Assert.assertEquals(map.get(new Config().getWebsites()[3].getName()), "=url_Google");
-	}
-
-	@Test
-	public void emptyUrlMapToString() {
-		final String urls = movieDao.urlMapToString(new HashMap<String, String>());
-		assertEquals("", urls);
-	}
-
-	@Test
-	public void emptyStringToUrlMap() {
-		final Map<String, String> newMap = movieDao.stringToUrlMap("");
-		assertTrue(newMap.isEmpty());
 	}
 }

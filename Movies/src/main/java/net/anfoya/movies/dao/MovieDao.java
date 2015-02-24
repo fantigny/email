@@ -13,13 +13,14 @@ import java.util.Set;
 
 import javax.sql.DataSource;
 
-import net.anfoya.movies.model.Config;
 import net.anfoya.movies.model.Movie;
 import net.anfoya.movies.model.Tag;
-import net.anfoya.tools.model.Website;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 public class MovieDao {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MovieDao.class);
@@ -66,7 +67,7 @@ public class MovieDao {
 		for(final Movie movie: movies) {
 			statement.setString(++i, movie.getPath());
 			statement.setLong(++i, movie.getLastModified());
-			statement.setString(++i, urlMapToString(movie.getUrlMap()));
+			statement.setString(++i, new Gson().toJson(movie.getUrlMap()));
 		}
 
 		statement.executeUpdate();
@@ -98,8 +99,8 @@ public class MovieDao {
 		connection.close();
 	}
 
-	public Set<Movie> find(final Set<Tag> emptyTagSet, final String namePattern) throws SQLException {
-		final boolean tagClause = !emptyTagSet.isEmpty(), nameClause = !namePattern.isEmpty();
+	public Set<Movie> find(final Set<Tag> tags, final String namePattern) throws SQLException {
+		final boolean tagClause = !tags.isEmpty(), nameClause = !namePattern.isEmpty();
 		String sql = "SELECT m.id AS movie_id, m.path, m.last_mod, m.urls, mt.tag_id AS tag_id, t.name, t.section"
 				+ " FROM movie m";
 		if (!tagClause) {
@@ -118,7 +119,7 @@ public class MovieDao {
 					+ " FROM movie_tag"
 					+ " WHERE movie_id = mt.movie_id"
 					+ " AND tag_id IN (";
-			for(int i=0, n=emptyTagSet.size(); i<n; i++) {
+			for(int i=0, n=tags.size(); i<n; i++) {
 				if (i != 0) {
 					sql += ",";
 				}
@@ -139,8 +140,8 @@ public class MovieDao {
 		final PreparedStatement statement = connection.prepareStatement(sql);
 		int i=0;
 		if (tagClause) {
-			statement.setInt(++i, emptyTagSet.size());
-			for(final Tag tag: emptyTagSet) {
+			statement.setInt(++i, tags.size());
+			for(final Tag tag: tags) {
 				statement.setInt(++i, tag.getId());
 			}
 		}
@@ -159,7 +160,7 @@ public class MovieDao {
 						movieId
 						, rs.getString("path")
 						, rs.getLong("last_mod")
-						, stringToUrlMap(rs.getString("urls"))));
+						, new Gson().fromJson(rs.getString("urls"), new TypeToken<Map<String, String>>() {}.getType())));
 			}
 			final int tagId = rs.getInt("tag_id");
 			if (!rs.wasNull()) {
@@ -233,36 +234,10 @@ public class MovieDao {
 
 		final Connection connection = dataSource.getConnection();
 		final PreparedStatement statement = connection.prepareStatement(sql);
-		statement.setString(1, urlMapToString(movie.getUrlMap()));
+		statement.setString(1, new Gson().toJson(movie.getUrlMap()));
 		statement.setInt(2, movie.getId());
 		statement.execute();
 		statement.close();
 		connection.close();
-	}
-
-	protected String urlMapToString(final Map<String, String> map) {
-		final StringBuilder sb = new StringBuilder();
-		if (!map.isEmpty()) {
-			for(final Website website: new Config().getWebsites()) {
-				final String url = map.get(website.getName());
-				sb.append(url).append("~");
-			}
-		}
-
-		return sb.toString();
-	}
-
-	protected Map<String, String> stringToUrlMap(final String urls) {
-		final Map<String, String> map = new HashMap<String, String>();
-		if (!urls.isEmpty()) {
-			final String[] urlList = urls.split("~");
-			for(int i=0, n=urlList.length; i<n; i++) {
-				if (!urlList[i].equals("null")) {
-					map.put(new Config().getWebsites()[i].getName(), urlList[i]);
-				}
-			}
-		}
-
-		return map ;
 	}
 }

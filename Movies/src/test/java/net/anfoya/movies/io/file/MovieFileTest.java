@@ -1,4 +1,4 @@
-package net.anfoya.movies.file;
+package net.anfoya.movies.io.file;
 
 import static org.junit.Assert.assertEquals;
 

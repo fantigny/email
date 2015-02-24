@@ -15,7 +15,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Callback;
-import net.anfoya.downloads.model.Config;
+import net.anfoya.downloads.Config;
 import net.anfoya.tools.model.Website;
 
 public class SearchTabs extends TabPane {

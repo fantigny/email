@@ -1,4 +1,4 @@
-package net.anfoya.movies.model;
+package net.anfoya.movies;
 
 import net.anfoya.tools.model.Website;
 

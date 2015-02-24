@@ -1,4 +1,4 @@
-package net.anfoya.downloads.model;
+package net.anfoya.downloads;
 
 import net.anfoya.tools.model.Website;
 
@@ -14,19 +14,26 @@ public class Config {
 		  	, new Website(
 		  			"AlloCine"
 		  			, "www.allocine.fr"
+		  			, "/film/aucinema/"
 		  			, "/recherche/?q=%s"
 		  			, "fichefilm_gen_cfilm=")
 			, new Website(
 					"Rotten Tomatoes"
 					, "www.rottentomatoes.com"
-					, ""
-					, "/search/?search=%s",".com/m/")
+					, "/browse/in-theaters/"
+					, "/search/?search=%s"
+					,".com/m/")
 			, new Website(
 					"IMDb"
 					, "www.imdb.com"
-					, ""
+					, "/movies-in-theaters/?ref_=nv_mv_inth_1"
 					, "/find?ref_=nv_sr_fn&q=%s&s=all"
 					, "/title/")
+			, new Website(
+					"YouTube"
+					, "www.youtube.com"
+					, "/results?search_query=trailer+%s"
+					, "/watch?v=")
 			, new Website(
 					"Pirate Bay"
 					, "https://pirateproxy.sx"

@@ -16,7 +16,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import net.anfoya.javafx.scene.control.Title;
 import net.anfoya.javafx.scene.control.TitledProgressBar;
-import net.anfoya.movies.model.Config;
+import net.anfoya.movies.Config;
 import net.anfoya.movies.model.Movie;
 import net.anfoya.movies.model.Profile;
 import net.anfoya.movies.model.Tag;
