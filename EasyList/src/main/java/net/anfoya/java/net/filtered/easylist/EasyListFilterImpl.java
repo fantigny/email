@@ -8,7 +8,6 @@ import java.util.concurrent.Future;
 
 import net.anfoya.java.net.filtered.easylist.loader.Internet;
 import net.anfoya.java.net.filtered.easylist.loader.Local;
-import net.anfoya.java.net.filtered.easylist.model.Config;
 import net.anfoya.java.net.filtered.easylist.model.Rule;
 import net.anfoya.java.net.filtered.engine.RuleSet;
 import net.anfoya.java.util.concurrent.ThreadPool;

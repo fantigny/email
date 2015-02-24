@@ -8,6 +8,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.util.Callback;
+import net.anfoya.downloads.javafx.allocine.AllocineField;
 
 public class SearchPane extends BorderPane {
 	private final Label label;
@@ -22,6 +23,7 @@ public class SearchPane extends BorderPane {
 		setLeft(label);
 
 		text = new AllocineField();
+		text.prefWidthProperty().bind(widthProperty());
 		setMargin(text, new Insets(0, 3, 0, 3));
 		setCenter(text);
 
@@ -46,10 +48,10 @@ public class SearchPane extends BorderPane {
 	}
 
 	public String getSearch() {
-		return text.getValue();
+		return text.getText();
 	}
 
 	public void setSearch(final String search) {
-		text.setValue(search);
+		text.setText(search);
 	}
 }
