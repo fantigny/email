@@ -1,5 +1,6 @@
 package net.anfoya.java.net.filtered.easylist;
 
+import java.io.Serializable;
 import java.net.URL;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -15,10 +16,12 @@ import net.anfoya.java.util.concurrent.ThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class EasyListFilterImpl implements RuleSet {
+@SuppressWarnings("serial")
+public class EasyListFilterImpl implements RuleSet, Serializable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(EasyListFilterImpl.class);
 
-	private final Config config;
+	private final String localFilepath;
+	private final String[] internetUrls;
 
 	private final Set<Rule> exceptions;
 	private final Set<Rule> exclusions;
@@ -26,10 +29,14 @@ public class EasyListFilterImpl implements RuleSet {
 	private boolean withException;
 
 	public EasyListFilterImpl(final boolean withException) {
-		this.config = new Config();
+		final Config config = new Config();
+		this.localFilepath = config.getFilePath();
+		this.internetUrls = config.getUrls();
+
+		this.exceptions = new CopyOnWriteArraySet<Rule>();
+		this.exclusions = new CopyOnWriteArraySet<Rule>();
+
 		this.withException = withException;
-		exceptions = new CopyOnWriteArraySet<Rule>();
-		exclusions = new CopyOnWriteArraySet<Rule>();
 	}
 
 	@Override
@@ -79,7 +86,7 @@ public class EasyListFilterImpl implements RuleSet {
 
 	@Override
 	public void load() {
-		final Local local = new Local(config.getFilePath());
+		final Local local = new Local(localFilepath);
 		final Future<?> futureLocal = ThreadPool.getInstance().submit(new Runnable() {
 			@Override
 			public void run() {
@@ -94,12 +101,12 @@ public class EasyListFilterImpl implements RuleSet {
 				try {
 					futureLocal.get();
 				} catch (final Exception e) {
-					LOGGER.error("loading {}", config.getFilePath(), e);
+					LOGGER.error("loading {}", localFilepath, e);
 					return;
 				}
 				if (isEmpty() || local.isOutdated()) {
 					final EasyListFilterImpl internetList = new EasyListFilterImpl(true);
-					for(final String url: config.getUrls()) {
+					for(final String url: internetUrls) {
 						try {
 							internetList.addAll(new Internet(new URL(url)).load());
 							replaceAll(internetList);

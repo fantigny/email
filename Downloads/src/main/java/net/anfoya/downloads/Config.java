@@ -37,7 +37,7 @@ public class Config {
 			, new Website(
 					"Pirate Bay"
 					, "https://pirateproxy.sx"
-					, ""
+					, "/search/"
 					, "/search.php?q=%s"
 					, "")
 			, new Website(

@@ -1,8 +1,10 @@
 package net.anfoya.java.net.filtered.easylist.model;
 
+import java.io.Serializable;
 import java.util.regex.Pattern;
 
-public class Rule {
+@SuppressWarnings("serial")
+public class Rule implements Serializable {
 
 	public static Rule getEmptyRule() {
 		return new Rule(RuleType.empty, null, null, null);

@@ -4,7 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Calendar;
 
-import net.anfoya.java.io.JsonFile;
+import net.anfoya.java.io.SerializedFile;
 import net.anfoya.java.net.filtered.easylist.EasyListFilterImpl;
 
 import org.slf4j.Logger;
@@ -12,20 +12,27 @@ import org.slf4j.LoggerFactory;
 
 
 @SuppressWarnings("serial")
-public class Local extends JsonFile<EasyListFilterImpl> {
+public class Local extends SerializedFile<EasyListFilterImpl> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Local.class);
 
 	public Local(final String filepath) {
 		super(filepath);
 	}
 
+	@Override
 	public EasyListFilterImpl load() {
 		final long start = System.currentTimeMillis();
 		EasyListFilterImpl easyList;
 		try {
-			easyList = load(EasyListFilterImpl.class);
+			easyList = super.load();
 		} catch (final FileNotFoundException e) {
 			LOGGER.warn("file not fount {}", this);
+			easyList = new EasyListFilterImpl(true);
+		} catch (final ClassNotFoundException e) {
+			LOGGER.warn("wrong format {}", this);
+			easyList = new EasyListFilterImpl(true);
+		} catch (final IOException e) {
+			LOGGER.warn("reading {}", this, e);
 			easyList = new EasyListFilterImpl(true);
 		}
 
