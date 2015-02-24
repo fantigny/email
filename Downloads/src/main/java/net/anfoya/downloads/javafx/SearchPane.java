@@ -6,13 +6,12 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.util.Callback;
 
 public class SearchPane extends BorderPane {
 	private final Label label;
-	private final TextField text;
+	private final AllocineField text;
 	private final Button button;
 
 	public SearchPane() {
@@ -22,12 +21,12 @@ public class SearchPane extends BorderPane {
 		setAlignment(label, Pos.CENTER);
 		setLeft(label);
 
-		text = new TextField();
+		text = new AllocineField();
 		setMargin(text, new Insets(0, 3, 0, 3));
 		setCenter(text);
 
 		button = new Button("Search");
-		button.disableProperty().bind(text.textProperty().isEmpty());
+		button.disableProperty().bind(text.valueProperty().asString().isEmpty());
 		setRight(button);
 	}
 
@@ -40,17 +39,17 @@ public class SearchPane extends BorderPane {
 		return new Callback<String, Void>() {
 			@Override
 			public Void call(final String search) {
-				text.setText(search);
+				setSearch(search);
 				return null;
 			}
 		};
 	}
 
 	public String getSearch() {
-		return text.getText();
+		return text.getValue();
 	}
 
 	public void setSearch(final String search) {
-		text.setText(search);
+		text.setValue(search);
 	}
 }
