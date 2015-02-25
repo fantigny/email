@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.URL;
 
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -27,9 +28,15 @@ public class AllocineMovieRenderer extends GridPane {
 		} catch (final IOException e) {
 			LOGGER.warn("loading thunbnail {}", movie.getThumbnail(), e);
 		}
-    	add(new Label(movie.getFrenchTitle()), 1, 0, 1, 1);
+		
+		Label title = new Label(movie.getOriginalTitle());
+		title.setStyle("-fx-font: 16 arial; -fx-base: #b6e7c9;");
+		title.setAlignment(Pos.CENTER_LEFT);
+    	add(title, 1, 0, 1, 1);
 	    if (!movie.getOriginalTitle().equals(movie.getFrenchTitle())) {
-		    add(new Label(movie.getOriginalTitle()), 1, 1, 1, 1);
+			Label french = new Label(movie.getFrenchTitle());
+			french.setAlignment(Pos.CENTER_LEFT);
+		    add(french, 1, 1, 1, 1);
 	    }
 	}
 }
