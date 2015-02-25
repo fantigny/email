@@ -2,6 +2,7 @@ package net.anfoya.downloads.javafx.allocine;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -29,6 +30,7 @@ import com.google.gson.JsonParser;
 
 public class AllocineField extends ComboBox<AllocineMovie> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AllocineField.class);
+	private static final String SEARCH_PATTERN = "http://essearch.allocine.net/fr/autocomplete?geo2=83090&q=%s";
 
 	private final AtomicLong requestId = new AtomicLong(0);
 	private volatile String previousText;
@@ -84,10 +86,15 @@ public class AllocineField extends ComboBox<AllocineMovie> {
 
 		final List<AllocineMovie> movies = new ArrayList<AllocineMovie>();
 		if (text.length() > 2) {
+			String url;
 			try {
-				final URL url = new URL("http://essearch.allocine.net/fr/autocomplete?geo2=83090&q=" + URLEncoder.encode(text, "UTF8"));
-				LOGGER.info("autocomplete allocine {}", url);
-				final BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()));
+				url = String.format(SEARCH_PATTERN, URLEncoder.encode(text, "UTF8"));
+			} catch (final UnsupportedEncodingException e1) {
+				url = String.format(SEARCH_PATTERN, text);
+			}
+			LOGGER.info("autocomplete allocine {}", url);
+			try {
+				final BufferedReader reader = new BufferedReader(new InputStreamReader(new URL(url).openStream()));
 				final JsonArray jsonMovies = new JsonParser().parse(reader).getAsJsonArray();
 				jsonMovies.forEach(new Consumer<JsonElement>() {
 					@Override
@@ -99,8 +106,7 @@ public class AllocineField extends ComboBox<AllocineMovie> {
 					}
 				});
 			} catch (final Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				LOGGER.error("loading {}", url, e);
 			}
 		}
 
@@ -124,6 +130,7 @@ public class AllocineField extends ComboBox<AllocineMovie> {
 
 	public void setText(final String text) {
 		if (!getEditor().getText().equals(text)) {
+			previousText = text;
 			getEditor().setText(text);
 		}
 	}
