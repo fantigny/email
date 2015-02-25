@@ -3,6 +3,12 @@ package net.anfoya.downloads.javafx.allocine;
 import com.google.gson.JsonObject;
 
 public class AllocineMovie {
+	private static final AllocineMovie EMPTY_MOVIE = new AllocineMovie();
+
+	public static AllocineMovie getEmptyMovie() {
+		return EMPTY_MOVIE;
+	}
+
 	private final String originalTitle;
 	private final String frenchTitle;
 	private final String thumbnail;
@@ -25,14 +31,26 @@ public class AllocineMovie {
 		}
 	}
 
-	public AllocineMovie() {
-		this("", "", "");
+	public AllocineMovie(final String title) {
+		this.originalTitle = title;
+		this.frenchTitle = "";
+		this.thumbnail = "";
 	}
 
-	public AllocineMovie(final String originalTitle, final String frenchTitle, final String thumbnail) {
-		this.originalTitle = originalTitle;
-		this.frenchTitle = frenchTitle;
-		this.thumbnail = thumbnail;
+	private AllocineMovie() {
+		this("");
+	}
+
+	@Override
+	public boolean equals(final Object o) {
+		if (o instanceof AllocineMovie) {
+			final AllocineMovie other = (AllocineMovie) o;
+			if (other.originalTitle.equals(originalTitle) || other.originalTitle.equals(frenchTitle)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	@Override

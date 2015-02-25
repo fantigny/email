@@ -7,18 +7,20 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.Future;
 import java.util.function.Consumer;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.util.Callback;
+import javafx.util.StringConverter;
 import net.anfoya.java.util.concurrent.ThreadPool;
 
 import org.slf4j.Logger;
@@ -32,11 +34,14 @@ public class AllocineField extends ComboBox<AllocineMovie> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AllocineField.class);
 	private static final String SEARCH_PATTERN = "http://essearch.allocine.net/fr/autocomplete?geo2=83090&q=%s";
 
-	private final AtomicLong requestId = new AtomicLong(0);
-	private volatile String previousText;
+	private volatile AllocineMovie searchedMovie;
+
+	private volatile Future<?> autocompFuture;
+	private volatile AllocineMovie lastAutocompMovie;
 
 	public AllocineField() {
 		setEditable(true);
+		setButtonCell(new AllocineListCell());
 		setCellFactory(new Callback<ListView<AllocineMovie>, ListCell<AllocineMovie>>() {
 			@Override
 			public ListCell<AllocineMovie> call(final ListView<AllocineMovie> movie) {
@@ -44,112 +49,159 @@ public class AllocineField extends ComboBox<AllocineMovie> {
 			}
 		});
 
-		getEditor().setOnKeyPressed(new EventHandler<KeyEvent>() {
-			@Override
-			public void handle(final KeyEvent event) {
-				final String text = getEditor().getText();
-				if (!text.equals(previousText)) {
-					previousText = text;
-					updateList(text);
-				}
-			}
-		});
-	}
+		searchedMovie = AllocineMovie.getEmptyMovie();
+		autocompFuture = null;
+		lastAutocompMovie = AllocineMovie.getEmptyMovie();
 
-	private void updateList(final String text) {
-		final long requestId = this.requestId.incrementAndGet();
-		if (getItems().size() > 0) {
-			getItems().clear();
-		}
-		if (isShowing()) {
-			hide();
-		}
-		ThreadPool.getInstance().submit(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Thread.sleep(500);
-				} catch (final InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				updateList(text, requestId);
-			}
-		});
-	}
-
-	private void updateList(final String text, final long requestId) {
-
-		if (this.requestId.get() != requestId) {
-			return;
-		}
-
-		final List<AllocineMovie> movies = new ArrayList<AllocineMovie>();
-		if (text.length() > 2) {
-			String url;
-			try {
-				url = String.format(SEARCH_PATTERN, URLEncoder.encode(text, "UTF8"));
-			} catch (final UnsupportedEncodingException e1) {
-				url = String.format(SEARCH_PATTERN, text);
-			}
-			LOGGER.info("autocomplete allocine {}", url);
-			try {
-				final BufferedReader reader = new BufferedReader(new InputStreamReader(new URL(url).openStream()));
-				final JsonArray jsonMovies = new JsonParser().parse(reader).getAsJsonArray();
-				jsonMovies.forEach(new Consumer<JsonElement>() {
-					@Override
-					public void accept(final JsonElement element) {
-						final AllocineMovie movie = new AllocineMovie(element.getAsJsonObject());
-						if (!movie.getThumbnail().isEmpty()) {
-							movies.add(movie);
-						}
-					}
-				});
-			} catch (final Exception e) {
-				LOGGER.error("loading {}", url, e);
-			}
-		}
-
-		Platform.runLater(new Runnable() {
-			@Override
-			public void run() {
-				if (AllocineField.this.requestId.get() != requestId) {
-					return;
-				}
-				getItems().addAll(movies);
-				if (getItems().size() > 0) {
-					show();
-				}
-			}
-		});
-	}
-
-	public String getText() {
-		return getEditor().getText();
-	}
-
-	public void setText(final String text) {
-		if (!getEditor().getText().equals(text)) {
-			previousText = text;
-			getEditor().setText(text);
-		}
-	}
-
-	public void setOnSearch(final EventHandler<ActionEvent> handler) {
 		setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(final ActionEvent event) {
-				if (!isShowing()) {
-					handler.handle(event);
+				final AllocineMovie newVal = getValue();
+				if (!isShowing() && !searchedMovie.equals(newVal)) {
+					updateList(newVal);
 				}
 			}
 		});
-		setOnKeyPressed(new EventHandler<KeyEvent>() {
+		getEditor().textProperty().addListener(new ChangeListener<String>() {
+			@Override
+			public void changed(final ObservableValue<? extends String> observable,
+					final String oldValue, final String newValue) {
+				setValue(new AllocineMovie(newValue));
+			}
+		});
+
+		setConverter(new StringConverter<AllocineMovie>() {
+			@Override
+			public String toString(final AllocineMovie movie) {
+				return movie == null
+						? ""
+						: movie.toString();
+			}
+
+			@Override
+			public AllocineMovie fromString(final String string) {
+				return string == null
+						? AllocineMovie.getEmptyMovie()
+						: new AllocineMovie(string);
+			}
+		});
+	}
+
+	private void updateList(final AllocineMovie movie) {
+		if (movie == null) {
+			hide();
+			getItems().clear();
+			return;
+		}
+
+		if (lastAutocompMovie.equals(movie)) {
+			// list is already loaded
+			if (!getItems().isEmpty() && !isShowing()) {
+				show();
+			}
+			return;
+		}
+		lastAutocompMovie = movie;
+
+		final String title = movie.toString();
+		if (title.length() < 3) {
+			// need more characters
+			return;
+		}
+
+		if (isShowing()) {
+			hide();
+		}
+
+		requestList(title);
+	}
+
+	private void requestList(final String title) {
+		final String url;
+		try {
+			url = String.format(SEARCH_PATTERN, URLEncoder.encode(title, "UTF8"));
+		} catch (final UnsupportedEncodingException e) {
+			LOGGER.error("building url {}", String.format(SEARCH_PATTERN, title), e);
+			return;
+		}
+		if (autocompFuture != null) {
+			autocompFuture.cancel(true);
+		}
+		autocompFuture = ThreadPool.getInstance().submit(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					Thread.sleep(500); // allow user to type more characters
+				} catch (final InterruptedException e) {
+				} finally {
+					if (autocompFuture.isCancelled()) {
+						LOGGER.info("cancelled {}", url);
+						return;
+					}
+				}
+				LOGGER.info("requested {}", url);
+				final List<AllocineMovie> movies = new ArrayList<AllocineMovie>();
+				try {
+					final BufferedReader reader = new BufferedReader(new InputStreamReader(new URL(url).openStream()));
+					final JsonArray jsonMovies = new JsonParser().parse(reader).getAsJsonArray();
+					jsonMovies.forEach(new Consumer<JsonElement>() {
+						@Override
+						public void accept(final JsonElement element) {
+							final AllocineMovie movie = new AllocineMovie(element.getAsJsonObject());
+							if (!movie.getThumbnail().isEmpty()) {
+								movies.add(movie);
+							}
+						}
+					});
+				} catch (final Exception e) {
+					LOGGER.error("loading {}", url, e);
+				}
+
+				Platform.runLater(new Runnable() {
+					@Override
+					public void run() {
+						if (autocompFuture.isCancelled()) {
+							LOGGER.info("cancelled {}", url);
+							return;
+						}
+						getItems().clear();
+						getItems().addAll(movies);
+						if (!getItems().isEmpty()) {
+							show();
+						}
+					}
+				});
+			}
+		});
+	}
+
+	public void setSearchedText(final String searched) {
+		final AllocineMovie searchedMovie = new AllocineMovie(searched);
+		if (!searchedMovie.equals(this.searchedMovie)) {
+			this.searchedMovie = searchedMovie;
+			setValue(searchedMovie);
+		}
+	}
+/*
+	public String getSearch() {
+		AllocineMovie movie = getValue();
+		if (movie == null) {
+			final String text = getEditor().getText();
+			if (text != null) {
+				movie = new AllocineMovie(text);
+			}
+		}
+		if (movie == null) {
+			movie = AllocineMovie.getEmptyMovie();
+		}
+		return movie.toString();
+	}
+*/
+	public void setOnSearch(final Callback<String[], Void> callback) {
+		addEventHandler(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
 			@Override
 			public void handle(final KeyEvent event) {
-				if (event.getCode() == KeyCode.ENTER && isShowing()) {
-					handler.handle(new ActionEvent(event.getSource(), event.getTarget()));
-				}
+				callback.call(new String[] { getValue().toString() });
 			}
 		});
 	}

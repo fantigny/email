@@ -8,6 +8,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Calendar;
 
 import org.slf4j.Logger;
@@ -21,6 +23,10 @@ public class JsonFile<K> extends File {
 
 	public JsonFile(final String filepath) {
 		super(filepath);
+	}
+
+	public JsonFile(final URI uri) throws URISyntaxException {
+		super(uri);
 	}
 
 	public K load(final Type typeOfK) throws FileNotFoundException {

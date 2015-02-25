@@ -120,7 +120,7 @@ public class SearchTabs extends TabPane {
 		return ((SearchTab) getSelectionModel().getSelectedItem()).getSelection();
 	}
 
-	public void search(final String text) {
+	public void search(final String text, final String allocineRef) {
 		search(getTabs(), text);
 	}
 

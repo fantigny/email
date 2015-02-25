@@ -6,7 +6,6 @@ import java.net.CookiePolicy;
 import java.net.URL;
 
 import javafx.application.Application;
-import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -70,15 +69,16 @@ public class DownloadApp extends Application {
 	    searchTabs.setOnSearchAction(new Callback<String, Void>() {
 			@Override
 			public Void call(final String search) {
-				searchPane.setSearch(search);
+				searchPane.setSearched(search);
 				return null;
 			}
 		});
-	    searchPane.setOnSearchAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(final ActionEvent event) {
-				searchTabs.search(searchPane.getSearch());
-			}
+	    searchPane.setOnSearchAction(new Callback<String[], Void>() {
+	    	@Override
+	    	public Void call(final String[] search) {
+				searchTabs.search(search[0], search.length == 1? null: search[1]);
+	    		return null;
+	    	}
 		});
 
 		final Scene scene = new Scene(mainPane, 1150, 800);
