@@ -11,6 +11,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.util.Callback;
 import net.anfoya.downloads.javafx.allocine.AllocineField;
+import net.anfoya.downloads.javafx.allocine.AllocineMovie;
 
 public class SearchPane extends BorderPane {
 	private final Label label;
@@ -34,7 +35,7 @@ public class SearchPane extends BorderPane {
 		setRight(button);
 	}
 
-	public void setOnSearchAction(final Callback<String[], Void> callback) {
+	public void setOnSearchAction(final Callback<AllocineMovie, Void> callback) {
 		text.setOnSearch(callback);
 		button.setOnAction(new EventHandler<ActionEvent>() {
 			@Override

@@ -106,7 +106,14 @@ public class SearchTab extends Tab {
 	}
 
 	public void search(final String text) {
-		if (!text.isEmpty() && website.isSearchable()) {
+		search(text, "");
+	}
+
+	public void search(final String text, final String id) {
+		if (!id.isEmpty() && website.getName().equals("AlloCine")) {
+			final String url = String.format("http://www.allocine.fr/film/fichefilm_gen_cfilm=%s.html", id);
+			view.getEngine().load(url);
+		} else if (!text.isEmpty() && website.isSearchable()) {
 			view.getEngine().load(website.getSearchUrl(text));
 		}
 	}

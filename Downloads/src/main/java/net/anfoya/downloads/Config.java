@@ -17,7 +17,7 @@ public class Config {
 		  			, "/film/aucinema/"
 		  			, "/recherche/?q=%s"
 		  			, "fichefilm_gen_cfilm=")
-/*			, new Website(
+			, new Website(
 					"Rotten Tomatoes"
 					, "www.rottentomatoes.com"
 					, "/browse/in-theaters/"
@@ -52,7 +52,7 @@ public class Config {
 					, ""
 					, "/search?q=%s"
 					, "")
-*/
+
 		};
 	}
 }

@@ -12,6 +12,7 @@ public class AllocineMovie {
 	private final String originalTitle;
 	private final String frenchTitle;
 	private final String thumbnail;
+	private final String id;
 
 	public AllocineMovie(final JsonObject jsonMovie) {
 		if (jsonMovie.has("title2")) {
@@ -29,12 +30,18 @@ public class AllocineMovie {
 		} else {
 			thumbnail = "";
 		}
+		if (jsonMovie.has("id")) {
+			id = jsonMovie.get("id").getAsString();
+		} else {
+			id = "";
+		}
 	}
 
 	public AllocineMovie(final String title) {
 		this.originalTitle = title;
 		this.frenchTitle = "";
 		this.thumbnail = "";
+		this.id = "";
 	}
 
 	private AllocineMovie() {
@@ -45,8 +52,10 @@ public class AllocineMovie {
 	public boolean equals(final Object o) {
 		if (o instanceof AllocineMovie) {
 			final AllocineMovie other = (AllocineMovie) o;
-			if (other.originalTitle.equals(originalTitle) || other.originalTitle.equals(frenchTitle)) {
-				return true;
+			if (other.originalTitle.isEmpty()) {
+				return originalTitle.isEmpty();
+			} else {
+				return other.originalTitle.equals(originalTitle) || other.originalTitle.equals(frenchTitle);
 			}
 		}
 
@@ -68,5 +77,9 @@ public class AllocineMovie {
 
 	public String getThumbnail() {
 		return thumbnail;
+	}
+
+	public String getId() {
+		return id;
 	}
 }

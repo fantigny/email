@@ -43,6 +43,7 @@ public class SearchTabs extends TabPane {
 			});
 			getTabs().add(tab);
 		}
+		getSelectionModel().select(1);
 	}
 
 	public void init() {
@@ -120,14 +121,18 @@ public class SearchTabs extends TabPane {
 		return ((SearchTab) getSelectionModel().getSelectedItem()).getSelection();
 	}
 
-	public void search(final String text, final String allocineRef) {
-		search(getTabs(), text);
+	public void search(final String text, final String allocineId) {
+		search(getTabs(), text, allocineId);
 	}
 
 	private void search(final List<Tab> tabs, final String text) {
+		search(tabs, text, "");
+	}
+
+	private void search(final List<Tab> tabs, final String text, final String id) {
 		searchCallBack.call(text);
 		for(final Tab tab: tabs) {
-			((SearchTab)tab).search(text);
+			((SearchTab)tab).search(text, id);
 		}
 	}
 
