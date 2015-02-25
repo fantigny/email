@@ -10,10 +10,12 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.util.Callback;
 import net.anfoya.java.util.concurrent.ThreadPool;
@@ -29,6 +31,7 @@ public class AllocineField extends ComboBox<AllocineMovie> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AllocineField.class);
 
 	private final AtomicLong requestId = new AtomicLong(0);
+	private volatile String previousText;
 
 	public AllocineField() {
 		setEditable(true);
@@ -42,9 +45,11 @@ public class AllocineField extends ComboBox<AllocineMovie> {
 		getEditor().setOnKeyPressed(new EventHandler<KeyEvent>() {
 			@Override
 			public void handle(final KeyEvent event) {
-//				if (event.getCode() != KeyCode.ENTER && event.getCode() != KeyCode.ESCAPE && event.getCode() != KeyCode.UNDEFINED) {
-					updateList(getEditor().getText());
-	//			}
+				final String text = getEditor().getText();
+				if (!text.equals(previousText)) {
+					previousText = text;
+					updateList(text);
+				}
 			}
 		});
 	}
@@ -87,7 +92,10 @@ public class AllocineField extends ComboBox<AllocineMovie> {
 				jsonMovies.forEach(new Consumer<JsonElement>() {
 					@Override
 					public void accept(final JsonElement element) {
-						movies.add(new AllocineMovie(element.getAsJsonObject()));
+						final AllocineMovie movie = new AllocineMovie(element.getAsJsonObject());
+						if (!movie.getThumbnail().isEmpty()) {
+							movies.add(movie);
+						}
 					}
 				});
 			} catch (final Exception e) {
@@ -115,6 +123,27 @@ public class AllocineField extends ComboBox<AllocineMovie> {
 	}
 
 	public void setText(final String text) {
-		getEditor().setText(text);
+		if (!getEditor().getText().equals(text)) {
+			getEditor().setText(text);
+		}
+	}
+
+	public void setOnSearch(final EventHandler<ActionEvent> handler) {
+		setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(final ActionEvent event) {
+				if (!isShowing()) {
+					handler.handle(event);
+				}
+			}
+		});
+		setOnKeyPressed(new EventHandler<KeyEvent>() {
+			@Override
+			public void handle(final KeyEvent event) {
+				if (event.getCode() == KeyCode.ENTER && isShowing()) {
+					handler.handle(new ActionEvent(event.getSource(), event.getTarget()));
+				}
+			}
+		});
 	}
 }

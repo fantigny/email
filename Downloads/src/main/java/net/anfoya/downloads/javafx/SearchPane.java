@@ -32,9 +32,9 @@ public class SearchPane extends BorderPane {
 		setRight(button);
 	}
 
-	public void setOnSearchAction(final EventHandler<ActionEvent> listener) {
-		text.setOnAction(listener);
-		button.setOnAction(listener);
+	public void setOnSearchAction(final EventHandler<ActionEvent> handler) {
+		text.setOnSearch(handler);
+		button.setOnAction(handler);
 	}
 
 	public Callback<String, Void> getSearchCallBack() {
