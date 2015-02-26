@@ -8,7 +8,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -37,14 +37,13 @@ public class AllocineField extends ComboBox<AllocineQsResult> {
 	private volatile AllocineQsResult searchedQs;
 	private volatile AllocineQsResult requestQs;
 
-	private volatile Future<?> requestFuture;
+	private final AtomicLong requestId;
 
 	private Callback<AllocineQsResult, Void> searchCallback;
 
 	public AllocineField() {
 		setEditable(true);
 		setPromptText("Key in a text and wait for quick search or type <Enter> for full search");
-		setButtonCell(new AllocineQsListCell());
 		setCellFactory(new Callback<ListView<AllocineQsResult>, ListCell<AllocineQsResult>>() {
 			@Override
 			public ListCell<AllocineQsResult> call(final ListView<AllocineQsResult> listView) {
@@ -54,8 +53,8 @@ public class AllocineField extends ComboBox<AllocineQsResult> {
 
 		currentQs = null;
 		searchedQs = null;
-		requestFuture = null;
 		requestQs = null;
+		requestId = new AtomicLong(0);
 
 		addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
 			@Override
@@ -124,6 +123,7 @@ public class AllocineField extends ComboBox<AllocineQsResult> {
 				&& !currentQs.equals(searchedQs)) {
 			final AllocineQsResult qs = getValue();
 			if (currentQs.equals(qs)) {
+				// actual value of the combo hold a full ResultQs loaded from json data
 				currentQs = qs;
 			}
 			searchedQs = currentQs;
@@ -133,11 +133,7 @@ public class AllocineField extends ComboBox<AllocineQsResult> {
 
 	private void cancelQuickSearch() {
 		hide();
-		if (requestFuture != null
-				&& !requestFuture.isDone()
-				&& !requestFuture.isCancelled()) {
-			requestFuture.cancel(true);
-		}
+		requestId.incrementAndGet();
 	}
 
 	private synchronized void showQuickSearch() {
@@ -148,64 +144,71 @@ public class AllocineField extends ComboBox<AllocineQsResult> {
 		}
 
 		if (currentQs.equals(searchedQs)) {
-			if (!isShowing()) {
-				//TODO check
+			if (isShowing()) {
 				// loading a movie in browser
 				return;
 			}
 		}
 
-		if (currentQs.equals(requestQs)) {
-			if (requestFuture != null && requestFuture.isDone() && !getItems().isEmpty()) {
-				// quick search already done and finished
-				show();
-			}
+		if (currentQs.equals(requestQs) && !getItems().isEmpty()) {
+			// quick search already done
+			show();
 			return;
 		}
-		requestQs = currentQs;
 
 		cancelQuickSearch();
-
-		final String title = requestQs.toString();
-		requestFuture = ThreadPool.getInstance().submit(new Runnable() {
+		requestQs = currentQs;
+		final long requestId = this.requestId.incrementAndGet();
+		ThreadPool.getInstance().submit(new Runnable() {
 			@Override
 			public void run() {
 				try {
-					requestQuickSearch(title);
+					requestQuickSearch(requestId, requestQs.toString());
 				} catch (final InterruptedException e) {
 					return;
 				} catch (final Exception e) {
-					LOGGER.error("loading {}", title, e);
+					LOGGER.error("loading {}", requestQs.toString(), e);
 					return;
 				}
 			}
 		});
 	}
 
-	private void requestQuickSearch(final String title) throws InterruptedException, MalformedURLException, IOException {
+	private void requestQuickSearch(final long requestId, final String title) throws InterruptedException, MalformedURLException, IOException {
 		if (title.length() < 3) {
 			// need more characters
 			return;
 		}
 
-		Thread.sleep(500); // allow user to type more characters
-
-		final String url = String.format(SEARCH_PATTERN, URLEncoder.encode(title, "UTF8"));
-		final List<AllocineQsResult> qsResults = new ArrayList<AllocineQsResult>();
-		LOGGER.info("requested {}", url);
-		final BufferedReader reader = new BufferedReader(new InputStreamReader(new URL(url).openStream()));
-		final JsonArray jsonQsResults = new JsonParser().parse(reader).getAsJsonArray();
-		for (final JsonElement jsonElement : jsonQsResults) {
-			final AllocineQsResult qsResult = new AllocineQsResult(jsonElement.getAsJsonObject());
-			if (!qsResult.getThumbnail().isEmpty()) {
-				qsResults.add(qsResult);
-			}
+		// allow user to type more characters
+		Thread.sleep(500);
+		if (requestId != this.requestId.get()) {
+			return;
 		}
 
+		// get a connection
+		final String url = String.format(SEARCH_PATTERN, URLEncoder.encode(title, "UTF8"));
+		final List<AllocineQsResult> qsResults = new ArrayList<AllocineQsResult>();
+		LOGGER.info("request ({}) {}", requestId, url);
+		final BufferedReader reader = new BufferedReader(new InputStreamReader(new URL(url).openStream()));
+		if (requestId != this.requestId.get()) {
+			return;
+		}
+
+		// read / parse json data
+		final JsonArray jsonQsResults = new JsonParser().parse(reader).getAsJsonArray();
+		for (final JsonElement jsonElement : jsonQsResults) {
+			qsResults.add(new AllocineQsResult(jsonElement.getAsJsonObject()));
+		}
+
+		// launch GUI update
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
-				LOGGER.info("displayed {}", url);
+				if (requestId != AllocineField.this.requestId.get()) {
+					return;
+				}
+				LOGGER.info("displayed ({}) {}", requestId, url);
 				getItems().clear();
 				getItems().addAll(qsResults);
 				if (!getItems().isEmpty()) {
