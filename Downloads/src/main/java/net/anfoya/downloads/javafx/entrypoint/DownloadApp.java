@@ -16,7 +16,7 @@ import javafx.util.Callback;
 import net.anfoya.downloads.javafx.ComponentBuilder;
 import net.anfoya.downloads.javafx.SearchPane;
 import net.anfoya.downloads.javafx.SearchTabs;
-import net.anfoya.downloads.javafx.allocine.AllocineMovie;
+import net.anfoya.downloads.javafx.allocine.AllocineQsResult;
 import net.anfoya.java.net.PersistentCookieStore;
 import net.anfoya.java.net.filtered.engine.RuleSet;
 import net.anfoya.java.net.torrent.TorrentHandlerFactory;
@@ -74,17 +74,17 @@ public class DownloadApp extends Application {
 				return null;
 			}
 		});
-	    searchPane.setOnSearchAction(new Callback<AllocineMovie, Void>() {
+	    searchPane.setOnSearchAction(new Callback<AllocineQsResult, Void>() {
 	    	@Override
-	    	public Void call(final AllocineMovie movie) {
-				searchTabs.search(movie.toString(), movie.getId());
+	    	public Void call(final AllocineQsResult qsResult) {
+				searchTabs.search(qsResult.toString(), qsResult);
 	    		return null;
 	    	}
 		});
 
 		final Scene scene = new Scene(mainPane, 1150, 800);
-		final String css = getClass().getResource("/net/anfoya/javafx/scene/control/button_flat.css").toExternalForm();
-		scene.getStylesheets().add(css);
+		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/button_flat.css").toExternalForm());
+		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/combo_noarrow.css").toExternalForm());
 
 		primaryStage.setTitle("Movie Search");
 		primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("Downloads.png")));

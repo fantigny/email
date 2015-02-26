@@ -1,14 +1,14 @@
 package net.anfoya.downloads.javafx.allocine;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
-import java.util.function.Consumer;
 
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -29,32 +29,33 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
-public class AllocineField extends ComboBox<AllocineMovie> {
+public class AllocineField extends ComboBox<AllocineQsResult> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AllocineField.class);
 	private static final String SEARCH_PATTERN = "http://essearch.allocine.net/fr/autocomplete?geo2=83090&q=%s";
 
-	private volatile AllocineMovie currentMovie;
-	private volatile AllocineMovie searchedMovie;
-	private volatile AllocineMovie requestMovie;
+	private volatile AllocineQsResult currentQs;
+	private volatile AllocineQsResult searchedQs;
+	private volatile AllocineQsResult requestQs;
 
 	private volatile Future<?> requestFuture;
 
-	private Callback<AllocineMovie, Void> searchCallback;
+	private Callback<AllocineQsResult, Void> searchCallback;
 
 	public AllocineField() {
 		setEditable(true);
-		setButtonCell(new AllocineListCell());
-		setCellFactory(new Callback<ListView<AllocineMovie>, ListCell<AllocineMovie>>() {
+		setPromptText("Key in a text and wait for quick search or type <Enter> for full search");
+		setButtonCell(new AllocineQsListCell());
+		setCellFactory(new Callback<ListView<AllocineQsResult>, ListCell<AllocineQsResult>>() {
 			@Override
-			public ListCell<AllocineMovie> call(final ListView<AllocineMovie> movie) {
-				return new AllocineListCell();
+			public ListCell<AllocineQsResult> call(final ListView<AllocineQsResult> movie) {
+				return new AllocineQsListCell();
 			}
 		});
 
-		currentMovie = null;
-		searchedMovie = null;
+		currentQs = null;
+		searchedQs = null;
 		requestFuture = null;
-		requestMovie = null;
+		requestQs = null;
 
 		addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
 			@Override
@@ -68,7 +69,19 @@ public class AllocineField extends ComboBox<AllocineMovie> {
 			}
 		});
 
-		getEditor().addEventHandler(KeyEvent.KEY_RELEASED, new EventHandler<KeyEvent>() {
+		getEditor().addEventFilter(KeyEvent.KEY_RELEASED, new EventHandler<KeyEvent>() {
+			@Override
+			public void handle(final KeyEvent event) {
+				switch(event.getCode()) {
+				case ENTER:
+					submitSearch();
+					break;
+				default:
+				}
+			}
+		});
+
+		getEditor().addEventFilter(KeyEvent.KEY_RELEASED, new EventHandler<KeyEvent>() {
 			@Override
 			public void handle(final KeyEvent event) {
 				switch(event.getCode()) {
@@ -76,148 +89,141 @@ public class AllocineField extends ComboBox<AllocineMovie> {
 					break;
 				case DOWN:
 					if (!isShowing()) {
-						updateList();
+						showQuickSearch();
 					}
 					break;
 				default:
-					updateList();
+					showQuickSearch();
 				}
 			}
 		});
 		getEditor().textProperty().addListener(new ChangeListener<String>() {
 			@Override
 			public void changed(final ObservableValue<? extends String> ov, final String oldVal, final String newVal) {
-				currentMovie = new AllocineMovie(newVal);
+				currentQs = new AllocineQsResult(newVal);
 			}
 		});
 
-		setConverter(new StringConverter<AllocineMovie>() {
+		setConverter(new StringConverter<AllocineQsResult>() {
 			@Override
-			public String toString(final AllocineMovie movie) {
-				return movie == null
-						? ""
-						: movie.toString();
+			public String toString(final AllocineQsResult movie) {
+				return movie == null? "": movie.toString();
 			}
-
 			@Override
-			public AllocineMovie fromString(final String string) {
-				return string == null
-						? AllocineMovie.getEmptyMovie()
-						: new AllocineMovie(string);
+			public AllocineQsResult fromString(final String string) {
+				return string == null? AllocineQsResult.getEmptyResult(): new AllocineQsResult(string);
 			}
 		});
 	}
 
-	public void submitSearch() {
+	private void submitSearch() {
+		cancelQuickSearch();
 		if (searchCallback != null
-				&& currentMovie != null
-				&& !currentMovie.toString().isEmpty()
-				&& !currentMovie.equals(searchedMovie)) {
-			final AllocineMovie movie = getValue();
-			if (currentMovie.equals(movie)) {
-				currentMovie = movie;
+				&& currentQs != null
+				&& !currentQs.toString().isEmpty()
+				&& !currentQs.equals(searchedQs)) {
+			final AllocineQsResult movie = getValue();
+			if (currentQs.equals(movie)) {
+				currentQs = movie;
 			}
-			searchedMovie = currentMovie;
-			searchCallback.call(currentMovie);
-
-			if (requestFuture != null) {
-				requestFuture.cancel(true);
-				hide();
-			}
+			searchedQs = currentQs;
+			searchCallback.call(currentQs);
 		}
 	}
 
-	private synchronized void updateList() {
-		if (currentMovie == null) {
+	private void cancelQuickSearch() {
+		hide();
+		if (requestFuture != null
+				&& !requestFuture.isDone()
+				&& !requestFuture.isCancelled()) {
+			requestFuture.cancel(true);
+		}
+	}
+
+	private synchronized void showQuickSearch() {
+		if (currentQs == null) {
 			// nothing to display
-			getItems().clear();
-			hide();
+			cancelQuickSearch();
 			return;
 		}
 
-		if (currentMovie.equals(requestMovie)
-				&& requestFuture != null && requestFuture.isDone()) {
-			// list was already requested
-			if (!isShowing() && !getItems().isEmpty()) {
+		if (currentQs.equals(searchedQs)) {
+			if (!isShowing()) {
+				//TODO check
+				// loading a movie in browser
+				return;
+			}
+		}
+
+		if (currentQs.equals(requestQs)) {
+			if (requestFuture != null && requestFuture.isDone() && !getItems().isEmpty()) {
+				// quick search already done and finished
 				show();
 			}
 			return;
 		}
-		requestMovie = currentMovie;
+		requestQs = currentQs;
 
-		requestList();
-	}
+		cancelQuickSearch();
 
-	private synchronized void requestList() {
-		final String title = requestMovie.toString();
-		if (title.length() < 3) {
-			// need more characters
-			hide();
-			if (requestFuture != null) {
-				requestFuture.cancel(true);
-			}
-			return;
-		}
-
-		final String url;
-		try {
-			url = String.format(SEARCH_PATTERN, URLEncoder.encode(title, "UTF8"));
-		} catch (final UnsupportedEncodingException e) {
-			LOGGER.error("building url {}", String.format(SEARCH_PATTERN, title), e);
-			return;
-		}
-		if (requestFuture != null) {
-			requestFuture.cancel(true);
-		}
+		final String title = requestQs.toString();
 		requestFuture = ThreadPool.getInstance().submit(new Runnable() {
 			@Override
 			public void run() {
-				final List<AllocineMovie> movies = new ArrayList<AllocineMovie>();
 				try {
-					Thread.sleep(500); // allow user to type more characters
-					LOGGER.info("requested {}", url);
-					final BufferedReader reader = new BufferedReader(new InputStreamReader(new URL(url).openStream()));
-					final JsonArray jsonMovies = new JsonParser().parse(reader).getAsJsonArray();
-					jsonMovies.forEach(new Consumer<JsonElement>() {
-						@Override
-						public void accept(final JsonElement element) {
-							final AllocineMovie movie = new AllocineMovie(element.getAsJsonObject());
-							if (!movie.getThumbnail().isEmpty()) {
-								movies.add(movie);
-							}
-						}
-					});
+					requestQuickSearch(title);
 				} catch (final InterruptedException e) {
 					return;
 				} catch (final Exception e) {
-					LOGGER.error("loading {}", url, e);
+					LOGGER.error("loading {}", title, e);
 					return;
 				}
+			}
+		});
+	}
 
-				Platform.runLater(new Runnable() {
-					@Override
-					public void run() {
-						LOGGER.info("displayed {}", url);
-						getItems().clear();
-						getItems().addAll(movies);
-						if (!getItems().isEmpty()) {
-							show();
-						}
-					}
-				});
+	private void requestQuickSearch(final String title) throws InterruptedException, MalformedURLException, IOException {
+		if (title.length() < 3) {
+			// need more characters
+			return;
+		}
+
+		Thread.sleep(500); // allow user to type more characters
+
+		final String url = String.format(SEARCH_PATTERN, URLEncoder.encode(title, "UTF8"));
+		final List<AllocineQsResult> qsResults = new ArrayList<AllocineQsResult>();
+		LOGGER.info("requested {}", url);
+		final BufferedReader reader = new BufferedReader(new InputStreamReader(new URL(url).openStream()));
+		final JsonArray jsonQsResults = new JsonParser().parse(reader).getAsJsonArray();
+		for (final JsonElement jsonElement : jsonQsResults) {
+			final AllocineQsResult qsResult = new AllocineQsResult(jsonElement.getAsJsonObject());
+			if (!qsResult.getThumbnail().isEmpty()) {
+				qsResults.add(qsResult);
+			}
+		}
+
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				LOGGER.info("displayed {}", url);
+				getItems().clear();
+				getItems().addAll(qsResults);
+				if (!getItems().isEmpty()) {
+					show();
+				}
 			}
 		});
 	}
 
 	public void setSearchedText(final String searched) {
-		final AllocineMovie searchedMovie = new AllocineMovie(searched);
-		if (!searchedMovie.equals(this.searchedMovie)) {
-			this.searchedMovie = searchedMovie;
-			setValue(searchedMovie);
+		final AllocineQsResult searchedQs = new AllocineQsResult(searched);
+		if (!searchedQs.equals(this.searchedQs)) {
+			this.searchedQs = searchedQs;
+			setValue(searchedQs);
 		}
 	}
 
-	public void setOnSearch(final Callback<AllocineMovie, Void> callback) {
+	public void setOnSearch(final Callback<AllocineQsResult, Void> callback) {
 		searchCallback = callback;
 	}
 }

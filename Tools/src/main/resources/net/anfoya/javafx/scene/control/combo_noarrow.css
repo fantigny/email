@@ -1,0 +1,4 @@
+.combo-box .arrow, .combo-box .arrow-button {
+	-fx-background: transparent;
+	-fx-cursor: text;
+}

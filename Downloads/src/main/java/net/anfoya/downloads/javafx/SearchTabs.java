@@ -16,6 +16,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Callback;
 import net.anfoya.downloads.Config;
+import net.anfoya.downloads.javafx.allocine.AllocineQsResult;
 import net.anfoya.tools.model.Website;
 
 public class SearchTabs extends TabPane {
@@ -121,18 +122,18 @@ public class SearchTabs extends TabPane {
 		return ((SearchTab) getSelectionModel().getSelectedItem()).getSelection();
 	}
 
-	public void search(final String text, final String allocineId) {
-		search(getTabs(), text, allocineId);
+	public void search(final String text, final AllocineQsResult qsResult) {
+		search(getTabs(), text, qsResult);
 	}
 
 	private void search(final List<Tab> tabs, final String text) {
-		search(tabs, text, "");
+		search(tabs, text, AllocineQsResult.getEmptyResult());
 	}
 
-	private void search(final List<Tab> tabs, final String text, final String id) {
+	private void search(final List<Tab> tabs, final String text, final AllocineQsResult qsResult) {
 		searchCallBack.call(text);
 		for(final Tab tab: tabs) {
-			((SearchTab)tab).search(text, id);
+			((SearchTab)tab).search(text, qsResult);
 		}
 	}
 
