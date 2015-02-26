@@ -56,9 +56,10 @@ public class AllocineField extends ComboBox<AllocineQsResult> {
 		requestQs = null;
 		requestId = new AtomicLong(0);
 
-		addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
+		addEventFilter(KeyEvent.KEY_RELEASED, new EventHandler<KeyEvent>() {
 			@Override
 			public void handle(final KeyEvent event) {
+				debug("KEY_PRESSED " + event.getCode());
 				switch(event.getCode()) {
 				case ENTER:
 					submitSearch();
@@ -71,18 +72,7 @@ public class AllocineField extends ComboBox<AllocineQsResult> {
 		getEditor().addEventFilter(KeyEvent.KEY_RELEASED, new EventHandler<KeyEvent>() {
 			@Override
 			public void handle(final KeyEvent event) {
-				switch(event.getCode()) {
-				case ENTER:
-					submitSearch();
-					break;
-				default:
-				}
-			}
-		});
-
-		getEditor().addEventFilter(KeyEvent.KEY_RELEASED, new EventHandler<KeyEvent>() {
-			@Override
-			public void handle(final KeyEvent event) {
+				debug("editor KEY_RELEASED " + event.getCode());
 				switch(event.getCode()) {
 				case RIGHT: case LEFT: case UP:
 					break;
@@ -99,6 +89,7 @@ public class AllocineField extends ComboBox<AllocineQsResult> {
 		getEditor().textProperty().addListener(new ChangeListener<String>() {
 			@Override
 			public void changed(final ObservableValue<? extends String> ov, final String oldVal, final String newVal) {
+				debug("text property change " + newVal);
 				currentQs = new AllocineQsResult(newVal);
 			}
 		});
@@ -106,16 +97,19 @@ public class AllocineField extends ComboBox<AllocineQsResult> {
 		setConverter(new StringConverter<AllocineQsResult>() {
 			@Override
 			public String toString(final AllocineQsResult qsResult) {
+				debug("converting qsResult " + qsResult);
 				return qsResult == null? "": qsResult.toString();
 			}
 			@Override
 			public AllocineQsResult fromString(final String string) {
+				debug("converting string " + string);
 				return string == null? AllocineQsResult.getEmptyResult(): new AllocineQsResult(string);
 			}
 		});
 	}
 
 	private void submitSearch() {
+		debug("submit search");
 		cancelQuickSearch();
 		if (searchCallback != null
 				&& currentQs != null
@@ -132,22 +126,18 @@ public class AllocineField extends ComboBox<AllocineQsResult> {
 	}
 
 	private void cancelQuickSearch() {
+		debug("cancel quick search");
 		hide();
 		requestId.incrementAndGet();
 	}
 
 	private synchronized void showQuickSearch() {
+		debug("show quick search");
+
 		if (currentQs == null) {
 			// nothing to display
 			cancelQuickSearch();
 			return;
-		}
-
-		if (currentQs.equals(searchedQs)) {
-			if (isShowing()) {
-				// loading a movie in browser
-				return;
-			}
 		}
 
 		if (currentQs.equals(requestQs) && !getItems().isEmpty()) {
@@ -175,6 +165,8 @@ public class AllocineField extends ComboBox<AllocineQsResult> {
 	}
 
 	private void requestQuickSearch(final long requestId, final String title) throws InterruptedException, MalformedURLException, IOException {
+		debug("request quick search (" + requestId + ") " + title);
+
 		if (title.length() < 3) {
 			// need more characters
 			return;
@@ -183,6 +175,7 @@ public class AllocineField extends ComboBox<AllocineQsResult> {
 		// allow user to type more characters
 		Thread.sleep(500);
 		if (requestId != this.requestId.get()) {
+			debug("cancelled quick search (" + requestId + ") " + title);
 			return;
 		}
 
@@ -192,6 +185,7 @@ public class AllocineField extends ComboBox<AllocineQsResult> {
 		LOGGER.info("request ({}) {}", requestId, url);
 		final BufferedReader reader = new BufferedReader(new InputStreamReader(new URL(url).openStream()));
 		if (requestId != this.requestId.get()) {
+			debug("cancelled quick search (" + requestId + ") " + title);
 			return;
 		}
 
@@ -206,6 +200,7 @@ public class AllocineField extends ComboBox<AllocineQsResult> {
 			@Override
 			public void run() {
 				if (requestId != AllocineField.this.requestId.get()) {
+					debug("cancelled quick search (" + requestId + ") " + title);
 					return;
 				}
 				LOGGER.info("displayed ({}) {}", requestId, url);
@@ -219,6 +214,7 @@ public class AllocineField extends ComboBox<AllocineQsResult> {
 	}
 
 	public void setSearchedText(final String searched) {
+		debug("set searched " + searched);
 		final AllocineQsResult searchedQs = new AllocineQsResult(searched);
 		if (!searchedQs.equals(this.searchedQs)) {
 			this.searchedQs = searchedQs;
@@ -228,5 +224,14 @@ public class AllocineField extends ComboBox<AllocineQsResult> {
 
 	public void setOnSearch(final Callback<AllocineQsResult, Void> callback) {
 		searchCallback = callback;
+	}
+
+	private void debug(final String s) {
+		LOGGER.debug(s + " ({}) ({}) ({}) ({}) ({})"
+				, getValue()
+				, currentQs
+				, searchedQs
+				, requestQs
+				, requestId);
 	}
 }
