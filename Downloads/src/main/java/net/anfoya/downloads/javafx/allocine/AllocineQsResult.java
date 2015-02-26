@@ -37,7 +37,7 @@ public class AllocineQsResult {
 	public AllocineQsResult(final JsonObject jsonResult) {
 		this.id = getValue(jsonResult, "id");
 		this.type = getValue(jsonResult, "entitytype");
-		this.thumbnail = getValue(jsonResult, "thumbnail");
+		this.thumbnail = getValue(jsonResult, "thumbnail", getClass().getResource("nothumbnail.png").toString());
 		this.director = getMetadata(jsonResult, "director");
 		this.activity = getMetadata(jsonResult, "activity");
 		this.creator = getMetadata(jsonResult, "creator");
@@ -77,13 +77,13 @@ public class AllocineQsResult {
 				value = defaultVal[0];
 			} else {
 				value = "";
-				LOGGER.warn("{} found in {}", id, jsonObject.toString(), e);
+				LOGGER.warn("{} not found in {}", id, jsonObject.toString(), e);
 			}
 		}
 		return value;
 	}
 
-	private String getMetadata(final JsonObject jsonObject, final String id) {
+	private String getMetadata(final JsonObject jsonObject, final String id, final String... defaultVal) {
 		String metadata = "";
 		try {
 			final JsonArray jsonArray = jsonObject.get("metadata").getAsJsonArray();
@@ -97,7 +97,12 @@ public class AllocineQsResult {
 				}
 			}
 		} catch (final Exception e) {
-			LOGGER.warn("{} not found in {}", id, jsonObject.toString(), e);
+			if (defaultVal.length != 0) {
+				metadata = defaultVal[0];
+			} else {
+				metadata = "";
+				LOGGER.warn("{} not found in {}", id, jsonObject.toString(), e);
+			}
 		}
 		return metadata;
 	}
