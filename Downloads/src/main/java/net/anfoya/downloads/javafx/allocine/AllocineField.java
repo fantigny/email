@@ -34,8 +34,8 @@ public class AllocineField extends ComboBox<AllocineQsResult> {
 	private static final String SEARCH_PATTERN = "http://essearch.allocine.net/fr/autocomplete?geo2=83090&q=%s";
 
 	private volatile AllocineQsResult currentQs;
-	private volatile AllocineQsResult searchedQs;
 	private volatile AllocineQsResult requestQs;
+	private volatile AllocineQsResult searchedQs;
 
 	private final AtomicLong requestId;
 
