@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListCell;
@@ -37,7 +38,8 @@ public class AllocineField extends ComboBox<AllocineQsResult> {
 	private volatile AllocineQsResult requestQs;
 	private volatile AllocineQsResult searchedQs;
 
-	private final AtomicLong requestId;
+	private final AtomicLong requestQsId;
+	private final AtomicLong submitSearchId;
 
 	private Callback<AllocineQsResult, Void> searchCallback;
 
@@ -54,7 +56,8 @@ public class AllocineField extends ComboBox<AllocineQsResult> {
 		currentQs = null;
 		searchedQs = null;
 		requestQs = null;
-		requestId = new AtomicLong(0);
+		requestQsId = new AtomicLong(0);
+		submitSearchId = new AtomicLong(0);
 
 		// must be a filter to catch ENTER key
 		addEventFilter(KeyEvent.KEY_RELEASED, new EventHandler<KeyEvent>() {
@@ -70,13 +73,44 @@ public class AllocineField extends ComboBox<AllocineQsResult> {
 			}
 		});
 
+		setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(final ActionEvent event) {
+				final long submitSearchId = AllocineField.this.submitSearchId.incrementAndGet();
+				ThreadPool.getInstance().submit(new Runnable() {
+					@Override
+					public void run() {
+						LOGGER.debug("submit search waiting ({})", submitSearchId);
+						try { Thread.sleep(200); }
+						catch(final Exception e) { return; }
+						// only submit search if this is not a up/down keyboard action, i.e. it is a mouse click
+						if (submitSearchId == AllocineField.this.submitSearchId.get()) {
+							LOGGER.debug("submiting search ({})", submitSearchId);
+							Platform.runLater(new Runnable() {
+								@Override
+								public void run() {
+									submitSearch();
+								}
+							});
+						}
+					}
+				});
+			}
+		});
+
 		getEditor().addEventHandler(KeyEvent.KEY_RELEASED, new EventHandler<KeyEvent>() {
 			@Override
 			public void handle(final KeyEvent event) {
 				switch(event.getCode()) {
-				case ENTER: case ESCAPE: case RIGHT: case LEFT: case UP:
+				case ENTER: case ESCAPE: case RIGHT: case LEFT:
+					break;
+				case UP:
+					LOGGER.debug("editor KEY_PRESSED UP");
+					submitSearchId.incrementAndGet();
 					break;
 				case DOWN:
+					LOGGER.debug("editor KEY_PRESSED DOWN");
+					submitSearchId.incrementAndGet();
 					if (!isShowing()) {
 						LOGGER.debug("editor KEY_PRESSED DOWN and showing");
 						showQuickSearch();
@@ -134,7 +168,7 @@ public class AllocineField extends ComboBox<AllocineQsResult> {
 	private void cancelQuickSearch() {
 		LOGGER.debug("cancel quick search");
 		hide();
-		requestId.incrementAndGet();
+		requestQsId.incrementAndGet();
 	}
 
 	private synchronized void showQuickSearch() {
@@ -155,7 +189,7 @@ public class AllocineField extends ComboBox<AllocineQsResult> {
 		cancelQuickSearch();
 
 		requestQs = currentQs;
-		final long requestId = this.requestId.incrementAndGet();
+		final long requestId = this.requestQsId.incrementAndGet();
 		ThreadPool.getInstance().submit(new Runnable() {
 			@Override
 			public void run() {
@@ -181,7 +215,7 @@ public class AllocineField extends ComboBox<AllocineQsResult> {
 
 		// allow user to type more characters
 		Thread.sleep(500);
-		if (requestId != this.requestId.get()) {
+		if (requestId != this.requestQsId.get()) {
 			LOGGER.debug("quick search cancelled ({})", requestId);
 			return;
 		}
@@ -191,7 +225,7 @@ public class AllocineField extends ComboBox<AllocineQsResult> {
 		final List<AllocineQsResult> qsResults = new ArrayList<AllocineQsResult>();
 		LOGGER.info("request ({}) \"{}\"", requestId, url);
 		final BufferedReader reader = new BufferedReader(new InputStreamReader(new URL(url).openStream()));
-		if (requestId != this.requestId.get()) {
+		if (requestId != this.requestQsId.get()) {
 			LOGGER.debug("quick search cancelled ({})", requestId);
 			return;
 		}
@@ -206,7 +240,7 @@ public class AllocineField extends ComboBox<AllocineQsResult> {
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
-				if (requestId != AllocineField.this.requestId.get()) {
+				if (requestId != AllocineField.this.requestQsId.get()) {
 					LOGGER.debug("quick search cancelled ({})", requestId);
 					return;
 				}
