@@ -43,9 +43,9 @@ public class AllocineQsResult {
 		this.creator = getMetadata(jsonResult, "creator");
 
 		if (isPerson()) {
-			name = getValue(jsonResult, "title1");
+			this.name = getValue(jsonResult, "title1");
 		} else {
-			name = getValue(jsonResult, "title2");
+			this.name = getValue(jsonResult, "title2");
 		}
 
 		if (isSerie()) {
@@ -54,12 +54,7 @@ public class AllocineQsResult {
 			this.year = getMetadata(jsonResult, "productionyear");
 		}
 
-		final String french = getValue(jsonResult, "title1");
-		if (!french.isEmpty()) {
-			this.french = french;
-		} else {
-			this.french = this.name;
-		}
+		this.french = getValue(jsonResult, "title1", this.name);
 
 		if (!thumbnail.isEmpty()) {
 			thumbnailFuture = ThreadPool.getInstance().submit(new Callable<Image>() {
@@ -73,13 +68,19 @@ public class AllocineQsResult {
 		}
 	}
 
-	private String getValue(final JsonObject jsonObject, final String id) {
+	private String getValue(final JsonObject jsonObject, final String id, final String... defaultVal) {
+		String value;
 		try {
-			return jsonObject.get(id).getAsString();
+			value = jsonObject.get(id).getAsString();
 		} catch (final Exception e) {
-			LOGGER.warn("not found {}", id);
+			if (defaultVal.length != 0) {
+				value = defaultVal[0];
+			} else {
+				value = "";
+				LOGGER.warn("{} found in {}", id, jsonObject.toString(), e);
+			}
 		}
-		return "";
+		return value;
 	}
 
 	private String getMetadata(final JsonObject jsonObject, final String id) {
@@ -96,7 +97,7 @@ public class AllocineQsResult {
 				}
 			}
 		} catch (final Exception e) {
-			LOGGER.warn("metadata not found {}", id);
+			LOGGER.warn("{} not found in {}", id, jsonObject.toString(), e);
 		}
 		return metadata;
 	}
