@@ -47,7 +47,7 @@ public class AllocineField extends ComboBox<AllocineQsResult> {
 		setButtonCell(new AllocineQsListCell());
 		setCellFactory(new Callback<ListView<AllocineQsResult>, ListCell<AllocineQsResult>>() {
 			@Override
-			public ListCell<AllocineQsResult> call(final ListView<AllocineQsResult> movie) {
+			public ListCell<AllocineQsResult> call(final ListView<AllocineQsResult> listView) {
 				return new AllocineQsListCell();
 			}
 		});
@@ -106,8 +106,8 @@ public class AllocineField extends ComboBox<AllocineQsResult> {
 
 		setConverter(new StringConverter<AllocineQsResult>() {
 			@Override
-			public String toString(final AllocineQsResult movie) {
-				return movie == null? "": movie.toString();
+			public String toString(final AllocineQsResult qsResult) {
+				return qsResult == null? "": qsResult.toString();
 			}
 			@Override
 			public AllocineQsResult fromString(final String string) {
@@ -122,9 +122,9 @@ public class AllocineField extends ComboBox<AllocineQsResult> {
 				&& currentQs != null
 				&& !currentQs.toString().isEmpty()
 				&& !currentQs.equals(searchedQs)) {
-			final AllocineQsResult movie = getValue();
-			if (currentQs.equals(movie)) {
-				currentQs = movie;
+			final AllocineQsResult qs = getValue();
+			if (currentQs.equals(qs)) {
+				currentQs = qs;
 			}
 			searchedQs = currentQs;
 			searchCallback.call(currentQs);
