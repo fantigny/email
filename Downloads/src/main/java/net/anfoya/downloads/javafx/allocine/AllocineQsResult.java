@@ -27,7 +27,6 @@ public class AllocineQsResult {
 	private final String director;
 	private final String french;
 	private final String year;
-	private final String thumbnail;
 	private final String activity;
 	private final String creator;
 
@@ -37,7 +36,6 @@ public class AllocineQsResult {
 	public AllocineQsResult(final JsonObject jsonResult) {
 		this.id = getValue(jsonResult, "id");
 		this.type = getValue(jsonResult, "entitytype");
-		this.thumbnail = getValue(jsonResult, "thumbnail", getClass().getResource("nothumbnail.png").toString());
 		this.director = getMetadata(jsonResult, "director");
 		this.activity = getMetadata(jsonResult, "activity");
 		this.creator = getMetadata(jsonResult, "creator");
@@ -56,16 +54,13 @@ public class AllocineQsResult {
 
 		this.french = getValue(jsonResult, "title1", this.name);
 
-		if (!thumbnail.isEmpty()) {
-			thumbnailFuture = ThreadPool.getInstance().submit(new Callable<Image>() {
-				@Override
-				public Image call() {
-					return new Image(thumbnail);
-				}
-			});
-		} else {
-			thumbnailFuture = null;
-		}
+		final String thumbnail = getValue(jsonResult, "thumbnail", getClass().getResource("nothumbnail.png").toString());
+		this.thumbnailFuture = ThreadPool.getInstance().submit(new Callable<Image>() {
+			@Override
+			public Image call() {
+				return new Image(thumbnail);
+			}
+		});
 	}
 
 	private String getValue(final JsonObject jsonObject, final String id, final String... defaultVal) {
@@ -110,7 +105,7 @@ public class AllocineQsResult {
 	public AllocineQsResult(final String name) {
 		this.name = name;
 
-		id = director = french = thumbnail = year = type = activity = creator ="";
+		id = director = french = year = type = activity = creator ="";
 		thumbnailFuture = null;
 	}
 
@@ -143,10 +138,6 @@ public class AllocineQsResult {
 
 	public String getTitle() {
 		return name;
-	}
-
-	public String getThumbnail() {
-		return thumbnail;
 	}
 
 	public Image getThumbnailImage() {
