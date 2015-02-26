@@ -134,7 +134,7 @@ public class EasyListFilterImpl implements RuleSet, Serializable {
 	private boolean matches(final Set<Rule> rules, final String url) {
 		for(final Rule rule: rules) {
 			if (rule.applies(url)) {
-				LOGGER.info("{} \"{}\" matches \"{}\" (regex={}) (original line={})"
+				LOGGER.debug("{} \"{}\" matches \"{}\" (regex={}) (original line={})"
 						, rule.getType()
 						, rule.getEffectiveLine()
 						, url
