@@ -11,7 +11,7 @@
 		</encoder>
 	</appender>
 
-  <logger name="net.anfoya.downloads.javafx.allocine" level="DEBUG"/>
+  <!-- logger name="net.anfoya.downloads.javafx.allocine" level="DEBUG"/ -->
 
 	<root level="info">
 		<appender-ref ref="STDOUT" />
