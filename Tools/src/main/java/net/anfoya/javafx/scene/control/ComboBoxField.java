@@ -26,7 +26,7 @@ public class ComboBoxField<T> extends ComboBox<T> {
 	private volatile T currentValue;
 	private volatile T progSetValue;
 
-	private final AtomicLong delayedActionId;
+	private final AtomicLong delayedActionTime;
 
 	private EventHandler<ActionEvent> fieldActionHandler;
 	private EventHandler<ActionEvent> listRequestHandler;
@@ -36,7 +36,7 @@ public class ComboBoxField<T> extends ComboBox<T> {
 
 		currentValue = null;
 		progSetValue = null;
-		delayedActionId = new AtomicLong(0);
+		delayedActionTime = new AtomicLong(0);
 
 		// fire <fieldActionHandler> on ENTER key released
 		addEventFilter(KeyEvent.KEY_RELEASED, new EventHandler<KeyEvent>() {
@@ -52,39 +52,42 @@ public class ComboBoxField<T> extends ComboBox<T> {
 			}
 		});
 
-		// fire delayed <fieldActionHandler> on ComboBox::onAction event
+		// arm delayed <fieldActionHandler> on ComboBox::onAction event when showing
+		// (to catch mouse click on combobox displayed list)
 		setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(final ActionEvent event) {
-				LOGGER.debug("handle onAction");
-				fireDelayedFieldAction(event);
+				if (isShowing()) {
+					LOGGER.debug("handle onAction and showing");
+					fireDelayedFieldAction(event);
+				}
 			}
 		});
 
 		// discard ENTER, ESCAPE, RIGHT, LEFT KEY_RELEASED
 		// cancel delayed <fieldActionHandler> on UP or DOWN KEY_RELEASED
 		// fire <listRequestHandler> on DOWN KEY_RELEASED (if list is not showing) or other characters
-		getEditor().addEventHandler(KeyEvent.KEY_RELEASED, new EventHandler<KeyEvent>() {
+		getEditor().addEventFilter(KeyEvent.KEY_RELEASED, new EventHandler<KeyEvent>() {
 			@Override
 			public void handle(final KeyEvent event) {
 				switch(event.getCode()) {
 				case ENTER: case ESCAPE: case RIGHT: case LEFT:
-					LOGGER.debug("editor discard KEY_PRESSED ENTER/ESCAPE/RIGHT/LEFT");
+					LOGGER.debug("editor filter KEY_PRESSED ENTER/ESCAPE/RIGHT/LEFT");
 					break;
 				case UP:
-					LOGGER.debug("editor handle KEY_PRESSED UP");
+					LOGGER.debug("editor filter KEY_PRESSED UP");
 					cancelDelayedFieldAction();
 					break;
 				case DOWN:
-					LOGGER.debug("editor handle KEY_PRESSED DOWN");
+					LOGGER.debug("editor filter KEY_PRESSED DOWN");
 					cancelDelayedFieldAction();
 					if (!isShowing()) {
-						LOGGER.debug("editor handle KEY_PRESSED DOWN and not showing");
+						LOGGER.debug("editor filter KEY_PRESSED DOWN and not showing");
 						fireListRequest(event);
 					}
 					break;
 				default:
-					LOGGER.debug("editor handle other characters");
+					LOGGER.debug("editor filter other characters");
 					fireListRequest(event);
 					break;
 				}
@@ -95,7 +98,7 @@ public class ComboBoxField<T> extends ComboBox<T> {
 		getEditor().textProperty().addListener(new ChangeListener<String>() {
 			@Override
 			public void changed(final ObservableValue<? extends String> ov, final String oldVal, final String newVal) {
-				LOGGER.debug("handle text changed ", newVal);
+				LOGGER.debug("handle text changed \"{}\"", newVal);
 				currentValue = getConverter().fromString(newVal);
 			}
 		});
@@ -128,14 +131,15 @@ public class ComboBoxField<T> extends ComboBox<T> {
 
 	private void fireListRequest(final KeyEvent event) {
 		if (listRequestHandler != null) {
-			LOGGER.debug("call list request handler");
+			LOGGER.debug("fire list request");
 			listRequestHandler.handle(new ActionEvent(event.getSource(), event.getTarget()));
 		}
 	}
 
 	private void fireDelayedFieldAction(final Event event) {
-		final long submitSearchId = ComboBoxField.this.delayedActionId.incrementAndGet();
-		LOGGER.debug("delayed field action ({})", submitSearchId);
+		final long delayedActionTime = System.nanoTime();
+		this.delayedActionTime.set(delayedActionTime);
+		LOGGER.debug("delayed field action ({})", delayedActionTime);
 		ThreadPool.getInstance().submit(new Runnable() {
 			@Override
 			public void run() {
@@ -144,9 +148,9 @@ public class ComboBoxField<T> extends ComboBox<T> {
 				Platform.runLater(new Runnable() {
 					@Override
 					public void run() {
-						if (submitSearchId == ComboBoxField.this.delayedActionId.get()) {
+						if (delayedActionTime == ComboBoxField.this.delayedActionTime.get()) {
 							// only submit search if this is not a up/down keyboard action, i.e. it is a mouse click
-							LOGGER.debug("fire field action ({})", submitSearchId);
+							LOGGER.debug("fire field action ({})", delayedActionTime);
 							fireFieldAction(event);
 						}
 					}
@@ -156,7 +160,7 @@ public class ComboBoxField<T> extends ComboBox<T> {
 	}
 
 	private void cancelDelayedFieldAction() {
-		delayedActionId.incrementAndGet();
+		delayedActionTime.set(0);
 	}
 
 	private void fireFieldAction(final Event event) {

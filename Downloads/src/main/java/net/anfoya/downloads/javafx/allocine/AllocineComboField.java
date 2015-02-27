@@ -30,9 +30,8 @@ import com.google.gson.JsonParser;
 public class AllocineComboField extends ComboBoxField<QuickSearchVo> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AllocineComboField.class);
 	private static final String SEARCH_PATTERN = "http://essearch.allocine.net/fr/autocomplete?geo2=83090&q=%s";
-
-	private volatile QuickSearchVo requestQs;
-	private final AtomicLong requestQsId;
+	private volatile QuickSearchVo requestedVo;
+	private final AtomicLong requestTime;
 
 	private Callback<QuickSearchVo, Void> searchCallback;
 
@@ -45,8 +44,8 @@ public class AllocineComboField extends ComboBoxField<QuickSearchVo> {
 			}
 		});
 
-		requestQs = null;
-		requestQsId = new AtomicLong(0);
+		requestedVo = null;
+		requestTime = new AtomicLong(0);
 
 		setOnFieldAction(new EventHandler<ActionEvent>() {
 			@Override
@@ -58,7 +57,7 @@ public class AllocineComboField extends ComboBoxField<QuickSearchVo> {
 		setOnListRequest(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(final ActionEvent event) {
-				showQuickSearch();
+				requestList();
 			}
 		});
 
@@ -85,7 +84,7 @@ public class AllocineComboField extends ComboBoxField<QuickSearchVo> {
 	}
 
 	private synchronized void submitSearch() {
-		cancelQuickSearch();
+		cancelListRequest();
 		final QuickSearchVo qs = getFieldValue();
 		if (qs == null || qs.toString().isEmpty()) {
 			return;
@@ -96,63 +95,61 @@ public class AllocineComboField extends ComboBoxField<QuickSearchVo> {
 		}
 	}
 
-	private synchronized void showQuickSearch() {
-		final QuickSearchVo currentQs = getFieldValue();
-		LOGGER.debug("submit search \"{}\"", currentQs);
+	private synchronized void requestList() {
+		final QuickSearchVo vo = getFieldValue();
+		LOGGER.debug("request list ({})", vo);
 
-		if (currentQs == null) {
+		if (vo == null) {
 			// nothing to display
-			cancelQuickSearch();
+			LOGGER.debug("cancelled empty request ({})", vo);
+			cancelListRequest();
 			return;
 		}
 
-		if (currentQs.equals(requestQs) && !getItems().isEmpty()) {
+		if (vo.equals(requestedVo) && !getItems().isEmpty()) {
 			// quick search already done
+			LOGGER.debug("cancelled request already ran or running ({})", vo);
 			show();
 			return;
 		}
+		requestedVo = vo;
 
-		cancelQuickSearch();
+		cancelListRequest();
 
-		requestQs = currentQs;
-		final long requestId = this.requestQsId.incrementAndGet();
+		final long requestTime = System.nanoTime();
+		this.requestTime.set(requestTime);
 		ThreadPool.getInstance().submit(new Runnable() {
 			@Override
 			public void run() {
 				try {
-					requestQuickSearch(requestId, requestQs.toString());
+					requestList(requestTime, vo.toString());
 				} catch (final InterruptedException e) {
 					return;
 				} catch (final Exception e) {
-					LOGGER.error("loading {}", requestQs.toString(), e);
+					LOGGER.error("loading \"{}\"", vo.toString(), e);
 					return;
 				}
 			}
 		});
 	}
 
-	private void requestQuickSearch(final long requestId, final String title) throws InterruptedException, MalformedURLException, IOException {
-		LOGGER.debug("request quick search \"{}\" ({}) ", title, requestId);
-
-		if (title.length() < 3) {
-			// need more characters
-			return;
-		}
+	private void requestList(final long requestId, final String title) throws InterruptedException, MalformedURLException, IOException {
+		LOGGER.debug("request list ({}) \"{}\"", requestId, title);
 
 		// allow user to type more characters
 		Thread.sleep(500);
-		if (requestId != this.requestQsId.get()) {
-			LOGGER.debug("quick search cancelled ({})", requestId);
+		if (requestId != this.requestTime.get()) {
+			LOGGER.debug("request list cancelled ({})", requestId);
 			return;
 		}
 
 		// get a connection
 		final String url = String.format(SEARCH_PATTERN, URLEncoder.encode(title, "UTF8"));
 		final List<QuickSearchVo> qsResults = new ArrayList<QuickSearchVo>();
-		LOGGER.info("request ({}) \"{}\"", requestId, url);
+		LOGGER.info("request list ({}) \"{}\"", requestId, url);
 		final BufferedReader reader = new BufferedReader(new InputStreamReader(new URL(url).openStream()));
-		if (requestId != this.requestQsId.get()) {
-			LOGGER.debug("quick search cancelled ({})", requestId);
+		if (requestId != this.requestTime.get()) {
+			LOGGER.debug("request list cancelled ({})", requestId);
 			return;
 		}
 
@@ -161,28 +158,31 @@ public class AllocineComboField extends ComboBoxField<QuickSearchVo> {
 		for (final JsonElement jsonElement : jsonQsResults) {
 			qsResults.add(new QuickSearchVo(jsonElement.getAsJsonObject()));
 		}
+		if (requestId != this.requestTime.get()) {
+			LOGGER.debug("request list cancelled ({})", requestId);
+			return;
+		}
 
 		// launch GUI update
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
-				if (requestId != AllocineComboField.this.requestQsId.get()) {
-					LOGGER.debug("quick search cancelled ({})", requestId);
+				if (requestId != AllocineComboField.this.requestTime.get()) {
+					LOGGER.debug("request list cancelled ({})", requestId);
 					return;
 				}
-				LOGGER.info("displayed ({}) \"{}\"", requestId, url);
-				getItems().clear();
-				getItems().addAll(qsResults);
+				getItems().setAll(qsResults);
 				if (!getItems().isEmpty()) {
 					show();
 				}
+				LOGGER.info("request list displayed ({}) \"{}\"", requestId, url);
 			}
 		});
 	}
 
-	private void cancelQuickSearch() {
+	private void cancelListRequest() {
 		LOGGER.debug("cancel quick search");
 		hide();
-		requestQsId.incrementAndGet();
+		requestTime.set(0);
 	}
 }
