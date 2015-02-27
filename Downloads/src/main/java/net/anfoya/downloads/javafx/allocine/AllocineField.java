@@ -27,15 +27,15 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
-public class AllocineComboField extends ComboBoxField<QuickSearchVo> {
-	private static final Logger LOGGER = LoggerFactory.getLogger(AllocineComboField.class);
+public class AllocineField extends ComboBoxField<QuickSearchVo> {
+	private static final Logger LOGGER = LoggerFactory.getLogger(AllocineField.class);
 	private static final String SEARCH_PATTERN = "http://essearch.allocine.net/fr/autocomplete?geo2=83090&q=%s";
 	private volatile QuickSearchVo requestedVo;
 	private final AtomicLong requestTime;
 
 	private Callback<QuickSearchVo, Void> searchCallback;
 
-	public AllocineComboField() {
+	public AllocineField() {
 		setPromptText("Key in a text and wait for quick search or type <Enter> for full search");
 		setCellFactory(new Callback<ListView<QuickSearchVo>, ListCell<QuickSearchVo>>() {
 			@Override
@@ -167,7 +167,7 @@ public class AllocineComboField extends ComboBoxField<QuickSearchVo> {
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
-				if (requestId != AllocineComboField.this.requestTime.get()) {
+				if (requestId != AllocineField.this.requestTime.get()) {
 					LOGGER.debug("request list cancelled ({})", requestId);
 					return;
 				}
@@ -182,7 +182,6 @@ public class AllocineComboField extends ComboBoxField<QuickSearchVo> {
 
 	private void cancelListRequest() {
 		LOGGER.debug("cancel quick search");
-		hide();
 		requestTime.set(0);
 	}
 }
