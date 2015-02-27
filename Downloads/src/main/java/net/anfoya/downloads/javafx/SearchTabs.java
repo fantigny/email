@@ -11,17 +11,21 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.control.TextField;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Callback;
 import net.anfoya.downloads.Config;
-import net.anfoya.downloads.javafx.allocine.AllocineQsResult;
+import net.anfoya.downloads.javafx.allocine.QuickSearchVo;
 import net.anfoya.tools.model.Website;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class SearchTabs extends TabPane {
+	private static final Logger LOGGER = LoggerFactory.getLogger(SearchTabs.class);
+
 	private ContextMenu menu;
-	private Callback<String, Void> searchCallBack;
+	private Callback<String, Void> searchedCallBack;
 
 	public SearchTabs() {
 		setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
@@ -53,6 +57,26 @@ public class SearchTabs extends TabPane {
 		}
 	}
 
+	public void setOnSearched(final Callback<String, Void> callBack) {
+		this.searchedCallBack = callBack;
+	}
+
+	public void search(final QuickSearchVo resultVo) {
+		search(getTabs(), resultVo);
+	}
+
+	private void search(final List<Tab> tabs, final String text) {
+		search(tabs, new QuickSearchVo(text));
+		searchedCallBack.call(text);
+	}
+
+	private void search(final List<Tab> tabs, final QuickSearchVo resultVo) {
+		LOGGER.info("search \"{}\" (id {})", resultVo, resultVo.getId());
+		for(final Tab tab: tabs) {
+			((SearchTab)tab).search(resultVo);
+		}
+	}
+
 	private ContextMenu buildContextMenu() {
 		final ContextMenu menu = new ContextMenu();
 		{
@@ -77,7 +101,7 @@ public class SearchTabs extends TabPane {
 						subItem.setOnAction(new EventHandler<ActionEvent>() {
 							@Override
 							public void handle(final ActionEvent event) {
-								searchTab.search(getSelection());
+								searchTab.search(new QuickSearchVo(getSelection()));
 								getSelectionModel().select(searchTab);
 							}
 						});
@@ -120,38 +144,5 @@ public class SearchTabs extends TabPane {
 
 	private String getSelection() {
 		return ((SearchTab) getSelectionModel().getSelectedItem()).getSelection();
-	}
-
-	public void search(final String text, final AllocineQsResult qsResult) {
-		search(getTabs(), text, qsResult);
-	}
-
-	private void search(final List<Tab> tabs, final String text) {
-		search(tabs, text, AllocineQsResult.getEmptyResult());
-	}
-
-	private void search(final List<Tab> tabs, final String text, final AllocineQsResult qsResult) {
-		searchCallBack.call(text);
-		for(final Tab tab: tabs) {
-			((SearchTab)tab).search(text, qsResult);
-		}
-	}
-
-	public Callback<String, Void> getSearchCallBack() {
-		return searchCallBack;
-	}
-
-	public void setOnSearchAction(final Callback<String, Void> callBack) {
-		this.searchCallBack = callBack;
-	}
-
-	public EventHandler<ActionEvent> getOnSearchAction() {
-		return new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(final ActionEvent event) {
-				final TextField searchField = (TextField) event.getSource();
-				search(getTabs(), searchField.getText());
-			}
-		};
 	}
 }

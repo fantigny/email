@@ -15,7 +15,7 @@ import javafx.scene.web.WebHistory;
 import javafx.scene.web.WebHistory.Entry;
 import javafx.scene.web.WebView;
 import javafx.util.Callback;
-import net.anfoya.downloads.javafx.allocine.AllocineQsResult;
+import net.anfoya.downloads.javafx.allocine.QuickSearchVo;
 import net.anfoya.javafx.scene.control.TitledProgressBar;
 import net.anfoya.tools.model.Website;
 
@@ -106,24 +106,21 @@ public class SearchTab extends Tab {
 		}
 	}
 
-	public void search(final String text) {
-		search(text, AllocineQsResult.getEmptyResult());
-	}
-
-	public void search(final String text, final AllocineQsResult qsResult) {
-		if (website.getName().equals("AlloCine") && !qsResult.getId().isEmpty()) {
+	public void search(final QuickSearchVo resultVo) {
+		final String search = resultVo.toString();
+		if (website.getName().equals("AlloCine") && !resultVo.getId().isEmpty()) {
 			String searchPattern;
-			if (qsResult.isPerson()) {
+			if (resultVo.isPerson()) {
 				searchPattern = "http://www.allocine.fr/personne/fichepersonne_gen_cpersonne=%s.html";
-			} else if (qsResult.isSerie()) {
+			} else if (resultVo.isSerie()) {
 				searchPattern = "http://www.allocine.fr/series/ficheserie_gen_cserie=%s.html";
 			} else {
 				searchPattern = "http://www.allocine.fr/film/fichefilm_gen_cfilm=%s.html";
 			}
-			final String url = String.format(searchPattern, qsResult.getId());
+			final String url = String.format(searchPattern, resultVo.getId());
 			view.getEngine().load(url);
-		} else if (!text.isEmpty() && website.isSearchable()) {
-			view.getEngine().load(website.getSearchUrl(text));
+		} else if (!search.isEmpty() && website.isSearchable()) {
+			view.getEngine().load(website.getSearchUrl(search));
 		}
 	}
 

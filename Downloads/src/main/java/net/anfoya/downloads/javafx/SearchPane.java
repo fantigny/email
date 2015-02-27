@@ -8,17 +8,17 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.util.Callback;
-import net.anfoya.downloads.javafx.allocine.AllocineField;
-import net.anfoya.downloads.javafx.allocine.AllocineQsResult;
+import net.anfoya.downloads.javafx.allocine.AllocineComboField;
+import net.anfoya.downloads.javafx.allocine.QuickSearchVo;
 
 public class SearchPane extends BorderPane {
-	private final AllocineField text;
+	private final AllocineComboField text;
 	private final Button button;
 
 	public SearchPane() {
 		setPadding(new Insets(5));
 
-		text = new AllocineField();
+		text = new AllocineComboField();
 		text.prefWidthProperty().bind(widthProperty());
 		setMargin(text, new Insets(0, 3, 0, 3));
 		setCenter(text);
@@ -28,7 +28,7 @@ public class SearchPane extends BorderPane {
 		setRight(button);
 	}
 
-	public void setOnSearchAction(final Callback<AllocineQsResult, Void> callback) {
+	public void setOnSearchAction(final Callback<QuickSearchVo, Void> callback) {
 		text.setOnSearch(callback);
 		button.setOnAction(new EventHandler<ActionEvent>() {
 			@Override

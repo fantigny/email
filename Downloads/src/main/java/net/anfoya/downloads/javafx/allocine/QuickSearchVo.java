@@ -13,12 +13,12 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-public class AllocineQsResult {
-	private static final Logger LOGGER = LoggerFactory.getLogger(AllocineQsResult.class);
-	private static final AllocineQsResult EMPTY_MOVIE = new AllocineQsResult();
+public class QuickSearchVo {
+	private static final Logger LOGGER = LoggerFactory.getLogger(QuickSearchVo.class);
+	private static final QuickSearchVo EMPTY_QS_VO = new QuickSearchVo();
 
-	public static AllocineQsResult getEmptyResult() {
-		return EMPTY_MOVIE;
+	public static QuickSearchVo getEmptyValue() {
+		return EMPTY_QS_VO;
 	}
 
 	private final String type;
@@ -33,7 +33,7 @@ public class AllocineQsResult {
 	private final Future<Image> thumbnailFuture;
 	private Image thumbnailImage;
 
-	public AllocineQsResult(final JsonObject jsonResult) {
+	public QuickSearchVo(final JsonObject jsonResult) {
 		this.id = getValue(jsonResult, "id");
 		this.type = getValue(jsonResult, "entitytype");
 		this.director = getMetadata(jsonResult, "director");
@@ -102,21 +102,21 @@ public class AllocineQsResult {
 		return metadata;
 	}
 
-	public AllocineQsResult(final String name) {
+	public QuickSearchVo(final String name) {
 		this.name = name;
 
 		id = director = french = year = type = activity = creator ="";
 		thumbnailFuture = null;
 	}
 
-	private AllocineQsResult() {
+	private QuickSearchVo() {
 		this("");
 	}
 
 	@Override
 	public boolean equals(final Object o) {
-		if (o instanceof AllocineQsResult) {
-			final AllocineQsResult other = (AllocineQsResult) o;
+		if (o instanceof QuickSearchVo) {
+			final QuickSearchVo other = (QuickSearchVo) o;
 			if (other.name.isEmpty()) {
 				return name.isEmpty();
 			} else {
@@ -181,5 +181,9 @@ public class AllocineQsResult {
 
 	public String getCreator() {
 		return creator;
+	}
+
+	public boolean isEmpty() {
+		return equals(EMPTY_QS_VO);
 	}
 }

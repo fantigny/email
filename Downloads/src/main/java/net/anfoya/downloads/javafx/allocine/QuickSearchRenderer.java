@@ -9,8 +9,8 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 
-public class AllocineQsRenderer extends GridPane {
-	public AllocineQsRenderer(final AllocineQsResult movie) {
+public class QuickSearchRenderer extends GridPane {
+	public QuickSearchRenderer(final QuickSearchVo movie) {
 	    setHgap(10);
 	    setVgap(5);
 	    setPadding(new Insets(5));

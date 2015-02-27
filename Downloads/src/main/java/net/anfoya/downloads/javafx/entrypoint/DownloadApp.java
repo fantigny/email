@@ -16,7 +16,7 @@ import javafx.util.Callback;
 import net.anfoya.downloads.javafx.ComponentBuilder;
 import net.anfoya.downloads.javafx.SearchPane;
 import net.anfoya.downloads.javafx.SearchTabs;
-import net.anfoya.downloads.javafx.allocine.AllocineQsResult;
+import net.anfoya.downloads.javafx.allocine.QuickSearchVo;
 import net.anfoya.java.net.PersistentCookieStore;
 import net.anfoya.java.net.filtered.engine.RuleSet;
 import net.anfoya.java.net.torrent.TorrentHandlerFactory;
@@ -67,17 +67,17 @@ public class DownloadApp extends Application {
 	    mainPane.setTop(searchPane);
 	    mainPane.setCenter(searchTabs);
 
-	    searchTabs.setOnSearchAction(new Callback<String, Void>() {
+	    searchTabs.setOnSearched(new Callback<String, Void>() {
 			@Override
 			public Void call(final String search) {
 				searchPane.setSearched(search);
 				return null;
 			}
 		});
-	    searchPane.setOnSearchAction(new Callback<AllocineQsResult, Void>() {
+	    searchPane.setOnSearchAction(new Callback<QuickSearchVo, Void>() {
 	    	@Override
-	    	public Void call(final AllocineQsResult qsResult) {
-				searchTabs.search(qsResult.toString(), qsResult);
+	    	public Void call(final QuickSearchVo resultVo) {
+				searchTabs.search(resultVo);
 	    		return null;
 	    	}
 		});

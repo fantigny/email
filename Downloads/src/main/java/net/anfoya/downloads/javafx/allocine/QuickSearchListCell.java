@@ -2,15 +2,15 @@ package net.anfoya.downloads.javafx.allocine;
 
 import javafx.scene.control.ListCell;
 
-public class AllocineQsListCell extends ListCell<AllocineQsResult> {
+public class QuickSearchListCell extends ListCell<QuickSearchVo> {
     @Override
-    protected void updateItem(final AllocineQsResult qsResult, final boolean empty) {
+    protected void updateItem(final QuickSearchVo qsResult, final boolean empty) {
     	super.updateItem(qsResult, empty);
 
     	if (qsResult == null || empty) {
             setGraphic(null);
         } else {
-        	setGraphic(new AllocineQsRenderer(qsResult));
+        	setGraphic(new QuickSearchRenderer(qsResult));
         }
    }
 }
