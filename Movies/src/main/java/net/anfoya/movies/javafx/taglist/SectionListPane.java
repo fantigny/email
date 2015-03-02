@@ -7,10 +7,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import net.anfoya.javafx.scene.control.Title;
-import net.anfoya.movies.model.Section;
-import net.anfoya.movies.model.Tag;
-import net.anfoya.movies.service.TagService;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -26,6 +22,10 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.util.Callback;
+import net.anfoya.javafx.scene.control.Title;
+import net.anfoya.movies.model.Section;
+import net.anfoya.movies.model.Tag;
+import net.anfoya.movies.service.TagService;
 
 public class SectionListPane extends TitledPane {
 	private final TagService tagService;
@@ -93,13 +93,7 @@ public class SectionListPane extends TitledPane {
 		for(final Section section: sections) {
 			if (!existingSections.contains(section)) {
 				final TagList tagList = new TagList(tagService, section);
-				tagList.addTagChangeListener(tagChangeListener);
-				tagList.addTagChangeListener(new ChangeListener<Boolean>() {
-					@Override
-					public void changed(final ObservableValue<? extends Boolean> ov, final Boolean oldVal, final Boolean newVal) {
-						selectedPane.refresh(getSelectedTags());
-					}
-				});
+				tagList.setTagChangeListener(tagChangeListener);
 				tagList.setContextMenu(contextMenu);
 
 				final SectionPane sectionPane = new SectionPane(tagService, section, tagList);
@@ -145,8 +139,14 @@ public class SectionListPane extends TitledPane {
 		}
 	}
 
-	public void addTagChangeListener(final ChangeListener<Boolean> changeListener) {
-		this.tagChangeListener = changeListener;
+	public void addTagChangeListener(final ChangeListener<Boolean> listener) {
+		tagChangeListener = new ChangeListener<Boolean>() {
+			@Override
+			public void changed(final ObservableValue<? extends Boolean> ov, final Boolean oldVal, final Boolean newVal) {
+				listener.changed(ov, oldVal, newVal);
+				selectedPane.refresh(getSelectedTags());
+			}
+		};
 	}
 
 	public void setUpdateSectionCallback(final Callback<Void, Void> callback) {
@@ -175,6 +175,15 @@ public class SectionListPane extends TitledPane {
 		for(final TitledPane titledPane: sectionAcc.getPanes()) {
 			final TagList tagList = (TagList) titledPane.getContent();
 			tags.addAll(tagList.getSelectedTags());
+		}
+		return Collections.unmodifiableSet(tags);
+	}
+
+	public Set<Tag> getExcludedTags() {
+		final Set<Tag> tags = new LinkedHashSet<Tag>();
+		for(final TitledPane titledPane: sectionAcc.getPanes()) {
+			final TagList tagList = (TagList) titledPane.getContent();
+			tags.addAll(tagList.getExcludedTags());
 		}
 		return Collections.unmodifiableSet(tags);
 	}

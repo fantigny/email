@@ -65,7 +65,7 @@ public class SectionPaneTest {
 			for(int j=i; j<5; j++) {
 				final String path = tagName + "Movie" + j;
 				movieDao.add(new LinkedHashSet<Movie>() { { add(new Movie(path, -1)); } });
-				movies.add(movieDao.find(EMPTY_TAG_SET, path).iterator().next());
+				movies.add(movieDao.find(path).iterator().next());
 
 			}
 			movieTagDao.addTag(movies, tagDao.find(tagName));

@@ -18,8 +18,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class MovieDaoTest {
-	private static final Set<Tag> EMPTY_TAG_SET = new LinkedHashSet<Tag>();
-
 	private static DataSource dataSource;
 	private static MovieDao movieDao;
 
@@ -42,7 +40,7 @@ public class MovieDaoTest {
 	public void add() throws SQLException {
 		final String rootName = "add_";
 
-		Set<Movie> movies = movieDao.find(EMPTY_TAG_SET, rootName);
+		Set<Movie> movies = movieDao.find(rootName);
 		Assert.assertEquals(0, movies.size());
 
 		movieDao.add(new LinkedHashSet<Movie>() { {
@@ -50,7 +48,7 @@ public class MovieDaoTest {
 				add(new Movie(rootName + "6", 666666));
 		}});
 
-		movies = movieDao.find(EMPTY_TAG_SET, rootName);
+		movies = movieDao.find(rootName);
 		Assert.assertEquals(2, movies.size());
 
 		int count = 0;
@@ -70,7 +68,7 @@ public class MovieDaoTest {
 	public void del() throws SQLException {
 		final String rootName = "del_";
 
-		final Set<Movie> movies = movieDao.find(EMPTY_TAG_SET, rootName);
+		final Set<Movie> movies = movieDao.find(rootName);
 		assertEquals(0, movies.size());
 
 		movieDao.add(new LinkedHashSet<Movie>() { {
@@ -78,15 +76,15 @@ public class MovieDaoTest {
 			add(new Movie(rootName + 4, 4444));
 		}});
 
-		final Set<Movie> addedMovies = movieDao.find(EMPTY_TAG_SET, rootName);
+		final Set<Movie> addedMovies = movieDao.find(rootName);
 		assertEquals(2, addedMovies.size());
 
 		movieDao.del(new LinkedHashSet<Movie>() { { add(addedMovies.iterator().next()); } });
 
-		final Set<Movie> delMovies = movieDao.find(EMPTY_TAG_SET, addedMovies.iterator().next().getPath());
+		final Set<Movie> delMovies = movieDao.find(addedMovies.iterator().next().getPath());
 		assertEquals(0, delMovies.size());
 
-		final Set<Movie> remainingMovies = movieDao.find(EMPTY_TAG_SET, rootName);
+		final Set<Movie> remainingMovies = movieDao.find(rootName);
 		assertEquals(1, remainingMovies.size());
 	}
 
@@ -94,18 +92,18 @@ public class MovieDaoTest {
 	public void updatePath() throws SQLException {
 		final String path = "updatePath";
 
-		Set<Movie> movies = movieDao.find(EMPTY_TAG_SET, path);
+		Set<Movie> movies = movieDao.find(path);
 		Assert.assertEquals(0, movies.size());
 
 		movieDao.add(new LinkedHashSet<Movie>() { { add(new Movie(path, 0)); } });
 
-		movies = movieDao.find(EMPTY_TAG_SET, path);
+		movies = movieDao.find(path);
 		Assert.assertEquals(1, movies.size());
 
 		final String newPath = "newPath";
 		movieDao.updatePath(movies.iterator().next().copyWithPath(newPath));
 
-		movies = movieDao.find(EMPTY_TAG_SET, newPath);
+		movies = movieDao.find(newPath);
 		Assert.assertEquals(1, movies.size());
 	}
 
@@ -113,18 +111,18 @@ public class MovieDaoTest {
 	public void updateLastModified() throws SQLException {
 		final String path = "updateLastModified";
 
-		Set<Movie> movies = movieDao.find(EMPTY_TAG_SET, path);
+		Set<Movie> movies = movieDao.find(path);
 		Assert.assertEquals(0, movies.size());
 
 		movieDao.add(new LinkedHashSet<Movie>() { { add(new Movie(path, 0)); } });
 
-		movies = movieDao.find(EMPTY_TAG_SET, path);
+		movies = movieDao.find(path);
 		Assert.assertEquals(1, movies.size());
 
 		final long newLastModified = 54321;
 		movieDao.updateLastModified(movies.iterator().next().copyWithLastModified(newLastModified));
 
-		movies = movieDao.find(EMPTY_TAG_SET, path);
+		movies = movieDao.find(path);
 		Assert.assertEquals(1, movies.size());
 		Assert.assertEquals(54321, movies.iterator().next().getLastModified());
 	}
@@ -134,12 +132,12 @@ public class MovieDaoTest {
 	public void updateUrls() throws SQLException {
 		final String path = "updateUrls";
 
-		Set<Movie> movies = movieDao.find(EMPTY_TAG_SET, path);
+		Set<Movie> movies = movieDao.find(path);
 		Assert.assertEquals(0, movies.size());
 
 		movieDao.add(new LinkedHashSet<Movie>() { { add(new Movie(path, 0)); } });
 
-		movies = movieDao.find(EMPTY_TAG_SET, path);
+		movies = movieDao.find(path);
 		Assert.assertEquals(1, movies.size());
 		Assert.assertTrue(movies.iterator().next().getUrlMap().isEmpty());
 
@@ -147,7 +145,7 @@ public class MovieDaoTest {
 		final String url = "=url_Allocine";
 		movieDao.updateUrls(movies.iterator().next().copyWithUrlMap(new HashMap<String, String>() {{ put(name, url); }}));
 
-		movies = movieDao.find(EMPTY_TAG_SET, path);
+		movies = movieDao.find(path);
 		Assert.assertEquals(1, movies.size());
 		Assert.assertTrue(movies.iterator().next().getUrlMap().containsKey(name));
 		Assert.assertEquals(url, movies.iterator().next().getUrlMap().get(name));

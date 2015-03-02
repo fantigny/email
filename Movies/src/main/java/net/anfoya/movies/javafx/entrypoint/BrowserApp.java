@@ -322,7 +322,7 @@ public class BrowserApp extends Application {
 
 	private void refreshMovieList() {
 		// refresh movie list
-		movieListPane.refreshWithTags(sectionListPane.getSelectedTags());
+		movieListPane.refreshWithTags(sectionListPane.getSelectedTags(), sectionListPane.getExcludedTags());
 	}
 
 	private void updateMovieCount() {

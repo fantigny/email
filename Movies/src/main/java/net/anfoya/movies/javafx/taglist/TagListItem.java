@@ -1,6 +1,5 @@
 package net.anfoya.movies.javafx.taglist;
 
-import net.anfoya.movies.model.Tag;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -9,6 +8,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import net.anfoya.movies.model.Tag;
 
 public class TagListItem {
 	private final Tag tag;
@@ -16,6 +16,7 @@ public class TagListItem {
 	private final BooleanProperty disableProperty = new SimpleBooleanProperty(true);
 	private final IntegerProperty movieCountProperty = new SimpleIntegerProperty(0);
 	private final BooleanProperty selectedProperty = new SimpleBooleanProperty(false);
+	private final BooleanProperty excludedProperty = new SimpleBooleanProperty(false);
 	public TagListItem(final Tag tag) {
 		this.tag = tag;
 		textProperty.set(tag.getName());
@@ -23,7 +24,10 @@ public class TagListItem {
 			@Override
 			public void changed(final ObservableValue<? extends Number> ov, final Number oldVal, final Number newVal) {
 				textProperty.set(getTag().getName() + movieCountText());
-				disableProperty.set(getMovieCount() == 0);
+				if (newVal.intValue() == 0) {
+					disableProperty.set(true);
+					excludedProperty.set(false);
+				}
 			}
 		});
 	}
@@ -53,6 +57,12 @@ public class TagListItem {
 	}
 	public Boolean isSelected() {
 		return selectedProperty.get();
+	}
+	public BooleanProperty excludedProperty() {
+		return excludedProperty;
+	}
+	public Boolean isExcluded() {
+		return excludedProperty.get();
 	}
 	@Override
 	public String toString() {

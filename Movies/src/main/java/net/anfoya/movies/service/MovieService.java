@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 
 public class MovieService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MovieService.class);
-	private static final Set<Tag> EMPTY_TAG_SET = new LinkedHashSet<Tag>();
 
 	private final MovieDao movieDao;
 
@@ -63,7 +62,7 @@ public class MovieService {
 			updateMgr.updatePerformed();
 
 			for(final Movie movie: movies) {
-				added.add(movieDao.find(EMPTY_TAG_SET, movie.getPath()).iterator().next());
+				added.add(movieDao.find(movie.getPath()).iterator().next());
 			}
 		} catch (final SQLException e) {
 			LOGGER.error("adding movies: {}", movies.toString(), e);
@@ -165,16 +164,17 @@ public class MovieService {
 	}
 
 	public Set<Movie> getMovies(final String namePattern) {
-		return getMovies(new LinkedHashSet<Tag>(), namePattern);
+		final Set<Tag> emptySet = new LinkedHashSet<Tag>();
+		return getMovies(emptySet, emptySet, namePattern);
 	}
 
-	public Set<Movie> getMovies(final Set<Tag> tags, final String namePattern) {
+	public Set<Movie> getMovies(final Set<Tag> tags, final Set<Tag> excludes, final String namePattern) {
 		try {
-			return movieDao.find(tags, namePattern);
+			return movieDao.find(tags, excludes, namePattern);
 		} catch (final SQLException e) {
-			LOGGER.error("searching movies with name pattern: %{}% and tags: {}", namePattern, tags.toString(), e);
+			LOGGER.error("searching movies with name pattern: %{}% and tags: {}, exc {}", namePattern, tags, excludes, e);
 			final Alert alertDialog = new Alert(AlertType.ERROR);
-			alertDialog.setHeaderText("error searching movies with name pattern: %" + namePattern + "% and tags: " + tags.toString());
+			alertDialog.setHeaderText("error searching movies with name pattern: %" + namePattern + "% and tags: " + tags.toString() + " exc: {}");
 			alertDialog.setContentText(e.getMessage());
 			alertDialog.show();
 			return null;

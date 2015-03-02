@@ -8,14 +8,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 
-import net.anfoya.movies.model.Movie;
-import net.anfoya.movies.model.Tag;
-import net.anfoya.movies.model.Movie.SortOrder;
-import net.anfoya.movies.service.MovieService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
+import net.anfoya.movies.model.Movie;
+import net.anfoya.movies.model.Movie.SortOrder;
+import net.anfoya.movies.model.Tag;
+import net.anfoya.movies.service.MovieService;
 
 public class MovieList extends ListView<Movie> {
 	private final MovieService movieService;
@@ -31,6 +31,7 @@ public class MovieList extends ListView<Movie> {
 	private Set<Movie> movies;
 
 	private Set<Tag> tags;
+	private Set<Tag> excludes;
 	private SortOrder sortOrder;
 	private String namePattern;
 
@@ -41,6 +42,7 @@ public class MovieList extends ListView<Movie> {
 		this.movies = new LinkedHashSet<Movie>();
 
 		this.tags = new LinkedHashSet<Tag>();
+		this.excludes = new LinkedHashSet<Tag>();
 		this.sortOrder = SortOrder.DATE;
 		this.namePattern = "";
 
@@ -52,7 +54,7 @@ public class MovieList extends ListView<Movie> {
 		namePattern = pattern.toLowerCase();
 
 		if (!namePattern.contains(previousPattern)) {
-			movies = movieService.getMovies(tags, namePattern);
+			movies = movieService.getMovies(tags, excludes, namePattern);
 		}
 		refresh();
 	}
@@ -62,9 +64,10 @@ public class MovieList extends ListView<Movie> {
 		refresh();
 	}
 
-	public void refreshWithTags(final Set<Tag> tags) {
+	public void refreshWithTags(final Set<Tag> tags, final Set<Tag> excludes) {
 		this.tags = tags;
-		movies = movieService.getMovies(tags, namePattern);
+		this.excludes = excludes;
+		movies = movieService.getMovies(tags, excludes, namePattern);
 		refresh();
 	}
 

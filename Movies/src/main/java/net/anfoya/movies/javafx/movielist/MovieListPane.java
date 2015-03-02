@@ -2,11 +2,6 @@ package net.anfoya.movies.javafx.movielist;
 
 import java.util.Set;
 
-import net.anfoya.javafx.scene.control.Title;
-import net.anfoya.movies.model.Movie;
-import net.anfoya.movies.model.Tag;
-import net.anfoya.movies.model.Movie.SortOrder;
-import net.anfoya.movies.service.MovieService;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
@@ -24,6 +19,11 @@ import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import net.anfoya.javafx.scene.control.Title;
+import net.anfoya.movies.model.Movie;
+import net.anfoya.movies.model.Movie.SortOrder;
+import net.anfoya.movies.model.Tag;
+import net.anfoya.movies.service.MovieService;
 
 public class MovieListPane extends TitledPane {
 
@@ -96,8 +96,8 @@ public class MovieListPane extends TitledPane {
 		return namePatternField.getText();
 	}
 
-	public void refreshWithTags(final Set<Tag> tags) {
-		movieList.refreshWithTags(tags);
+	public void refreshWithTags(final Set<Tag> tags, final Set<Tag> excludes) {
+		movieList.refreshWithTags(tags, excludes);
 	}
 
 	public int getMovieCount() {

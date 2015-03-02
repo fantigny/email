@@ -3,15 +3,11 @@ package net.anfoya.movies.javafx.taglist;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.LinkedHashSet;
 import java.util.function.Consumer;
 
-import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.movies.model.Section;
-import net.anfoya.movies.model.Tag;
-import net.anfoya.movies.service.TagService;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -22,13 +18,18 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.util.Callback;
+import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.movies.model.Section;
+import net.anfoya.movies.model.Tag;
+import net.anfoya.movies.service.TagService;
 
 public class TagList extends ListView<TagListItem> {
 	private final TagService tagService;
 
 	private final Section section;
 	private final Map<String, TagListItem> itemMap = new HashMap<String, TagListItem>();
-	private final Set<ChangeListener<Boolean>> tagListeners = new LinkedHashSet<ChangeListener<Boolean>>();
+
+	private ChangeListener<Boolean> tagChangeListener;
 
 	public TagList(final TagService tagService, final Section section) {
 		this.tagService = tagService;
@@ -38,7 +39,7 @@ public class TagList extends ListView<TagListItem> {
 		setCellFactory(new Callback<ListView<TagListItem>, ListCell<TagListItem>>() {
 			@Override
 			public ListCell<TagListItem> call(final ListView<TagListItem> list) {
-				return new CheckBoxCell();
+				return new TagListCell();
 			}
 		});
 	}
@@ -71,6 +72,17 @@ public class TagList extends ListView<TagListItem> {
 		return Collections.unmodifiableSet(tags);
 	}
 
+	public Set<Tag> getExcludedTags() {
+		final Set<Tag> tags = new LinkedHashSet<Tag>();
+		for(final TagListItem item: getItems()) {
+			if (item.isExcluded()) {
+				tags.add(item.getTag());
+			}
+		}
+
+		return Collections.unmodifiableSet(tags);
+	}
+
 	public void refresh(final Set<Tag> selectedTags) {
 		// get all tags
 		final Set<Tag> tags = tagService.getTags(section);
@@ -83,8 +95,9 @@ public class TagList extends ListView<TagListItem> {
 			if (selectedTags.contains(tag)) {
 				item.selectedProperty().set(true);
 			}
-			for(final ChangeListener<Boolean> listener: tagListeners) {
-				item.selectedProperty().addListener(listener);
+			if (tagChangeListener != null) {
+				item.selectedProperty().addListener(tagChangeListener);
+				item.excludedProperty().addListener(tagChangeListener);
 			}
 			items.add(item);
 			itemMap.put(tag.getName(), item);
@@ -132,8 +145,8 @@ public class TagList extends ListView<TagListItem> {
 		ThreadPool.getInstance().submit(task);
 	}
 
-	public void addTagChangeListener(final ChangeListener<Boolean> changeListener) {
-		tagListeners.add(changeListener);
+	public void setTagChangeListener(final ChangeListener<Boolean> listener) {
+		tagChangeListener = listener;
 	}
 
 	// TODO: find a proper way
@@ -141,7 +154,7 @@ public class TagList extends ListView<TagListItem> {
 		setCellFactory(new Callback<ListView<TagListItem>, ListCell<TagListItem>>() {
 			@Override
 			public ListCell<TagListItem> call(final ListView<TagListItem> list) {
-				return new CheckBoxCell();
+				return new TagListCell();
 			}
 		});
 	}

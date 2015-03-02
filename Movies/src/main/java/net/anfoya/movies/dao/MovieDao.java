@@ -99,19 +99,24 @@ public class MovieDao {
 		connection.close();
 	}
 
-	public Set<Movie> find(final Set<Tag> tags, final String namePattern) throws SQLException {
-		final boolean tagClause = !tags.isEmpty(), nameClause = !namePattern.isEmpty();
+	public Set<Movie> find(final String namePattern) throws SQLException {
+		final Set<Tag> emptySet = new LinkedHashSet<Tag>();
+		return find(emptySet, emptySet, namePattern);
+	}
+
+	public Set<Movie> find(final Set<Tag> tags, final Set<Tag> excludes, final String namePattern) throws SQLException {
+		final boolean tagClause = !tags.isEmpty(), excClause = !excludes.isEmpty(), nameClause = !namePattern.isEmpty();
 		String sql = "SELECT m.id AS movie_id, m.path, m.last_mod, m.urls, mt.tag_id AS tag_id, t.name, t.section"
 				+ " FROM movie m";
-		if (!tagClause) {
+		if (!tagClause && !excClause) {
 			sql += " LEFT";
 		}
 		sql += 	" JOIN movie_tag mt ON mt.movie_id = m.id";
-		if (!tagClause) {
+		if (!tagClause && !excClause) {
 			sql += " LEFT";
 		}
 		sql += 	" JOIN tag t ON t.id = mt.tag_id";
-		if (tagClause || nameClause) {
+		if (tagClause || excClause || nameClause) {
 			sql += " WHERE ";
 		}
 		if (tagClause) {
@@ -127,10 +132,26 @@ public class MovieDao {
 			}
 			sql += "))";
 		}
-		if (tagClause && nameClause) {
-			sql += " AND ";
+		if (excClause) {
+			if (tagClause) {
+				sql += " AND ";
+			}
+			sql += " 0 = (SELECT COUNT(*)"
+					+ " FROM movie_tag"
+					+ " WHERE movie_id = mt.movie_id"
+					+ " AND tag_id IN (";
+			for(int i=0, n=excludes.size(); i<n; i++) {
+				if (i != 0) {
+					sql += ",";
+				}
+				sql += "?";
+			}
+			sql += "))";
 		}
 		if (nameClause) {
+			if (tagClause || excClause) {
+				sql += " AND ";
+			}
 			sql += " m.path LIKE CONCAT('%', ?, '%')";
 		}
 		sql += " ORDER BY movie_id, tag_id";
@@ -142,6 +163,11 @@ public class MovieDao {
 		if (tagClause) {
 			statement.setInt(++i, tags.size());
 			for(final Tag tag: tags) {
+				statement.setInt(++i, tag.getId());
+			}
+		}
+		if (excClause) {
+			for(final Tag tag: excludes) {
 				statement.setInt(++i, tag.getId());
 			}
 		}
