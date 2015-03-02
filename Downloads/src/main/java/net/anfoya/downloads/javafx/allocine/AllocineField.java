@@ -63,14 +63,14 @@ public class AllocineField extends ComboBoxField<QuickSearchVo> {
 
 		setConverter(new StringConverter<QuickSearchVo>() {
 			@Override
-			public String toString(final QuickSearchVo resultVo) {
-				LOGGER.debug("to string \"{}\"", resultVo);
-				return resultVo == null? null: resultVo.toString();
+			public String toString(final QuickSearchVo qsVo) {
+				LOGGER.debug("from value object ({})", qsVo);
+				return qsVo == null? null: qsVo.toString();
 			}
 			@Override
-			public QuickSearchVo fromString(final String string) {
-				LOGGER.debug("from string \"{}\"", string);
-				return string == null? null: new QuickSearchVo(string);
+			public QuickSearchVo fromString(final String s) {
+				LOGGER.debug("from string \"{}\"", s);
+				return s == null? null: new QuickSearchVo(s);
 			}
 		});
 	}
@@ -96,23 +96,25 @@ public class AllocineField extends ComboBoxField<QuickSearchVo> {
 	}
 
 	private synchronized void requestList() {
-		final QuickSearchVo vo = getFieldValue();
-		LOGGER.debug("request list ({})", vo);
+		final QuickSearchVo qsVo = getFieldValue();
+		LOGGER.debug("request list ({})", qsVo);
 
-		if (vo == null) {
+		if (qsVo == null) {
 			// nothing to display
-			LOGGER.debug("cancelled empty request ({})", vo);
+			LOGGER.debug("cancelled empty request ({})", qsVo);
 			cancelListRequest();
 			return;
 		}
 
-		if (vo.equals(requestedVo) && !getItems().isEmpty()) {
+		if (qsVo.equals(requestedVo)) {
 			// quick search already done
-			LOGGER.debug("cancelled request already ran or running ({})", vo);
-			show();
+			LOGGER.debug("cancelled request already ran or running ({})", qsVo);
+			if (!isShowing()) {
+				show();
+			}
 			return;
 		}
-		requestedVo = vo;
+		requestedVo = qsVo;
 
 		cancelListRequest();
 
@@ -122,11 +124,11 @@ public class AllocineField extends ComboBoxField<QuickSearchVo> {
 			@Override
 			public void run() {
 				try {
-					requestList(requestTime, vo.toString());
+					requestList(requestTime, qsVo.toString());
 				} catch (final InterruptedException e) {
 					return;
 				} catch (final Exception e) {
-					LOGGER.error("loading \"{}\"", vo.toString(), e);
+					LOGGER.error("loading \"{}\"", qsVo.toString(), e);
 					return;
 				}
 			}
