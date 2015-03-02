@@ -25,9 +25,19 @@ class TagListCell extends CheckBoxListCell<TagListItem> {
     	if (item == null || empty) {
             setGraphic(null);
         } else {
+        	setDisable(item.isDisable() && !item.isExcluded());
+	        setTextFill(isDisabled()? Color.GRAY: Color.BLACK);
+
+	        final boolean excludeDisable;
+	        if (item.isExcluded()) {
+	        	excludeDisable = false;
+	        } else {
+	        	excludeDisable = item.isDisable() || item.isSelected();
+	        }
+
 	        final RadioButton excludeButton = new RadioButton();
-	        excludeButton.setDisable(item.isSelected());
-	        excludeButton.setSelected(!item.isSelected() && item.isExcluded());
+	        excludeButton.setDisable(excludeDisable);
+	        excludeButton.setSelected(item.isExcluded() && !item.isSelected() &&!excludeDisable);
 	        item.excludedProperty().bind(excludeButton.selectedProperty());
 
         	final BorderPane pane = new BorderPane();
@@ -35,8 +45,6 @@ class TagListCell extends CheckBoxListCell<TagListItem> {
         	pane.setRight(excludeButton);
 
         	setGraphic(pane);
-        	setDisable(item.isDisable());
-	        setTextFill(isDisabled()? Color.GRAY: Color.BLACK);
         }
 	}
 }

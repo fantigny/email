@@ -24,10 +24,7 @@ public class TagListItem {
 			@Override
 			public void changed(final ObservableValue<? extends Number> ov, final Number oldVal, final Number newVal) {
 				textProperty.set(getTag().getName() + movieCountText());
-				if (newVal.intValue() == 0) {
-					disableProperty.set(true);
-					excludedProperty.set(false);
-				}
+				disableProperty.set(getMovieCount() == 0);
 			}
 		});
 	}
