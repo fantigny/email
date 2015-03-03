@@ -15,7 +15,6 @@ public class TagListItem {
 	private final StringProperty textProperty = new SimpleStringProperty("");
 	private final BooleanProperty disableProperty = new SimpleBooleanProperty(true);
 	private final BooleanProperty selectedProperty = new SimpleBooleanProperty(false);
-	private final BooleanProperty excludeDisableProperty = new SimpleBooleanProperty(false);
 	private final BooleanProperty excludedProperty = new SimpleBooleanProperty(false);
 	private final IntegerProperty movieCountProperty = new SimpleIntegerProperty(0);
 	public TagListItem(final Tag tag) {
@@ -37,9 +36,15 @@ public class TagListItem {
 			public void changed(final ObservableValue<? extends Boolean> ov, final Boolean oldVal, final Boolean newVal) {
 				if (newVal) {
 					excludedProperty.set(false);
-					excludeDisableProperty.set(true);
-				} else {
-					excludeDisableProperty.set(false);
+				}
+			};
+		});
+		excludedProperty.addListener(new ChangeListener<Boolean>() {
+			@Override
+			public void changed(final ObservableValue<? extends Boolean> ov, final Boolean oldVal, final Boolean newVal) {
+				if (newVal) {
+					selectedProperty.set(false);
+					disableProperty.set(false);
 				}
 			};
 		});
@@ -70,12 +75,6 @@ public class TagListItem {
 	}
 	public Boolean isSelected() {
 		return selectedProperty.get();
-	}
-	public BooleanProperty excludeDisableProperty() {
-		return excludeDisableProperty;
-	}
-	public Boolean isExcludeDisable() {
-		return excludeDisableProperty.get();
 	}
 	public BooleanProperty excludedProperty() {
 		return excludedProperty;

@@ -163,6 +163,9 @@ public class TagList extends ListView<TagListItem> {
 		if (itemMap.containsKey(tagName)) {
 			final TagListItem item = itemMap.get(tagName);
 			item.selectedProperty().set(selected);
+			if (!selected) {
+				item.excludedProperty().set(false);
+			}
 		}
 	}
 

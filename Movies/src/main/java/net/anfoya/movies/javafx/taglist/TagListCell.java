@@ -26,11 +26,7 @@ class TagListCell extends CheckBoxListCell<TagListItem> {
     	if (item == null || empty) {
             setGraphic(null);
         } else {
-        	setDisable(item.isDisable());
-	        setTextFill(isDisabled()? Color.GRAY: Color.BLACK);
-
 	        final ExcludeBox excludeBox = new ExcludeBox();
-	        excludeBox.setDisable(item.isExcludeDisable());
 	        excludeBox.setSelected(item.isExcluded());
 	        excludeBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
 	        	@Override
@@ -44,6 +40,8 @@ class TagListCell extends CheckBoxListCell<TagListItem> {
         	pane.setRight(excludeBox);
 
         	setGraphic(pane);
+        	setDisable(item.isDisable());
+	        setTextFill(isDisabled()? Color.GRAY: Color.BLACK);
         }
 	}
 }

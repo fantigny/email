@@ -24,9 +24,9 @@ public class SelectedTagsPane extends FlowPane {
 		setPrefWidth(0);
 	}
 
-	public void refresh(final Set<Tag> set) {
+	public void refresh(final Set<Tag> tags) {
 		final List<Button> buttons = new ArrayList<Button>();
-		for(final Tag tag: set) {
+		for(final Tag tag: tags) {
 			final Button button = new Button(tag.getName() + CROSS);
 			button.setOnAction(new EventHandler<ActionEvent>() {
 				@Override

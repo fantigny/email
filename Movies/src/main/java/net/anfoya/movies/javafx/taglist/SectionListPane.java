@@ -116,12 +116,12 @@ public class SectionListPane extends TitledPane {
 	public void refresh() {
 		refreshSections();
 		refreshTags();
-		selectedPane.refresh(getSelectedTags());
+		selectedPane.refresh(getAllSelectedTags());
 	}
 
 	public void unselectTag(final String tagName) {
-		for(final TitledPane titledPane: sectionAcc.getPanes()) {
-			final TagList tagList = (TagList) titledPane.getContent();
+		for(final TitledPane sectionPane: sectionAcc.getPanes()) {
+			final TagList tagList = (TagList) sectionPane.getContent();
 			if (tagList.contains(tagName)) {
 				tagList.setTagSelected(tagName, false);
 				break;
@@ -130,8 +130,8 @@ public class SectionListPane extends TitledPane {
 	}
 
 	public void selectTag(final Section section, final String tagName) {
-		for(final TitledPane titledPane: sectionAcc.getPanes()) {
-			final TagList tagList = (TagList) titledPane.getContent();
+		for(final TitledPane sectionPane: sectionAcc.getPanes()) {
+			final TagList tagList = (TagList) sectionPane.getContent();
 			if (tagList.getSection().equals(section)) {
 				tagList.setTagSelected(tagName, true);
 				break;
@@ -144,7 +144,7 @@ public class SectionListPane extends TitledPane {
 			@Override
 			public void changed(final ObservableValue<? extends Boolean> ov, final Boolean oldVal, final Boolean newVal) {
 				listener.changed(ov, oldVal, newVal);
-				selectedPane.refresh(getSelectedTags());
+				selectedPane.refresh(getAllSelectedTags());
 			}
 		};
 	}
@@ -168,6 +168,13 @@ public class SectionListPane extends TitledPane {
 			final SectionPane sectionPane = (SectionPane) titledPane;
 			sectionPane.updateMovieCount(currentCount, availableTags, selectedTags, excludedTags, namePattern);
 		}
+	}
+
+	public Set<Tag> getAllSelectedTags() {
+		final Set<Tag> tags = new LinkedHashSet<Tag>();
+		tags.addAll(getSelectedTags());
+		tags.addAll(getExcludedTags());
+		return tags;
 	}
 
 	public Set<Tag> getSelectedTags() {
