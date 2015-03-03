@@ -122,6 +122,7 @@ public class BrowserApp extends Application {
 	private void initGui(final Stage primaryStage) {
 		final BorderPane mainPane = new BorderPane();
 		final Scene scene = new Scene(mainPane, 1524, 780);
+		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/excludebox.css").toExternalForm());
 
 		final HBox selectionPane = new HBox();
 		mainPane.setLeft(selectionPane);

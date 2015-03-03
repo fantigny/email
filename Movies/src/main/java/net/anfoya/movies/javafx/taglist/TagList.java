@@ -64,7 +64,7 @@ public class TagList extends ListView<TagListItem> {
 	public Set<Tag> getSelectedTags() {
 		final Set<Tag> tags = new LinkedHashSet<Tag>();
 		for(final TagListItem item: getItems()) {
-			if (item.isSelected()) {
+			if (item.isIncluded()) {
 				tags.add(item.getTag());
 			}
 		}
@@ -93,10 +93,10 @@ public class TagList extends ListView<TagListItem> {
 		for(final Tag tag: tags) {
 			final TagListItem item = new TagListItem(tag);
 			if (selectedTags.contains(tag)) {
-				item.selectedProperty().set(true);
+				item.includedProperty().set(true);
 			}
 			if (tagChangeListener != null) {
-				item.selectedProperty().addListener(tagChangeListener);
+				item.includedProperty().addListener(tagChangeListener);
 				item.excludedProperty().addListener(tagChangeListener);
 			}
 			items.add(item);
@@ -112,7 +112,7 @@ public class TagList extends ListView<TagListItem> {
 			@Override
 			public void accept(final TagListItem item) {
 				if (availableTags.contains(item.getTag())) {
-					if (item.isSelected()) {
+					if (item.isIncluded()) {
 						item.movieCountProperty().set(currentCount);
 					} else {
 						// request count for available tags
@@ -162,7 +162,7 @@ public class TagList extends ListView<TagListItem> {
 	public void setTagSelected(final String tagName, final boolean selected) {
 		if (itemMap.containsKey(tagName)) {
 			final TagListItem item = itemMap.get(tagName);
-			item.selectedProperty().set(selected);
+			item.includedProperty().set(selected);
 			if (!selected) {
 				item.excludedProperty().set(false);
 			}

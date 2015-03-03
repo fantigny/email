@@ -5,11 +5,11 @@ import java.util.Set;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.TitledPane;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.javafx.scene.control.IncExcBox;
 import net.anfoya.movies.model.Section;
 import net.anfoya.movies.model.Tag;
 import net.anfoya.movies.service.TagService;
@@ -65,13 +65,15 @@ public class SectionPane extends TitledPane {
 			disableProperty().unbind();
 			disableProperty().bind(sectionItem.disableProperty());
 
-			final CheckBox checkBox = (CheckBox) titleNode;
-			checkBox.textProperty().unbind();
-			checkBox.textProperty().bind(sectionItem.textProperty());
+			final IncExcBox incExcBox = (IncExcBox) titleNode;
+			incExcBox.textProperty().unbind();
+			incExcBox.textProperty().bind(sectionItem.textProperty());
 			if (this.sectionItem != null) {
-				checkBox.selectedProperty().unbindBidirectional(this.sectionItem.selectedProperty());
+				incExcBox.includedProperty().unbindBidirectional(this.sectionItem.includedProperty());
+				incExcBox.excludedProperty().unbindBidirectional(this.sectionItem.excludedProperty());
 			}
-			checkBox.selectedProperty().bindBidirectional(sectionItem.selectedProperty());
+			incExcBox.includedProperty().bindBidirectional(sectionItem.includedProperty());
+			incExcBox.excludedProperty().bindBidirectional(sectionItem.excludedProperty());
 			this.sectionItem = sectionItem;
 		}
 	}
@@ -81,7 +83,7 @@ public class SectionPane extends TitledPane {
 		isTag = tagList.getSectionItem() != null;
 
 		if (isTag) {
-			titleNode = new CheckBox();
+			titleNode = new IncExcBox();
 			if (tagList.isStandAloneSectionTag()) {
 				setExpanded(false);
 				setCollapsible(false);

@@ -1,0 +1,6 @@
+
+.exclude-box:selected > .box > .mark {
+    -fx-background-color: -fx-mark-highlight-color, -fx-mark-color;
+    -fx-shape: "M0,0H8V2H0Z";
+    -fx-scale-shape: false;
+}

@@ -14,7 +14,7 @@ class TagListCell extends CheckBoxListCell<TagListItem> {
 		setSelectedStateCallback(new Callback<TagListItem, ObservableValue<Boolean>>() {
 			@Override
 			public ObservableValue<Boolean> call(final TagListItem item) {
-				return item.selectedProperty();
+				return item.includedProperty();
 			}
 		});
 	}
@@ -27,8 +27,8 @@ class TagListCell extends CheckBoxListCell<TagListItem> {
             setGraphic(null);
         } else {
 	        final ExcludeBox excludeBox = new ExcludeBox();
-	        excludeBox.setSelected(item.isExcluded());
-	        excludeBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
+	        excludeBox.setExcluded(item.isExcluded());
+	        excludeBox.excludedProperty().addListener(new ChangeListener<Boolean>() {
 	        	@Override
 	        	public void changed(final ObservableValue<? extends Boolean> ov, final Boolean oldVal, final Boolean newVal) {
 	        		item.excludedProperty().set(newVal);
