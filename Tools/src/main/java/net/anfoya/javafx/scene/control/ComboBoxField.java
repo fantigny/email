@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
  * @param <T>
  */
 public class ComboBoxField<T> extends ComboBox<T> {
+    private static final String DEFAULT_STYLE_CLASS = "combo-noarrow";
 	private static final Logger LOGGER = LoggerFactory.getLogger(ComboBoxField.class);
 
 	private volatile T currentValue;
@@ -34,6 +35,7 @@ public class ComboBoxField<T> extends ComboBox<T> {
 
 	public ComboBoxField() {
 		setEditable(true);
+        getStyleClass().add(DEFAULT_STYLE_CLASS);
 
 		currentValue = null;
 		progSetValue = null;
