@@ -1,7 +1,7 @@
 package net.anfoya.movies.javafx.taglist;
 
+import net.anfoya.javafx.scene.control.ExcludeBox;
 import javafx.beans.value.ObservableValue;
-import javafx.scene.control.RadioButton;
 import javafx.scene.control.cell.CheckBoxListCell;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
@@ -35,7 +35,7 @@ class TagListCell extends CheckBoxListCell<TagListItem> {
 	        	excludeDisable = item.isDisable() || item.isSelected();
 	        }
 
-	        final RadioButton excludeButton = new RadioButton();
+	        final ExcludeBox excludeButton = new ExcludeBox();
 	        excludeButton.setDisable(excludeDisable);
 	        excludeButton.setSelected(item.isExcluded() && !item.isSelected() &&!excludeDisable);
 	        item.excludedProperty().bind(excludeButton.selectedProperty());
