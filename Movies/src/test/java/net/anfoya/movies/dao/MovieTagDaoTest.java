@@ -2,6 +2,7 @@ package net.anfoya.movies.dao;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -15,6 +16,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class MovieTagDaoTest {
+	private static final Set<Tag> EMPTY = new HashSet<Tag>();
+
 	private static DataSource dataSource;
 	private static TagDao tagDao;
 	private static MovieDao movieDao;
@@ -49,11 +52,11 @@ public class MovieTagDaoTest {
 		movieDao.add(new LinkedHashSet<Movie>() { { add(new Movie(name, 0)); } });
 		final Set<Movie> movies = movieDao.find(name);
 
-		Assert.assertEquals(0, movieTagDao.countMovies(new LinkedHashSet<Tag>() { { add(tag); } }, name));
+		Assert.assertEquals(0, movieTagDao.countMovies(new LinkedHashSet<Tag>() { { add(tag); } }, EMPTY, name));
 
 		movieTagDao.addTag(movies, tag);
 
-		Assert.assertEquals(1, movieTagDao.countMovies(new LinkedHashSet<Tag>() { { add(tag); } }, name));
+		Assert.assertEquals(1, movieTagDao.countMovies(new LinkedHashSet<Tag>() { { add(tag); } }, EMPTY, name));
 	}
 
 	@Test @SuppressWarnings("serial")
@@ -66,15 +69,15 @@ public class MovieTagDaoTest {
 		movieDao.add(new LinkedHashSet<Movie>() { { add(new Movie(name, 0)); } });
 		final Set<Movie> movies = movieDao.find(name);
 
-		Assert.assertEquals(0, movieTagDao.countMovies(new LinkedHashSet<Tag>() { { add(tag); } }, name));
+		Assert.assertEquals(0, movieTagDao.countMovies(new LinkedHashSet<Tag>() { { add(tag); } }, EMPTY, name));
 
 		movieTagDao.addTag(movies, tag);
 
-		Assert.assertEquals(1, movieTagDao.countMovies(new LinkedHashSet<Tag>() { { add(tag); } }, name));
+		Assert.assertEquals(1, movieTagDao.countMovies(new LinkedHashSet<Tag>() { { add(tag); } }, EMPTY, name));
 
 		movieTagDao.delTag(movies, tag);
 
-		Assert.assertEquals(0, movieTagDao.countMovies(new LinkedHashSet<Tag>() { { add(tag); } }, name));
+		Assert.assertEquals(0, movieTagDao.countMovies(new LinkedHashSet<Tag>() { { add(tag); } }, EMPTY, name));
 	}
 
 	@Test @SuppressWarnings("serial")
@@ -87,15 +90,15 @@ public class MovieTagDaoTest {
 		movieDao.add(new LinkedHashSet<Movie>() { { add(new Movie(name, 0)); } });
 		final Set<Movie> movies = movieDao.find(name);
 
-		Assert.assertEquals(0, movieTagDao.countMovies(new LinkedHashSet<Tag>() { { add(tag); } }, name));
+		Assert.assertEquals(0, movieTagDao.countMovies(new LinkedHashSet<Tag>() { { add(tag); } }, EMPTY, name));
 
 		movieTagDao.addTag(movies, tag);
 
-		Assert.assertEquals(1, movieTagDao.countMovies(new LinkedHashSet<Tag>() { { add(tag); } }, name));
+		Assert.assertEquals(1, movieTagDao.countMovies(new LinkedHashSet<Tag>() { { add(tag); } }, EMPTY, name));
 
 		movieTagDao.del(movies);
 
-		Assert.assertEquals(0, movieTagDao.countMovies(new LinkedHashSet<Tag>() { { add(tag); } }, name));
+		Assert.assertEquals(0, movieTagDao.countMovies(new LinkedHashSet<Tag>() { { add(tag); } }, EMPTY, name));
 	}
 
 	@Test @SuppressWarnings("serial")
@@ -108,11 +111,11 @@ public class MovieTagDaoTest {
 		movieDao.add(new LinkedHashSet<Movie>() { { add(new Movie(name, 0)); } });
 		final Set<Movie> movies = movieDao.find(name);
 
-		Assert.assertEquals(0, movieTagDao.countSectionMovies(new Section(sectionName), new LinkedHashSet<Tag>() { { add(tag); } }, name));
+		Assert.assertEquals(0, movieTagDao.countSectionMovies(new Section(sectionName), new LinkedHashSet<Tag>() { { add(tag); } }, EMPTY, name));
 
 		movieTagDao.addTag(movies, tag);
 
-		Assert.assertEquals(1, movieTagDao.countSectionMovies(new Section(sectionName), new LinkedHashSet<Tag>() { { add(tag); } }, name));
+		Assert.assertEquals(1, movieTagDao.countSectionMovies(new Section(sectionName), new LinkedHashSet<Tag>() { { add(tag); } }, EMPTY, name));
 	}
 
 	@Test @SuppressWarnings("serial")
@@ -125,10 +128,10 @@ public class MovieTagDaoTest {
 		movieDao.add(new LinkedHashSet<Movie>() { { add(new Movie(name, 0)); } });
 		final Set<Movie> movies = movieDao.find(name);
 
-		Assert.assertEquals(0, movieTagDao.countMovies(new LinkedHashSet<Tag>() { { add(tag); } }, name));
+		Assert.assertEquals(0, movieTagDao.countMovies(new LinkedHashSet<Tag>() { { add(tag); } }, EMPTY, name));
 
 		movieTagDao.addTag(movies, tag);
 
-		Assert.assertEquals(1, movieTagDao.countMovies(new LinkedHashSet<Tag>() { { add(tag); } }, name));
+		Assert.assertEquals(1, movieTagDao.countMovies(new LinkedHashSet<Tag>() { { add(tag); } }, EMPTY, name));
 	}
 }

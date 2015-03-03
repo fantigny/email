@@ -328,8 +328,9 @@ public class BrowserApp extends Application {
 	private void updateMovieCount() {
 		final int currentCount = movieListPane.getMovieCount();
 		final Set<Tag> availableTags = movieListPane.getMoviesTags();
+		final Set<Tag> excludedTags = sectionListPane.getExcludedTags();
 		final String namePattern = movieListPane.getNamePattern();
-		sectionListPane.updateMovieCount(currentCount, availableTags, namePattern);
+		sectionListPane.updateMovieCount(currentCount, availableTags, excludedTags, namePattern);
 	}
 
 	private void refreshMovie() {

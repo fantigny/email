@@ -184,26 +184,26 @@ public class TagService {
 		}
 	}
 
-	public int getSectionMovieCount(final Section section, final Set<Tag> selectedTags, final String namePattern) {
+	public int getSectionMovieCount(final Section section, final Set<Tag> tags, final Set<Tag> excludes, final String pattern) {
 		try {
-			return movieTagDao.countSectionMovies(section, selectedTags, namePattern);
+			return movieTagDao.countSectionMovies(section, tags, excludes, pattern);
 		} catch (final SQLException e) {
-			LOGGER.error("counting movies for section: {}, name pattern {} and tags: {}", section.getName(), namePattern, selectedTags.toString(), e);
+			LOGGER.error("counting movies for section: {}, name pattern {} and tags: ({}), exc: ({})", section.getName(), pattern, tags, excludes, e);
 			final Alert alertDialog = new Alert(AlertType.ERROR);
-			alertDialog.setHeaderText("error counting movies for section: " + section.getName() + ", name pattern " + namePattern + " and tags: {}" + selectedTags.toString());
+			alertDialog.setHeaderText("error counting movies for section: " + section.getName() + ", name pattern " + pattern + " and tags: " + tags.toString() + ", exc: " + excludes.toString());
 			alertDialog.setContentText(e.getMessage());
 			alertDialog.show();
 			return 0;
 		}
 	}
 
-	public int getMovieCount(final Set<Tag> tags, final String namePattern) {
+	public int getMovieCount(final Set<Tag> tags, final Set<Tag> excludes, final String namePattern) {
 		try {
-			return movieTagDao.countMovies(tags, namePattern);
+			return movieTagDao.countMovies(tags, excludes, namePattern);
 		} catch (final SQLException e) {
-			LOGGER.error("counting movies with name pattern: %{}% and tags: ", namePattern, tags.toString(), e);
+			LOGGER.error("counting movies with name pattern: %{}% and tags: ({}), exc: ({})", namePattern, tags, excludes, e);
 			final Alert alertDialog = new Alert(AlertType.ERROR);
-			alertDialog.setHeaderText("error counting movies with name pattern: %" + namePattern + "% and tags: " + tags.toString());
+			alertDialog.setHeaderText("error counting movies with name pattern: %" + namePattern + "% and tags: " + tags.toString() + ", exc: " + excludes.toString());
 			alertDialog.setContentText(e.getMessage());
 			alertDialog.show();
 			return 0;

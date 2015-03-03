@@ -107,7 +107,7 @@ public class TagList extends ListView<TagListItem> {
 		setItems(items);
 	}
 
-	public void updateMovieCount(final int currentCount, final Set<Tag> availableTags, final Set<Tag> selectedTags, final String namePattern) {
+	public void updateMovieCount(final int currentCount, final Set<Tag> availableTags, final Set<Tag> selectedTags, final Set<Tag> excludedTags, final String namePattern) {
 		getItems().forEach(new Consumer<TagListItem>() {
 			@Override
 			public void accept(final TagListItem item) {
@@ -116,7 +116,7 @@ public class TagList extends ListView<TagListItem> {
 						item.movieCountProperty().set(currentCount);
 					} else {
 						// request count for available tags
-						updateMovieCount(item, selectedTags, namePattern);
+						updateMovieCount(item, selectedTags, excludedTags, namePattern);
 					}
 				} else {
 					item.movieCountProperty().set(0);
@@ -126,13 +126,13 @@ public class TagList extends ListView<TagListItem> {
 		forceRepaint();
 	}
 
-	private void updateMovieCount(final TagListItem item, final Set<Tag> selectedTags, final String namePattern) {
+	private void updateMovieCount(final TagListItem item, final Set<Tag> tags, final Set<Tag> excludes, final String namePattern) {
 		final Task<Integer> task = new Task<Integer>() {
 			@Override
 			public Integer call() throws SQLException {
-				final Set<Tag> fakeSelectedTags = new LinkedHashSet<Tag>(selectedTags);
+				final Set<Tag> fakeSelectedTags = new LinkedHashSet<Tag>(tags);
 				fakeSelectedTags.add(item.getTag());
-				return tagService.getMovieCount(fakeSelectedTags, namePattern);
+				return tagService.getMovieCount(fakeSelectedTags, excludes, namePattern);
 			}
 		};
 		task.setOnSucceeded(new EventHandler<WorkerStateEvent>() {

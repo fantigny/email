@@ -125,8 +125,9 @@ public class MovieTagDao {
 		connection.close();
 	}
 
-	public int countSectionMovies(final Section section, final Set<Tag> selectedTags, final String nameSearch) throws SQLException {
-		final boolean tagClause = !selectedTags.isEmpty();
+	public int countSectionMovies(final Section section, final Set<Tag> tags, final Set<Tag> excludes, final String nameSearch) throws SQLException {
+		final boolean tagClause = !tags.isEmpty();
+		final boolean excClause = !excludes.isEmpty();
 		final boolean nameClause = !nameSearch.isEmpty();
 
 		String sql = "SELECT COUNT(DISTINCT(mt.movie_id)) AS movie_count"
@@ -140,7 +141,21 @@ public class MovieTagDao {
 					+ " FROM movie_tag"
 					+ " WHERE movie_id = mt.movie_id"
 					+ " AND tag_id IN (";
-			for(int i=0, n=selectedTags.size(); i<n; i++) {
+			for(int i=0, n=tags.size(); i<n; i++) {
+				if (i != 0) {
+					sql += ",";
+				}
+				sql += "?";
+			}
+			sql += "))";
+		}
+
+		if (excClause) {
+			sql += " AND 0 = (SELECT COUNT(*)"
+					+ " FROM movie_tag"
+					+ " WHERE movie_id = mt.movie_id"
+					+ " AND tag_id IN (";
+			for(int i=0, n=excludes.size(); i<n; i++) {
 				if (i != 0) {
 					sql += ",";
 				}
@@ -159,10 +174,13 @@ public class MovieTagDao {
 		int i=0;
 		statement.setString(++i, section.getName());
 		if (tagClause) {
-			statement.setInt(++i, selectedTags.size());
-			for(final Tag tag: selectedTags) {
+			statement.setInt(++i, tags.size());
+			for(final Tag tag: tags) {
 				statement.setInt(++i, tag.getId());
 			}
+		}
+		for(final Tag tag: excludes) {
+			statement.setInt(++i, tag.getId());
 		}
 		if (nameClause) {
 			statement.setString(++i, nameSearch);
@@ -180,12 +198,12 @@ public class MovieTagDao {
 		return count;
 	}
 
-	public int countMovies(final Set<Tag> tags, final String nameSearch) throws SQLException {
-		final boolean tagClause = !tags.isEmpty(), nameClause = !nameSearch.isEmpty();
+	public int countMovies(final Set<Tag> tags, final Set<Tag> excludes, final String nameSearch) throws SQLException {
+		final boolean tagClause = !tags.isEmpty(), nameClause = !nameSearch.isEmpty(), excClause = !excludes.isEmpty();
 		String sql = "SELECT COUNT(DISTINCT(mt.movie_id)) AS movie_count"
 							+ " FROM movie_tag mt"
 							+ " JOIN movie m ON m.id = mt.movie_id";
-		if (tagClause || nameClause) {
+		if (tagClause || excClause || nameClause) {
 			sql += " WHERE ";
 		}
 		if (tagClause) {
@@ -201,10 +219,26 @@ public class MovieTagDao {
 			}
 			sql += "))";
 		}
-		if (tagClause && nameClause) {
-			sql += " AND ";
+		if (excClause) {
+			if (tagClause) {
+				sql += " AND ";
+			}
+			sql += " 0 = (SELECT COUNT(*)"
+					+ " FROM movie_tag"
+					+ " WHERE movie_id = mt.movie_id"
+					+ " AND tag_id IN (";
+			for(int i=0, n=excludes.size(); i<n; i++) {
+				if (i != 0) {
+					sql += ",";
+				}
+				sql += "?";
+			}
+			sql += "))";
 		}
 		if (nameClause) {
+			if (tagClause || excClause) {
+				sql += " AND ";
+			}
 			sql += " m.path LIKE CONCAT('%', ?, '%')";
 		}
 
@@ -217,6 +251,9 @@ public class MovieTagDao {
 			for(final Tag tag: tags) {
 				statement.setInt(++i, tag.getId());
 			}
+		}
+		for(final Tag tag: excludes) {
+			statement.setInt(++i, tag.getId());
 		}
 		if (nameClause) {
 			statement.setString(++i, nameSearch);

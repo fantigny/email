@@ -2,10 +2,6 @@ package net.anfoya.movies.javafx.taglist;
 
 import java.util.Set;
 
-import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.movies.model.Section;
-import net.anfoya.movies.model.Tag;
-import net.anfoya.movies.service.TagService;
 import javafx.concurrent.Task;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.EventHandler;
@@ -13,6 +9,10 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.TitledPane;
+import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.movies.model.Section;
+import net.anfoya.movies.model.Tag;
+import net.anfoya.movies.service.TagService;
 
 public class SectionPane extends TitledPane {
 	private final TagService tagService;
@@ -33,13 +33,13 @@ public class SectionPane extends TitledPane {
 		this.initialized = false;
 	}
 
-	public void updateMovieCount(final int currentCount, final Set<Tag> availableTags, final Set<Tag> selectedTags, final String namePattern) {
-		tagList.updateMovieCount(currentCount, availableTags, selectedTags, namePattern);
+	public void updateMovieCount(final int currentCount, final Set<Tag> availableTags, final Set<Tag> tags, final Set<Tag> excludes, final String namePattern) {
+		tagList.updateMovieCount(currentCount, availableTags, tags, excludes, namePattern);
 		if (!isTag) {
 			final Task<Integer> task = new Task<Integer>() {
 				@Override
 				protected Integer call() {
-					return tagService.getSectionMovieCount(tagList.getSection(), selectedTags, namePattern);
+					return tagService.getSectionMovieCount(tagList.getSection(), tags, excludes, namePattern);
 				}
 			};
 			task.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
