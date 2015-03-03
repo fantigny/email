@@ -1,11 +1,12 @@
 package net.anfoya.movies.javafx.taglist;
 
-import net.anfoya.javafx.scene.control.ExcludeBox;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.cell.CheckBoxListCell;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.util.Callback;
+import net.anfoya.javafx.scene.control.ExcludeBox;
 
 class TagListCell extends CheckBoxListCell<TagListItem> {
 	public TagListCell() {
@@ -25,24 +26,22 @@ class TagListCell extends CheckBoxListCell<TagListItem> {
     	if (item == null || empty) {
             setGraphic(null);
         } else {
-        	setDisable(item.isDisable() && !item.isExcluded());
+        	setDisable(item.isDisable());
 	        setTextFill(isDisabled()? Color.GRAY: Color.BLACK);
 
-	        final boolean excludeDisable;
-	        if (item.isExcluded()) {
-	        	excludeDisable = false;
-	        } else {
-	        	excludeDisable = item.isDisable() || item.isSelected();
-	        }
-
-	        final ExcludeBox excludeButton = new ExcludeBox();
-	        excludeButton.setDisable(excludeDisable);
-	        excludeButton.setSelected(item.isExcluded() && !item.isSelected() &&!excludeDisable);
-	        item.excludedProperty().bind(excludeButton.selectedProperty());
+	        final ExcludeBox excludeBox = new ExcludeBox();
+	        excludeBox.setDisable(item.isExcludeDisable());
+	        excludeBox.setSelected(item.isExcluded());
+	        excludeBox.selectedProperty().addListener(new ChangeListener<Boolean>() {
+	        	@Override
+	        	public void changed(final ObservableValue<? extends Boolean> ov, final Boolean oldVal, final Boolean newVal) {
+	        		item.excludedProperty().set(newVal);
+	        	}
+			});
 
         	final BorderPane pane = new BorderPane();
         	pane.setCenter(getGraphic());
-        	pane.setRight(excludeButton);
+        	pane.setRight(excludeBox);
 
         	setGraphic(pane);
         }
