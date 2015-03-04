@@ -162,11 +162,12 @@ public class SectionListPane extends TitledPane {
 		}
 	}
 
-	public void updateMovieCount(final int currentCount, final Set<Tag> availableTags, final Set<Tag> excludedTags, final String namePattern) {
-		final Set<Tag> selectedTags = getSelectedTags();
+	public void updateMovieCount(final int currentCount, final Set<Tag> availableTags, final String namePattern) {
+		final Set<Tag> tags = getSelectedTags();
+		final Set<Tag> excludes = getExcludedTags();
 		for(final TitledPane titledPane: sectionAcc.getPanes()) {
 			final SectionPane sectionPane = (SectionPane) titledPane;
-			sectionPane.updateMovieCount(currentCount, availableTags, selectedTags, excludedTags, namePattern);
+			sectionPane.updateMovieCount(currentCount, availableTags, tags, excludes, namePattern);
 		}
 	}
 

@@ -107,19 +107,19 @@ public class TagList extends ListView<TagListItem> {
 		setItems(items);
 	}
 
-	public void updateMovieCount(final int currentCount, final Set<Tag> availableTags, final Set<Tag> selectedTags, final Set<Tag> excludedTags, final String namePattern) {
+	public void updateMovieCount(final int currentCount, final Set<Tag> availableTags, final Set<Tag> tags, final Set<Tag> excludes, final String pattern) {
 		getItems().forEach(new Consumer<TagListItem>() {
 			@Override
 			public void accept(final TagListItem item) {
-				if (availableTags.contains(item.getTag())) {
+				if (item.isExcluded()) {
+					item.movieCountProperty().set(0);
+				} else if (availableTags.contains(item.getTag())) {
 					if (item.isIncluded()) {
 						item.movieCountProperty().set(currentCount);
 					} else {
 						// request count for available tags
-						updateMovieCount(item, selectedTags, excludedTags, namePattern);
+						updateMovieCount(item, tags, excludes, pattern);
 					}
-				} else {
-					item.movieCountProperty().set(0);
 				}
 			}
 		});
