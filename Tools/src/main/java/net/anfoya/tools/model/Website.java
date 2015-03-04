@@ -74,4 +74,9 @@ public class Website {
 	public String getHomePattern() {
 		return homePattern;
 	}
+
+	@Override
+	public String toString() {
+		return getName();
+	}
 }

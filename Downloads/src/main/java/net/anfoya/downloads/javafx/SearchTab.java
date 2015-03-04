@@ -19,7 +19,12 @@ import net.anfoya.downloads.javafx.allocine.QuickSearchVo;
 import net.anfoya.javafx.scene.control.TitledProgressBar;
 import net.anfoya.tools.model.Website;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class SearchTab extends Tab {
+	private static final Logger LOGGER = LoggerFactory.getLogger(SearchTab.class);
+
 	private final Website website;
 
 	private final LocationPane locationPane;
@@ -95,6 +100,7 @@ public class SearchTab extends Tab {
 	}
 
 	public void goHome() {
+		LOGGER.info("({}) - going home", website);
 		view.getEngine().load(website.getHomeUrl());
 	}
 
@@ -102,26 +108,33 @@ public class SearchTab extends Tab {
 		final WebHistory history = view.getEngine().getHistory();
 		final int index = history.getCurrentIndex() + offset;
 		if (index >= 0 && index < history.getEntries().size()) {
+			LOGGER.info("({}) - move in history with offset ({}{})", website, offset>0?"+":"", offset);
 			history.go(offset);
 		}
 	}
 
 	public void search(final QuickSearchVo resultVo) {
 		final String search = resultVo.toString();
-		if (website.getName().equals("AlloCine") && !resultVo.getId().isEmpty()) {
-			String searchPattern;
-			if (resultVo.isPerson()) {
-				searchPattern = "http://www.allocine.fr/personne/fichepersonne_gen_cpersonne=%s.html";
-			} else if (resultVo.isSerie()) {
-				searchPattern = "http://www.allocine.fr/series/ficheserie_gen_cserie=%s.html";
-			} else {
-				searchPattern = "http://www.allocine.fr/film/fichefilm_gen_cfilm=%s.html";
-			}
-			final String url = String.format(searchPattern, resultVo.getId());
-			view.getEngine().load(url);
-		} else if (!search.isEmpty() && website.isSearchable()) {
-			view.getEngine().load(website.getSearchUrl(search));
+		if (search.isEmpty() || !website.isSearchable()) {
+			return;
 		}
+
+		final String url;
+		if (website.getName().equals("AlloCine") && !resultVo.getId().isEmpty()) {
+			String pattern;
+			if (resultVo.isPerson()) {
+				pattern = "http://www.allocine.fr/personne/fichepersonne_gen_cpersonne=%s.html";
+			} else if (resultVo.isSerie()) {
+				pattern = "http://www.allocine.fr/series/ficheserie_gen_cserie=%s.html";
+			} else {
+				pattern = "http://www.allocine.fr/film/fichefilm_gen_cfilm=%s.html";
+			}
+			url = String.format(pattern, resultVo.getId());
+		} else {
+			url = website.getSearchUrl(search);
+		}
+		LOGGER.info("({}) - load ({})", website, url);
+		view.getEngine().load(url);
 	}
 
 	public void setOnViewClicked(final EventHandler<MouseEvent> handler) {
