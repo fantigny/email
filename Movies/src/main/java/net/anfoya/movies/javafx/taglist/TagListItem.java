@@ -12,25 +12,28 @@ import net.anfoya.movies.model.Tag;
 
 public class TagListItem {
 	private final Tag tag;
-	private final StringProperty textProperty = new SimpleStringProperty("");
-	private final BooleanProperty disableProperty = new SimpleBooleanProperty(true);
-	private final BooleanProperty includedProperty = new SimpleBooleanProperty(false);
-	private final BooleanProperty excludedProperty = new SimpleBooleanProperty(false);
-	private final IntegerProperty movieCountProperty = new SimpleIntegerProperty(0);
+	private final StringProperty textProperty;
+	private final BooleanProperty disableProperty;
+	private final BooleanProperty includedProperty;
+	private final BooleanProperty excludedProperty;
+	private final IntegerProperty movieCountProperty;
 	public TagListItem(final Tag tag) {
 		this.tag = tag;
-		textProperty.set(tag.getName());
+		textProperty = new SimpleStringProperty(tag.getName());
+		disableProperty = new SimpleBooleanProperty(true);
+		movieCountProperty = new SimpleIntegerProperty(0);
 		movieCountProperty.addListener(new ChangeListener<Number>() {
 			@Override
 			public void changed(final ObservableValue<? extends Number> ov, final Number oldVal, final Number newVal) {
 				textProperty.set(getTag().getName() + movieCountText());
-				if (isExcluded()) {
+				if (excludedProperty.get()) {
 					disableProperty.set(false);
 				} else {
-					disableProperty.set(getMovieCount() == 0);
+					disableProperty.set(movieCountProperty.get() == 0);
 				}
 			}
 		});
+		includedProperty = new SimpleBooleanProperty(false);
 		includedProperty.addListener(new ChangeListener<Boolean>() {
 			@Override
 			public void changed(final ObservableValue<? extends Boolean> ov, final Boolean oldVal, final Boolean newVal) {
@@ -39,6 +42,7 @@ public class TagListItem {
 				}
 			};
 		});
+		excludedProperty = new SimpleBooleanProperty(false);
 		excludedProperty.addListener(new ChangeListener<Boolean>() {
 			@Override
 			public void changed(final ObservableValue<? extends Boolean> ov, final Boolean oldVal, final Boolean newVal) {
@@ -49,51 +53,39 @@ public class TagListItem {
 			};
 		});
 	}
+
+	@Override
+	public String toString() {
+		return textProperty.get();
+	}
+
 	public Tag getTag() {
 		return tag;
 	}
 	public StringProperty textProperty() {
 		return textProperty;
 	}
-	public String getText() {
-		return textProperty.get();
-	}
 	public BooleanProperty disableProperty() {
 		return disableProperty;
-	}
-	public boolean isDisable() {
-		return disableProperty.get();
 	}
 	public IntegerProperty movieCountProperty() {
 		return movieCountProperty;
 	}
-	public int getMovieCount() {
-		return movieCountProperty.get();
-	}
 	public BooleanProperty includedProperty() {
 		return includedProperty;
-	}
-	public Boolean isIncluded() {
-		return includedProperty.get();
 	}
 	public BooleanProperty excludedProperty() {
 		return excludedProperty;
 	}
-	public Boolean isExcluded() {
-		return excludedProperty.get();
-	}
-	@Override
-	public String toString() {
-		return textProperty.get();
-	}
+
 	private String movieCountText() {
 		final StringBuilder text = new StringBuilder();
-//		if (movieCountProperty.get() > 0) {
+		if (movieCountProperty.get() > 0) {
 			text.append(" (");
-			text.append(isExcluded()? "-": "");
+			text.append(excludedProperty.get()? "-": "");
 			text.append(movieCountProperty.get());
 			text.append(")");
-//		}
+		}
 		return text.toString();
 	}
 }
