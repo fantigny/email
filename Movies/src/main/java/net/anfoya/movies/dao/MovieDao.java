@@ -108,11 +108,11 @@ public class MovieDao {
 		final boolean tagClause = !tags.isEmpty(), excClause = !excludes.isEmpty(), nameClause = !namePattern.isEmpty();
 		String sql = "SELECT m.id AS movie_id, m.path, m.last_mod, m.urls, mt.tag_id AS tag_id, t.name, t.section"
 				+ " FROM movie m";
-		if (!tagClause && !excClause) {
+		if (!tagClause) {
 			sql += " LEFT";
 		}
 		sql += 	" JOIN movie_tag mt ON mt.movie_id = m.id";
-		if (!tagClause && !excClause) {
+		if (!tagClause) {
 			sql += " LEFT";
 		}
 		sql += 	" JOIN tag t ON t.id = mt.tag_id";
