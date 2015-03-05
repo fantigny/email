@@ -167,7 +167,7 @@ public class SectionListPane extends TitledPane {
 		final Set<Tag> excludes = getExcludedTags();
 		for(final TitledPane titledPane: sectionAcc.getPanes()) {
 			final SectionPane sectionPane = (SectionPane) titledPane;
-			sectionPane.updateMovieCount(currentCount, availableTags, tags, excludes, namePattern);
+			sectionPane.updateMovieCountAsync(currentCount, availableTags, tags, excludes, namePattern);
 		}
 	}
 

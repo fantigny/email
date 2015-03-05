@@ -87,10 +87,13 @@ public class TagListItem {
 		return textProperty.get();
 	}
 	private String movieCountText() {
-		if (movieCountProperty.intValue() == 0) {
-			return "";
-		} else {
-			return " (" + movieCountProperty.get() + ")";
-		}
+		final StringBuilder text = new StringBuilder();
+//		if (movieCountProperty.get() > 0) {
+			text.append(" (");
+			text.append(isExcluded()? "-": "");
+			text.append(movieCountProperty.get());
+			text.append(")");
+//		}
+		return text.toString();
 	}
 }

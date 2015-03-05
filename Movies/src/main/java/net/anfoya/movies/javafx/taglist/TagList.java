@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
 
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
@@ -108,31 +107,28 @@ public class TagList extends ListView<TagListItem> {
 	}
 
 	public void updateMovieCount(final int currentCount, final Set<Tag> availableTags, final Set<Tag> tags, final Set<Tag> excludes, final String pattern) {
-		getItems().forEach(new Consumer<TagListItem>() {
-			@Override
-			public void accept(final TagListItem item) {
-				if (item.isExcluded()) {
-					item.movieCountProperty().set(0);
-				} else if (availableTags.contains(item.getTag())) {
-					if (item.isIncluded()) {
-						item.movieCountProperty().set(currentCount);
-					} else {
-						// request count for available tags
-						updateMovieCount(item, tags, excludes, pattern);
-					}
+		for(final TagListItem item: getItems()) {
+			if (availableTags.contains(item.getTag())) {
+				if (item.isIncluded() || item.isExcluded()) {
+					item.movieCountProperty().set(currentCount);
+				} else {
+					// request count for available tags
+					updateMovieCountAsync(item, tags, excludes, pattern);
 				}
+			} else {
+				item.movieCountProperty().set(0);
 			}
-		});
+		}
 		forceRepaint();
 	}
 
-	private void updateMovieCount(final TagListItem item, final Set<Tag> tags, final Set<Tag> excludes, final String namePattern) {
+	private void updateMovieCountAsync(final TagListItem item, final Set<Tag> tags, final Set<Tag> excludes, final String pattern) {
 		final Task<Integer> task = new Task<Integer>() {
 			@Override
 			public Integer call() throws SQLException {
-				final Set<Tag> fakeSelectedTags = new LinkedHashSet<Tag>(tags);
-				fakeSelectedTags.add(item.getTag());
-				return tagService.getMovieCount(fakeSelectedTags, excludes, namePattern);
+				final Set<Tag> fakeTags = new LinkedHashSet<Tag>(tags);
+				fakeTags.add(item.getTag());
+				return tagService.getMovieCount(fakeTags, excludes, pattern);
 			}
 		};
 		task.setOnSucceeded(new EventHandler<WorkerStateEvent>() {

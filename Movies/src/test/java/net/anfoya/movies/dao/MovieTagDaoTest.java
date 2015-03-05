@@ -2,8 +2,10 @@ package net.anfoya.movies.dao;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import junit.framework.Assert;
@@ -133,5 +135,137 @@ public class MovieTagDaoTest {
 		movieTagDao.addTag(movies, tag);
 
 		Assert.assertEquals(1, movieTagDao.countMovies(new LinkedHashSet<Tag>() { { add(tag); } }, EMPTY, name));
+	}
+
+	@Test @SuppressWarnings("serial")
+	public void countExcludedMovies() throws SQLException {
+		final String name = "countExcludedMovies";
+		final String sectionName = name + "Section";
+
+		final List<Tag> tags = new ArrayList<Tag>();
+		for(int i=0; i<3; i++) {
+			final String tagName = name + i;
+			tagDao.add(new Tag(tagName, sectionName));
+			tags.add(tagDao.find(tagName));
+		}
+
+		final Tag tag1 = tags.get(0);
+		final Tag tag2 = tags.get(1);
+		final Tag tag3 = tags.get(2);
+		final Set<Tag> setTag1 = new HashSet<Tag>() { { add(tag1); } };
+		final Set<Tag> setTag2 = new HashSet<Tag>() { { add(tag2); } };
+		final Set<Tag> setTag3 = new HashSet<Tag>() { { add(tag3); } };
+		final Set<Tag> setTag12 = new HashSet<Tag>() { { add(tag1); add(tag2); } };
+		final Set<Tag> setTag13 = new HashSet<Tag>() { { add(tag1); add(tag3); } };
+		final Set<Tag> setTag23 = new HashSet<Tag>() { { add(tag2); add(tag3); } };
+		final Set<Tag> setTag123 = new HashSet<Tag>() { { add(tag1); add(tag2); add(tag3); } };
+
+		/*
+		 * no movies
+		 */
+
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag1, EMPTY, name));		// in tag1
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag2, EMPTY, name));		// in tag2
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag3, EMPTY, name));		// in tag3
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag12, EMPTY, name));		// in tag1, tag2
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag13, EMPTY, name));		// in tag1, tag3
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag23, EMPTY, name));		// in tag2, tag3
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag123, EMPTY, name));	// in tag1, tag2, tag3
+
+		Assert.assertEquals(0, movieTagDao.countMovies(EMPTY, setTag1, name));		// ex tag1
+		Assert.assertEquals(0, movieTagDao.countMovies(EMPTY, setTag2, name));		// ex tag2
+		Assert.assertEquals(0, movieTagDao.countMovies(EMPTY, setTag3, name));		// ex tag3
+		Assert.assertEquals(0, movieTagDao.countMovies(EMPTY, setTag12, name));		// ex tag1, tag2
+		Assert.assertEquals(0, movieTagDao.countMovies(EMPTY, setTag13, name));		// ex tag1, tag3
+		Assert.assertEquals(0, movieTagDao.countMovies(EMPTY, setTag23, name));		// ex tag2, tag3
+		Assert.assertEquals(0, movieTagDao.countMovies(EMPTY, setTag123, name));	// ex tag1, tag2, tag3
+
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag1, setTag1, name));	// in tag1 ex tag1
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag1, setTag2, name));	// in tag1 ex tag2
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag1, setTag3, name));	// in tag1 ex tag3
+
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag2, setTag1, name));	// in tag2 ex tag1
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag2, setTag2, name));	// in tag2 ex tag2
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag2, setTag3, name));	// in tag2 ex tag3
+
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag3, setTag1, name));	// in tag3 ex tag1
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag3, setTag2, name));	// in tag3 ex tag2
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag3, setTag3, name));	// in tag3 ex tag3
+
+		/*
+		 * with 3 movies
+		 */
+
+		final List<Movie> movies = new ArrayList<Movie>();
+		for(int i=0; i<3; i++) {
+			final String movieName = name + i;
+			movieDao.add(new LinkedHashSet<Movie>() { { add(new Movie(movieName, 0)); } });
+		}
+		movies.addAll(movieDao.find(name));
+
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag1, EMPTY, name));		// in tag1
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag2, EMPTY, name));		// in tag2
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag3, EMPTY, name));		// in tag3
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag12, EMPTY, name));		// in tag1, tag2
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag23, EMPTY, name));		// in tag2, tag3
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag123, EMPTY, name));	// in tag1, tag2, tag3
+
+		Assert.assertEquals(3, movieTagDao.countMovies(EMPTY, setTag1, name));		// ex tag1
+		Assert.assertEquals(3, movieTagDao.countMovies(EMPTY, setTag2, name));		// ex tag2
+		Assert.assertEquals(3, movieTagDao.countMovies(EMPTY, setTag3, name));		// ex tag3
+		Assert.assertEquals(3, movieTagDao.countMovies(EMPTY, setTag12, name));		// ex tag1, tag2
+		Assert.assertEquals(3, movieTagDao.countMovies(EMPTY, setTag23, name));		// ex tag2, tag3
+		Assert.assertEquals(3, movieTagDao.countMovies(EMPTY, setTag123, name));	// ex tag1, tag2, tag3
+
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag1, setTag1, name));	// in tag1 ex tag1
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag1, setTag2, name));	// in tag1 ex tag2
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag1, setTag3, name));	// in tag1 ex tag3
+
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag2, setTag1, name));	// in tag2 ex tag1
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag2, setTag2, name));	// in tag2 ex tag2
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag2, setTag3, name));	// in tag2 ex tag3
+
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag3, setTag1, name));	// in tag3 ex tag1
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag3, setTag2, name));	// in tag3 ex tag2
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag3, setTag3, name));	// in tag3 ex tag3
+
+
+		/*
+		 * with 3 movies and tags
+		 *
+		 * movie1(tag1, tag2)
+		 * movie1(tag1, tag2, tag3)
+		 * movie3()
+		 */
+		movieTagDao.addTag(new HashSet<Movie>() { { add(movies.get(0)); } }, tag1);
+		movieTagDao.addTag(new HashSet<Movie>() { { add(movies.get(0)); } }, tag3);
+		movieTagDao.addTag(new HashSet<Movie>() { { add(movies.get(1)); } }, tag2);
+
+		Assert.assertEquals(1, movieTagDao.countMovies(setTag1, EMPTY, name));		// in tag1
+		Assert.assertEquals(1, movieTagDao.countMovies(setTag2, EMPTY, name));		// in tag2
+		Assert.assertEquals(1, movieTagDao.countMovies(setTag3, EMPTY, name));		// in tag3
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag12, EMPTY, name));		// in tag1, tag2
+		Assert.assertEquals(1, movieTagDao.countMovies(setTag13, EMPTY, name));		// in tag1, tag3
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag23, EMPTY, name));		// in tag2, tag3
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag123, EMPTY, name));	// in tag1, tag2, tag3
+
+		Assert.assertEquals(2, movieTagDao.countMovies(EMPTY, setTag1, name));		// ex tag1
+		Assert.assertEquals(2, movieTagDao.countMovies(EMPTY, setTag2, name));		// ex tag2
+		Assert.assertEquals(2, movieTagDao.countMovies(EMPTY, setTag3, name));		// ex tag3
+		Assert.assertEquals(1, movieTagDao.countMovies(EMPTY, setTag12, name));		// ex tag1, tag2
+		Assert.assertEquals(1, movieTagDao.countMovies(EMPTY, setTag23, name));		// ex tag2, tag3
+		Assert.assertEquals(1, movieTagDao.countMovies(EMPTY, setTag123, name));	// ex tag1, tag2, tag3
+
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag1, setTag1, name));	// in tag1 ex tag1
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag1, setTag2, name));	// in tag1 ex tag2
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag1, setTag3, name));	// in tag1 ex tag3
+
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag2, setTag1, name));	// in tag2 ex tag1
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag2, setTag2, name));	// in tag2 ex tag2
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag2, setTag3, name));	// in tag2 ex tag3
+
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag3, setTag1, name));	// in tag3 ex tag1
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag3, setTag2, name));	// in tag3 ex tag2
+		Assert.assertEquals(0, movieTagDao.countMovies(setTag3, setTag3, name));	// in tag3 ex tag3
 	}
 }

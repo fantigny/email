@@ -78,8 +78,8 @@ public class SectionPaneTest {
 		final Labeled title = (Labeled) sectionPane.getGraphic();
 		Assert.assertEquals(section.getName(), title.getText());
 
-		sectionPane.updateMovieCount(-1, EMPTY_TAG_SET, EMPTY_TAG_SET, EMPTY_TAG_SET, "");
-//		Assert.assertEquals(section.getName() + " (12)", title.getText());
+		sectionPane.updateMovieCountAsync(-1, EMPTY_TAG_SET, EMPTY_TAG_SET, EMPTY_TAG_SET, "");
+		Assert.assertEquals(section.getName() + " (12)", title.getText());
 	}
 
 }

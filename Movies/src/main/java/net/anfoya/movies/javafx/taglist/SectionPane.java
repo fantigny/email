@@ -33,7 +33,7 @@ public class SectionPane extends TitledPane {
 		this.initialized = false;
 	}
 
-	public void updateMovieCount(final int currentCount, final Set<Tag> availableTags, final Set<Tag> tags, final Set<Tag> excludes, final String namePattern) {
+	public void updateMovieCountAsync(final int currentCount, final Set<Tag> availableTags, final Set<Tag> tags, final Set<Tag> excludes, final String namePattern) {
 		tagList.updateMovieCount(currentCount, availableTags, tags, excludes, namePattern);
 		if (!isTag) {
 			final Task<Integer> task = new Task<Integer>() {
