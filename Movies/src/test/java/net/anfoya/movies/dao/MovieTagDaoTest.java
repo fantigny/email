@@ -236,6 +236,7 @@ public class MovieTagDaoTest {
 		Assert.assertEquals(3, movieTagDao.countMovies(EMPTY, setTag2, name));		// ex tag2
 		Assert.assertEquals(3, movieTagDao.countMovies(EMPTY, setTag3, name));		// ex tag3
 		Assert.assertEquals(3, movieTagDao.countMovies(EMPTY, setTag12, name));		// ex tag1, tag2
+		Assert.assertEquals(3, movieTagDao.countMovies(EMPTY, setTag13, name));		// ex tag1, tag3
 		Assert.assertEquals(3, movieTagDao.countMovies(EMPTY, setTag23, name));		// ex tag2, tag3
 		Assert.assertEquals(3, movieTagDao.countMovies(EMPTY, setTag123, name));	// ex tag1, tag2, tag3
 
@@ -276,6 +277,7 @@ public class MovieTagDaoTest {
 		Assert.assertEquals(1, movieTagDao.countMovies(EMPTY, setTag2, name));		// ex tag2
 		Assert.assertEquals(2, movieTagDao.countMovies(EMPTY, setTag3, name));		// ex tag3
 		Assert.assertEquals(1, movieTagDao.countMovies(EMPTY, setTag12, name));		// ex tag1, tag2
+		Assert.assertEquals(1, movieTagDao.countMovies(EMPTY, setTag13, name));		// ex tag1, tag3
 		Assert.assertEquals(1, movieTagDao.countMovies(EMPTY, setTag23, name));		// ex tag2, tag3
 		Assert.assertEquals(1, movieTagDao.countMovies(EMPTY, setTag123, name));	// ex tag1, tag2, tag3
 
