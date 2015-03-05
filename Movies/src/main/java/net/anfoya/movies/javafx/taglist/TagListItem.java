@@ -79,13 +79,13 @@ public class TagListItem {
 	}
 
 	private String movieCountText() {
-		final StringBuilder text = new StringBuilder();
-		if (movieCountProperty.get() > 0) {
-			text.append(" (");
-			text.append(excludedProperty.get()? "-": "");
-			text.append(movieCountProperty.get());
-			text.append(")");
+		if (movieCountProperty.get() == 0) {
+			return "";
 		}
-		return text.toString();
+
+		return new StringBuilder(" (")
+						.append(movieCountProperty.get())
+						.append(")")
+						.toString();
 	}
 }

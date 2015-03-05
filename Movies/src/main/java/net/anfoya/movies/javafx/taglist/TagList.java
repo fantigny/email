@@ -108,8 +108,8 @@ public class TagList extends ListView<TagListItem> {
 
 	public void updateMovieCount(final int currentCount, final Set<Tag> availableTags, final Set<Tag> tags, final Set<Tag> excludes, final String pattern) {
 		for(final TagListItem item: getItems()) {
-			if (availableTags.contains(item.getTag())) {
-				if (item.includedProperty().get() || item.excludedProperty().get()) {
+			if (availableTags.contains(item.getTag()) || item.excludedProperty().get()) {
+				if (item.includedProperty().get()) {
 					item.movieCountProperty().set(currentCount);
 				} else {
 					// request count for available tags
@@ -126,9 +126,16 @@ public class TagList extends ListView<TagListItem> {
 		final Task<Integer> task = new Task<Integer>() {
 			@Override
 			public Integer call() throws SQLException {
+				final Tag tag = item.getTag();
 				final Set<Tag> fakeTags = new LinkedHashSet<Tag>(tags);
-				fakeTags.add(item.getTag());
-				return tagService.getMovieCount(fakeTags, excludes, pattern);
+				fakeTags.add(tag);
+				int excludeFactor = 1;
+				final Set<Tag> fakeExcludes = new LinkedHashSet<Tag>(excludes);
+				if (excludes.contains(tag)) {
+					excludeFactor = -1;
+					fakeExcludes.remove(tag);
+				}
+				return excludeFactor * tagService.getMovieCount(fakeTags, fakeExcludes, pattern);
 			}
 		};
 		task.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
