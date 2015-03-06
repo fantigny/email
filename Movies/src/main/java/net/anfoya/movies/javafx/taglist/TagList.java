@@ -110,13 +110,13 @@ public class TagList extends ListView<TagListItem> {
 		for(final TagListItem item: getItems()) {
 			if (availableTags.contains(item.getTag()) || item.excludedProperty().get()) {
 				if (item.includedProperty().get()) {
-					item.movieCountProperty().set(currentCount);
+					item.countProperty().set(currentCount);
 				} else {
 					// request count for available tags
 					updateMovieCountAsync(item, tags, excludes, pattern);
 				}
 			} else {
-				item.movieCountProperty().set(0);
+				item.countProperty().set(0);
 			}
 		}
 		forceRepaint();
@@ -127,21 +127,18 @@ public class TagList extends ListView<TagListItem> {
 			@Override
 			public Integer call() throws SQLException {
 				final Tag tag = item.getTag();
+				final int excludeFactor = excludes.contains(tag)? -1: 1;
 				final Set<Tag> fakeTags = new LinkedHashSet<Tag>(tags);
 				fakeTags.add(tag);
-				int excludeFactor = 1;
 				final Set<Tag> fakeExcludes = new LinkedHashSet<Tag>(excludes);
-				if (excludes.contains(tag)) {
-					excludeFactor = -1;
-					fakeExcludes.remove(tag);
-				}
+				fakeExcludes.remove(tag);
 				return excludeFactor * tagService.getMovieCount(fakeTags, fakeExcludes, pattern);
 			}
 		};
 		task.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
 			@Override
 			public void handle(final WorkerStateEvent event) {
-				item.movieCountProperty().set((int) event.getSource().getValue());
+				item.countProperty().set((int) event.getSource().getValue());
 				forceRepaint();
 			}
 		});

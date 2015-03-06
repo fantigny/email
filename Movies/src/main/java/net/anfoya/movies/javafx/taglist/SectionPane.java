@@ -33,19 +33,19 @@ public class SectionPane extends TitledPane {
 		this.initialized = false;
 	}
 
-	public void updateMovieCountAsync(final int currentCount, final Set<Tag> availableTags, final Set<Tag> tags, final Set<Tag> excludes, final String namePattern) {
-		tagList.updateMovieCount(currentCount, availableTags, tags, excludes, namePattern);
+	public void updateMovieCountAsync(final int currentCount, final Set<Tag> availableTags, final Set<Tag> tags, final Set<Tag> excludes, final String pattern) {
+		tagList.updateMovieCount(currentCount, availableTags, tags, excludes, pattern);
 		if (!isTag) {
 			final Task<Integer> task = new Task<Integer>() {
 				@Override
 				protected Integer call() {
-					return tagService.getSectionMovieCount(tagList.getSection(), tags, excludes, namePattern);
+					return tagService.getSectionMovieCount(tagList.getSection(), tags, excludes, pattern);
 				}
 			};
 			task.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
 				@Override
 				public void handle(final WorkerStateEvent event) {
-					sectionItem.movieCountProperty().set((int) event.getSource().getValue());
+					sectionItem.countProperty().set((int) event.getSource().getValue());
 				}
 			});
 			ThreadPool.getInstance().submit(task);

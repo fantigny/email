@@ -11,25 +11,27 @@ import javafx.beans.value.ObservableValue;
 import net.anfoya.movies.model.Tag;
 
 public class TagListItem {
+	private static final String COUNT_STRING = " (%d)";
+
 	private final Tag tag;
 	private final StringProperty textProperty;
 	private final BooleanProperty disableProperty;
 	private final BooleanProperty includedProperty;
 	private final BooleanProperty excludedProperty;
-	private final IntegerProperty movieCountProperty;
+	private final IntegerProperty countProperty;
 	public TagListItem(final Tag tag) {
 		this.tag = tag;
 		textProperty = new SimpleStringProperty(tag.getName());
 		disableProperty = new SimpleBooleanProperty(true);
-		movieCountProperty = new SimpleIntegerProperty(0);
-		movieCountProperty.addListener(new ChangeListener<Number>() {
+		countProperty = new SimpleIntegerProperty(0);
+		countProperty.addListener(new ChangeListener<Number>() {
 			@Override
 			public void changed(final ObservableValue<? extends Number> ov, final Number oldVal, final Number newVal) {
-				textProperty.set(getTag().getName() + movieCountText());
+				textProperty.set(getTag().getName() + getCountAsString());
 				if (excludedProperty.get()) {
 					disableProperty.set(false);
 				} else {
-					disableProperty.set(movieCountProperty.get() == 0);
+					disableProperty.set(countProperty.get() == 0);
 				}
 			}
 		});
@@ -68,8 +70,8 @@ public class TagListItem {
 	public BooleanProperty disableProperty() {
 		return disableProperty;
 	}
-	public IntegerProperty movieCountProperty() {
-		return movieCountProperty;
+	public IntegerProperty countProperty() {
+		return countProperty;
 	}
 	public BooleanProperty includedProperty() {
 		return includedProperty;
@@ -78,14 +80,12 @@ public class TagListItem {
 		return excludedProperty;
 	}
 
-	private String movieCountText() {
-		if (movieCountProperty.get() == 0) {
+	private String getCountAsString() {
+		if (countProperty.get() == 0) {
+			// don't display null count
 			return "";
 		}
 
-		return new StringBuilder(" (")
-						.append(movieCountProperty.get())
-						.append(")")
-						.toString();
+		return countProperty.get() == 0? "": String.format(COUNT_STRING, countProperty.get());
 	}
 }

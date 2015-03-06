@@ -57,18 +57,21 @@ public class SectionPaneTest {
 		final String name = "regular";
 		final Section section = new Section(name + "Section");
 
+		final Set<Tag> tags = new LinkedHashSet<Tag>();
 		for(int i=0; i<3; i++) {
 			final String tagName = name + i;
-			tagDao.add(new Tag(tagName, section.getName()));
 
 			final Set<Movie> movies = new LinkedHashSet<Movie>();
 			for(int j=i; j<5; j++) {
 				final String path = tagName + "Movie" + j;
 				movieDao.add(new LinkedHashSet<Movie>() { { add(new Movie(path, -1)); } });
 				movies.add(movieDao.find(path).iterator().next());
-
 			}
-			movieTagDao.addTag(movies, tagDao.find(tagName));
+
+			tagDao.add(new Tag(tagName, section.getName()));
+			final Tag tag = tagDao.find(tagName);
+			movieTagDao.addTag(movies, tag);
+			tags.add(tag);
 		}
 
 		final TagList tagList = new TagList(tagService, section);
@@ -78,8 +81,8 @@ public class SectionPaneTest {
 		final Labeled title = (Labeled) sectionPane.getGraphic();
 		Assert.assertEquals(section.getName(), title.getText());
 
-		sectionPane.updateMovieCountAsync(-1, EMPTY_TAG_SET, EMPTY_TAG_SET, EMPTY_TAG_SET, "");
-		//TODO
+		sectionPane.updateMovieCountAsync(-1, tags, EMPTY_TAG_SET, EMPTY_TAG_SET, "");
+		//TODO: async update prevent from validating result
 //		Assert.assertEquals(section.getName() + " (12)", title.getText());
 	}
 

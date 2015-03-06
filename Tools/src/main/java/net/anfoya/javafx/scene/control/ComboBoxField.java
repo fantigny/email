@@ -77,7 +77,7 @@ public class ComboBoxField<T> extends ComboBox<T> {
 			public void handle(final KeyEvent event) {
 				switch(event.getCode()) {
 				case ENTER: case ESCAPE: case RIGHT: case LEFT: case SHIFT: case ALT: case WINDOWS: case COMMAND: case CONTROL: case TAB:
-					LOGGER.debug("editor filter KEY_RELEASED ENTER/ESCAPE/RIGHT/LEFTSHIFT/ALT/WINDOWS/COMMAND/CONTROL/TAB");
+					LOGGER.debug("editor filter KEY_RELEASED ENTER/ESCAPE/RIGHT/LEFT/SHIFT/ALT/WINDOWS/COMMAND/CONTROL/TAB");
 					break;
 				case UP:
 					LOGGER.debug("editor filter KEY_RELEASED UP");

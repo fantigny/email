@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import net.anfoya.movies.Config;
 import net.anfoya.movies.model.Movie;
 import net.anfoya.movies.model.Tag;
 
@@ -141,7 +140,7 @@ public class MovieDaoTest {
 		Assert.assertEquals(1, movies.size());
 		Assert.assertTrue(movies.iterator().next().getUrlMap().isEmpty());
 
-		final String name = new Config().getWebsites()[0].getName();
+		final String name = "allocine?";
 		final String url = "=url_Allocine";
 		movieDao.updateUrls(movies.iterator().next().copyWithUrlMap(new HashMap<String, String>() {{ put(name, url); }}));
 

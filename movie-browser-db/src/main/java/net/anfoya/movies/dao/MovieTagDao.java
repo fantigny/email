@@ -126,10 +126,7 @@ public class MovieTagDao {
 	}
 
 	public int countSectionMovies(final Section section, final Set<Tag> tags, final Set<Tag> excludes, final String nameSearch) throws SQLException {
-		final boolean tagClause = !tags.isEmpty();
-		final boolean excClause = !excludes.isEmpty();
-		final boolean nameClause = !nameSearch.isEmpty();
-
+		final boolean tagClause = !tags.isEmpty(), excClause = !excludes.isEmpty(), nameClause = !nameSearch.isEmpty();
 		String sql = "SELECT COUNT(DISTINCT(mt.movie_id)) AS movie_count"
 				+ " FROM movie_tag mt"
 				+ " JOIN movie m ON m.id = mt.movie_id"

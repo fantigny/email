@@ -2,10 +2,8 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.anfoya</groupId>
-	<artifactId>anfoya-easylist</artifactId>
+	<artifactId>movie-browser-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>EasyList</name>
-	<description>EasyList implementation with Java</description>
 	<build>
 		<plugins>
 			<plugin>
@@ -19,11 +17,28 @@
 			</plugin>
 		</plugins>
 	</build>
-	<dependencies>		
+	<dependencies>
 		<dependency>
 			<groupId>net.anfoya</groupId>
 			<artifactId>anfoya-tools</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>net.anfoya</groupId>
+			<artifactId>movie-browser-db</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+
+		<!-- compile -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.10</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jgroups</groupId>
+			<artifactId>jgroups</artifactId>
+			<version>3.4.6.Final</version>
 		</dependency>
 
 		<!-- test -->
@@ -38,13 +53,6 @@
 			<artifactId>logback-classic</artifactId>
 			<version>1.1.2</version>
 			<scope>test</scope>
-		</dependency>
-		
-		<!-- compile -->
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>1.7.10</version>
 		</dependency>
 	</dependencies>
 </project>
