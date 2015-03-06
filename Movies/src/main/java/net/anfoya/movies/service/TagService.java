@@ -197,13 +197,13 @@ public class TagService {
 		}
 	}
 
-	public int getMovieCount(final Set<Tag> tags, final Set<Tag> excludes, final String namePattern) {
+	public int getMovieCount(final Set<Tag> tags, final Set<Tag> excludes, final String pattern) {
 		try {
-			return movieTagDao.countMovies(tags, excludes, namePattern);
+			return movieTagDao.countMovies(tags, excludes, pattern);
 		} catch (final SQLException e) {
-			LOGGER.error("counting movies with name pattern: %{}% and tags: ({}), exc: ({})", namePattern, tags, excludes, e);
+			LOGGER.error("counting movies with name pattern: %{}% and tags: ({}), exc: ({})", pattern, tags, excludes, e);
 			final Alert alertDialog = new Alert(AlertType.ERROR);
-			alertDialog.setHeaderText("error counting movies with name pattern: %" + namePattern + "% and tags: " + tags.toString() + ", exc: " + excludes.toString());
+			alertDialog.setHeaderText("error counting movies with name pattern: %" + pattern + "% and tags: " + tags.toString() + ", exc: " + excludes.toString());
 			alertDialog.setContentText(e.getMessage());
 			alertDialog.show();
 			return 0;
