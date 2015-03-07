@@ -4,11 +4,6 @@ import java.util.LinkedHashSet;
 import java.util.Optional;
 import java.util.Set;
 
-import net.anfoya.movies.model.Movie;
-import net.anfoya.movies.model.Tag;
-import net.anfoya.movies.service.MovieService;
-import net.anfoya.movies.service.TagService;
-import net.anfoya.tools.model.Website;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
@@ -27,6 +22,11 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.TilePane;
 import javafx.util.Callback;
+import net.anfoya.movies.model.Movie;
+import net.anfoya.movies.model.Tag;
+import net.anfoya.movies.service.MovieService;
+import net.anfoya.movies.service.TagService;
+import net.anfoya.tools.model.Website;
 
 public class MovieToolboxPane extends TilePane {
 	private final MovieService movieService;
@@ -226,10 +226,15 @@ public class MovieToolboxPane extends TilePane {
 		if (response.isPresent()) {
 			final String name = response.get();
 			if (!name.equals(movie.getName())) {
-				if (name.length() > 3) {
+				if (name.length() > 2) {
 					movieService.rename(movie, name);
 					updateMovieHandler.handle(event);
 				} else {
+					final Alert error = new Alert(AlertType.ERROR);
+					error.setTitle("Rename movie");
+					error.setContentText("New name for movie \"" + name + "\" is to short (less than 3 letters)");
+					error.setHeaderText("");
+					error.showAndWait();
 				}
 			}
 		}
