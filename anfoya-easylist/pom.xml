@@ -19,11 +19,18 @@
 			</plugin>
 		</plugins>
 	</build>
-	<dependencies>		
+	<dependencies>
 		<dependency>
 			<groupId>net.anfoya</groupId>
 			<artifactId>anfoya-tools</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		
+		<!-- compile -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.10</version>
 		</dependency>
 
 		<!-- test -->
@@ -38,13 +45,6 @@
 			<artifactId>logback-classic</artifactId>
 			<version>1.1.2</version>
 			<scope>test</scope>
-		</dependency>
-		
-		<!-- compile -->
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>1.7.10</version>
 		</dependency>
 	</dependencies>
 </project>
