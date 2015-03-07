@@ -10,6 +10,8 @@
 	<modules>
 		<module>../anfoya-tools</module>
 		<module>../anfoya-easylist</module>
+		<module>../anfoya-cluster</module>
+		<module>../anfoya-smb</module>
 		<module>../movie-browser-db</module>
 		<module>../movie-browser-service</module>
 		<module>../movie-browser-core</module>
