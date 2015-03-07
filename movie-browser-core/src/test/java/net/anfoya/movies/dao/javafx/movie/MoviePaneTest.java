@@ -2,8 +2,8 @@ package net.anfoya.movies.dao.javafx.movie;
 
 import java.util.LinkedHashSet;
 
-import net.anfoya.movies.cluster.StatusManager;
-import net.anfoya.movies.cluster.UpdateManager;
+import net.anfoya.cluster.StatusManager;
+import net.anfoya.cluster.UpdateManager;
 import net.anfoya.movies.dao.DataSource;
 import net.anfoya.movies.dao.MovieDao;
 import net.anfoya.movies.dao.MovieTagDao;

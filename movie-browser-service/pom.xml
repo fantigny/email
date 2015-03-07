@@ -28,17 +28,22 @@
 			<artifactId>movie-browser-db</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+			<groupId>net.anfoya</groupId>
+			<artifactId>anfoya.cluster</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>net.anfoya</groupId>
+			<artifactId>anfoya-smb</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 
 		<!-- compile -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<version>1.7.10</version>
-		</dependency>
-		<dependency>
-			<groupId>org.jgroups</groupId>
-			<artifactId>jgroups</artifactId>
-			<version>3.4.6.Final</version>
 		</dependency>
 
 		<!-- test -->

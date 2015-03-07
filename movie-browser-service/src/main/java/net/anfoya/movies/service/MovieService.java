@@ -12,10 +12,10 @@ import java.util.Set;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import jcifs.smb.SmbException;
-import net.anfoya.movies.cluster.UpdateManager;
+import net.anfoya.cluster.UpdateManager;
+import net.anfoya.io.SmbFileExt;
+import net.anfoya.io.SmbFileExtFactory;
 import net.anfoya.movies.dao.MovieDao;
-import net.anfoya.movies.io.MovieFile;
-import net.anfoya.movies.io.MovieFileFactory;
 import net.anfoya.movies.model.Movie;
 import net.anfoya.movies.model.Tag;
 
@@ -230,8 +230,8 @@ public class MovieService {
 
 		// delete old folder
 		try {
-			final MovieFile oldFile = movieFileService.getFile(movie);
-			MovieFileFactory.getFile(oldFile.getFolderUrl()).delete();
+			final SmbFileExt oldFile = movieFileService.getFile(movie);
+			SmbFileExtFactory.getFile(oldFile.getFolderUrl()).delete();
 		} catch (SmbException | MalformedURLException e) {
 			LOGGER.error("deleting folder", e);
 			final Alert alertDialog = new Alert(AlertType.ERROR);

@@ -12,8 +12,8 @@ import java.util.Set;
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
 import jcifs.smb.SmbFileFilter;
-import net.anfoya.movies.io.MovieFile;
-import net.anfoya.movies.io.MovieFileFactory;
+import net.anfoya.io.SmbFileExt;
+import net.anfoya.io.SmbFileExtFactory;
 import net.anfoya.movies.model.Movie;
 
 import org.slf4j.Logger;
@@ -57,7 +57,7 @@ public class MovieFileService {
 				smbMovieUrl += "/";
 			}
 
-			smbShareUrl = MovieFileFactory.getFile(smbMovieUrl).getShareUrl();
+			smbShareUrl = SmbFileExtFactory.getFile(smbMovieUrl).getShareUrl();
 		} catch (final Exception e) {
 			LOGGER.error("reading properties: {}", MOVIE_FILE_PROPERTY_FILENAME, e);
 			System.exit(1);
@@ -114,16 +114,16 @@ public class MovieFileService {
 
 	public Movie moveToRootFolder(final Movie movie) throws IOException {
 		// move movie file
-		final MovieFile srcFile = getFile(movie);
-		final MovieFile dstFile = MovieFileFactory.getFile(smbMovieUrl + srcFile.getName());
+		final SmbFileExt srcFile = getFile(movie);
+		final SmbFileExt dstFile = SmbFileExtFactory.getFile(smbMovieUrl + srcFile.getName());
 		final Movie dstMovie = movie.copyWithPath(dstFile.getShortPath());
 		srcFile.renameTo(dstFile);
 
 		// move subtitle file
-		final MovieFile subFileFolder = MovieFileFactory.getFile(srcFile.getFolderUrl());
-		final List<MovieFile> subSrcFiles = subFileFolder.listSmbFiles(getSubtitleFileFilter(movie));
-		for(final MovieFile subSrcFile: subSrcFiles) {
-			final MovieFile dstSubFile = MovieFileFactory.getFile(smbMovieUrl + subSrcFile.getName());
+		final SmbFileExt subFileFolder = SmbFileExtFactory.getFile(srcFile.getFolderUrl());
+		final List<SmbFileExt> subSrcFiles = subFileFolder.listSmbFiles(getSubtitleFileFilter(movie));
+		for(final SmbFileExt subSrcFile: subSrcFiles) {
+			final SmbFileExt dstSubFile = SmbFileExtFactory.getFile(smbMovieUrl + subSrcFile.getName());
 			subSrcFile.renameTo(dstSubFile);
 		}
 
@@ -132,16 +132,16 @@ public class MovieFileService {
 
 	public Movie rename(final Movie movie, final String name) throws IOException {
 		// rename movie file
-		final MovieFile srcFile = getFile(movie);
-		final MovieFile dstFile = MovieFileFactory.getFile(srcFile.getFolderUrl() + name + "." + srcFile.getExtension());
+		final SmbFileExt srcFile = getFile(movie);
+		final SmbFileExt dstFile = SmbFileExtFactory.getFile(srcFile.getFolderUrl() + name + "." + srcFile.getExtension());
 		final Movie dstMovie = movie.copyWithPath(dstFile.getShortPath());
 		srcFile.renameTo(dstFile);
 
 		// move subtitle file
-		final MovieFile subFileFolder = MovieFileFactory.getFile(srcFile.getFolderUrl());
-		final List<MovieFile> subSrcFiles = subFileFolder.listSmbFiles(getSubtitleFileFilter(movie));
-		for(final MovieFile subSrcFile: subSrcFiles) {
-			final MovieFile dstSubFile = MovieFileFactory.getFile(subSrcFile.getFolderUrl() + name + "." + subSrcFile.getExtension());
+		final SmbFileExt subFileFolder = SmbFileExtFactory.getFile(srcFile.getFolderUrl());
+		final List<SmbFileExt> subSrcFiles = subFileFolder.listSmbFiles(getSubtitleFileFilter(movie));
+		for(final SmbFileExt subSrcFile: subSrcFiles) {
+			final SmbFileExt dstSubFile = SmbFileExtFactory.getFile(subSrcFile.getFolderUrl() + name + "." + subSrcFile.getExtension());
 			subSrcFile.renameTo(dstSubFile);
 		}
 
@@ -149,22 +149,22 @@ public class MovieFileService {
 	}
 
 	public void delete(final Movie movie) throws SmbException, MalformedURLException {
-		final MovieFile movieFile = getFile(movie);
+		final SmbFileExt movieFile = getFile(movie);
 		if (movieFile.exists()) {
 			movieFile.delete();
 
-			final MovieFile subFileFolder = MovieFileFactory.getFile(movieFile.getFolderUrl());
-			final List<MovieFile> subFiles = subFileFolder.listSmbFiles(getSubtitleFileFilter(movie));
-			for(final MovieFile subFile: subFiles) {
+			final SmbFileExt subFileFolder = SmbFileExtFactory.getFile(movieFile.getFolderUrl());
+			final List<SmbFileExt> subFiles = subFileFolder.listSmbFiles(getSubtitleFileFilter(movie));
+			for(final SmbFileExt subFile: subFiles) {
 				subFile.delete();
 			}
 		}
 	}
 
 	public List<Movie> getList() throws SmbException, MalformedURLException {
-		final List<MovieFile> files = MovieFileFactory.getFile(smbMovieUrl).getListRec(movieFileFilter);
+		final List<SmbFileExt> files = SmbFileExtFactory.getFile(smbMovieUrl).getListRec(movieFileFilter);
 		final List<Movie> movies = new ArrayList<Movie>();
-		for(final MovieFile file: files) {
+		for(final SmbFileExt file: files) {
 			movies.add(new Movie(file.getShortPath(), file.getLastModified()));
 		}
 
@@ -187,9 +187,9 @@ public class MovieFileService {
 		return smbMovieUrl;
 	}
 
-	public MovieFile getFile(final Movie movie) throws MalformedURLException {
+	public SmbFileExt getFile(final Movie movie) throws MalformedURLException {
 		String url = smbShareUrl;
 		url = url.substring(0, url.length() - 1) + movie.getPath();
-		return MovieFileFactory.getFile(url);
+		return SmbFileExtFactory.getFile(url);
 	}
 }

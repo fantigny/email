@@ -5,8 +5,8 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import javafx.scene.control.Labeled;
-import net.anfoya.movies.cluster.StatusManager;
-import net.anfoya.movies.cluster.UpdateManager;
+import net.anfoya.cluster.StatusManager;
+import net.anfoya.cluster.UpdateManager;
 import net.anfoya.movies.dao.DataSource;
 import net.anfoya.movies.dao.MovieDao;
 import net.anfoya.movies.dao.MovieTagDao;

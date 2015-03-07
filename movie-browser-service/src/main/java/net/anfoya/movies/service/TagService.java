@@ -6,7 +6,7 @@ import java.util.Set;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import net.anfoya.movies.cluster.UpdateManager;
+import net.anfoya.cluster.UpdateManager;
 import net.anfoya.movies.dao.MovieTagDao;
 import net.anfoya.movies.dao.TagDao;
 import net.anfoya.movies.model.Movie;

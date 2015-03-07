@@ -12,9 +12,9 @@ import javafx.util.Callback;
 import jcifs.smb.SmbException;
 import jcifs.smb.SmbFile;
 import jcifs.smb.SmbFileFilter;
-import net.anfoya.movies.cluster.LockManager;
-import net.anfoya.movies.io.MovieFile;
-import net.anfoya.movies.io.MovieFileFactory;
+import net.anfoya.cluster.LockManager;
+import net.anfoya.io.SmbFileExt;
+import net.anfoya.io.SmbFileExtFactory;
 import net.anfoya.movies.model.Movie;
 import net.anfoya.movies.service.MovieFileService;
 import net.anfoya.movies.service.MovieService;
@@ -99,19 +99,19 @@ public class FileConsolidationService extends Service<Void> {
 	}
 
 	private void consolidateMovieFolders() throws ConsolidationException {
-		List<MovieFile> folders;
+		List<SmbFileExt> folders;
 		try {
-			final MovieFile movieFolder = MovieFileFactory.getFile(movieFileService.getSmbMovieUrl());
+			final SmbFileExt movieFolder = SmbFileExtFactory.getFile(movieFileService.getSmbMovieUrl());
 			folders = movieFolder.getListRec(0, folderFilter);
 		} catch (SmbException | MalformedURLException e) {
 			throw new ConsolidationException("getting folder list", e);
 		}
 
 		final Map<Movie, String> movieMap = new HashMap<Movie, String>();
-		for(final MovieFile folder: folders) {
+		for(final SmbFileExt folder: folders) {
 			final Set<Movie> movies = movieService.getMovies("/" + folder.getName());
 			if (movies.size() == 1) {
-				List<MovieFile> otherFiles;
+				List<SmbFileExt> otherFiles;
 				try {
 					otherFiles = folder.listSmbFiles(noMovieFileFilter);
 				} catch (final SmbException e) {

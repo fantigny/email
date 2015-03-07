@@ -2,12 +2,12 @@ package net.anfoya.movies.javafx;
 
 import java.io.IOException;
 
+import net.anfoya.cluster.LockManager;
+import net.anfoya.cluster.StatusManager;
+import net.anfoya.cluster.UpdateManager;
 import net.anfoya.java.net.PersistentCookieStore;
 import net.anfoya.java.net.filtered.easylist.EasyListFilterImpl;
 import net.anfoya.java.net.filtered.engine.RuleSet;
-import net.anfoya.movies.cluster.LockManager;
-import net.anfoya.movies.cluster.StatusManager;
-import net.anfoya.movies.cluster.UpdateManager;
 import net.anfoya.movies.dao.DataSource;
 import net.anfoya.movies.dao.MovieDao;
 import net.anfoya.movies.dao.MovieTagDao;

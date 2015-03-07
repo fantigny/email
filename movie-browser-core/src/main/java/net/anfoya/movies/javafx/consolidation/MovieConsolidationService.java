@@ -12,7 +12,7 @@ import javafx.concurrent.ScheduledService;
 import javafx.concurrent.Task;
 import javafx.util.Callback;
 import jcifs.smb.SmbException;
-import net.anfoya.movies.cluster.LockManager;
+import net.anfoya.cluster.LockManager;
 import net.anfoya.movies.model.Movie;
 import net.anfoya.movies.model.Tag;
 import net.anfoya.movies.service.MovieFileService;
