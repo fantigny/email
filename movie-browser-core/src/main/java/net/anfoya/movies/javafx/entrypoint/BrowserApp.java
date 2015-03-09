@@ -107,8 +107,8 @@ public class BrowserApp extends Application {
 			}
 		});
 
-		urlFilter.setWithException(false);
 		urlFilter.load();
+		urlFilter.setWithException(false);
 		URL.setURLStreamHandlerFactory(new FilteredHandlerFactory(urlFilter));
 
 		cookieStore.load();

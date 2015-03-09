@@ -22,18 +22,15 @@ public class Local extends SerializedFile<EasyListFilterImpl> {
 	@Override
 	public EasyListFilterImpl load() {
 		final long start = System.currentTimeMillis();
-		EasyListFilterImpl easyList;
+		EasyListFilterImpl easyList = new EasyListFilterImpl(false);
 		try {
 			easyList = super.load();
 		} catch (final FileNotFoundException e) {
 			LOGGER.warn("file not fount {}", this);
-			easyList = new EasyListFilterImpl(true);
 		} catch (final ClassNotFoundException e) {
 			LOGGER.warn("wrong format {}", this);
-			easyList = new EasyListFilterImpl(true);
 		} catch (final IOException e) {
 			LOGGER.warn("reading {}", this, e);
-			easyList = new EasyListFilterImpl(true);
 		}
 
 		LOGGER.info("loaded {} rules (in {}ms)", easyList.getRuleCount(), System.currentTimeMillis()-start);

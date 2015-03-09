@@ -2,7 +2,6 @@ package net.anfoya.java.net.filtered.easylist;
 
 import java.io.Serializable;
 import java.net.URL;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Future;
@@ -10,6 +9,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import net.anfoya.java.net.filtered.easylist.loader.Internet;
 import net.anfoya.java.net.filtered.easylist.loader.Local;
+import net.anfoya.java.net.filtered.easylist.loader.LocalCache;
 import net.anfoya.java.net.filtered.easylist.model.Rule;
 import net.anfoya.java.net.filtered.engine.RuleSet;
 import net.anfoya.java.util.concurrent.ThreadPool;
@@ -19,8 +19,8 @@ import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("serial")
 public class EasyListFilterImpl implements RuleSet, Serializable {
-	private static final transient Cache<String> EXCEPTION_CACHE = new Cache<String>("exception", 500000);
-	private static final transient Cache<String> EXCLUSION_CACHE = new Cache<String>("exclusion", 500000);
+	private static final transient LocalCache<String> URL_EXCEP_CACHE = new LocalCache<String>("exception", 5000);
+	private static final transient LocalCache<String> URL_EXCLU_CACHE = new LocalCache<String>("exclusion", 5000);
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(EasyListFilterImpl.class);
 	private static final AtomicLong LOGGER_TIMER = new AtomicLong(System.currentTimeMillis());
@@ -98,8 +98,8 @@ public class EasyListFilterImpl implements RuleSet, Serializable {
 		final Future<?> futureLocal = ThreadPool.getInstance().submit(new Runnable() {
 			@Override
 			public void run() {
-				EXCEPTION_CACHE.load();
-				EXCLUSION_CACHE.load();
+				URL_EXCEP_CACHE.load();
+				URL_EXCLU_CACHE.load();
 
 				final EasyListFilterImpl localList = local.load();
 				setWithException(localList.isWithException());
@@ -117,7 +117,7 @@ public class EasyListFilterImpl implements RuleSet, Serializable {
 					return;
 				}
 				if (isEmpty() || local.isOutdated()) {
-					final EasyListFilterImpl internetList = new EasyListFilterImpl(true);
+					final EasyListFilterImpl internetList = new EasyListFilterImpl(false);
 					for(final String url: internetUrls) {
 						try {
 							// add to incremental list
@@ -133,8 +133,8 @@ public class EasyListFilterImpl implements RuleSet, Serializable {
 				Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 					@Override
 					public void run() {
-						EXCEPTION_CACHE.save();
-						EXCLUSION_CACHE.save();
+						URL_EXCEP_CACHE.save();
+						URL_EXCLU_CACHE.save();
 					}
 				}));
 			}
@@ -143,23 +143,22 @@ public class EasyListFilterImpl implements RuleSet, Serializable {
 
 	@Override
 	public boolean matchesException(final String url) {
-		return matches(exceptions, url, EXCEPTION_CACHE);
+		return matches(url, URL_EXCEP_CACHE, exceptions);
 	}
 
 	@Override
 	public boolean matchesExclusion(final String url) {
-		return matches(exclusions, url, EXCLUSION_CACHE);
+		return matches(url, URL_EXCLU_CACHE, exclusions);
 	}
 
-	private boolean matches(final Set<Rule> rules, final String url, final List<String> cache) {
+	private boolean matches(final String url, final Set<String> urlCache, final Set<Rule> rules) {
+		boolean match = false;
 		TOTAL.incrementAndGet();
 		long timer = System.nanoTime();
-		try {
-			if (cache.contains(url)) {
-				timer = System.nanoTime() - timer;
-				CACHED.incrementAndGet();
-				return false;
-			}
+
+		if (urlCache.contains(url)) {
+			CACHED.incrementAndGet();
+		} else {
 			for(final Rule rule: rules) {
 				if (rule.applies(url)) {
 					LOGGER.debug("{} \"{}\" matches \"{}\" (regex={}) (original line={})"
@@ -168,25 +167,28 @@ public class EasyListFilterImpl implements RuleSet, Serializable {
 							, url
 							, rule.getRegex()
 							, rule.getLine());
-					timer = System.nanoTime() - timer;
-					HIT.incrementAndGet();
-					return true;
+					match = true;
+					break;
 				}
 			}
-			cache.add(url);
-			timer = System.nanoTime() - timer;
-			return false;
-		} finally {
-			TIMER.addAndGet(timer);
-			if (LOGGER_TIMER.get() + 1000 < System.currentTimeMillis()) {
-				LOGGER_TIMER.set(System.currentTimeMillis());
-				LOGGER.info("processing time {}s with {}% success ({}/{}), {}% cached"
-						, TIMER.get() / 1000000000
-						, (int)((double)HIT.get() / (double)TOTAL.get() * 100.0)
-						, HIT.get()
-						, TOTAL.get()
-						, (int)((double)CACHED.get() / (double)TOTAL.get() * 100.0));
-			}
 		}
+		timer = TIMER.addAndGet(System.nanoTime() - timer);
+		if (match) {
+			HIT.incrementAndGet();
+		} else {
+			urlCache.add(url);
+		}
+
+		if (LOGGER_TIMER.get() + 3000 < System.currentTimeMillis()) {
+			LOGGER_TIMER.set(System.currentTimeMillis());
+			LOGGER.info("processing time {}s with {}% success ({}/{}), {}% cached"
+					, timer / 1000000000
+					, (int)((double)HIT.get() / (double)TOTAL.get() * 100.0)
+					, HIT.get()
+					, TOTAL.get()
+					, (int)((double)CACHED.get() / (double)TOTAL.get() * 100.0));
+		}
+
+		return match;
 	}
 }
