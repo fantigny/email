@@ -1,14 +1,11 @@
 package net.anfoya.java.net.filtered.engine;
 
-
 public class Matcher {
-
 	private final RuleSet ruleSet;
 
 	public Matcher(final RuleSet ruleSet) {
 		this.ruleSet = ruleSet;
 	}
-
 
 	public boolean matches(final String url) {
 		if (ruleSet.isWithException() && ruleSet.matchesException(url)) {

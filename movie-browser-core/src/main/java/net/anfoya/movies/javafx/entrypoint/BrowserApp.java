@@ -102,7 +102,6 @@ public class BrowserApp extends Application {
 		primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
 			@Override
 			public void handle(final WindowEvent event) {
-				cookieStore.save();
 				ThreadPool.getInstance().shutdown();
 				statusMgr.shutdown();
 			}

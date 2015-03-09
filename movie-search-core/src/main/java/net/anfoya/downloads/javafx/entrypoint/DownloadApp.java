@@ -37,7 +37,7 @@ public class DownloadApp extends Application {
 	public DownloadApp() {
 		final ComponentBuilder compBuilder = new ComponentBuilder();
 		cookieStore = compBuilder.buildCookieStore();
-		ruleSet = compBuilder.buildUrlFilter();
+		ruleSet = compBuilder.buildRuleSet();
 		searchTabs = compBuilder.buildSearchTabs();
 		searchPane = compBuilder.buildSearchPane();
 	}
@@ -47,7 +47,6 @@ public class DownloadApp extends Application {
 		primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
 			@Override
 			public void handle(final WindowEvent event) {
-				cookieStore.save();
 				ThreadPool.getInstance().shutdown();
 			}
 		});

@@ -30,6 +30,13 @@ public class PersistentCookieStore
     public PersistentCookieStore() {
     	super(COOKIE_FILEPATH);
     	this.delegate = new CookieManager().getCookieStore();
+
+    	Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+			@Override
+			public void run() {
+				save();
+			}
+		}));
     }
 
 	public void load() {
@@ -53,7 +60,7 @@ public class PersistentCookieStore
         }
 	}
 
-	public void save() {
+	private void save() {
     	final Map<URI, List<HttpCookie>> cookieMap = new HashMap<URI, List<HttpCookie>>();
     	for(final URI uri: delegate.getURIs()) {
     		final List<HttpCookie> cookies = delegate.get(uri);

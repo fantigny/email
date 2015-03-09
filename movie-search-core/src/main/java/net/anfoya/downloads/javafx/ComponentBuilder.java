@@ -31,7 +31,7 @@ public class ComponentBuilder {
 		return searchPane;
 	}
 
-	public RuleSet buildUrlFilter() {
+	public RuleSet buildRuleSet() {
 		return urlFilter;
 	}
 }
