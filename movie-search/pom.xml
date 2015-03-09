@@ -6,7 +6,6 @@
 	<artifactId>movie-search</artifactId>
 	<packaging>pom</packaging>
 	<version>1.0-SNAPSHOT</version>
-	<name>Movie Browser</name>
 	<modules>
 		<module>../anfoya-tools</module>
 		<module>../anfoya-easylist</module>

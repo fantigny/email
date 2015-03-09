@@ -4,8 +4,6 @@
 	<groupId>net.anfoya</groupId>
 	<artifactId>anfoya-easylist</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>EasyList</name>
-	<description>EasyList implementation with Java</description>
 	<build>
 		<plugins>
 			<plugin>
