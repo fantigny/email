@@ -178,7 +178,7 @@ public class EasyListFilterImpl implements RuleSet, Serializable {
 			return false;
 		} finally {
 			TIMER.addAndGet(timer);
-			if (LOGGER_TIMER.get() + 5000 < System.currentTimeMillis()) {
+			if (LOGGER_TIMER.get() + 1000 < System.currentTimeMillis()) {
 				LOGGER_TIMER.set(System.currentTimeMillis());
 				LOGGER.info("processing time {}s with {}% success ({}/{}), {}% cached"
 						, TIMER.get() / 1000000000
