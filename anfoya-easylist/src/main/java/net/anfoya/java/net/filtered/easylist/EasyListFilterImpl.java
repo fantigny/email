@@ -8,9 +8,9 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 
+import net.anfoya.java.net.filtered.easylist.cache.LocalCache;
 import net.anfoya.java.net.filtered.easylist.loader.Internet;
 import net.anfoya.java.net.filtered.easylist.loader.Local;
-import net.anfoya.java.net.filtered.easylist.loader.LocalCache;
 import net.anfoya.java.net.filtered.easylist.model.Rule;
 import net.anfoya.java.net.filtered.engine.RuleSet;
 import net.anfoya.java.util.concurrent.ThreadPool;
@@ -20,15 +20,17 @@ import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("serial")
 public class EasyListFilterImpl implements RuleSet, Serializable {
-	private static final transient LocalCache<String, Boolean> URL_EXCEP_CACHE = new LocalCache<String, Boolean>("exception", 1000);
-	private static final transient LocalCache<String, Boolean> URL_EXCLU_CACHE = new LocalCache<String, Boolean>("exclusion", 1000);
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(EasyListFilterImpl.class);
+
+	private static final long REF_TIME = System.nanoTime();
 	private static final AtomicLong LOGGER_TIMER = new AtomicLong(System.currentTimeMillis());
 	private static final AtomicLong TIMER = new AtomicLong(0);
 	private static final AtomicLong TOTAL = new AtomicLong(0);
 	private static final AtomicLong CACHED = new AtomicLong(0);
 	private static final AtomicLong HIT = new AtomicLong(0);
+
+	private static final transient LocalCache<String, Boolean> URL_EXCEP_CACHE = new LocalCache<String, Boolean>("exception", 100);
+	private static final transient LocalCache<String, Boolean> URL_EXCLU_CACHE = new LocalCache<String, Boolean>("exclusion", 100);
 
 	private final String localFilepath;
 	private final String[] internetUrls;
@@ -76,11 +78,11 @@ public class EasyListFilterImpl implements RuleSet, Serializable {
 	public void add(final Rule rule) {
 		switch (rule.getType()) {
 		case exception:
-			LOGGER.debug("Exception added {}", rule);
+			LOGGER.debug("exception added {}", rule);
 			exceptions.add(rule);
 			break;
 		case exclusion:
-			LOGGER.debug("Exclusion added {}", rule);
+			LOGGER.debug("exclusion added {}", rule);
 			exclusions.add(rule);
 			break;
 		case empty:
@@ -157,8 +159,9 @@ public class EasyListFilterImpl implements RuleSet, Serializable {
 	}
 
 	private boolean matches(final String url, final LocalCache<String, Boolean> urlCache, final Set<Rule> rules) {
-		boolean match;
 		TOTAL.incrementAndGet();
+
+		boolean match;
 		long timer = System.nanoTime();
 
 		final Boolean cachedMatches = urlCache.get(url);
@@ -181,19 +184,17 @@ public class EasyListFilterImpl implements RuleSet, Serializable {
 			}
 			urlCache.put(url, match);
 		}
-		timer = TIMER.addAndGet(System.nanoTime() - timer);
 		if (match) {
 			HIT.incrementAndGet();
 		}
+		timer = TIMER.addAndGet(System.nanoTime() - timer);
 
 		if (LOGGER_TIMER.get() + 3000 < System.currentTimeMillis()) {
 			LOGGER_TIMER.set(System.currentTimeMillis());
-			LOGGER.info("processing time {}s with {}% success ({}/{}), {}% cached"
-					, timer / 1000000000
-					, (int)((double)HIT.get() / (double)TOTAL.get() * 100.0)
-					, HIT.get()
-					, TOTAL.get()
-					, (int)((double)CACHED.get() / (double)TOTAL.get() * 100.0));
+			LOGGER.info("cpu {}%, cached {}%, success {}%"
+					, (int)(timer / (double)(System.nanoTime() - REF_TIME) * 100.0)
+					, (int)(CACHED.get() / (double)TOTAL.get() * 100.0)
+					, (int)(HIT.get() / (double)TOTAL.get() * 100.0));
 		}
 
 		return match;
