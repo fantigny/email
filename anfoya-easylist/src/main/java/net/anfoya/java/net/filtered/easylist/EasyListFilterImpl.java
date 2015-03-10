@@ -33,8 +33,8 @@ public class EasyListFilterImpl implements RuleSet, Serializable {
 	private static final AtomicLong CACHE_HIT = new AtomicLong(0);
 	private static final AtomicLong NB_REQUEST = new AtomicLong(0);
 
-	private static final transient LocalCache<String, Boolean> URL_EXCEP_CACHE = new LocalCache<String, Boolean>("exception", 100);
-	private static final transient LocalCache<String, Boolean> URL_EXCLU_CACHE = new LocalCache<String, Boolean>("exclusion", 100);
+	private static final transient LocalCache<String, Boolean> URL_EXCEP_CACHE = new LocalCache<String, Boolean>("exception", 5000);
+	private static final transient LocalCache<String, Boolean> URL_EXCLU_CACHE = new LocalCache<String, Boolean>("exclusion", 5000);
 
 	private static long lastTotal = 0;
 	static {

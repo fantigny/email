@@ -29,16 +29,16 @@ public class LocalCache<K, V> implements Serializable {
 	private final Map<K, Element<V>> delegate;
 	private final SerializedFile<Map<K, Element<V>>> file;
 
-	private AtomicBoolean cleaning;
+	private final AtomicBoolean cleaning;
 
 	public LocalCache(final String name, final int limit) {
 		this.name = "<" + name + ">";
 		this.limit = limit;
 		this.chunkSize = (int) (limit * CHUNK_PERCENT / 100.0);
 
-		this.delegate = new ConcurrentHashMap<K, Element<V>>(limit);
+		this.delegate = new ConcurrentHashMap<K, Element<V>>();
 		this.file = new SerializedFile<Map<K, Element<V>>>(System.getProperty("java.io.tmpdir") + "/" + name + ".bin");
-
+		this.cleaning = new AtomicBoolean(false);
 	}
 
 	public V put(final K k, final V v) {
@@ -104,9 +104,12 @@ public class LocalCache<K, V> implements Serializable {
 				if (count > maxCount) {
 					maxCount = count;
 				}
+				if (removed > chunkSize) {
+					break;
+				}
 			}
-			LOGGER.info("{} cleaned {} elements (threshold {})", removed, threshold);
 		}
+		LOGGER.info("{} cleaned {} elements (hit < {})", name, removed, threshold);
 		if (maxCount > COUNT_MAX) {
 			LOGGER.info("{} reducing count", name);
 			for(final Element<V> e: delegate.values()) {
