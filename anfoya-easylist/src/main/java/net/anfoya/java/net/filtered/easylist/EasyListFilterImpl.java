@@ -20,8 +20,8 @@ import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("serial")
 public class EasyListFilterImpl implements RuleSet, Serializable {
-	private static final transient LocalCache<String, Boolean> URL_EXCEP_CACHE = new LocalCache<String, Boolean>("exception", 5000);
-	private static final transient LocalCache<String, Boolean> URL_EXCLU_CACHE = new LocalCache<String, Boolean>("exclusion", 5000);
+	private static final transient LocalCache<String, Boolean> URL_EXCEP_CACHE = new LocalCache<String, Boolean>("exception", 1000);
+	private static final transient LocalCache<String, Boolean> URL_EXCLU_CACHE = new LocalCache<String, Boolean>("exclusion", 1000);
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(EasyListFilterImpl.class);
 	private static final AtomicLong LOGGER_TIMER = new AtomicLong(System.currentTimeMillis());

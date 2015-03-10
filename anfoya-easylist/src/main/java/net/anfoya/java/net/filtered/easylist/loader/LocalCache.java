@@ -58,7 +58,7 @@ public class LocalCache<K, V> implements Map<K, V>, Serializable {
 				previous = null;
 			}
 		}
-		if (previous != null) {
+		if (previous == null) {
 			clean();
 		}
 		return previous;
@@ -84,7 +84,7 @@ public class LocalCache<K, V> implements Map<K, V>, Serializable {
 	}
 
 	private void clean() {
-		if (size() > limit) {
+		if (delegate.size() > limit) {
 			ThreadPool.getInstance().submit(new Runnable() {
 				@Override
 				public void run() {
