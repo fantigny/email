@@ -1,15 +1,14 @@
 package net.anfoya.java.net.filtered.easylist.loader;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.Spliterator;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import net.anfoya.java.io.SerializedFile;
 import net.anfoya.java.util.concurrent.ThreadPool;
@@ -17,13 +16,21 @@ import net.anfoya.java.util.concurrent.ThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LocalCache<E> implements Set<E> {
+@SuppressWarnings("serial")
+public class LocalCache<K, V> implements Map<K, V>, Serializable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LocalCache.class);
 
-	private final Map<E, Integer> map;
-	private final Set<E> delegate;
+	private class Element<E> implements Serializable {
+		int count = 1;
+		E v;
+		public Element(final E e) {
+			this.v = e;
+		}
+	}
 
-	private final SerializedFile<Map<E, Integer>> file;
+	private final Map<K, Element<V>> delegate;
+
+	private final SerializedFile<Map<K, Element<V>>> file;
 
 	private final int limit;
 	private final int chunk;
@@ -31,35 +38,35 @@ public class LocalCache<E> implements Set<E> {
 	private boolean cleaning;
 
 	public LocalCache(final String name, final int limit) {
-		this.map = new ConcurrentHashMap<E, Integer>(limit);
-		this.delegate = map.keySet();
+		this.delegate = new ConcurrentHashMap<K, Element<V>>(limit);
 
-		this.file = new SerializedFile<Map<E,Integer>>(System.getProperty("java.io.tmpdir") + "/" + name + ".bin");
+		this.file = new SerializedFile<Map<K, Element<V>>>(System.getProperty("java.io.tmpdir") + "/" + name + ".bin");
 
 		this.limit = limit;
 		this.chunk = (int) (limit / 10.0);
 	}
 
 	@Override
-	public boolean add(final E k) {
-		boolean add;
-		synchronized(map) {
-			add = null == map.put(k, map.getOrDefault(k, 0) + 1);
+	public V put(final K k, final V v) {
+		final V previous;
+		synchronized(delegate) {
+			final Element<V> e = delegate.putIfAbsent(k, new Element<V>(v));
+			if (e != null) {
+				e.count++;
+				previous = e.v;
+			} else {
+				previous = null;
+			}
 		}
-		if (add) {
+		if (previous != null) {
 			clean();
 		}
-		return add;
-	}
-
-	@Override
-	public boolean contains(final Object o) {
-		return map.keySet().contains(o);
+		return previous;
 	}
 
 	public void load() {
 		try {
-			map.putAll(file.load());
+			delegate.putAll(file.load());
 			LOGGER.info("loaded {} URLs", size());
 		} catch (ClassNotFoundException | IOException e) {
 			clear();
@@ -70,7 +77,7 @@ public class LocalCache<E> implements Set<E> {
 	public void save() {
 		try {
 			LOGGER.info("saving {} URLs", size());
-			file.save(map);
+			file.save(delegate);
 		} catch (final IOException e) {
 			LOGGER.warn("saving cache {}", file.getName(), e);
 		}
@@ -102,33 +109,28 @@ public class LocalCache<E> implements Set<E> {
 		int threshold = 0;
 		int removed = 0;
 		int max_count = 0;
-		while(map.size() > 0 && removed < chunk) {
+		while(delegate.size() > 0 && removed < chunk) {
 			threshold++;
 			LOGGER.info("cleaning \"{}\" with threshold {}", file.getName(), threshold);
-			for (final E key : map.keySet()) {
-				final int count = map.get(key);
+			for (final Entry<K, Element<V>> entry: delegate.entrySet()) {
+				final int count = entry.getValue().count;
 				if (count > max_count) {
 					max_count = count;
 				}
-				if (map.get(key) < threshold) {
-					map.remove(key);
+				if (count < threshold) {
+					delegate.remove(entry.getKey());
 					removed++;
 				}
 			}
 		}
 		if (max_count > 100) {
 			LOGGER.info("reducing count for \"{}\"", file.getName());
-			for(final E key: map.keySet()) {
-				synchronized(map) {
-					map.put(key, Math.min(1, map.get(key) / 10));
+			for(final Element<V> e: delegate.values()) {
+				synchronized(delegate) {
+					e.count /= 10;
 				}
 			}
 		}
-	}
-
-	@Override
-	public void forEach(final Consumer<? super E> action) {
-		delegate.forEach(action);
 	}
 
 	@Override
@@ -142,43 +144,37 @@ public class LocalCache<E> implements Set<E> {
 	}
 
 	@Override
-	public Iterator<E> iterator() {
-		return delegate.iterator();
+	public boolean containsKey(final Object key) {
+		return delegate.containsKey(key);
 	}
 
 	@Override
-	public Object[] toArray() {
-		return delegate.toArray();
+	public boolean containsValue(final Object value) {
+		return delegate.containsValue(value);
 	}
 
 	@Override
-	public <T> T[] toArray(final T[] a) {
-		return delegate.toArray(a);
+	public V get(final Object key) {
+		final Element<V> e = delegate.get(key);
+		if (e == null) {
+			return null;
+		} else {
+			e.count++;
+			return e.v;
+		}
 	}
 
 	@Override
-	public boolean remove(final Object o) {
-		return delegate.remove(o);
+	public V remove(final Object key) {
+		final Element<V> e = delegate.remove(key);
+		return e == null? null: e.v;
 	}
 
 	@Override
-	public boolean containsAll(final Collection<?> c) {
-		return delegate.containsAll(c);
-	}
-
-	@Override
-	public boolean addAll(final Collection<? extends E> c) {
-		return delegate.addAll(c);
-	}
-
-	@Override
-	public boolean retainAll(final Collection<?> c) {
-		return delegate.retainAll(c);
-	}
-
-	@Override
-	public boolean removeAll(final Collection<?> c) {
-		return delegate.removeAll(c);
+	public void putAll(final Map<? extends K, ? extends V> map) {
+		for(final Entry<? extends K, ? extends V> entry: map.entrySet()) {
+			delegate.put(entry.getKey(), new Element<V>(entry.getValue()));
+		}
 	}
 
 	@Override
@@ -187,32 +183,80 @@ public class LocalCache<E> implements Set<E> {
 	}
 
 	@Override
-	public boolean equals(final Object o) {
-		return delegate.equals(o);
+	public Set<K> keySet() {
+		return delegate.keySet();
 	}
 
 	@Override
-	public int hashCode() {
-		return delegate.hashCode();
+	public Collection<V> values() {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public Spliterator<E> spliterator() {
-		return delegate.spliterator();
+	public Set<Entry<K, V>> entrySet() {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public boolean removeIf(final Predicate<? super E> filter) {
-		return delegate.removeIf(filter);
+	public V getOrDefault(final Object key, final V defaultValue) {
+		return delegate.getOrDefault(key, new Element<V>(defaultValue)).v;
 	}
 
 	@Override
-	public Stream<E> stream() {
-		return delegate.stream();
+	public void forEach(final BiConsumer<? super K, ? super V> action) {
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
-	public Stream<E> parallelStream() {
-		return delegate.parallelStream();
+	public void replaceAll(final BiFunction<? super K, ? super V, ? extends V> function) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public V putIfAbsent(final K key, final V value) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public boolean remove(final Object key, final Object value) {
+		throw new UnsupportedOperationException();
+	}
+
+	public boolean replace(final K key, final LocalCache<K, V>.Element<V> oldValue,
+			final LocalCache<K, V>.Element<V> newValue) {
+		throw new UnsupportedOperationException();
+	}
+
+	public LocalCache<K, V>.Element<V> replace(final K key,
+			final LocalCache<K, V>.Element<V> value) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public V computeIfAbsent(
+			final K key,
+			final Function<? super K, ? extends V> mappingFunction) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public V computeIfPresent(
+			final K key,
+			final BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public V compute(
+			final K key,
+			final BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+		throw new UnsupportedOperationException();
+	}
+
+	public V merge(
+			final K key,
+			final LocalCache<K, V>.Element<V> value,
+			final BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
+		throw new UnsupportedOperationException();
 	}
 }

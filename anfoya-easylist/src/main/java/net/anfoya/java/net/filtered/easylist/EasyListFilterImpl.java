@@ -2,6 +2,7 @@ package net.anfoya.java.net.filtered.easylist;
 
 import java.io.Serializable;
 import java.net.URL;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Future;
@@ -19,8 +20,8 @@ import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("serial")
 public class EasyListFilterImpl implements RuleSet, Serializable {
-	private static final transient LocalCache<String> URL_EXCEP_CACHE = new LocalCache<String>("exception", 5000);
-	private static final transient LocalCache<String> URL_EXCLU_CACHE = new LocalCache<String>("exclusion", 5000);
+	private static final transient LocalCache<String, Boolean> URL_EXCEP_CACHE = new LocalCache<String, Boolean>("exception", 5000);
+	private static final transient LocalCache<String, Boolean> URL_EXCLU_CACHE = new LocalCache<String, Boolean>("exclusion", 5000);
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(EasyListFilterImpl.class);
 	private static final AtomicLong LOGGER_TIMER = new AtomicLong(System.currentTimeMillis());
@@ -151,14 +152,17 @@ public class EasyListFilterImpl implements RuleSet, Serializable {
 		return matches(url, URL_EXCLU_CACHE, exclusions);
 	}
 
-	private boolean matches(final String url, final Set<String> urlCache, final Set<Rule> rules) {
-		boolean match = false;
+	private boolean matches(final String url, final Map<String, Boolean> urlCache, final Set<Rule> rules) {
+		boolean match;
 		TOTAL.incrementAndGet();
 		long timer = System.nanoTime();
 
-		if (urlCache.contains(url)) {
+		final Boolean cachedMatches = urlCache.get(url);
+		if (cachedMatches != null) {
 			CACHED.incrementAndGet();
+			match = cachedMatches;
 		} else {
+			match = false;
 			for(final Rule rule: rules) {
 				if (rule.applies(url)) {
 					LOGGER.debug("{} \"{}\" matches \"{}\" (regex={}) (original line={})"
@@ -171,12 +175,11 @@ public class EasyListFilterImpl implements RuleSet, Serializable {
 					break;
 				}
 			}
+			urlCache.put(url, match);
 		}
 		timer = TIMER.addAndGet(System.nanoTime() - timer);
 		if (match) {
 			HIT.incrementAndGet();
-		} else {
-			urlCache.add(url);
 		}
 
 		if (LOGGER_TIMER.get() + 3000 < System.currentTimeMillis()) {

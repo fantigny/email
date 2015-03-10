@@ -10,7 +10,6 @@ import net.anfoya.java.net.filtered.easylist.EasyListFilterImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 @SuppressWarnings("serial")
 public class Local extends SerializedFile<EasyListFilterImpl> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Local.class);
