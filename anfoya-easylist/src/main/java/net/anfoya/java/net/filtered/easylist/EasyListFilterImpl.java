@@ -2,7 +2,7 @@ package net.anfoya.java.net.filtered.easylist;
 
 import java.io.Serializable;
 import java.net.URL;
-import java.util.Map;
+import java.util.Calendar;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Future;
@@ -130,8 +130,10 @@ public class EasyListFilterImpl implements RuleSet, Serializable {
 						}
 					}
 					local.save(internetList);
-					URL_EXCEP_CACHE.clear();
-					URL_EXCLU_CACHE.clear();
+					if (URL_EXCEP_CACHE.isOlder(Calendar.DAY_OF_YEAR, 7)) {
+						URL_EXCEP_CACHE.clear();
+						URL_EXCLU_CACHE.clear();
+					}
 				}
 				Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 					@Override
@@ -154,7 +156,7 @@ public class EasyListFilterImpl implements RuleSet, Serializable {
 		return matches(url, URL_EXCLU_CACHE, exclusions);
 	}
 
-	private boolean matches(final String url, final Map<String, Boolean> urlCache, final Set<Rule> rules) {
+	private boolean matches(final String url, final LocalCache<String, Boolean> urlCache, final Set<Rule> rules) {
 		boolean match;
 		TOTAL.incrementAndGet();
 		long timer = System.nanoTime();

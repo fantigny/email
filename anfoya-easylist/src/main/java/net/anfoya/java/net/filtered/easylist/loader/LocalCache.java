@@ -2,14 +2,10 @@ package net.anfoya.java.net.filtered.easylist.loader;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 
 import net.anfoya.java.io.SerializedFile;
 import net.anfoya.java.util.concurrent.ThreadPool;
@@ -18,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("serial")
-public class LocalCache<K, V> implements Map<K, V>, Serializable {
+public class LocalCache<K, V> implements Serializable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LocalCache.class);
 
 	private class Element<E> implements Serializable {
@@ -47,7 +43,6 @@ public class LocalCache<K, V> implements Map<K, V>, Serializable {
 		this.chunk = (int) (limit / 10.0);
 	}
 
-	@Override
 	public V put(final K k, final V v) {
 		final V previous;
 		synchronized(delegate) {
@@ -68,7 +63,7 @@ public class LocalCache<K, V> implements Map<K, V>, Serializable {
 	public void load() {
 		try {
 			delegate.putAll(file.load());
-			LOGGER.info("loaded {} URLs", size());
+			LOGGER.info("loaded {} URLs", delegate.size());
 		} catch (ClassNotFoundException | IOException e) {
 			clear();
 			LOGGER.warn("loading cache", file.getName(), e);
@@ -77,7 +72,7 @@ public class LocalCache<K, V> implements Map<K, V>, Serializable {
 
 	public void save() {
 		try {
-			LOGGER.info("saving {} URLs", size());
+			LOGGER.info("saving {} URLs", delegate.size());
 			file.save(delegate);
 		} catch (final IOException e) {
 			LOGGER.warn("saving cache {}", file.getName(), e);
@@ -118,6 +113,7 @@ public class LocalCache<K, V> implements Map<K, V>, Serializable {
 					removed++;
 				}
 			}
+			LOGGER.info("removed {}", removed);
 		}
 		if (max_count > 100) {
 			LOGGER.info("reducing count for \"{}\"", file.getName());
@@ -129,28 +125,11 @@ public class LocalCache<K, V> implements Map<K, V>, Serializable {
 		}
 	}
 
-	@Override
-	public int size() {
-		return delegate.size();
+	public boolean isOlder(final int field, final int value) {
+		return file.isOlder(field, value);
 	}
 
-	@Override
-	public boolean isEmpty() {
-		return delegate.isEmpty();
-	}
-
-	@Override
-	public boolean containsKey(final Object key) {
-		return delegate.containsKey(key);
-	}
-
-	@Override
-	public boolean containsValue(final Object value) {
-		return delegate.containsValue(value);
-	}
-
-	@Override
-	public V get(final Object key) {
+	public V get(final K key) {
 		final Element<V> e = delegate.get(key);
 		if (e == null) {
 			return null;
@@ -160,99 +139,7 @@ public class LocalCache<K, V> implements Map<K, V>, Serializable {
 		}
 	}
 
-	@Override
-	public V remove(final Object key) {
-		final Element<V> e = delegate.remove(key);
-		return e == null? null: e.v;
-	}
-
-	@Override
-	public void putAll(final Map<? extends K, ? extends V> map) {
-		for(final Entry<? extends K, ? extends V> entry: map.entrySet()) {
-			delegate.put(entry.getKey(), new Element<V>(entry.getValue()));
-		}
-	}
-
-	@Override
 	public void clear() {
 		delegate.clear();
-	}
-
-	@Override
-	public Set<K> keySet() {
-		return delegate.keySet();
-	}
-
-	@Override
-	public Collection<V> values() {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public Set<Entry<K, V>> entrySet() {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public V getOrDefault(final Object key, final V defaultValue) {
-		return delegate.getOrDefault(key, new Element<V>(defaultValue)).v;
-	}
-
-	@Override
-	public void forEach(final BiConsumer<? super K, ? super V> action) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public void replaceAll(final BiFunction<? super K, ? super V, ? extends V> function) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public V putIfAbsent(final K key, final V value) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public boolean remove(final Object key, final Object value) {
-		throw new UnsupportedOperationException();
-	}
-
-	public boolean replace(final K key, final LocalCache<K, V>.Element<V> oldValue,
-			final LocalCache<K, V>.Element<V> newValue) {
-		throw new UnsupportedOperationException();
-	}
-
-	public LocalCache<K, V>.Element<V> replace(final K key,
-			final LocalCache<K, V>.Element<V> value) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public V computeIfAbsent(
-			final K key,
-			final Function<? super K, ? extends V> mappingFunction) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public V computeIfPresent(
-			final K key,
-			final BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
-	public V compute(
-			final K key,
-			final BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
-		throw new UnsupportedOperationException();
-	}
-
-	public V merge(
-			final K key,
-			final LocalCache<K, V>.Element<V> value,
-			final BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
-		throw new UnsupportedOperationException();
 	}
 }
