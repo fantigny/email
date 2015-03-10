@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.net.URL;
 import java.util.Calendar;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
@@ -22,15 +24,33 @@ import org.slf4j.LoggerFactory;
 public class EasyListFilterImpl implements RuleSet, Serializable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(EasyListFilterImpl.class);
 
-	private static final long REF_TIME = System.nanoTime();
-	private static final AtomicLong LOGGER_TIMER = new AtomicLong(System.currentTimeMillis());
-	private static final AtomicLong TIMER = new AtomicLong(0);
-	private static final AtomicLong TOTAL = new AtomicLong(0);
-	private static final AtomicLong CACHED = new AtomicLong(0);
-	private static final AtomicLong HIT = new AtomicLong(0);
+	// process time usage statistics
+	private static final long START_TIME = System.nanoTime();
+	private static final AtomicLong PROCESS_TIME = new AtomicLong(0);
+
+	// hit statistics
+	private static final AtomicLong FILTER_HIT = new AtomicLong(0);
+	private static final AtomicLong CACHE_HIT = new AtomicLong(0);
+	private static final AtomicLong NB_REQUEST = new AtomicLong(0);
 
 	private static final transient LocalCache<String, Boolean> URL_EXCEP_CACHE = new LocalCache<String, Boolean>("exception", 100);
 	private static final transient LocalCache<String, Boolean> URL_EXCLU_CACHE = new LocalCache<String, Boolean>("exclusion", 100);
+
+	private static long lastTotal = 0;
+	static {
+		new Timer(true).schedule(new TimerTask() {
+			@Override
+			public void run() {
+				if (lastTotal != NB_REQUEST.get()) {
+					lastTotal = NB_REQUEST.get();
+					LOGGER.info("cpu {}%, cached {}%, success {}%"
+							, (int)(PROCESS_TIME.get() / (double)(System.nanoTime() - START_TIME) * 100.0)
+							, (int)(CACHE_HIT.get() / (double)NB_REQUEST.get() * 100.0)
+							, (int)(FILTER_HIT.get() / (double)NB_REQUEST.get() * 100.0));
+				}
+			}
+		}, 0, 3000);
+	}
 
 	private final String localFilepath;
 	private final String[] internetUrls;
@@ -135,6 +155,9 @@ public class EasyListFilterImpl implements RuleSet, Serializable {
 					if (URL_EXCEP_CACHE.isOlder(Calendar.DAY_OF_YEAR, 7)) {
 						URL_EXCEP_CACHE.clear();
 						URL_EXCLU_CACHE.clear();
+						CACHE_HIT.set(0);
+						FILTER_HIT.set(0);
+						NB_REQUEST.set(0);
 					}
 				}
 				Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
@@ -159,44 +182,36 @@ public class EasyListFilterImpl implements RuleSet, Serializable {
 	}
 
 	private boolean matches(final String url, final LocalCache<String, Boolean> urlCache, final Set<Rule> rules) {
-		TOTAL.incrementAndGet();
-
-		boolean match;
-		long timer = System.nanoTime();
-
-		final Boolean cachedMatches = urlCache.get(url);
-		if (cachedMatches != null) {
-			CACHED.incrementAndGet();
-			match = cachedMatches;
+		final long timer = System.nanoTime();
+		NB_REQUEST.incrementAndGet();
+		Boolean match = urlCache.get(url);
+		if (match != null) {
+			CACHE_HIT.incrementAndGet();
 		} else {
-			match = false;
-			for(final Rule rule: rules) {
-				if (rule.applies(url)) {
-					LOGGER.debug("{} \"{}\" matches \"{}\" (regex={}) (original line={})"
-							, rule.getType()
-							, rule.getEffectiveLine()
-							, url
-							, rule.getRegex()
-							, rule.getLine());
-					match = true;
-					break;
-				}
-			}
+			match = matches(url, rules);
 			urlCache.put(url, match);
 		}
 		if (match) {
-			HIT.incrementAndGet();
+			FILTER_HIT.incrementAndGet();
 		}
-		timer = TIMER.addAndGet(System.nanoTime() - timer);
-
-		if (LOGGER_TIMER.get() + 3000 < System.currentTimeMillis()) {
-			LOGGER_TIMER.set(System.currentTimeMillis());
-			LOGGER.info("cpu {}%, cached {}%, success {}%"
-					, (int)(timer / (double)(System.nanoTime() - REF_TIME) * 100.0)
-					, (int)(CACHED.get() / (double)TOTAL.get() * 100.0)
-					, (int)(HIT.get() / (double)TOTAL.get() * 100.0));
-		}
+		PROCESS_TIME.addAndGet(System.nanoTime() - timer);
 
 		return match;
+	}
+
+	private boolean matches(final String url, final Set<Rule> rules) {
+		for(final Rule rule: rules) {
+			if (rule.applies(url)) {
+				LOGGER.debug("{} \"{}\" matches \"{}\" (regex={}) (original line={})"
+						, rule.getType()
+						, rule.getEffectiveLine()
+						, url
+						, rule.getRegex()
+						, rule.getLine());
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
