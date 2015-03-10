@@ -64,6 +64,11 @@ public class BrowserApp extends Application {
 		SLF4JBridgeHandler.removeHandlersForRootLogger();
 		SLF4JBridgeHandler.install();
 
+        final SplashScreen splash = SplashScreen.getSplashScreen();
+        if (splash != null) {
+        	splash.close();
+        }
+
 		launch(args);
 	}
 
@@ -207,11 +212,6 @@ public class BrowserApp extends Application {
 
 			mainPane.setCenter(moviePane);
 		}
-
-        final SplashScreen splash = SplashScreen.getSplashScreen();
-        if (splash != null) {
-        	splash.close();
-        }
 
 		primaryStage.setTitle("Movie browser");
 		primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("Movies.png")));

@@ -1,5 +1,6 @@
 package net.anfoya.downloads.javafx.entrypoint;
 
+import java.awt.SplashScreen;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
@@ -25,6 +26,10 @@ import net.anfoya.java.util.concurrent.ThreadPool;
 public class DownloadApp extends Application {
 
 	public static void main(final String[] args) {
+        final SplashScreen splash = SplashScreen.getSplashScreen();
+        if (splash != null) {
+        	splash.close();
+        }
 		launch(args);
 	}
 
