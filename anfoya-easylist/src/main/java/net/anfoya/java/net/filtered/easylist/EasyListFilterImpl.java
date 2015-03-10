@@ -130,6 +130,8 @@ public class EasyListFilterImpl implements RuleSet, Serializable {
 						}
 					}
 					local.save(internetList);
+					URL_EXCEP_CACHE.clear();
+					URL_EXCLU_CACHE.clear();
 				}
 				Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 					@Override
