@@ -10,7 +10,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 
-import net.anfoya.java.net.filtered.easylist.cache.LocalCache;
+import net.anfoya.java.cache.LocalCache;
 import net.anfoya.java.net.filtered.easylist.loader.Internet;
 import net.anfoya.java.net.filtered.easylist.loader.Local;
 import net.anfoya.java.net.filtered.easylist.model.Rule;
@@ -25,7 +25,6 @@ public class EasyListFilterImpl implements RuleSet, Serializable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(EasyListFilterImpl.class);
 
 	// process time usage statistics
-	private static final long START_TIME = System.nanoTime();
 	private static final AtomicLong PROCESS_TIME = new AtomicLong(0);
 
 	// hit statistics
@@ -33,21 +32,22 @@ public class EasyListFilterImpl implements RuleSet, Serializable {
 	private static final AtomicLong CACHE_HIT = new AtomicLong(0);
 	private static final AtomicLong NB_REQUEST = new AtomicLong(0);
 
-	private static final transient LocalCache<String, Boolean> URL_EXCEP_CACHE = new LocalCache<String, Boolean>("exception", 5000);
-	private static final transient LocalCache<String, Boolean> URL_EXCLU_CACHE = new LocalCache<String, Boolean>("exclusion", 5000);
+	private static final transient LocalCache<String, Boolean> URL_EXCEP_CACHE = new LocalCache<String, Boolean>("exception", 1500);
+	private static final transient LocalCache<String, Boolean> URL_EXCLU_CACHE = new LocalCache<String, Boolean>("exclusion", 1500);
 
-	private static long lastTotal = 0;
 	static {
 		new Timer(true).schedule(new TimerTask() {
+			private long start = System.nanoTime();
 			@Override
 			public void run() {
-				if (lastTotal != NB_REQUEST.get()) {
-					lastTotal = NB_REQUEST.get();
-					LOGGER.info("cpu {}%, cached {}%, success {}%"
-							, (int)(PROCESS_TIME.get() / (double)(System.nanoTime() - START_TIME) * 100.0)
-							, (int)(CACHE_HIT.get() / (double)NB_REQUEST.get() * 100.0)
-							, (int)(FILTER_HIT.get() / (double)NB_REQUEST.get() * 100.0));
+				final long time = System.nanoTime();
+				if (NB_REQUEST.get() != 0) {
+					LOGGER.info("filter {}%, cache {}%, cpu {}%"
+							, (int)(FILTER_HIT.getAndSet(0) / (double)NB_REQUEST.get() * 100.0)
+							, (int)(CACHE_HIT.getAndSet(0) / (double)NB_REQUEST.getAndSet(0) * 100.0)
+							, (int)(PROCESS_TIME.getAndSet(0) / (double)(time - start) * 100.0));
 				}
+				start = time;
 			}
 		}, 0, 3000);
 	}
