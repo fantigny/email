@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -35,7 +36,7 @@ public class LocalCache<K, V> implements Map<K, V>, Serializable {
 	private final int limit;
 	private final int chunk;
 
-	private boolean cleaning;
+	private AtomicBoolean cleaning;
 
 	public LocalCache(final String name, final int limit) {
 		this.delegate = new ConcurrentHashMap<K, Element<V>>(limit);
@@ -88,17 +89,12 @@ public class LocalCache<K, V> implements Map<K, V>, Serializable {
 			ThreadPool.getInstance().submit(new Runnable() {
 				@Override
 				public void run() {
-					try {
-						synchronized(this) {
-							if (cleaning) {
-								return;
-							} else {
-								cleaning = true;
-							}
+					if (!cleaning.getAndSet(true)) {
+						try {
+							cleanAsync();
+						} finally {
+							cleaning.set(false);
 						}
-						cleanAsync();
-					} finally {
-						cleaning = false;
 					}
 				}
 			});
