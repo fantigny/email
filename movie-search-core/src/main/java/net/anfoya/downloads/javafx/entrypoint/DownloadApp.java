@@ -7,12 +7,10 @@ import java.net.CookiePolicy;
 import java.net.URL;
 
 import javafx.application.Application;
-import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 import javafx.util.Callback;
 import net.anfoya.downloads.javafx.ComponentBuilder;
 import net.anfoya.downloads.javafx.SearchPane;
@@ -21,7 +19,6 @@ import net.anfoya.downloads.javafx.allocine.QuickSearchVo;
 import net.anfoya.java.net.PersistentCookieStore;
 import net.anfoya.java.net.filtered.engine.RuleSet;
 import net.anfoya.java.net.torrent.TorrentHandlerFactory;
-import net.anfoya.java.util.concurrent.ThreadPool;
 
 public class DownloadApp extends Application {
 
@@ -49,13 +46,6 @@ public class DownloadApp extends Application {
 
 	@Override
     public void start(final Stage primaryStage) {
-		primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-			@Override
-			public void handle(final WindowEvent event) {
-				ThreadPool.getInstance().shutdown();
-			}
-		});
-
 		cookieStore.load();
 		CookieHandler.setDefault(new CookieManager(cookieStore, CookiePolicy.ACCEPT_ALL));
 

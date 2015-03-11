@@ -1,6 +1,5 @@
 package net.anfoya.movies.javafx.entrypoint;
 
-import java.awt.SplashScreen;
 import java.net.CookieHandler;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
@@ -63,11 +62,6 @@ public class BrowserApp extends Application {
 		// JGroup logging
 		SLF4JBridgeHandler.removeHandlersForRootLogger();
 		SLF4JBridgeHandler.install();
-
-        final SplashScreen splash = SplashScreen.getSplashScreen();
-        if (splash != null) {
-        	splash.close();
-        }
 
 		launch(args);
 	}
@@ -220,7 +214,6 @@ public class BrowserApp extends Application {
 	}
 
 	private void initData() {
-
 		refreshSectionList();
 		if (profile == Profile.RESTRICTED) {
 			sectionListPane.selectTag(Section.MEI_LIN, Tag.MEI_LIN_NAME);
