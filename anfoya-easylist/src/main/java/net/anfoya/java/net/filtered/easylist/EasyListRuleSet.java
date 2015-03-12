@@ -6,7 +6,6 @@ import java.util.Calendar;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -22,8 +21,9 @@ import net.anfoya.java.util.concurrent.ThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class EasyListFilterImpl implements RuleSet {
-	private static final Logger LOGGER = LoggerFactory.getLogger(EasyListFilterImpl.class);
+public class EasyListRuleSet implements RuleSet {
+	private static final Logger LOGGER = LoggerFactory.getLogger(EasyListRuleSet.class);
+	private static final Config CONFIG = new Config();
 
 	// process time usage statistics
 	private static final AtomicLong PROCESS_TIME = new AtomicLong(0);
@@ -33,8 +33,8 @@ public class EasyListFilterImpl implements RuleSet {
 	private static final AtomicLong CACHE_HIT = new AtomicLong(0);
 	private static final AtomicLong NB_REQUEST = new AtomicLong(0);
 
-	private static final transient LocalCache<String, Boolean> URL_EXCEP_CACHE = new LocalCache<String, Boolean>("exception", 1500);
-	private static final transient LocalCache<String, Boolean> URL_EXCLU_CACHE = new LocalCache<String, Boolean>("exclusion", 1500);
+	private static final transient LocalCache<String, Boolean> URL_EXCEPTIONS_CACHE = new LocalCache<String, Boolean>("easylist_exceptions", 1500);
+	private static final transient LocalCache<String, Boolean> URL_EXCLUSIONS_CACHE = new LocalCache<String, Boolean>("easylist_exclusions", 1500);
 
 	static {
 		new Timer(true).schedule(new TimerTask() {
@@ -43,9 +43,9 @@ public class EasyListFilterImpl implements RuleSet {
 			public void run() {
 				final long time = System.nanoTime();
 				if (NB_REQUEST.get() != 0) {
-					double filter = FILTER_HIT.get() / (double)NB_REQUEST.get() * 100.0;
-					double cache = CACHE_HIT.get() / (double)NB_REQUEST.get() * 100.0;
-					double process = PROCESS_TIME.getAndSet(0) / (time - this.time) * 100.0;
+					final double filter = FILTER_HIT.get() / (double)NB_REQUEST.get() * 100.0;
+					final double cache = CACHE_HIT.get() / (double)NB_REQUEST.get() * 100.0;
+					final double process = PROCESS_TIME.getAndSet(0) / (time - this.time) * 100.0;
 					LOGGER.info("filter {}%, cache {}%, cpu {}%"
 							, (int) filter
 							, (int) cache
@@ -63,21 +63,17 @@ public class EasyListFilterImpl implements RuleSet {
 
 	private boolean withException;
 
-	public EasyListFilterImpl(final boolean withException) {
-		final Config config = new Config();
-		this.internetUrls = config.getUrls();
+	public EasyListRuleSet(final boolean withException) {
+		this.internetUrls = CONFIG.getUrls();
 
 		this.exceptions = new CopyOnWriteArraySet<Rule>();
 		this.exclusions = new CopyOnWriteArraySet<Rule>();
 
 		this.withException = withException;
 
-		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-			@Override
-			public void run() {
-				URL_EXCEP_CACHE.save();
-				URL_EXCLU_CACHE.save();
-			}
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			URL_EXCEPTIONS_CACHE.save();
+			URL_EXCLUSIONS_CACHE.save();
 		}));
 	}
 
@@ -114,12 +110,12 @@ public class EasyListFilterImpl implements RuleSet {
 		}
 	}
 
-	public void addAll(final EasyListFilterImpl easyList) {
+	public void addAll(final EasyListRuleSet easyList) {
 		exceptions.addAll(easyList.exceptions);
 		exclusions.addAll(easyList.exclusions);
 	}
 
-	public void replaceAll(final EasyListFilterImpl easyList) {
+	public void replaceAll(final EasyListRuleSet easyList) {
 		exceptions.clear();
 		exclusions.clear();
 		addAll(easyList);
@@ -127,44 +123,40 @@ public class EasyListFilterImpl implements RuleSet {
 
 	@Override
 	public void load() {
-		Config config = new Config();
-		
-		SerializedFile<Set<Rule>> local = new SerializedFile<Set<Rule>>(config.getExceptionsFilePath());
-		final Future<?> future = ThreadPool.getInstance().submit(new Callable<Void>() {
-			@Override
-			public Void call() throws ClassNotFoundException, IOException {
-				long start = System.currentTimeMillis();
-				exceptions.addAll(local.load());
-				exclusions.addAll(new SerializedFile<Set<Rule>>(config.getExclusionsFilePath()).load());
-				LOGGER.info("loaded {} rules (in {}ms)", getRuleCount(), System.currentTimeMillis()-start);
-				return null;
-			}
+		final SerializedFile<Set<Rule>> local = new SerializedFile<Set<Rule>>(CONFIG.getExceptionsFilePath());
+		final Future<?> future = ThreadPool.getInstance().submit(() -> {
+			final long start = System.currentTimeMillis();
+			exceptions.addAll(local.load());
+			exclusions.addAll(new SerializedFile<Set<Rule>>(CONFIG.getExclusionsFilePath()).load());
+			LOGGER.info("loaded {} local rules (in {}ms)", getRuleCount(), System.currentTimeMillis()-start);
+			return null;
 		});
-		ThreadPool.getInstance().submit(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					future.get();
-				} catch (InterruptedException | ExecutionException e) {
-					LOGGER.error("loading rule sets", e);
-				}
-				loadCache();
-				if (local.isOlder(Calendar.DAY_OF_YEAR, 1)
-						|| exceptions.isEmpty()
-						|| exclusions.isEmpty()) {
-					loadInternet();
-				}
+		ThreadPool.getInstance().submit(() -> {
+			try {
+				future.get();
+			} catch (InterruptedException | ExecutionException e) {
+				LOGGER.error("loading rule sets", e);
+			}
+			loadCache();
+			if (local.isOlder(Calendar.DAY_OF_YEAR, 1)
+					|| exceptions.isEmpty()
+					|| exclusions.isEmpty()) {
+				loadInternet();
 			}
 		});
 	}
 	
 	private void loadCache() {
-		URL_EXCEP_CACHE.load();
-		URL_EXCLU_CACHE.load();
+		final long start = System.currentTimeMillis();
+		URL_EXCEPTIONS_CACHE.load();
+		URL_EXCLUSIONS_CACHE.load();
+		LOGGER.info("loaded {} URLs from cache (in {}ms)"
+				, URL_EXCEPTIONS_CACHE.size() + URL_EXCLUSIONS_CACHE.size()
+				, System.currentTimeMillis() - start);
 	}
 	
 	private void loadInternet() {
-		final EasyListFilterImpl internetList = new EasyListFilterImpl(false);
+		final EasyListRuleSet internetList = new EasyListRuleSet(false);
 		for(final String url: internetUrls) {
 			try {
 				// add to incremental list
@@ -179,23 +171,22 @@ public class EasyListFilterImpl implements RuleSet {
 	}
 	
 	private void save() {
-		Config config = new Config();
 		try {
-			new SerializedFile<Set<Rule>>(config.getExceptionsFilePath()).save(exceptions);
-			new SerializedFile<Set<Rule>>(config.getExclusionsFilePath()).save(exclusions);
-		} catch (IOException e) {
+			new SerializedFile<Set<Rule>>(CONFIG.getExceptionsFilePath()).save(exceptions);
+			new SerializedFile<Set<Rule>>(CONFIG.getExclusionsFilePath()).save(exclusions);
+		} catch (final IOException e) {
 			LOGGER.error("saving rule sets");
 		}
 	}
 
 	@Override
 	public boolean matchesException(final String url) {
-		return matches(url, URL_EXCEP_CACHE, exceptions);
+		return matches(url, URL_EXCEPTIONS_CACHE, exceptions);
 	}
 
 	@Override
 	public boolean matchesExclusion(final String url) {
-		return matches(url, URL_EXCLU_CACHE, exclusions);
+		return matches(url, URL_EXCLUSIONS_CACHE, exclusions);
 	}
 
 	private boolean matches(final String url, final LocalCache<String, Boolean> urlCache, final Set<Rule> rules) {

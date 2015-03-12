@@ -1,7 +1,7 @@
 package net.anfoya.downloads.javafx;
 
 import net.anfoya.java.net.PersistentCookieStore;
-import net.anfoya.java.net.filtered.easylist.EasyListFilterImpl;
+import net.anfoya.java.net.filtered.easylist.EasyListRuleSet;
 import net.anfoya.java.net.filtered.engine.RuleSet;
 
 public class ComponentBuilder {
@@ -13,7 +13,7 @@ public class ComponentBuilder {
 
 	public ComponentBuilder() {
 		cookieStore = new PersistentCookieStore();
-		urlFilter = new EasyListFilterImpl(false);
+		urlFilter = new EasyListRuleSet(false);
 
 		searchTabs = new SearchTabs();
 		searchPane = new SearchPane();

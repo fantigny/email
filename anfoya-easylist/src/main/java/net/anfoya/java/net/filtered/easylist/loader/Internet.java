@@ -7,7 +7,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLStreamHandler;
 
-import net.anfoya.java.net.filtered.easylist.EasyListFilterImpl;
+import net.anfoya.java.net.filtered.easylist.EasyListRuleSet;
 import net.anfoya.java.net.filtered.easylist.model.Rule;
 import net.anfoya.java.net.filtered.easylist.parser.Parser;
 import net.anfoya.java.net.filtered.easylist.parser.ParserException;
@@ -24,10 +24,10 @@ public class Internet {
 		this.url = url;
 	}
 
-	public EasyListFilterImpl load() {
+	public EasyListRuleSet load() {
 		LOGGER.info("loading {}", url);
 		final long start = System.currentTimeMillis();
-		EasyListFilterImpl easyList;
+		EasyListRuleSet easyList;
 		try {
 			// avoid handler factory re-entrance
 			@SuppressWarnings("restriction")
@@ -37,7 +37,7 @@ public class Internet {
 			final InputStream in = new URL(null, url.toString(), handler).openStream();
 			final BufferedReader reader = new BufferedReader(new InputStreamReader(in));
 
-			easyList = new EasyListFilterImpl(false);
+			easyList = new EasyListRuleSet(false);
 			final Parser parser = new Parser();
 			String line;
 			while((line=reader.readLine()) != null) {
@@ -51,7 +51,7 @@ public class Internet {
 			LOGGER.info("loaded {} rules (in {}ms)", easyList.getRuleCount(), System.currentTimeMillis()-start);
 		} catch (final IOException e) {
 			LOGGER.error("reading {}", url, e);
-			easyList = new EasyListFilterImpl(false);
+			easyList = new EasyListRuleSet(false);
 		}
 
 		return easyList;

@@ -6,7 +6,7 @@ import net.anfoya.cluster.LockManager;
 import net.anfoya.cluster.StatusManager;
 import net.anfoya.cluster.UpdateManager;
 import net.anfoya.java.net.PersistentCookieStore;
-import net.anfoya.java.net.filtered.easylist.EasyListFilterImpl;
+import net.anfoya.java.net.filtered.easylist.EasyListRuleSet;
 import net.anfoya.java.net.filtered.engine.RuleSet;
 import net.anfoya.movies.dao.DataSource;
 import net.anfoya.movies.dao.MovieDao;
@@ -84,7 +84,7 @@ public class ComponentBuilder {
 		this.movieTagDao = new MovieTagDao(dataSource);
 
 		this.cookieStore = new PersistentCookieStore();
-		this.urlFilter = new EasyListFilterImpl(false);
+		this.urlFilter = new EasyListRuleSet(false);
 
 		this.updateMgr = new UpdateManager(statusMgr);
 		this.tagService = new TagService(updateMgr, tagDao, movieTagDao);

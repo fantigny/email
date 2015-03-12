@@ -14,7 +14,8 @@ import org.slf4j.LoggerFactory;
 
 public class LocalCache<K, V> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LocalCache.class);
-	private static final String NAME_FORMAT = "<%s,%d>";
+	private static final String NAME_FORMAT = "<%s, %d>";
+	private static final String FILENAME_FORMAT = System.getProperty("java.io.tmpdir") + "/cache_%s.bin";
 
 	private static final double DEFAULT_CHUNK_FACTOR = 0.1; // 10%
 	private static final double DEFAULT_COUNT_DIVIDOR = 10;
@@ -39,7 +40,7 @@ public class LocalCache<K, V> {
 		this.limit = limit;
 
 		this.map = new ConcurrentHashMap<K, AutoCountElement<V>>();
-		this.file = new SerializedFile<Map<K, AutoCountElement<V>>>(System.getProperty("java.io.tmpdir") + "/" + name + ".bin");
+		this.file = new SerializedFile<Map<K, AutoCountElement<V>>>(String.format(FILENAME_FORMAT, name));
 
 		this.cleaning = new AtomicBoolean(false);
 		this.chunkSize = (int) (limit * chunkFactor) - 1;
@@ -134,5 +135,9 @@ public class LocalCache<K, V> {
 
 	public void clear() {
 		map.clear();
+	}
+
+	public int size() {
+		return map.size();
 	}
 }

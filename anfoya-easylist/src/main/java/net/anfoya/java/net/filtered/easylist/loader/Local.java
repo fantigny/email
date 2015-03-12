@@ -5,13 +5,13 @@ import java.io.IOException;
 import java.util.Calendar;
 
 import net.anfoya.java.io.SerializedFile;
-import net.anfoya.java.net.filtered.easylist.EasyListFilterImpl;
+import net.anfoya.java.net.filtered.easylist.EasyListRuleSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("serial")
-public class Local extends SerializedFile<EasyListFilterImpl> {
+public class Local extends SerializedFile<EasyListRuleSet> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Local.class);
 
 	public Local(final String filepath) {
@@ -19,9 +19,9 @@ public class Local extends SerializedFile<EasyListFilterImpl> {
 	}
 
 	@Override
-	public EasyListFilterImpl load() {
+	public EasyListRuleSet load() {
 		final long start = System.currentTimeMillis();
-		EasyListFilterImpl easyList = new EasyListFilterImpl(false);
+		EasyListRuleSet easyList = new EasyListRuleSet(false);
 		try {
 			easyList = super.load();
 		} catch (final FileNotFoundException e) {
@@ -37,7 +37,7 @@ public class Local extends SerializedFile<EasyListFilterImpl> {
 	}
 
 	@Override
-	public void save(final EasyListFilterImpl easyList) {
+	public void save(final EasyListRuleSet easyList) {
 		LOGGER.info("saving {} rules", easyList.getRuleCount());
 
 		try {
