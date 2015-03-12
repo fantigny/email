@@ -20,6 +20,8 @@ import net.anfoya.java.util.concurrent.ThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+//TODO: serialize only data structure (not all object)
+
 @SuppressWarnings("serial")
 public class EasyListFilterImpl implements RuleSet, Serializable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(EasyListFilterImpl.class);
@@ -37,17 +39,39 @@ public class EasyListFilterImpl implements RuleSet, Serializable {
 
 	static {
 		new Timer(true).schedule(new TimerTask() {
-			private long start = System.nanoTime();
+			private double filter = -1;
+			private double hit = -1;
+			private double process = -1;
+			private long time = System.nanoTime();
 			@Override
 			public void run() {
 				final long time = System.nanoTime();
 				if (NB_REQUEST.get() != 0) {
+					double filter = FILTER_HIT.getAndSet(0) / (double)NB_REQUEST.get() * 100.0;
+					if (this.filter != -1) {
+						filter = (filter * 2d + this.filter) / 3d;
+					}
+					this.filter = filter;
+					double cache = CACHE_HIT.getAndSet(0) / (double)NB_REQUEST.getAndSet(0) * 100.0;
+					if (this.hit != -1) {
+						cache = (cache * 2d + this.hit) / 3d;
+					}
+					this.hit = cache;
+					double process = PROCESS_TIME.getAndSet(0) / (time - this.time) * 100.0;
+					if (this.process != -1) {
+						process = (process * 2d + this.process) / 3d;
+					}
+					this.process = process;
 					LOGGER.info("filter {}%, cache {}%, cpu {}%"
-							, (int)(FILTER_HIT.getAndSet(0) / (double)NB_REQUEST.get() * 100.0)
-							, (int)(CACHE_HIT.getAndSet(0) / (double)NB_REQUEST.getAndSet(0) * 100.0)
-							, (int)(PROCESS_TIME.getAndSet(0) / (double)(time - start) * 100.0));
+							, (int) filter
+							, (int) cache
+							, (int) process);
+				} else {
+					this.filter = 0;
+					this.hit = 0;
+					this.process = 0;
 				}
-				start = time;
+				this.time = time;
 			}
 		}, 0, 3000);
 	}

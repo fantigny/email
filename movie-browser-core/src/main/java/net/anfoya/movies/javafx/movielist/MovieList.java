@@ -17,6 +17,8 @@ import net.anfoya.movies.model.Movie.SortOrder;
 import net.anfoya.movies.model.Tag;
 import net.anfoya.movies.service.MovieService;
 
+//TODO: sort by name when all titles start with a numeric
+
 public class MovieList extends ListView<Movie> {
 	private final MovieService movieService;
 
