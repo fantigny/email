@@ -48,6 +48,6 @@ public class MagnetHandler extends URLStreamHandler {
 			}
 		}
 
-		return new GoBackUrlConnection();
+		return new GoBackUrlConnection("starting torrent...");
 	}
 }

@@ -25,7 +25,7 @@ public class TorrentConnection extends GoBackUrlConnection {
 	private final File file;
 
 	protected TorrentConnection(final URL url) {
-		super(url);
+		super("starting torrent...");
 
 		final String[] urlParts = url.getPath().split("/");
 		final String filename = urlParts[urlParts.length-1];

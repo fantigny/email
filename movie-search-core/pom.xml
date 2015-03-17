@@ -32,8 +32,7 @@
 								<transformer
 									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 									<manifestEntries>
-										<JavaFX-Preloader-Class>net.anfoya.downloads.javafx.entrypoint.FirstPreloader</JavaFX-Preloader-Class>
-										<JavaFX-Application-Class>net.anfoya.downloads.javafx.entrypoint.DownloadApp</JavaFX-Application-Class>
+										<main-class>net.anfoya.downloads.javafx.entrypoint.DownloadApp</main-class>
 									</manifestEntries>
 								</transformer>
 							</transformers>

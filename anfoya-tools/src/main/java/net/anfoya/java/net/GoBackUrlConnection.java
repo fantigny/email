@@ -3,12 +3,23 @@ package net.anfoya.java.net;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
 import java.net.URLConnection;
 
 public class GoBackUrlConnection extends URLConnection {
-	public GoBackUrlConnection(URL url) {
-		super(url);
+	private static final String GO_BACK_HTML_TEMPLATE = ""
+		+ "<html><body onLoad='history.back()'>"
+			+ "<br>"
+			+ "&nbsp;&nbsp;&nbsp;&nbsp;"
+			+ "<font face='verdana'><i>"
+					+ "%s"
+			+ "</i></font>"
+		+ "</body></html>";
+
+	private final byte[] goBackHtml;
+
+	public GoBackUrlConnection(final String msg) {
+		super(null);
+		goBackHtml = String.format(GO_BACK_HTML_TEMPLATE, msg == null? "": msg).getBytes();
 	}
 
 	public GoBackUrlConnection() {
@@ -21,6 +32,6 @@ public class GoBackUrlConnection extends URLConnection {
 
 	@Override
 	public InputStream getInputStream() {
-		return new ByteArrayInputStream("<script>history.back()</script>".getBytes());
+		return new ByteArrayInputStream(goBackHtml);
 	}
 }

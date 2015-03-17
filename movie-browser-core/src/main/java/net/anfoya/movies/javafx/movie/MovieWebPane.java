@@ -29,13 +29,12 @@ import org.slf4j.LoggerFactory;
 public class MovieWebPane extends BorderPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MovieWebPane.class);
 
-	private static final String LOADING = "<font face='verdana'>"
-												+ "<i>"
-													+ "<br>"
-													+ "&nbsp;&nbsp;&nbsp;&nbsp;"
-													+ "Loading..."
-												+ "</i>"
-											+ "</font>";
+	private static final String LOADING = ""
+			+ "<br>"
+			+ "&nbsp;&nbsp;&nbsp;&nbsp;"
+			+ "<font face='verdana'><i>"
+				+ "Loading..."
+			+ "</i></font>";
 
 	private enum Mode {
 		WAIT, LOAD, PASS
