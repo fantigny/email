@@ -3,6 +3,7 @@ package net.anfoya.java.net;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.net.URLConnection;
 
 public class GoBackUrlConnection extends URLConnection {
@@ -18,7 +19,11 @@ public class GoBackUrlConnection extends URLConnection {
 	private final byte[] goBackHtml;
 
 	public GoBackUrlConnection(final String msg) {
-		super(null);
+		this(null, msg);
+	}
+
+	public GoBackUrlConnection(final URL url, final String msg) {
+		super(url);
 		goBackHtml = String.format(GO_BACK_HTML_TEMPLATE, msg == null? "": msg).getBytes();
 	}
 
