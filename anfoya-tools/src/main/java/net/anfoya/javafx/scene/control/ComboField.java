@@ -19,9 +19,9 @@ import org.slf4j.LoggerFactory;
  *
  * @param <T>
  */
-public class ComboBoxField<T> extends ComboBox<T> {
+public class ComboField<T> extends ComboBox<T> {
     private static final String DEFAULT_STYLE_CLASS = "combo-noarrow";
-	private static final Logger LOGGER = LoggerFactory.getLogger(ComboBoxField.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ComboField.class);
 
 	private volatile T currentValue;
 	private volatile T progSetValue;
@@ -33,7 +33,7 @@ public class ComboBoxField<T> extends ComboBox<T> {
 
 	private volatile boolean upHideArmed;
 
-	public ComboBoxField() {
+	public ComboField() {
 		setEditable(true);
         getStyleClass().add(DEFAULT_STYLE_CLASS);
 
@@ -165,11 +165,11 @@ public class ComboBoxField<T> extends ComboBox<T> {
 			public void run() {
 				try { Thread.sleep(500); }
 				catch(final Exception e) { return; }
-				if (delayedActionTime == ComboBoxField.this.delayedActionTime.get()) {
+				if (delayedActionTime == ComboField.this.delayedActionTime.get()) {
 					Platform.runLater(new Runnable() {
 						@Override
 						public void run() {
-							if (delayedActionTime == ComboBoxField.this.delayedActionTime.get()) {
+							if (delayedActionTime == ComboField.this.delayedActionTime.get()) {
 								LOGGER.debug("fire delayed field action {} after {}ms", delayedActionTime, (System.nanoTime()-delayedActionTime)/1000000);
 								fireFieldAction(event);
 							}

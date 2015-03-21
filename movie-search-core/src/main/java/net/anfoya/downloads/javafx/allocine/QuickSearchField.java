@@ -13,7 +13,7 @@ import javafx.scene.control.ListView;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.javafx.scene.control.ComboBoxField;
+import net.anfoya.javafx.scene.control.ComboField;
 import net.anfoya.movie.connector.AllocineConnector;
 import net.anfoya.movie.connector.MovieConnector;
 import net.anfoya.movie.connector.QuickSearchVo;
@@ -21,7 +21,7 @@ import net.anfoya.movie.connector.QuickSearchVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class QuickSearchField extends ComboBoxField<QuickSearchVo> {
+public class QuickSearchField extends ComboField<QuickSearchVo> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(QuickSearchField.class);
 	private volatile QuickSearchVo requestedVo;
 	private final AtomicLong requestTime;
