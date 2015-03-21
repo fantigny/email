@@ -1,12 +1,7 @@
 package net.anfoya.downloads.javafx.allocine;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -23,19 +18,16 @@ import net.anfoya.javafx.scene.control.ComboBoxField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParser;
-
-public class AllocineField extends ComboBoxField<QuickSearchVo> {
-	private static final Logger LOGGER = LoggerFactory.getLogger(AllocineField.class);
-	private static final String SEARCH_PATTERN = "http://essearch.allocine.net/fr/autocomplete?geo2=83090&q=%s";
+public class QuickSearchField extends ComboBoxField<QuickSearchVo> {
+	private static final Logger LOGGER = LoggerFactory.getLogger(QuickSearchField.class);
 	private volatile QuickSearchVo requestedVo;
 	private final AtomicLong requestTime;
 
 	private Callback<QuickSearchVo, Void> searchCallback;
 
-	public AllocineField() {
+	private final QuickSearchProvider provider = new AllocineQuickSearch();
+
+	public QuickSearchField() {
 		setPromptText("Key in a text and wait for quick search or type <Enter> for full search");
 		setCellFactory(new Callback<ListView<QuickSearchVo>, ListCell<QuickSearchVo>>() {
 			@Override
@@ -57,7 +49,7 @@ public class AllocineField extends ComboBoxField<QuickSearchVo> {
 		setOnListRequest(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(final ActionEvent event) {
-				requestList();
+				submitQuickSearch();
 			}
 		});
 
@@ -95,7 +87,7 @@ public class AllocineField extends ComboBoxField<QuickSearchVo> {
 		}
 	}
 
-	private synchronized void requestList() {
+	private synchronized void submitQuickSearch() {
 		final QuickSearchVo qsVo = getFieldValue();
 		LOGGER.debug("request list ({})", qsVo);
 
@@ -124,7 +116,7 @@ public class AllocineField extends ComboBoxField<QuickSearchVo> {
 			@Override
 			public void run() {
 				try {
-					requestList(requestTime, qsVo.toString());
+					quickSearch(requestTime, qsVo.toString());
 				} catch (final InterruptedException e) {
 					return;
 				} catch (final Exception e) {
@@ -135,8 +127,8 @@ public class AllocineField extends ComboBoxField<QuickSearchVo> {
 		});
 	}
 
-	private void requestList(final long requestId, final String title) throws InterruptedException, MalformedURLException, IOException {
-		LOGGER.debug("request list ({}) \"{}\"", requestId, title);
+	private void quickSearch(final long requestId, final String pattern) throws InterruptedException, MalformedURLException, IOException {
+		LOGGER.debug("request list ({}) \"{}\"", requestId, pattern);
 
 		// allow user to type more characters
 		Thread.sleep(500);
@@ -145,21 +137,8 @@ public class AllocineField extends ComboBoxField<QuickSearchVo> {
 			return;
 		}
 
-		// get a connection
-		final String url = String.format(SEARCH_PATTERN, URLEncoder.encode(title, "UTF8"));
-		final List<QuickSearchVo> qsResults = new ArrayList<QuickSearchVo>();
-		LOGGER.info("request list ({}) \"{}\"", requestId, url);
-		final BufferedReader reader = new BufferedReader(new InputStreamReader(new URL(url).openStream()));
-		if (requestId != this.requestTime.get()) {
-			LOGGER.debug("request list cancelled ({})", requestId);
-			return;
-		}
-
-		// read / parse json data
-		final JsonArray jsonQsResults = new JsonParser().parse(reader).getAsJsonArray();
-		for (final JsonElement jsonElement : jsonQsResults) {
-			qsResults.add(new QuickSearchVo(jsonElement.getAsJsonObject()));
-		}
+		// search
+		final List<QuickSearchVo> qsResults = provider.search(pattern);
 		if (requestId != this.requestTime.get()) {
 			LOGGER.debug("request list cancelled ({})", requestId);
 			return;
@@ -169,7 +148,7 @@ public class AllocineField extends ComboBoxField<QuickSearchVo> {
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
-				if (requestId != AllocineField.this.requestTime.get()) {
+				if (requestId != QuickSearchField.this.requestTime.get()) {
 					LOGGER.debug("request list cancelled ({})", requestId);
 					return;
 				}
@@ -177,7 +156,7 @@ public class AllocineField extends ComboBoxField<QuickSearchVo> {
 				if (!getItems().isEmpty()) {
 					show();
 				}
-				LOGGER.info("request list displayed ({}) \"{}\"", requestId, url);
+				LOGGER.info("request list displayed ({}) \"{}\"", requestId, pattern);
 			}
 		});
 	}
