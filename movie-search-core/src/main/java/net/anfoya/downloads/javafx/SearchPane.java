@@ -9,7 +9,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.util.Callback;
 import net.anfoya.downloads.javafx.allocine.QuickSearchField;
-import net.anfoya.downloads.javafx.allocine.QuickSearchVo;
+import net.anfoya.movie.connector.QuickSearchVo;
 
 public class SearchPane extends BorderPane {
 	private final QuickSearchField text;

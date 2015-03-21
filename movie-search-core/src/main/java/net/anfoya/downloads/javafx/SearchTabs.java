@@ -15,7 +15,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Callback;
 import net.anfoya.downloads.Config;
-import net.anfoya.downloads.javafx.allocine.QuickSearchVo;
+import net.anfoya.movie.connector.QuickSearchVo;
 import net.anfoya.tools.model.Website;
 
 import org.slf4j.Logger;

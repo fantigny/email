@@ -8,6 +8,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
+import net.anfoya.movie.connector.QuickSearchVo;
 
 public class QuickSearchRenderer extends GridPane {
 	public QuickSearchRenderer(final QuickSearchVo qsVo) {
@@ -31,24 +32,28 @@ public class QuickSearchRenderer extends GridPane {
 		subtitle.setFont(Font.font("Verdana", 12));
 		subtitle.setAlignment(Pos.CENTER_LEFT);
     	add(subtitle, 1, 1, 1, 1);
-    	if (qsVo.isPerson()) {
+    	switch (qsVo.getType()) {
+		case PERSON:
 	    	// activities (nationality)
 			subtitle.setText(qsVo.getActivity());
 			if (!qsVo.getCountry().isEmpty()) {
 				subtitle.setText(subtitle.getText() + " (" + qsVo.getCountry() + ")");
 		    }
-    	} else if (qsVo.isSerie()) {
+			break;
+		case SERIE:
 	    	// creators (start year)
 			subtitle.setText(qsVo.getCreator());
 		    if (!qsVo.getYear().isEmpty()) {
 				subtitle.setText(subtitle.getText() + " (" + qsVo.getYear() + ")");
 		    }
-    	} else {
+		    break;
+		default:
 	    	// directors (production year)
 			subtitle.setText(qsVo.getDirector());
 		    if (!qsVo.getYear().isEmpty()) {
 				subtitle.setText(subtitle.getText() + " (" + qsVo.getYear() + ")");
 		    }
+			break;
     	}
 
     	// french title if needed

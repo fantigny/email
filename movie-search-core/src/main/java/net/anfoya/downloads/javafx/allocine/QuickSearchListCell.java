@@ -1,5 +1,6 @@
 package net.anfoya.downloads.javafx.allocine;
 
+import net.anfoya.movie.connector.QuickSearchVo;
 import javafx.scene.control.ListCell;
 
 public class QuickSearchListCell extends ListCell<QuickSearchVo> {

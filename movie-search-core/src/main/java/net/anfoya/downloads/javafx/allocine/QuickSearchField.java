@@ -14,6 +14,9 @@ import javafx.util.Callback;
 import javafx.util.StringConverter;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.ComboBoxField;
+import net.anfoya.movie.connector.AllocineConnector;
+import net.anfoya.movie.connector.MovieConnector;
+import net.anfoya.movie.connector.QuickSearchVo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +28,7 @@ public class QuickSearchField extends ComboBoxField<QuickSearchVo> {
 
 	private Callback<QuickSearchVo, Void> searchCallback;
 
-	private final QuickSearchProvider provider = new AllocineQuickSearch();
+	private final MovieConnector provider = new AllocineConnector();
 
 	public QuickSearchField() {
 		setPromptText("Key in a text and wait for quick search or type <Enter> for full search");
@@ -138,7 +141,7 @@ public class QuickSearchField extends ComboBoxField<QuickSearchVo> {
 		}
 
 		// search
-		final List<QuickSearchVo> qsResults = provider.search(pattern);
+		final List<QuickSearchVo> qsResults = provider.find(pattern);
 		if (requestId != this.requestTime.get()) {
 			LOGGER.debug("request list cancelled ({})", requestId);
 			return;

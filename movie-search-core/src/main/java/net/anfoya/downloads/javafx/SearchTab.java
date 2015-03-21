@@ -4,19 +4,15 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.ListBinding;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Tab;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.web.PopupFeatures;
-import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebHistory;
 import javafx.scene.web.WebHistory.Entry;
 import javafx.scene.web.WebView;
-import javafx.util.Callback;
-import net.anfoya.downloads.javafx.allocine.QuickSearchVo;
 import net.anfoya.javafx.scene.control.TitledProgressBar;
+import net.anfoya.movie.connector.QuickSearchVo;
 import net.anfoya.tools.model.Website;
 
 import org.slf4j.Logger;
@@ -38,12 +34,7 @@ public class SearchTab extends Tab {
 
 		view = new WebView();
 		view.setContextMenuEnabled(false);
-		view.getEngine().setCreatePopupHandler(new Callback<PopupFeatures, WebEngine>() {
-			@Override
-			public WebEngine call(final PopupFeatures popupFeatures) {
-				return null;
-			}
-		});
+		view.getEngine().setCreatePopupHandler(popupFeatures -> null);
 		content.setCenter(view);
 
 		final WebHistory history = view.getEngine().getHistory();
@@ -60,36 +51,11 @@ public class SearchTab extends Tab {
 		locationPane.runningProperty().bind(view.getEngine().getLoadWorker().runningProperty());
 		locationPane.backwardDisableProperty().bind(backwardDisableProperty);
 		locationPane.forwardDisableProperty().bind(forwardDisableProperty);
-		locationPane.setOnHomeAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(final ActionEvent arg0) {
-				goHome();
-			}
-		});
-		locationPane.setOnReloadAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(final ActionEvent event) {
-				view.getEngine().reload();
-			}
-		});
-		locationPane.setOnBackAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(final ActionEvent event) {
-				goHistory(-1);
-			}
-		});
-		locationPane.setOnForwardAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(final ActionEvent event) {
-				goHistory(1);
-			}
-		});
-		locationPane.setOnStopAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(final ActionEvent event) {
-				view.getEngine().getLoadWorker().cancel();
-			}
-		});
+		locationPane.setOnHomeAction(arg0 -> goHome());
+		locationPane.setOnReloadAction(event -> view.getEngine().reload());
+		locationPane.setOnBackAction(event -> goHistory(-1));
+		locationPane.setOnForwardAction(event -> goHistory(1));
+		locationPane.setOnStopAction(event -> view.getEngine().getLoadWorker().cancel());
 		content.setTop(locationPane);
 
 		final TitledProgressBar progressTitle = new TitledProgressBar(website.getName());
@@ -121,15 +87,7 @@ public class SearchTab extends Tab {
 
 		final String url;
 		if (website.getName().equals("AlloCine") && !resultVo.getId().isEmpty()) {
-			String pattern;
-			if (resultVo.isPerson()) {
-				pattern = "http://www.allocine.fr/personne/fichepersonne_gen_cpersonne=%s.html";
-			} else if (resultVo.isSerie()) {
-				pattern = "http://www.allocine.fr/series/ficheserie_gen_cserie=%s.html";
-			} else {
-				pattern = "http://www.allocine.fr/film/fichefilm_gen_cfilm=%s.html";
-			}
-			url = String.format(pattern, resultVo.getId());
+			url = resultVo.getUrl();
 		} else {
 			url = website.getSearchUrl(search);
 		}
