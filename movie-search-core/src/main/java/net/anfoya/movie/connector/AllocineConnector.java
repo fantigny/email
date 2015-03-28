@@ -20,7 +20,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-public class AllocineConnector implements MovieConnector {
+public class AllocineConnector extends AbstractConnector implements MovieConnector {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AllocineConnector.class);
 	private static final String PATTERN_SEARCH = "http://essearch.allocine.net/fr/autocomplete?geo2=83090&q=%s";
 	private static final String PATTERN_PERSON = "http://www.allocine.fr/personne/fichepersonne_gen_cpersonne=%s.html";
@@ -59,19 +59,6 @@ public class AllocineConnector implements MovieConnector {
 		}
 
 		return qsResults;
-	}
-
-	@Override
-	public QuickSearchVo findBestMatch(final String pattern) {
-		final List<QuickSearchVo> qsVos = find(pattern);
-		final QuickSearchVo bestMatch;
-		if (!qsVos.isEmpty()) {
-			bestMatch = qsVos.get(0);
-		} else {
-			bestMatch = null;
-		}
-
-		return bestMatch;
 	}
 
 	private QuickSearchVo buildVo(final JsonObject json) {
