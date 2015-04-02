@@ -155,7 +155,7 @@ public class EasyListRuleSet implements RuleSet {
 				, System.currentTimeMillis() - start);
 	}
 
-	private void loadInternet() {
+	protected void loadInternet() {
 		final EasyListRuleSet internetList = new EasyListRuleSet(false);
 		for(final String url: internetUrls) {
 			try {
