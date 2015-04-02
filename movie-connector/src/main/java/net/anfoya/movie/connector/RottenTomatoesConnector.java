@@ -9,7 +9,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-public class RottenTomatoesConnector extends QuickSearchMovieConnector implements MovieConnector {
+public class RottenTomatoesConnector extends SuggestedMovieConnector implements MovieConnector {
 	private static final String NAME = "Rotten Tomatoes";
 	private static final String HOME_URL = "http://www.rottentomatoes.com";
 	private static final String PATTERN_SEARCH = HOME_URL + "/search/?search=%s";
@@ -33,7 +33,7 @@ public class RottenTomatoesConnector extends QuickSearchMovieConnector implement
 					, getValue(jsonMovie, "name")
 					, getValue(jsonMovie, "name")
 					, getValue(jsonMovie, "year")
-					, getValue(jsonMovie, "image", getClass().getResource("nothumbnail.png").toString())
+					, getValue(jsonMovie, "image", getDefaultThumbnail())
 					, String.format(PATTERN_MOVIE, getValue(jsonMovie, "vanity"), getValue(jsonMovie, "name"))
 					, ""
 					, ""

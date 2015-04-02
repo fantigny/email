@@ -20,17 +20,19 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-public abstract class QuickSearchMovieConnector extends SimpleMovieConnector implements MovieConnector {
-	private static final Logger LOGGER = LoggerFactory.getLogger(QuickSearchMovieConnector.class);
+public abstract class SuggestedMovieConnector extends SimpleMovieConnector implements MovieConnector {
+	private static final Logger LOGGER = LoggerFactory.getLogger(SuggestedMovieConnector.class);
+
+	private static String defaultThumbnail;
 
 	private final String quickSearchPattern;
 	private final boolean jsonP;
 
-	public QuickSearchMovieConnector(final String name, final String homeUrl, final String searchPattern, final String quickSearchPattern) {
+	public SuggestedMovieConnector(final String name, final String homeUrl, final String searchPattern, final String quickSearchPattern) {
 		this(name, homeUrl, searchPattern, quickSearchPattern, false);
 	}
 
-	public QuickSearchMovieConnector(final String name, final String homeUrl, final String searchPattern, final String quickSearchPattern, final boolean jsonP) {
+	public SuggestedMovieConnector(final String name, final String homeUrl, final String searchPattern, final String quickSearchPattern, final boolean jsonP) {
 		super(name, homeUrl, searchPattern);
 		this.quickSearchPattern = quickSearchPattern;
 		this.jsonP = jsonP;
@@ -39,7 +41,8 @@ public abstract class QuickSearchMovieConnector extends SimpleMovieConnector imp
 	protected abstract List<MovieVo> buildVos(final JsonElement json);
 
 	@Override
-	public List<MovieVo> suggest(final String pattern) {
+	public List<MovieVo> suggest(String pattern) {
+		pattern = normalisePattern(pattern);
 		LOGGER.debug("quick search \"{}\"", pattern);
 		final List<MovieVo> qsResults = new ArrayList<MovieVo>();
 
@@ -59,7 +62,7 @@ public abstract class QuickSearchMovieConnector extends SimpleMovieConnector imp
 			LOGGER.error("invalid URL ({})", url);
 			return qsResults;
 		} catch (final IOException e) {
-			LOGGER.error("reading from ({})", url);
+			LOGGER.error("reading from ({})", url, e);
 			return qsResults;
 		}
 
@@ -80,10 +83,10 @@ public abstract class QuickSearchMovieConnector extends SimpleMovieConnector imp
 		MovieVo bestMatch = null;
 		final List<MovieVo> movieVos = suggest(pattern);
 		if (!movieVos.isEmpty()) {
+			pattern = normalisePattern(pattern);
 			for(final MovieVo movieVo: movieVos) {
-				pattern = Normalizer.normalize(pattern, Normalizer.Form.NFD).replaceAll("\\p{M}", "").replaceAll("[^\\p{ASCII}]", "").toLowerCase();
-				final String name = Normalizer.normalize(movieVo.getName(), Normalizer.Form.NFD).replaceAll("\\p{M}", "").replaceAll("[^\\p{ASCII}]", "").toLowerCase();
-				final String french = Normalizer.normalize(movieVo.getFrench(), Normalizer.Form.NFD).replaceAll("\\p{M}", "").replaceAll("[^\\p{ASCII}]", "").toLowerCase();
+				final String name = normalisePattern(movieVo.getName());
+				final String french = normalisePattern(movieVo.getFrench());
 				if (name.startsWith(pattern) || french.startsWith(pattern)) {
 					if (bestMatch == null) {
 						bestMatch = movieVo;
@@ -100,6 +103,17 @@ public abstract class QuickSearchMovieConnector extends SimpleMovieConnector imp
 		}
 
 		return bestMatch;
+	}
+
+	protected String getDefaultThumbnail() {
+		if (defaultThumbnail == null) {
+			defaultThumbnail = getClass().getResource("Thumbnail.png").toString();
+		}
+		return defaultThumbnail;
+	}
+
+	protected String normalisePattern(final String text) {
+		return Normalizer.normalize(text, Normalizer.Form.NFD).replaceAll("\\p{M}", "").replaceAll("[^\\p{ASCII}]", "").toLowerCase();
 	}
 
 	protected String getQuickSearchUrl(final String pattern) throws UnsupportedEncodingException {

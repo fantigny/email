@@ -86,8 +86,7 @@ public class SearchTab extends Tab {
 
 	public void search(final MovieVo movieVo) {
 		final String address = movieVo.getUrl();
-		if (!address.isEmpty()
-				&& movieVo.getSource().equals(connector.getName())) {
+		if (!address.isEmpty() && movieVo.getSource().equals(connector.getName())) {
 			LOGGER.info("{} - load ({})", connector.getName(), address);
 			view.getEngine().load(address);
 		} else {
