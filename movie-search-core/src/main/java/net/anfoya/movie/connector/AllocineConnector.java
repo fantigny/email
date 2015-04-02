@@ -1,12 +1,5 @@
 package net.anfoya.movie.connector;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,58 +11,32 @@ import org.slf4j.LoggerFactory;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
-public class AllocineConnector extends SimpleConnector implements MovieConnector {
+public class AllocineConnector extends QuickSearchMovieConnector implements MovieConnector {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AllocineConnector.class);
 
 	private static final String NAME = "AlloCine";
 	private static final String HOME_URL = "http://www.allocine.fr";
 	private static final String PATTERN_SEARCH = HOME_URL + "/recherche/?q=%s";
+	private static final String PATTERN_QUICK_SEARCH = "http://essearch.allocine.net/fr/autocomplete?geo2=83090&q=%s";
 
 	private static final String PATTERN_PERSON = HOME_URL + "/personne/fichepersonne_gen_cpersonne=%s.html";
 	private static final String PATTERN_SERIE = HOME_URL + "/series/ficheserie_gen_cserie=%s.html";
 	private static final String PATTERN_MOVIE = HOME_URL + "/film/fichefilm_gen_cfilm=%s.html";
 
-	private static final String PATTERN_QUICK_SEARCH = "http://essearch.allocine.net/fr/autocomplete?geo2=83090&q=%s";
-
 	public AllocineConnector() {
-		super(NAME, HOME_URL, PATTERN_SEARCH);
+		super(NAME, HOME_URL, PATTERN_SEARCH, PATTERN_QUICK_SEARCH);
 	}
 
 	@Override
-	public List<MovieVo> findAll(final String pattern) {
-		LOGGER.debug("quick search \"{}\"", pattern);
-		final List<MovieVo> qsResults = new ArrayList<MovieVo>();
-
-		// get a connection
-		String url;
-		try {
-			url = String.format(PATTERN_QUICK_SEARCH, URLEncoder.encode(pattern, "UTF8"));
-		} catch (final UnsupportedEncodingException e) {
-			LOGGER.error("encoding \"{}\"", pattern);
-			return qsResults;
-		}
-		LOGGER.info("request \"{}\"", url);
-		BufferedReader reader;
-		try {
-			reader = new BufferedReader(new InputStreamReader(new URL(url).openStream()));
-		} catch (final MalformedURLException e) {
-			LOGGER.error("invalid URL ({})", url);
-			return qsResults;
-		} catch (final IOException e) {
-			LOGGER.error("reading from ({})", url);
-			return qsResults;
+	protected List<MovieVo> buildVos(final JsonElement json) {
+		final List<MovieVo> movieVos = new ArrayList<MovieVo>();
+		for (final JsonElement jsonElement: json.getAsJsonArray()) {
+			movieVos.add(buildVo(jsonElement.getAsJsonObject()));
 		}
 
-		// read / parse json data
-		final JsonArray jsonQsResults = new JsonParser().parse(reader).getAsJsonArray();
-		for (final JsonElement jsonElement : jsonQsResults) {
-			qsResults.add(buildVo(jsonElement.getAsJsonObject()));
-		}
-
-		return qsResults;
+		return movieVos;
 	}
 
 	private MovieVo buildVo(final JsonObject json) {
@@ -122,21 +89,6 @@ public class AllocineConnector extends SimpleConnector implements MovieConnector
 		}
 
 		return new MovieVo(id, type, name, french, year, thumbnail, url, director, activity, creator, country, getName());
-	}
-
-	private String getValue(final JsonObject jsonObject, final String id, final String... defaultVal) {
-		String value;
-		try {
-			value = jsonObject.get(id).getAsString();
-		} catch (final Exception e) {
-			if (defaultVal.length != 0) {
-				value = defaultVal[0];
-			} else {
-				value = "";
-				LOGGER.warn("{} not found in {}", id, jsonObject.toString(), e);
-			}
-		}
-		return value;
 	}
 
 	private String getMetadata(final JsonObject jsonObject, final String id, final String... defaultVal) {

@@ -141,7 +141,7 @@ public class QuickSearchField extends ComboField<MovieVo> {
 		}
 
 		// search
-		final List<MovieVo> qsResults = provider.findAll(pattern);
+		final List<MovieVo> qsResults = provider.suggest(pattern);
 		if (requestId != this.requestTime.get()) {
 			LOGGER.debug("request list cancelled ({})", requestId);
 			return;

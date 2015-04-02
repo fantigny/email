@@ -11,5 +11,5 @@ public interface MovieConnector {
 	public String getSearchUrl(String pattern);
 
 	public MovieVo find(String pattern);
-	public List<MovieVo> findAll(String pattern);
+	public List<MovieVo> suggest(String pattern);
 }

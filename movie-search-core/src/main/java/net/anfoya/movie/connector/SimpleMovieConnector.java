@@ -7,13 +7,12 @@ import java.util.List;
 
 import net.anfoya.movie.connector.MovieVo.Type;
 
-public class SimpleConnector implements MovieConnector {
-
+public class SimpleMovieConnector implements MovieConnector {
 	private final String name;
 	private final String homeUrl;
 	private final String searchPattern;
 
-	public SimpleConnector(final String name, final String homeUrl, final String searchPattern) {
+	public SimpleMovieConnector(final String name, final String homeUrl, final String searchPattern) {
 		this.name = name;
 		this.homeUrl = homeUrl;
 		this.searchPattern = searchPattern;
@@ -44,14 +43,14 @@ public class SimpleConnector implements MovieConnector {
 	}
 
 	@Override
-	public List<MovieVo> findAll(final String pattern) {
+	public List<MovieVo> suggest(final String pattern) {
 		return new ArrayList<MovieVo>();
 	}
 
 	@Override
 	public MovieVo find(final String pattern) {
 		MovieVo bestMatch = null;
-		final List<MovieVo> qsVos = findAll(pattern);
+		final List<MovieVo> qsVos = suggest(pattern);
 		if (!qsVos.isEmpty()) {
 			for(final MovieVo qsVo: qsVos) {
 				if (qsVo.getName().equalsIgnoreCase(pattern)
