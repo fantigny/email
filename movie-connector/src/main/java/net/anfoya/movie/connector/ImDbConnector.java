@@ -24,7 +24,7 @@ public class ImDbConnector extends SuggestedMovieConnector implements MovieConne
 	@Override
 	protected String normalisePattern(final String pattern) {
 		return super.normalisePattern(pattern)
-				.substring(0, 6)
+				.substring(0, Math.min(6, pattern.length()))
 				.replace(" ", "_");
 	}
 
@@ -41,20 +41,13 @@ public class ImDbConnector extends SuggestedMovieConnector implements MovieConne
 		for (final JsonElement jsonElement: jsonMovies) {
 			final JsonObject jsonMovie = jsonElement.getAsJsonObject();
 			if (getValue(jsonMovie, "q", "").equals("feature")) {
-				String thumbnail;
-				try {
-					thumbnail = jsonMovie.get("i").getAsJsonArray().get(0).toString();
-				} catch(final Exception e) {
-					thumbnail = getDefaultThumbnail();
-				}
-
 				movieVos.add(new MovieVo(
 						getValue(jsonMovie, "id")
 						, Type.MOVIE
 						, getValue(jsonMovie, "l")
 						, getValue(jsonMovie, "l")
 						, getValue(jsonMovie, "y")
-						, thumbnail
+						, jsonMovie.has("i")? jsonMovie.get("i").getAsJsonArray().get(0).toString(): getDefaultThumbnail()
 						, String.format(PATTERN_MOVIE, getValue(jsonMovie, "id"))
 						, ""
 						, ""
