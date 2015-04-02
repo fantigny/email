@@ -7,6 +7,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -75,13 +76,15 @@ public abstract class QuickSearchMovieConnector extends SimpleMovieConnector imp
 	}
 
 	@Override
-	public MovieVo find(final String pattern) {
+	public MovieVo find(String pattern) {
 		MovieVo bestMatch = null;
 		final List<MovieVo> movieVos = suggest(pattern);
 		if (!movieVos.isEmpty()) {
 			for(final MovieVo movieVo: movieVos) {
-				if (movieVo.getName().equalsIgnoreCase(pattern)
-						|| movieVo.getFrench().equalsIgnoreCase(pattern)) {
+				pattern = Normalizer.normalize(pattern, Normalizer.Form.NFD).replaceAll("\\p{M}", "").replaceAll("[^\\p{ASCII}]", "").toLowerCase();
+				final String name = Normalizer.normalize(movieVo.getName(), Normalizer.Form.NFD).replaceAll("\\p{M}", "").replaceAll("[^\\p{ASCII}]", "").toLowerCase();
+				final String french = Normalizer.normalize(movieVo.getFrench(), Normalizer.Form.NFD).replaceAll("\\p{M}", "").replaceAll("[^\\p{ASCII}]", "").toLowerCase();
+				if (name.startsWith(pattern) || french.startsWith(pattern)) {
 					if (bestMatch == null) {
 						bestMatch = movieVo;
 					} else {

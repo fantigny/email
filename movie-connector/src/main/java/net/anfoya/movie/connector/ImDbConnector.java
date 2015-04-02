@@ -24,9 +24,7 @@ public class ImDbConnector extends QuickSearchMovieConnector implements MovieCon
 
 	@Override
 	protected String getQuickSearchUrl(String pattern) throws UnsupportedEncodingException {
-		if (pattern.contains(" ")) {
-			pattern = pattern.split(" ")[0] + "_";
-		}
+		pattern.replace(" ", "_");
 		pattern = pattern.toLowerCase();
 		pattern = URLEncoder.encode(pattern, "UTF8");
 		return String.format(PATTERN_QUICK_SEARCH, pattern.charAt(0), pattern);
