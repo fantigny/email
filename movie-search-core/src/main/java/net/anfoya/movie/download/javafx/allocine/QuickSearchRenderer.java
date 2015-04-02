@@ -1,4 +1,4 @@
-package net.anfoya.downloads.javafx.allocine;
+package net.anfoya.movie.download.javafx.allocine;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -8,10 +8,10 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
-import net.anfoya.movie.connector.QuickSearchVo;
+import net.anfoya.movie.connector.MovieVo;
 
 public class QuickSearchRenderer extends GridPane {
-	public QuickSearchRenderer(final QuickSearchVo qsVo) {
+	public QuickSearchRenderer(final MovieVo qsVo) {
 	    setHgap(10);
 	    setVgap(5);
 	    setPadding(new Insets(5));

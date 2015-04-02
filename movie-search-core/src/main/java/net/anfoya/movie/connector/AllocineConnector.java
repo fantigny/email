@@ -10,7 +10,7 @@ import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.anfoya.movie.connector.QuickSearchVo.Type;
+import net.anfoya.movie.connector.MovieVo.Type;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,22 +20,33 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-public class Allocine extends MovieConnectorAbstract implements MovieConnector {
-	private static final Logger LOGGER = LoggerFactory.getLogger(Allocine.class);
-	private static final String PATTERN_SEARCH = "http://essearch.allocine.net/fr/autocomplete?geo2=83090&q=%s";
-	private static final String PATTERN_PERSON = "http://www.allocine.fr/personne/fichepersonne_gen_cpersonne=%s.html";
-	private static final String PATTERN_SERIE = "http://www.allocine.fr/series/ficheserie_gen_cserie=%s.html";
-	private static final String PATTERN_MOVIE = "http://www.allocine.fr/film/fichefilm_gen_cfilm=%s.html";
+public class AllocineConnector extends SimpleConnector implements MovieConnector {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(AllocineConnector.class);
+
+	private static final String NAME = "AlloCine";
+	private static final String HOME_URL = "http://www.allocine.fr";
+	private static final String PATTERN_SEARCH = HOME_URL + "/recherche/?q=%s";
+
+	private static final String PATTERN_PERSON = HOME_URL + "/personne/fichepersonne_gen_cpersonne=%s.html";
+	private static final String PATTERN_SERIE = HOME_URL + "/series/ficheserie_gen_cserie=%s.html";
+	private static final String PATTERN_MOVIE = HOME_URL + "/film/fichefilm_gen_cfilm=%s.html";
+
+	private static final String PATTERN_QUICK_SEARCH = "http://essearch.allocine.net/fr/autocomplete?geo2=83090&q=%s";
+
+	public AllocineConnector() {
+		super(NAME, HOME_URL, PATTERN_SEARCH);
+	}
 
 	@Override
-	public List<QuickSearchVo> find(final String pattern) {
-		LOGGER.debug("search \"{}\"", pattern);
-		final List<QuickSearchVo> qsResults = new ArrayList<QuickSearchVo>();
+	public List<MovieVo> findAll(final String pattern) {
+		LOGGER.debug("quick search \"{}\"", pattern);
+		final List<MovieVo> qsResults = new ArrayList<MovieVo>();
 
 		// get a connection
 		String url;
 		try {
-			url = String.format(PATTERN_SEARCH, URLEncoder.encode(pattern, "UTF8"));
+			url = String.format(PATTERN_QUICK_SEARCH, URLEncoder.encode(pattern, "UTF8"));
 		} catch (final UnsupportedEncodingException e) {
 			LOGGER.error("encoding \"{}\"", pattern);
 			return qsResults;
@@ -61,7 +72,7 @@ public class Allocine extends MovieConnectorAbstract implements MovieConnector {
 		return qsResults;
 	}
 
-	private QuickSearchVo buildVo(final JsonObject json) {
+	private MovieVo buildVo(final JsonObject json) {
 		final String id = getValue(json, "id");
 		final String director = getMetadata(json, "director");
 		final String activity = getMetadata(json, "activity");
@@ -110,7 +121,7 @@ public class Allocine extends MovieConnectorAbstract implements MovieConnector {
 			break;
 		}
 
-		return new QuickSearchVo(id, type, name, french, year, thumbnail, url, director, activity, creator, country);
+		return new MovieVo(id, type, name, french, year, thumbnail, url, director, activity, creator, country, getName());
 	}
 
 	private String getValue(final JsonObject jsonObject, final String id, final String... defaultVal) {

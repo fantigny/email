@@ -1,4 +1,4 @@
-package net.anfoya.downloads.javafx;
+package net.anfoya.movie.download.javafx;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
@@ -12,9 +12,8 @@ import javafx.scene.web.WebHistory;
 import javafx.scene.web.WebHistory.Entry;
 import javafx.scene.web.WebView;
 import net.anfoya.javafx.scene.control.TitledProgressBar;
-import net.anfoya.movie.connector.Allocine;
-import net.anfoya.movie.connector.QuickSearchVo;
-import net.anfoya.tools.model.Website;
+import net.anfoya.movie.connector.MovieConnector;
+import net.anfoya.movie.connector.MovieVo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,13 +21,13 @@ import org.slf4j.LoggerFactory;
 public class SearchTab extends Tab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SearchTab.class);
 
-	private final Website website;
-
 	private final LocationPane locationPane;
 	private final WebView view;
 
-	public SearchTab(final Website website) {
-		this.website = website;
+	private final MovieConnector connector;
+
+	public SearchTab(final MovieConnector connector) {
+		this.connector = connector;
 
 		final BorderPane content = new BorderPane();
 		setContent(content);
@@ -52,14 +51,14 @@ public class SearchTab extends Tab {
 		locationPane.runningProperty().bind(view.getEngine().getLoadWorker().runningProperty());
 		locationPane.backwardDisableProperty().bind(backwardDisableProperty);
 		locationPane.forwardDisableProperty().bind(forwardDisableProperty);
-		locationPane.setOnHomeAction(arg0 -> goHome());
+		locationPane.setOnHomeAction(event -> goHome());
 		locationPane.setOnReloadAction(event -> view.getEngine().reload());
 		locationPane.setOnBackAction(event -> goHistory(-1));
 		locationPane.setOnForwardAction(event -> goHistory(1));
 		locationPane.setOnStopAction(event -> view.getEngine().getLoadWorker().cancel());
 		content.setTop(locationPane);
 
-		final TitledProgressBar progressTitle = new TitledProgressBar(website.getName());
+		final TitledProgressBar progressTitle = new TitledProgressBar(connector.getName());
 		progressTitle.setPrefWidth(120);
 		progressTitle.progressProperty().bind(view.getEngine().getLoadWorker().progressProperty());
 		progressTitle.stateProperty().bind(view.getEngine().getLoadWorker().stateProperty());
@@ -67,38 +66,33 @@ public class SearchTab extends Tab {
 	}
 
 	public void goHome() {
-		LOGGER.info("({}) - going home", website);
-		view.getEngine().load(website.getHomeUrl());
+		LOGGER.info("{} - going home", connector.getName());
+		view.getEngine().load(connector.getHomeUrl());
 	}
 
 	public void goHistory(final int offset) {
 		final WebHistory history = view.getEngine().getHistory();
 		final int index = history.getCurrentIndex() + offset;
 		if (index >= 0 && index < history.getEntries().size()) {
-			LOGGER.info("({}) - move in history with offset ({}{})", website, offset>0?"+":"", offset);
+			LOGGER.info("{} - move in history with offset ({}{})", connector.getName(), offset>0?"+":"", offset);
 			history.go(offset);
 		}
 	}
 
-	public void search(final QuickSearchVo resultVo) {
-		final String search = resultVo.toString();
-		if (search.isEmpty() || !website.isSearchable()) {
-			return;
-		}
+	public void search(final String pattern) {
+		LOGGER.info("{} - search ({})", connector.getName(), pattern);
+		search(connector.find(pattern));
+	}
 
-		String url = "";
-		if (website.getName().equals("AlloCine")) {
-			if (!resultVo.getId().isEmpty()) {
-				url = resultVo.getUrl();
-			} else {
-				url = new Allocine().findBestMatch(search).getUrl();
-			}
+	public void search(final MovieVo movieVo) {
+		final String address = movieVo.getUrl();
+		if (!address.isEmpty()
+				&& movieVo.getSource().equals(connector.getName())) {
+			LOGGER.info("{} - load ({})", connector.getName(), address);
+			view.getEngine().load(address);
+		} else {
+			search(movieVo.getName());
 		}
-		if (url.isEmpty()) {
-			url = website.getSearchUrl(search);
-		}
-		LOGGER.info("({}) - load ({})", website, url);
-		view.getEngine().load(url);
 	}
 
 	public void setOnViewClicked(final EventHandler<MouseEvent> handler) {
@@ -114,10 +108,10 @@ public class SearchTab extends Tab {
 	}
 
 	public boolean isSearchable() {
-		return website.isSearchable();
+		return connector.isSearchable();
 	}
 
 	public String getName() {
-		return website.getName();
+		return connector.getName();
 	}
 }

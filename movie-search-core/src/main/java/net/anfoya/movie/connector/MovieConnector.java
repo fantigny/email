@@ -4,6 +4,12 @@ import java.util.List;
 
 public interface MovieConnector {
 
-	List<QuickSearchVo> find(String pattern);
-	QuickSearchVo findBestMatch(String pattern);
+	public String getName();
+	public boolean isSearchable();
+
+	public String getHomeUrl();
+	public String getSearchUrl(String pattern);
+
+	public MovieVo find(String pattern);
+	public List<MovieVo> findAll(String pattern);
 }

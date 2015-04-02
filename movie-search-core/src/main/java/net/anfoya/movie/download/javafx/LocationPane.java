@@ -1,4 +1,4 @@
-package net.anfoya.downloads.javafx;
+package net.anfoya.movie.download.javafx;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;

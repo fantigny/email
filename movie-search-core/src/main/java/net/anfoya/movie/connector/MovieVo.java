@@ -1,15 +1,15 @@
 package net.anfoya.movie.connector;
 
 
-public class QuickSearchVo {
-	private static final QuickSearchVo EMPTY_QS_VO = new QuickSearchVo();
+public class MovieVo {
+	private static final MovieVo EMPTY = new MovieVo();
 
-	public static QuickSearchVo getEmptyValue() {
-		return EMPTY_QS_VO;
+	public static MovieVo getEmptyValue() {
+		return EMPTY;
 	}
 
 	public enum Type {
-		PERSON, SERIE, MOVIE, UNDEFINED
+		MOVIE, PERSON, SERIE, UNDEFINED
 	}
 
 	private final String id;
@@ -25,9 +25,11 @@ public class QuickSearchVo {
 	private final String creator;
 	private final String country;
 
-	public QuickSearchVo(final String id, final Type type, final String name, final String french,
+	private final String source;
+
+	public MovieVo(final String id, final Type type, final String name, final String french,
 			final String year, final String thumbnail, final String url, final String director, final String activity,
-			final String creator, final String country) {
+			final String creator, final String country, final String source) {
 		super();
 		this.id = id;
 		this.type = type;
@@ -40,22 +42,23 @@ public class QuickSearchVo {
 		this.activity = activity;
 		this.creator = creator;
 		this.country = country;
+		this.source = source;
 	}
 
 
 
-	public QuickSearchVo(final String name) {
-		this("", Type.UNDEFINED, name, "", "", "", "", "", "", "", "");
+	public MovieVo(final String name) {
+		this("", Type.UNDEFINED, name, "", "", "", "", "", "", "", "", "");
 	}
 
-	private QuickSearchVo() {
+	private MovieVo() {
 		this("");
 	}
 
 	@Override
 	public boolean equals(final Object o) {
-		if (o instanceof QuickSearchVo) {
-			final QuickSearchVo other = (QuickSearchVo) o;
+		if (o instanceof MovieVo) {
+			final MovieVo other = (MovieVo) o;
 			if (other.name.isEmpty()) {
 				return name.isEmpty();
 			} else {
@@ -108,7 +111,7 @@ public class QuickSearchVo {
 	}
 
 	public boolean isEmpty() {
-		return equals(EMPTY_QS_VO);
+		return equals(EMPTY);
 	}
 
 	public String getCountry() {
@@ -117,5 +120,9 @@ public class QuickSearchVo {
 
 	public String getUrl() {
 		return url;
+	}
+
+	public String getSource() {
+		return source;
 	}
 }

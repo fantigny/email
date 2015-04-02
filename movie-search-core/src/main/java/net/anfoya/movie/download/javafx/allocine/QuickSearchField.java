@@ -1,4 +1,4 @@
-package net.anfoya.downloads.javafx.allocine;
+package net.anfoya.movie.download.javafx.allocine;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -14,27 +14,27 @@ import javafx.util.Callback;
 import javafx.util.StringConverter;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.ComboField;
-import net.anfoya.movie.connector.Allocine;
+import net.anfoya.movie.connector.AllocineConnector;
 import net.anfoya.movie.connector.MovieConnector;
-import net.anfoya.movie.connector.QuickSearchVo;
+import net.anfoya.movie.connector.MovieVo;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class QuickSearchField extends ComboField<QuickSearchVo> {
+public class QuickSearchField extends ComboField<MovieVo> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(QuickSearchField.class);
-	private volatile QuickSearchVo requestedVo;
+	private volatile MovieVo requestedVo;
 	private final AtomicLong requestTime;
 
-	private Callback<QuickSearchVo, Void> searchCallback;
+	private Callback<MovieVo, Void> searchCallback;
 
-	private final MovieConnector provider = new Allocine();
+	private final MovieConnector provider = new AllocineConnector();
 
 	public QuickSearchField() {
 		setPromptText("Key in a text and wait for quick search or type <Enter> for full search");
-		setCellFactory(new Callback<ListView<QuickSearchVo>, ListCell<QuickSearchVo>>() {
+		setCellFactory(new Callback<ListView<MovieVo>, ListCell<MovieVo>>() {
 			@Override
-			public ListCell<QuickSearchVo> call(final ListView<QuickSearchVo> listView) {
+			public ListCell<MovieVo> call(final ListView<MovieVo> listView) {
 				return new QuickSearchListCell();
 			}
 		});
@@ -56,31 +56,31 @@ public class QuickSearchField extends ComboField<QuickSearchVo> {
 			}
 		});
 
-		setConverter(new StringConverter<QuickSearchVo>() {
+		setConverter(new StringConverter<MovieVo>() {
 			@Override
-			public String toString(final QuickSearchVo qsVo) {
+			public String toString(final MovieVo qsVo) {
 				LOGGER.debug("from value object ({})", qsVo);
 				return qsVo == null? null: qsVo.toString();
 			}
 			@Override
-			public QuickSearchVo fromString(final String s) {
+			public MovieVo fromString(final String s) {
 				LOGGER.debug("from string \"{}\"", s);
-				return s == null? null: new QuickSearchVo(s);
+				return s == null? null: new MovieVo(s);
 			}
 		});
 	}
 
-	public void setOnSearch(final Callback<QuickSearchVo, Void> callback) {
+	public void setOnSearch(final Callback<MovieVo, Void> callback) {
 		searchCallback = callback;
 	}
 
 	public void setSearchedText(final String search) {
-		setFieldValue(new QuickSearchVo(search));
+		setFieldValue(new MovieVo(search));
 	}
 
 	private synchronized void submitSearch() {
 		cancelListRequest();
-		final QuickSearchVo qs = getFieldValue();
+		final MovieVo qs = getFieldValue();
 		if (qs == null || qs.toString().isEmpty()) {
 			return;
 		}
@@ -91,7 +91,7 @@ public class QuickSearchField extends ComboField<QuickSearchVo> {
 	}
 
 	private synchronized void submitQuickSearch() {
-		final QuickSearchVo qsVo = getFieldValue();
+		final MovieVo qsVo = getFieldValue();
 		LOGGER.debug("request list ({})", qsVo);
 
 		if (qsVo == null) {
@@ -141,7 +141,7 @@ public class QuickSearchField extends ComboField<QuickSearchVo> {
 		}
 
 		// search
-		final List<QuickSearchVo> qsResults = provider.find(pattern);
+		final List<MovieVo> qsResults = provider.findAll(pattern);
 		if (requestId != this.requestTime.get()) {
 			LOGGER.debug("request list cancelled ({})", requestId);
 			return;

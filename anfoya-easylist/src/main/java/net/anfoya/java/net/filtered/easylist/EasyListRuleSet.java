@@ -53,7 +53,7 @@ public class EasyListRuleSet implements RuleSet {
 				}
 				this.time = time;
 			}
-		}, 0, 3000);
+		}, 0, 5 * 60 * 1000);
 	}
 
 	private final String[] internetUrls;
@@ -145,7 +145,7 @@ public class EasyListRuleSet implements RuleSet {
 			}
 		});
 	}
-	
+
 	private void loadCache() {
 		final long start = System.currentTimeMillis();
 		URL_EXCEPTIONS_CACHE.load();
@@ -154,7 +154,7 @@ public class EasyListRuleSet implements RuleSet {
 				, URL_EXCEPTIONS_CACHE.size() + URL_EXCLUSIONS_CACHE.size()
 				, System.currentTimeMillis() - start);
 	}
-	
+
 	private void loadInternet() {
 		final EasyListRuleSet internetList = new EasyListRuleSet(false);
 		for(final String url: internetUrls) {
@@ -169,7 +169,7 @@ public class EasyListRuleSet implements RuleSet {
 		}
 		save();
 	}
-	
+
 	private void save() {
 		try {
 			new SerializedFile<Set<Rule>>(CONFIG.getExceptionsFilePath()).save(exceptions);

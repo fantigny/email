@@ -1,4 +1,4 @@
-package net.anfoya.downloads.javafx;
+package net.anfoya.movie.download.javafx;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,9 +14,9 @@ import javafx.scene.control.TabPane;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Callback;
-import net.anfoya.downloads.Config;
-import net.anfoya.movie.connector.QuickSearchVo;
-import net.anfoya.tools.model.Website;
+import net.anfoya.movie.connector.MovieConnector;
+import net.anfoya.movie.connector.MovieVo;
+import net.anfoya.movie.download.Config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,8 +31,8 @@ public class SearchTabs extends TabPane {
 		setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
 		getStyleClass().add(TabPane.STYLE_CLASS_FLOATING);
 
-		for(final Website website: new Config().getWebsites()) {
-			final SearchTab tab = new SearchTab(website);
+		for(final MovieConnector connector: new Config().getMovieConnectors()) {
+			final SearchTab tab = new SearchTab(connector);
 			tab.setOnViewClicked(new EventHandler<MouseEvent>() {
 				@Override
 				public void handle(final MouseEvent event) {
@@ -61,19 +61,19 @@ public class SearchTabs extends TabPane {
 		this.searchedCallBack = callBack;
 	}
 
-	public void search(final QuickSearchVo resultVo) {
+	public void search(final MovieVo resultVo) {
 		search(getTabs(), resultVo);
 	}
 
 	private void search(final List<Tab> tabs, final String text) {
-		search(tabs, new QuickSearchVo(text));
+		search(tabs, new MovieVo(text));
 		searchedCallBack.call(text);
 	}
 
-	private void search(final List<Tab> tabs, final QuickSearchVo resultVo) {
-		LOGGER.info("search \"{}\" (id {})", resultVo, resultVo.getId());
+	private void search(final List<Tab> tabs, final MovieVo movieVo) {
+		LOGGER.info("search \"{}\" (source=\"{}\", id=\"{}\")", movieVo.getName(), movieVo.getSource(), movieVo.getId());
 		for(final Tab tab: tabs) {
-			((SearchTab)tab).search(resultVo);
+			((SearchTab)tab).search(movieVo);
 		}
 	}
 
@@ -101,7 +101,7 @@ public class SearchTabs extends TabPane {
 						subItem.setOnAction(new EventHandler<ActionEvent>() {
 							@Override
 							public void handle(final ActionEvent event) {
-								searchTab.search(new QuickSearchVo(getSelection()));
+								searchTab.search(new MovieVo(getSelection()));
 								getSelectionModel().select(searchTab);
 							}
 						});
