@@ -12,6 +12,7 @@ import javafx.scene.web.WebHistory;
 import javafx.scene.web.WebHistory.Entry;
 import javafx.scene.web.WebView;
 import net.anfoya.javafx.scene.control.TitledProgressBar;
+import net.anfoya.movie.connector.Allocine;
 import net.anfoya.movie.connector.QuickSearchVo;
 import net.anfoya.tools.model.Website;
 
@@ -85,10 +86,15 @@ public class SearchTab extends Tab {
 			return;
 		}
 
-		final String url;
-		if (website.getName().equals("AlloCine") && !resultVo.getId().isEmpty()) {
-			url = resultVo.getUrl();
-		} else {
+		String url = "";
+		if (website.getName().equals("AlloCine")) {
+			if (!resultVo.getId().isEmpty()) {
+				url = resultVo.getUrl();
+			} else {
+				url = new Allocine().findBestMatch(search).getUrl();
+			}
+		}
+		if (url.isEmpty()) {
 			url = website.getSearchUrl(search);
 		}
 		LOGGER.info("({}) - load ({})", website, url);

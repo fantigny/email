@@ -1,5 +1,8 @@
 package net.anfoya.movie.connector;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /*
  * http://www.rottentomatoes.com/search/json/?catCount=2&q=%s
  *
@@ -30,6 +33,10 @@ package net.anfoya.movie.connector;
  *
  */
 
-public class RottenTomatoesSearch {
+public class RottenTomatoes extends MovieConnectorAbstract implements MovieConnector {
 
+	@Override
+	public List<QuickSearchVo> find(final String pattern) {
+		return new ArrayList<QuickSearchVo>();
+	}
 }

@@ -14,7 +14,7 @@ import javafx.util.Callback;
 import javafx.util.StringConverter;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.ComboField;
-import net.anfoya.movie.connector.AllocineConnector;
+import net.anfoya.movie.connector.Allocine;
 import net.anfoya.movie.connector.MovieConnector;
 import net.anfoya.movie.connector.QuickSearchVo;
 
@@ -28,7 +28,7 @@ public class QuickSearchField extends ComboField<QuickSearchVo> {
 
 	private Callback<QuickSearchVo, Void> searchCallback;
 
-	private final MovieConnector provider = new AllocineConnector();
+	private final MovieConnector provider = new Allocine();
 
 	public QuickSearchField() {
 		setPromptText("Key in a text and wait for quick search or type <Enter> for full search");
