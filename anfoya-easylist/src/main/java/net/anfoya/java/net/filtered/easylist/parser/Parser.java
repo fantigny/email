@@ -23,12 +23,6 @@ public class Parser {
 		if (effLine.startsWith(Terminal.EXCEPTION.value())) {
 			type = RuleType.exception;
 			effLine = effLine.substring(Terminal.EXCEPTION.length());
-		} else if (effLine.startsWith(Terminal.DIV.value())
-				&& effLine.contains("=\"")
-				&& effLine.contains("\"]")) {
-			type = RuleType.exclusion;
-			effLine = effLine.substring(effLine.indexOf("=\"") + 2);
-			effLine = effLine.substring(0, effLine.indexOf("\"]"));
 		} else {
 			type = RuleType.exclusion;
 		}
@@ -57,7 +51,17 @@ public class Parser {
 				line = line.substring(0, line.indexOf("$"));
 			}
 		}
-		if (line.contains("#@#")) { // todo: div selector
+		if (line.startsWith(Terminal.DIV.value())) {
+			if (line.contains("href")
+						&& line.contains("=\"")
+						&& line.contains("\"]")) {
+				line = line.substring(line.indexOf("=\"") + 2);
+				line = line.substring(0, line.indexOf("\"]"));
+			} else {
+				line = "";
+			}
+		}
+		if (line.startsWith("#@#")) { // todo: div selector exception
 			line = "";
 		}
 

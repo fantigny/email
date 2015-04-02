@@ -81,23 +81,29 @@ public abstract class SuggestedMovieConnector extends SimpleMovieConnector imple
 	@Override
 	public MovieVo find(String pattern) {
 		MovieVo bestMatch = null;
-		final List<MovieVo> movieVos = suggest(pattern);
-		if (!movieVos.isEmpty()) {
-			pattern = normalisePattern(pattern);
-			for(final MovieVo movieVo: movieVos) {
-				final String name = normalisePattern(movieVo.getName());
-				final String french = normalisePattern(movieVo.getFrench());
-				if (name.startsWith(pattern) || french.startsWith(pattern)) {
-					if (bestMatch == null) {
-						bestMatch = movieVo;
-					} else {
-						if (bestMatch.getYear().compareTo(movieVo.getYear()) < 0) {
+		try {
+			final List<MovieVo> movieVos = suggest(pattern);
+			if (!movieVos.isEmpty()) {
+				pattern = normalisePattern(pattern);
+				for(final MovieVo movieVo: movieVos) {
+					final String name = normalisePattern(movieVo.getName());
+					final String french = normalisePattern(movieVo.getFrench());
+					if (name.startsWith(pattern) || french.startsWith(pattern)) {
+						if (bestMatch == null) {
 							bestMatch = movieVo;
+						} else {
+							if (bestMatch.getYear().compareTo(movieVo.getYear()) < 0) {
+								bestMatch = movieVo;
+							}
 						}
 					}
 				}
 			}
+		} catch (final Exception e) {
+			LOGGER.error("finding movie for pattern \"\"", pattern);
+			bestMatch = null;
 		}
+
 		if (bestMatch == null) {
 			bestMatch = new MovieVo("", Type.UNDEFINED, pattern, "", "", "", getSearchUrl(pattern), "", "", "", "", getName());
 		}

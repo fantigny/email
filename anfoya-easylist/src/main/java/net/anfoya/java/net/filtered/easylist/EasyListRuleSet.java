@@ -1,5 +1,7 @@
 package net.anfoya.java.net.filtered.easylist;
 
+// https://adblockplus.org/en/filters
+
 import java.io.IOException;
 import java.net.URL;
 import java.util.Calendar;
