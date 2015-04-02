@@ -1,9 +1,11 @@
 package net.anfoya.movies.javafx.entrypoint;
 
+import net.anfoya.movie.browser.javafx.entrypoint.MovieBrowserApp;
 
 public class BrowserApp {
+	// TODO: remove backward compatibility
 
 	public static void main(final String[] args) {
-		net.anfoya.movie.browser.javafx.entrypoint.BrowserApp.main(args);
+		MovieBrowserApp.main(args);
 	}
 }

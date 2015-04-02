@@ -50,7 +50,7 @@ import net.anfoya.movie.browser.service.MovieService;
 
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
-public class BrowserApp extends Application {
+public class MovieBrowserApp extends Application {
 	private static final Duration CONSOLIDATION_DELAY = Duration.seconds(5);
 	private static final Duration CONSOLIDATION_PERIOD = Duration.minutes(5);
 
@@ -80,7 +80,7 @@ public class BrowserApp extends Application {
 	private final PersistentCookieStore cookieStore;
 	private final RuleSet urlFilter;
 
-	public BrowserApp() {
+	public MovieBrowserApp() {
 		final ComponentBuilder compBuilder = new ComponentBuilder();
 		this.profile = compBuilder.buildProfile();
 		this.movieService = compBuilder.buildMovieService();

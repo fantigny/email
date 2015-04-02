@@ -18,7 +18,7 @@ import net.anfoya.movie.search.javafx.ComponentBuilder;
 import net.anfoya.movie.search.javafx.SearchPane;
 import net.anfoya.movie.search.javafx.SearchTabs;
 
-public class DownloadApp extends Application {
+public class MovieSearchApp extends Application {
 
 	public static void main(final String[] args) {
 		launch(args);
@@ -31,7 +31,7 @@ public class DownloadApp extends Application {
 	private final SearchPane searchPane;
 	private final URLStreamHandlerFactory torrentHandlerFactory;
 
-	public DownloadApp() {
+	public MovieSearchApp() {
 		final ComponentBuilder compBuilder = new ComponentBuilder();
 		cookieStore = compBuilder.buildCookieStore();
 		ruleSet = compBuilder.buildRuleSet();
