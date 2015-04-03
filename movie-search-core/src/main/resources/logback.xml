@@ -11,9 +11,9 @@
 		</encoder>
 	</appender>
 
+  <logger name="net.anfoya.java.net.filtered.easylist" level="DEBUG"/>
   <!--
   <logger name="net.anfoya.downloads.javafx.allocine" level="DEBUG"/>
-  <logger name="net.anfoya.javafx.scene.control" level="DEBUG"/>
   -->
 
 	<root level="info">

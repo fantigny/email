@@ -9,6 +9,7 @@
 	<modules>
 		<module>../anfoya-tools</module>
 		<module>../anfoya-easylist</module>
+		<module>../movie-connector</module>
 		<module>../movie-search-core</module>
 	</modules>
 </project>

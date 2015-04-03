@@ -32,7 +32,7 @@
 								<transformer
 									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 									<manifestEntries>
-										<main-class>net.anfoya.downloads.javafx.entrypoint.DownloadApp</main-class>
+										<main-class>net.anfoya.movie.search.javafx.entrypoint.MovieSearchApp</main-class>
 									</manifestEntries>
 								</transformer>
 							</transformers>
@@ -51,6 +51,11 @@
 		<dependency>
 			<groupId>net.anfoya</groupId>
 			<artifactId>anfoya-easylist</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>net.anfoya</groupId>
+			<artifactId>movie-connector</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 	
