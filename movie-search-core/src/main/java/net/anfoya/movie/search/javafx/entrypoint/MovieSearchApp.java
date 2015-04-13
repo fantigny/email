@@ -79,7 +79,7 @@ public class MovieSearchApp extends Application {
 		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/combo_noarrow.css").toExternalForm());
 
 		mainStage.setTitle("Movie Search");
-		mainStage.getIcons().add(new Image(getClass().getResourceAsStream("Downloads.png")));
+		mainStage.getIcons().add(new Image(getClass().getResourceAsStream("MovieSearch.png")));
         mainStage.setScene(scene);
 		mainStage.show();
 	}

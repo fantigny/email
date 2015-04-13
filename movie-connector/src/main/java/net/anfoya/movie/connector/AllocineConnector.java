@@ -12,7 +12,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
-public class AllocineConnector extends QuickSearchMovieConnector implements MovieConnector {
+public class AllocineConnector extends SuggestedMovieConnector implements MovieConnector {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AllocineConnector.class);
 
@@ -71,7 +71,7 @@ public class AllocineConnector extends QuickSearchMovieConnector implements Movi
 
 		final String french = getValue(json, "title1", name);
 
-		final String thumbnail = getValue(json, "thumbnail", getClass().getResource("nothumbnail.png").toString());
+		final String thumbnail = getValue(json, "thumbnail", getDefaultThumbnail());
 
 		final String country = getMetadata(json, "nationality", "");
 

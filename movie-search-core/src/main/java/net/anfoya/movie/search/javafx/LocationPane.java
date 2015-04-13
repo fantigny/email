@@ -20,47 +20,44 @@ public class LocationPane extends BorderPane {
 	private final Button forwwardButton;
 	private final Button homeButton;
 	private final TextField text;
-	
-	private final HBox stopReloadBox;
+
+	private final HBox leftBox;
 	private final Button reloadButton;
 	private final Button stopButton;
-	private final BooleanProperty runningProperty;	
+	private final BooleanProperty loadingProperty;
 
 	public LocationPane() {
 		setPadding(new Insets(5));
-		
+
 		backwardButton = new Button();
-		backwardButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("back.png"))));
+		backwardButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("Backward.png"))));
 		backwardButton.setDisable(true);
 		forwwardButton = new Button();
-		forwwardButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("forward.png"))));
+		forwwardButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("Forward.png"))));
 		forwwardButton.setDisable(true);
 		homeButton = new Button();
-		homeButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("home.png"))));
-		setLeft(new HBox(3, backwardButton, forwwardButton, homeButton));
+		homeButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("Home.png"))));
+		reloadButton = new Button();
+		reloadButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("Refresh.png"))));
+		stopButton = new Button();
+		stopButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("Cancel.png"))));
+
+		leftBox = new HBox(3, backwardButton, forwwardButton, homeButton);
+		setLeft(leftBox);
+
+		loadingProperty = new SimpleBooleanProperty();
+		loadingProperty.addListener(new ChangeListener<Boolean>() {
+			@Override
+			public void changed(final ObservableValue<? extends Boolean> ov, final Boolean oldVal, final Boolean newVal) {
+				leftBox.getChildren().remove(newVal? reloadButton: stopButton);
+				leftBox.getChildren().add(newVal? stopButton: reloadButton);
+			}
+		});
 
 		text = new TextField();
 		text.setDisable(true);
 		setMargin(text, new Insets(0, 3, 0, 3));
 		setCenter(text);
-
-		reloadButton = new Button();
-		reloadButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("reload.png"))));
-		stopButton = new Button();
-		stopButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("stop.png"))));
-		
-		stopReloadBox = new HBox(3);
-		setRight(stopReloadBox);
-		
-		runningProperty = new SimpleBooleanProperty();
-		runningProperty.addListener(new ChangeListener<Boolean>() {
-			@Override
-			public void changed(ObservableValue<? extends Boolean> ov, Boolean oldVal, Boolean newVal) {
-				Button button = newVal? stopButton: reloadButton;
-				stopReloadBox.getChildren().clear();
-				stopReloadBox.getChildren().add(button);
-			}
-		});
 	}
 
 	public void setOnHomeAction(final EventHandler<ActionEvent> handler) {
@@ -78,7 +75,7 @@ public class LocationPane extends BorderPane {
 	public void setOnForwardAction(final EventHandler<ActionEvent> handler) {
 		forwwardButton.setOnAction(handler);
 	}
-	
+
 	public void setOnStopAction(final EventHandler<ActionEvent> handler) {
 		stopButton.setOnAction(handler);
 	}
@@ -86,9 +83,9 @@ public class LocationPane extends BorderPane {
 	public StringProperty locationProperty() {
 		return text.textProperty();
 	}
-	
+
 	public BooleanProperty runningProperty() {
-		return runningProperty;
+		return loadingProperty;
 	}
 
 	public BooleanProperty backwardDisableProperty() {

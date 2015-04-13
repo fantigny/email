@@ -51,7 +51,17 @@ public class Parser {
 				line = line.substring(0, line.indexOf("$"));
 			}
 		}
-		if (line.contains("##") || line.contains("#@#")) { // todo: div selector
+		if (line.startsWith(Terminal.DIV.value())) {
+			if (line.contains("href")
+						&& line.contains("=\"")
+						&& line.contains("\"]")) {
+				line = line.substring(line.indexOf("=\"") + 2);
+				line = line.substring(0, line.indexOf("\"]"));
+			} else {
+				line = "";
+			}
+		}
+		if (line.startsWith("#@#")) { // todo: div selector exception
 			line = "";
 		}
 

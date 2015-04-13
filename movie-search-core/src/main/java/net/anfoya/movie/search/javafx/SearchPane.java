@@ -4,8 +4,6 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.util.Callback;
 import net.anfoya.movie.connector.MovieVo;
@@ -33,7 +31,7 @@ public class SearchPane extends BorderPane {
 		button.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(final ActionEvent event) {
-				text.getEditor().fireEvent(new KeyEvent(button, text, KeyEvent.KEY_PRESSED, "\r", "ENTER", KeyCode.ENTER, false, false, false, false));
+				callback.call(text.getFieldValue());
 			}
 		});
 	}

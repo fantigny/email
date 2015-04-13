@@ -1,5 +1,7 @@
 package net.anfoya.java.net.filtered.easylist;
 
+// https://adblockplus.org/en/filters
+
 import java.io.IOException;
 import java.net.URL;
 import java.util.Calendar;
@@ -155,7 +157,7 @@ public class EasyListRuleSet implements RuleSet {
 				, System.currentTimeMillis() - start);
 	}
 
-	private void loadInternet() {
+	protected void loadInternet() {
 		final EasyListRuleSet internetList = new EasyListRuleSet(false);
 		for(final String url: internetUrls) {
 			try {
