@@ -65,7 +65,7 @@ public class Parser {
 			line = "";
 		}
 
-		return line;
+		return line.trim();
 	}
 
 	private Pattern buildRegex(final String line) {

@@ -62,43 +62,23 @@ public class MovieToolboxPane extends TilePane {
 
 		savePageButton = new Button("Save page");
 		savePageButton.setPrefSize(120, 20);
-		savePageButton.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(final ActionEvent event) {
-				savePage(event);
-			}
-		});
+		savePageButton.setOnAction(event -> savePage(event));
 
 		final Button createTagButton = new Button("Create tag");
 		createTagButton.setPrefSize(120, 20);
-		createTagButton.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(final ActionEvent event) {
-				createTag(event);
-			}
-		});
+		createTagButton.setOnAction(event -> createTag(event));
 
 		final ImageView playIcon = new ImageView(new Image(getClass().getResourceAsStream("play.png")));
 		final Button playButton = new Button("Play", playIcon);
 		playButton.setGraphicTextGap(15);
 		playButton.setPrefSize(120, 20);
-		playButton.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(final ActionEvent arg0) {
-				playMovies();
-			}
-		});
+		playButton.setOnAction(event -> playMovies());
 		getChildren().add(playButton);
 
 		final ImageView openFolderIcon = new ImageView(new Image(getClass().getResourceAsStream("open_folder.png")));
 		final Button openFolderButton = new Button("Show file", openFolderIcon);
 		openFolderButton.setPrefSize(120, 20);
-		openFolderButton.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(final ActionEvent arg0) {
-				showMovieFiles();
-			}
-		});
+		openFolderButton.setOnAction(event -> showMovieFiles());
 		getChildren().add(openFolderButton);
 
 		renameButton = new Button("Rename");
@@ -112,12 +92,7 @@ public class MovieToolboxPane extends TilePane {
 
 		final Button deleteButton = new Button("Delete");
 		deleteButton.setPrefSize(120, 20);
-		deleteButton.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(final ActionEvent event) {
-				deleteMovies(event);
-			}
-		});
+		deleteButton.setOnAction(event -> deleteMovies(event));
 
 		advancedProperty = new SimpleBooleanProperty(false);
 		advancedProperty.addListener(new ChangeListener<Boolean>() {

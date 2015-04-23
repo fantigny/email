@@ -11,10 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("serial")
-public class Local extends SerializedFile<EasyListRuleSet> {
-	private static final Logger LOGGER = LoggerFactory.getLogger(Local.class);
+public class LocalLoader extends SerializedFile<EasyListRuleSet> {
+	private static final Logger LOGGER = LoggerFactory.getLogger(LocalLoader.class);
 
-	public Local(final String filepath) {
+	public LocalLoader(final String filepath) {
 		super(filepath);
 	}
 

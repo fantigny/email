@@ -15,12 +15,12 @@ import net.anfoya.java.net.filtered.easylist.parser.ParserException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Internet {
-	private static final Logger LOGGER = LoggerFactory.getLogger(Internet.class);
+public class InternetLoader {
+	private static final Logger LOGGER = LoggerFactory.getLogger(InternetLoader.class);
 
 	private final URL url;
 
-	public Internet(final URL url) {
+	public InternetLoader(final URL url) {
 		this.url = url;
 	}
 
