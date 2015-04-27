@@ -164,8 +164,16 @@ public class MovieService {
 	}
 
 	public Set<Movie> getMovies(final String namePattern) {
-		final Set<Tag> emptySet = new LinkedHashSet<Tag>();
-		return getMovies(emptySet, emptySet, emptySet, namePattern);
+		try {
+			return movieDao.find(namePattern);
+		} catch (final SQLException e) {
+			LOGGER.error("searching movies with name pattern: %{}%", namePattern, e);
+			final Alert alertDialog = new Alert(AlertType.ERROR);
+			alertDialog.setHeaderText("error searching movies with name pattern: %" + namePattern);
+			alertDialog.setContentText(e.getMessage());
+			alertDialog.show();
+			return null;
+		}
 	}
 
 	public Set<Movie> getMovies(final Set<Tag> tags, final Set<Tag> includes, final Set<Tag> excludes, final String namePattern) {

@@ -100,8 +100,59 @@ public class MovieDao {
 	}
 
 	public Set<Movie> find(final String namePattern) throws SQLException {
-		final Set<Tag> emptySet = new LinkedHashSet<Tag>();
-		return find(emptySet, emptySet, emptySet, namePattern);
+		final String sql = "SELECT m.id AS movie_id, m.path, m.last_mod, m.urls, mt.tag_id AS tag_id, t.name, t.section"
+				+ " FROM movie m"
+				+ " LEFT JOIN movie_tag mt ON mt.movie_id = m.id"
+				+ " LEFT JOIN tag t ON t.id = mt.tag_id"
+				+ " WHERE m.path LIKE CONCAT('%', ?, '%')"
+				+ " ORDER BY movie_id, tag_id";
+
+		LOGGER.info(sql);
+		final Connection connection = dataSource.getConnection();
+		final PreparedStatement statement = connection.prepareStatement(sql);
+			statement.setString(1, namePattern);
+
+		final ResultSet rs = statement.executeQuery();
+
+		final Map<Integer, Movie> movieMap = new HashMap<Integer, Movie>();
+		final Map<Integer, Set<Tag>> tagMap = new HashMap<Integer, Set<Tag>>();
+		while(rs.next()) {
+			final int movieId = rs.getInt("movie_id");
+			if (!movieMap.containsKey(movieId)) {
+				movieMap.put(movieId, new Movie(
+						movieId
+						, rs.getString("path")
+						, rs.getLong("last_mod")
+						, new Gson().fromJson(rs.getString("urls"), new TypeToken<Map<String, String>>() {}.getType())));
+			}
+			final int tagId = rs.getInt("tag_id");
+			if (!rs.wasNull()) {
+				if (!tagMap.containsKey(movieId)) {
+					tagMap.put(movieId, new LinkedHashSet<Tag>());
+				}
+				tagMap.get(movieId).add(new Tag(
+						tagId
+						, rs.getString("name")
+						, rs.getString("section")));
+			}
+		}
+		rs.close();
+		statement.close();
+		connection.close();
+
+		final Set<Movie> movies = new LinkedHashSet<Movie>();
+		for(final Entry<Integer, Movie> entry: movieMap.entrySet()) {
+			final int id = entry.getKey();
+			final Movie movie = entry.getValue();
+			if (tagMap.containsKey(id)) {
+				final Set<Tag> movieTags = tagMap.get(id);
+				movies.add(movie.copyWithTags(movieTags));
+			} else {
+				movies.add(movie);
+			}
+		}
+
+		return movies;
 	}
 
 	public Set<Movie> find(final Set<Tag> tags, final Set<Tag> includes, final Set<Tag> excludes, final String namePattern) throws SQLException {
