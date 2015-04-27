@@ -20,15 +20,16 @@ public class Config {
 					, "www.imdb.com"
 					, "/find?ref_=nv_sr_fn&q=%s&s=all"
 					,"/title/")
+			, new Website("YouTube"
+					, "http://www.youtube.com"
+					, "/results?search_query=official+trailer+%s"
+					, "")
 			, new Website(
 					"Google"
 					, "www.google.com"
 					, "/search?q=%s"
-					, "")
-			, new Website("Internet"
-					, "https://www.google.com"
 					, ""
-					, "")
+					, true)
 		};
 	}
 }

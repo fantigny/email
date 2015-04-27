@@ -7,15 +7,15 @@ public class Website {
 
 	private final String name;
 	private final String host;
-	private final String homePattern;
 	private final String searchPattern;
 	private final String defaultPattern;
+	private final boolean freeInput;
 
 	public Website(final String name, final String url, final String searchPattern, final String defaultPattern) {
-		this(name, url, "", searchPattern, defaultPattern);
+		this(name, url, searchPattern, defaultPattern, false);
 	}
 
-	public Website(final String name, String host, String homePattern, String searchPattern, final String defaultPattern) {
+	public Website(final String name, String host, String searchPattern, final String defaultPattern, final boolean freeInput) {
 		super();
 
 		this.name = name;
@@ -26,15 +26,12 @@ public class Website {
 			host += "/";
 		}
 		this.host = host;
-		if (!homePattern.isEmpty() && homePattern.charAt(0) == '/') {
-			homePattern = homePattern.substring(1);
-		}
-		this.homePattern = homePattern;
 		if (!searchPattern.isEmpty() && searchPattern.charAt(0) == '/') {
 			searchPattern = searchPattern.substring(1);
 		}
 		this.searchPattern = searchPattern;
 		this.defaultPattern = defaultPattern;
+		this.freeInput = freeInput;
 	}
 
 	public String getName() {
@@ -52,7 +49,7 @@ public class Website {
 	}
 
 	public String getHomeUrl() {
-		return host + (homePattern.isEmpty()? "" : homePattern);
+		return host;
 	}
 
 	public Object getSearchPattern() {
@@ -63,16 +60,16 @@ public class Website {
 		return defaultPattern;
 	}
 
+	public boolean isFreeInput() {
+		return freeInput;
+	}
+
 	public boolean isSearchable() {
 		return !searchPattern.isEmpty();
 	}
 
 	public boolean hasDefaultPattern() {
 		return !defaultPattern.isEmpty();
-	}
-
-	public String getHomePattern() {
-		return homePattern;
 	}
 
 	@Override
