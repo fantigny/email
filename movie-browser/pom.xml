@@ -8,6 +8,7 @@
 	<version>1.0-SNAPSHOT</version>
 	<modules>
 		<module>../anfoya-tools</module>
+		<module>../anfoya-javafx</module>
 		<module>../anfoya-easylist</module>
 		<module>../anfoya-cluster</module>
 		<module>../anfoya-smb</module>

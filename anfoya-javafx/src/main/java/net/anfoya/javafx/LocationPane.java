@@ -1,10 +1,8 @@
-package net.anfoya.movie.search.javafx;
+package net.anfoya.javafx;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.StringProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -46,18 +44,22 @@ public class LocationPane extends BorderPane {
 		setLeft(leftBox);
 
 		loadingProperty = new SimpleBooleanProperty();
-		loadingProperty.addListener(new ChangeListener<Boolean>() {
-			@Override
-			public void changed(final ObservableValue<? extends Boolean> ov, final Boolean oldVal, final Boolean newVal) {
-				leftBox.getChildren().remove(newVal? reloadButton: stopButton);
-				leftBox.getChildren().add(newVal? stopButton: reloadButton);
-			}
+		loadingProperty.addListener((ov, oldVal, newVal) -> {
+			leftBox.getChildren().remove(newVal? reloadButton: stopButton);
+			leftBox.getChildren().add(newVal? stopButton: reloadButton);
 		});
 
 		text = new TextField();
 		text.setDisable(true);
+
 		setMargin(text, new Insets(0, 3, 0, 3));
 		setCenter(text);
+	}
+
+	public void setOnAction(final EventHandler<ActionEvent> handler) {
+		text.setOnAction(handler);
+		text.setDisable(handler == null);
+		text.setEditable(handler != null);
 	}
 
 	public void setOnHomeAction(final EventHandler<ActionEvent> handler) {

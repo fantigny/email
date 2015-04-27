@@ -3,23 +3,26 @@ package net.anfoya.movie.browser.javafx.movie;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.binding.ListBinding;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.ObservableList;
 import javafx.concurrent.Worker.State;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.VBox;
 import javafx.scene.web.PopupFeatures;
 import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebHistory;
+import javafx.scene.web.WebHistory.Entry;
 import javafx.scene.web.WebView;
 import javafx.util.Callback;
+import net.anfoya.javafx.LocationPane;
 import net.anfoya.movie.browser.model.Movie;
 import net.anfoya.tools.model.Website;
 
@@ -57,41 +60,66 @@ public class MovieWebPane extends BorderPane {
 		this.movies = new LinkedHashSet<Movie>();
 		this.currentUrl = "";
 
-		final VBox urlBox = new VBox();
-		setTop(urlBox);
-
-		final TextField urlField = new TextField();
-		if (!website.isSearchable()) {
-			urlBox.getChildren().add(urlField);
-			urlField.setOnAction(new EventHandler<ActionEvent>() {
-				@Override
-				public void handle(final ActionEvent event) {
-					// user typed in a new address
-					load(urlField.getText());
-				}
-			});
-		}
-
-		final WebView webView = new WebView();
-		webView.getEngine().setCreatePopupHandler(new Callback<PopupFeatures, WebEngine>() {
+		final WebView view = new WebView();
+		view.getEngine().setCreatePopupHandler(new Callback<PopupFeatures, WebEngine>() {
 			@Override
 			public WebEngine call(final PopupFeatures popupFeatures) {
 				return null;
 			}
 		});
-		webView.getEngine().getLoadWorker().stateProperty().addListener(new ChangeListener<State>() {
+		view.getEngine().getLoadWorker().stateProperty().addListener(new ChangeListener<State>() {
 			@Override
 			public void changed(final ObservableValue<? extends State> ov, final State oldState, final State newState) {
 				if (newState == State.RUNNING) {
 					final String url = engine.getLocation();
-					urlField.textProperty().set(url);
 					checkMoviePageUrl(url);
 				}
 			}
 		});
-		setCenter(webView);
+		setCenter(view);
 
-		engine = webView.getEngine();
+		engine = view.getEngine();
+
+		final WebHistory history = view.getEngine().getHistory();
+		final BooleanBinding backwardDisableProperty = Bindings.equal(0, history.currentIndexProperty());
+		final BooleanBinding forwardDisableProperty = Bindings.equal(new ListBinding<Entry>() {
+		  @Override
+		protected ObservableList<Entry> computeValue() {
+		     return history.getEntries();
+		  }
+		}.sizeProperty(), Bindings.add(1, history.currentIndexProperty()));
+
+		final LocationPane locationPane = new LocationPane();
+		locationPane.runningProperty().bind(engine.getLoadWorker().runningProperty());
+		locationPane.backwardDisableProperty().bind(backwardDisableProperty);
+		locationPane.forwardDisableProperty().bind(forwardDisableProperty);
+		locationPane.setOnHomeAction(event -> goHome());
+		locationPane.setOnReloadAction(event -> engine.reload());
+		locationPane.setOnBackAction(event -> goHistory(-1));
+		locationPane.setOnForwardAction(event -> goHistory(1));
+		locationPane.setOnStopAction(event -> engine.getLoadWorker().cancel());
+		if (!website.isSearchable()) {
+			locationPane.setOnAction(event -> load(locationPane.locationProperty().get()));
+			engine.locationProperty().addListener((ov, oldVal, newVal) -> {
+				locationPane.locationProperty().set(newVal);
+			});
+		} else {
+			locationPane.locationProperty().bind(view.getEngine().locationProperty());
+		}
+		setTop(locationPane);
+	}
+
+	public void goHome() {
+		load(website.getHomeUrl());
+	}
+
+	public void goHistory(final int offset) {
+		final WebHistory history = engine.getHistory();
+		final int index = history.getCurrentIndex() + offset;
+		if (index >= 0 && index < history.getEntries().size()) {
+			LOGGER.info("{} - move in history with offset ({}{})", website.getName(), offset>0?"+":"", offset);
+			history.go(offset);
+		}
 	}
 
 	private void checkMoviePageUrl(final String url) {

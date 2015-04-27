@@ -123,6 +123,7 @@ public class MovieBrowserApp extends Application {
 
 		final Scene scene = new Scene(mainPane, 1524, 780);
 		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/excludebox.css").toExternalForm());
+//		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/button_flat.css").toExternalForm());
 
 		final HBox selectionPane = new HBox();
 		mainPane.setLeft(selectionPane);

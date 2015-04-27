@@ -11,6 +11,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.web.WebHistory;
 import javafx.scene.web.WebHistory.Entry;
 import javafx.scene.web.WebView;
+import net.anfoya.javafx.LocationPane;
 import net.anfoya.javafx.scene.control.TitledProgressBar;
 import net.anfoya.movie.connector.MovieConnector;
 import net.anfoya.movie.connector.MovieVo;

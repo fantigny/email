@@ -46,12 +46,22 @@
 	<dependencies>
 		<dependency>
 			<groupId>net.anfoya</groupId>
+			<artifactId>movie-search-core</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>net.anfoya</groupId>
 			<artifactId>movie-browser-service</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>net.anfoya</groupId>
 			<artifactId>anfoya-tools</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>net.anfoya</groupId>
+			<artifactId>anfoya-javafx</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
