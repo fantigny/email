@@ -105,7 +105,13 @@ public class MovieDao {
 	}
 
 	public Set<Movie> find(final Set<Tag> tags, final Set<Tag> includes, final Set<Tag> excludes, final String namePattern) throws SQLException {
-		final boolean tagClause = !tags.isEmpty(), incClause = !includes.isEmpty(), excClause = !excludes.isEmpty(), nameClause = !namePattern.isEmpty();
+		final Set<Movie> movies = new LinkedHashSet<Movie>();
+
+		if (tags.isEmpty()) {
+			return movies;
+		}
+
+		final boolean incClause = !includes.isEmpty(), excClause = !excludes.isEmpty(), nameClause = !namePattern.isEmpty();
 		String sql = "SELECT m.id AS movie_id, m.path, m.last_mod, m.urls, mt.tag_id AS tag_id, t.name, t.section"
 				+ " FROM movie m";
 		if (!incClause) {
@@ -116,24 +122,16 @@ public class MovieDao {
 			sql += " LEFT";
 		}
 		sql += 	" JOIN tag t ON t.id = mt.tag_id";
-		if (tagClause || incClause || excClause || nameClause) {
-			sql += " WHERE ";
-		}
-		if (tagClause) {
-			sql += 	" t.id IN (";
-			for(int i=0, n=tags.size(); i<n; i++) {
-				if (i != 0) {
-					sql += ",";
-				}
-				sql += "?";
+		sql += " WHERE  t.id IN (";
+		for(int i=0, n=tags.size(); i<n; i++) {
+			if (i != 0) {
+				sql += ",";
 			}
-			sql += 	")";
+			sql += "?";
 		}
+		sql += 	")";
 		if (incClause) {
-			if (tagClause) {
-				sql += " AND ";
-			}
-			sql += " ? = (SELECT COUNT(*)"
+			sql += " AND ? = (SELECT COUNT(*)"
 					+ " FROM movie_tag"
 					+ " WHERE movie_id = mt.movie_id"
 					+ " AND tag_id IN (";
@@ -146,10 +144,7 @@ public class MovieDao {
 			sql += "))";
 		}
 		if (excClause) {
-			if (tagClause || incClause) {
-				sql += " AND ";
-			}
-			sql += " 0 = (SELECT COUNT(*)"
+			sql += " AND 0 = (SELECT COUNT(*)"
 					+ " FROM movie_tag"
 					+ " WHERE movie_id = mt.movie_id"
 					+ " AND tag_id IN (";
@@ -162,21 +157,16 @@ public class MovieDao {
 			sql += "))";
 		}
 		if (nameClause) {
-			if (tagClause || incClause || excClause) {
-				sql += " AND ";
-			}
-			sql += " m.path LIKE CONCAT('%', ?, '%')";
+			sql += " AND m.path LIKE CONCAT('%', ?, '%')";
 		}
 		sql += " ORDER BY movie_id, tag_id";
 
-		LOGGER.debug(sql);
+		LOGGER.info(sql);
 		final Connection connection = dataSource.getConnection();
 		final PreparedStatement statement = connection.prepareStatement(sql);
 		int i=0;
-		if (tagClause) {
-			for(final Tag tag: tags) {
-				statement.setInt(++i, tag.getId());
-			}
+		for(final Tag tag: tags) {
+			statement.setInt(++i, tag.getId());
 		}
 		if (incClause) {
 			statement.setInt(++i, includes.size());
@@ -184,10 +174,8 @@ public class MovieDao {
 				statement.setInt(++i, tag.getId());
 			}
 		}
-		if (excClause) {
-			for(final Tag tag: excludes) {
-				statement.setInt(++i, tag.getId());
-			}
+		for(final Tag tag: excludes) {
+			statement.setInt(++i, tag.getId());
 		}
 		if (nameClause) {
 			statement.setString(++i, namePattern);
@@ -221,7 +209,6 @@ public class MovieDao {
 		statement.close();
 		connection.close();
 
-		final Set<Movie> movies = new LinkedHashSet<Movie>();
 		for(final Entry<Integer, Movie> entry: movieMap.entrySet()) {
 			final int id = entry.getKey();
 			final Movie movie = entry.getValue();
