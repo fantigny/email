@@ -14,35 +14,31 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TitledPane;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import net.anfoya.javafx.scene.control.Title;
 import net.anfoya.movie.browser.model.Movie;
-import net.anfoya.movie.browser.model.Tag;
 import net.anfoya.movie.browser.model.Movie.SortOrder;
+import net.anfoya.movie.browser.model.Tag;
 import net.anfoya.movie.browser.service.MovieService;
 
-public class MovieListPane extends TitledPane {
+public class MovieListPane extends BorderPane {
 
 	private final MovieList movieList;
 	private final TextField namePatternField;
 
 	public MovieListPane(final MovieService movieService) {
-		setGraphic(new Title("Movies"));
-		setCollapsible(false);
-
-		final BorderPane borderPane = new BorderPane();
-		setContent(borderPane);
-
 		final BorderPane patternPane = new BorderPane();
-		patternPane.setPadding(new Insets(0, 0, 5, 0));
-		borderPane.setTop(patternPane);
+		setTop(patternPane);
+
+		final Title title = new Title("Movies");
+		title.setPadding(new Insets(0, 10, 0, 5));
+		patternPane.setLeft(title);
 
 		namePatternField = new TextField();
-		BorderPane.setMargin(namePatternField, new Insets(0, 3, 0, 3));
+		namePatternField.setPromptText("search");
 		namePatternField.textProperty().addListener(new ChangeListener<String>() {
 			@Override
 			public void changed(final ObservableValue<? extends String> ov, final String oldPattern, final String newPattern) {
@@ -50,6 +46,7 @@ public class MovieListPane extends TitledPane {
 			}
 		});
 		patternPane.setCenter(namePatternField);
+		BorderPane.setMargin(namePatternField, new Insets(0, 5, 0, 5));
 
 		final Button delPatternButton = new Button("X");
 		delPatternButton.setOnAction(new EventHandler<ActionEvent>() {
@@ -60,12 +57,8 @@ public class MovieListPane extends TitledPane {
 		});
 		patternPane.setRight(delPatternButton);
 
-		final Label searchLabel = new Label("Search:");
-		BorderPane.setAlignment(searchLabel, Pos.CENTER);
-		patternPane.setLeft(searchLabel);
-
 		movieList = new MovieList(movieService);
-		borderPane.setCenter(movieList);
+		setCenter(movieList);
 
 		final ToggleGroup toggleGroup = new ToggleGroup();
 
@@ -88,8 +81,11 @@ public class MovieListPane extends TitledPane {
 		final HBox box = new HBox(new Label("Sort by: "), nameSortButton, dateSortButton);
 		box.setAlignment(Pos.BASELINE_CENTER);
 		box.setSpacing(5);
-		box.setPadding(new Insets(7, 0, 0, 0));
-		borderPane.setBottom(box);
+		setBottom(box);
+
+		setMargin(patternPane, new Insets(5));
+		setMargin(movieList, new Insets(0, 5, 0, 5));
+		setMargin(box, new Insets(5));
 	}
 
 	public String getNamePattern() {

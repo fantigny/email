@@ -4,13 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import net.anfoya.movie.browser.model.Tag;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.layout.FlowPane;
 import javafx.util.Callback;
+import net.anfoya.movie.browser.model.Tag;
 
 public class SelectedTagsPane extends FlowPane {
 
@@ -18,9 +17,8 @@ public class SelectedTagsPane extends FlowPane {
 	private Callback<String, Void> delTagCallBack;
 
 	public SelectedTagsPane() {
-	    setPadding(new Insets(5, 0, 5, 0));
 		setVgap(3);
-		setHgap(5);
+		setHgap(3);
 		setPrefWidth(0);
 	}
 

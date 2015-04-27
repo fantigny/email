@@ -8,10 +8,10 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
-import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import net.anfoya.javafx.scene.control.Title;
@@ -25,8 +25,8 @@ import net.anfoya.movie.browser.service.TagService;
 import net.anfoya.tools.model.Website;
 
 
-public class MoviePane extends TitledPane {
-	private static final String NO_MOVIE_TITLE = "Select a movie to see details";
+public class MoviePane extends BorderPane {
+	private static final String NO_MOVIE_TITLE = "Select a movie";
 	private static final String MULTIPLE_MOVIE_TITLE = "Multiple movies";
 
 	private Set<Movie> movies;
@@ -42,18 +42,13 @@ public class MoviePane extends TitledPane {
 		this.movies = new LinkedHashSet<Movie>();
 
 		title = new Title(NO_MOVIE_TITLE);
-
-		setCollapsible(false);
-		setGraphic(title);
-
-		final BorderPane borderPane = new BorderPane();
-		setContent(borderPane);
+		setTop(title);
 
 		// web pages
 		webPanes = new TabPane();
 		webPanes.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
 		webPanes.getStyleClass().add(TabPane.STYLE_CLASS_FLOATING);
-		borderPane.setCenter(webPanes);
+		setCenter(webPanes);
 
 		// tags
 		tagsPane = new MovieTagsPane(tagService);
@@ -69,6 +64,10 @@ public class MoviePane extends TitledPane {
 		} else {
 			movieBox = new VBox(toolboxPane);
 		}
+
+		setMargin(title, new Insets(8, 5, 3, 10));
+		setMargin(webPanes, new Insets(0, 5, 5, 5));
+		setMargin(movieBox, new Insets(0, 5, 5, 5));
 
 		// initialize web tabs
 		for(final Website website: new Config().getWebsites()) {
@@ -181,11 +180,10 @@ public class MoviePane extends TitledPane {
 	}
 
 	private void setDisplayMovieBox(final boolean display) {
-		final BorderPane borderPane = (BorderPane) getContent();
 		if (display) {
-			borderPane.setBottom(movieBox);
+			setBottom(movieBox);
 		} else {
-			borderPane.getChildren().remove(movieBox);
+			getChildren().remove(movieBox);
 		}
 	}
 }

@@ -18,6 +18,7 @@ import javafx.concurrent.Worker.State;
 import javafx.concurrent.WorkerStateEvent;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -118,6 +119,8 @@ public class MovieBrowserApp extends Application {
 
 	private void initGui(final Stage primaryStage) {
 		final BorderPane mainPane = new BorderPane();
+		mainPane.setPadding(new Insets(5));
+
 		final Scene scene = new Scene(mainPane, 1524, 780);
 		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/excludebox.css").toExternalForm());
 

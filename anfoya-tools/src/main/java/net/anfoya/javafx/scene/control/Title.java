@@ -13,7 +13,7 @@ public class Title extends HBox {
 	private final Text sub;
 
 	public Title(final String main, final String sub) {
-		setAlignment(Pos.BASELINE_CENTER);
+		setAlignment(Pos.CENTER_LEFT);
 
 		this.main = new Text(main);
 		this.main.setFont(Font.font(null, this.main.getFont().getSize() + 2));

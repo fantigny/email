@@ -12,12 +12,15 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
@@ -27,7 +30,7 @@ import net.anfoya.movie.browser.model.Section;
 import net.anfoya.movie.browser.model.Tag;
 import net.anfoya.movie.browser.service.TagService;
 
-public class SectionListPane extends TitledPane {
+public class SectionListPane extends BorderPane {
 	private final TagService tagService;
 
 	private final Accordion sectionAcc;
@@ -43,11 +46,31 @@ public class SectionListPane extends TitledPane {
 	public SectionListPane(final TagService tagService) {
 		this.tagService = tagService;
 
-		setGraphic(new Title("Tags"));
-		setCollapsible(false);
+		final BorderPane patternPane = new BorderPane();
+		setTop(patternPane);
 
-		final BorderPane borderPane = new BorderPane();
-		setContent(borderPane);
+		final Title title = new Title("Tags");
+		title.setPadding(new Insets(0, 10, 0, 5));
+		patternPane.setLeft(title);
+
+		final TextField namePatternField = new TextField();
+		namePatternField.setPromptText("search");
+		namePatternField.setDisable(true);
+		patternPane.setCenter(namePatternField);
+		BorderPane.setMargin(namePatternField, new Insets(0, 5, 0, 5));
+
+		final Button delPatternButton = new Button("X");
+		delPatternButton.setDisable(true);
+		delPatternButton.setOnAction(new EventHandler<ActionEvent>() {
+			@Override
+			public void handle(final ActionEvent event) {
+				namePatternField.textProperty().set("");
+			}
+		});
+		patternPane.setRight(delPatternButton);
+
+		sectionAcc = new Accordion();
+		setCenter(sectionAcc);
 
 		selectedPane = new SelectedTagsPane();
 		selectedPane.setDelTagCallBack(new Callback<String, Void>() {
@@ -57,10 +80,11 @@ public class SectionListPane extends TitledPane {
 				return null;
 			}
 		});
-		borderPane.setBottom(selectedPane);
+		setBottom(selectedPane);
 
-		sectionAcc = new Accordion();
-		borderPane.setCenter(sectionAcc);
+		setMargin(patternPane, new Insets(5));
+		setMargin(sectionAcc, new Insets(0, 5, 0, 5));
+		setMargin(selectedPane, new Insets(5));
 
 		moveToSectionMenu = new Menu("Move to");
 		final MenuItem newSectionItem = new MenuItem("Create new");
