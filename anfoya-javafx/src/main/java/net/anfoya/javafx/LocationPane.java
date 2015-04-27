@@ -57,7 +57,22 @@ public class LocationPane extends BorderPane {
 	}
 
 	public void setOnAction(final EventHandler<ActionEvent> handler) {
-		text.setOnAction(handler);
+		if (handler == null) {
+			text.setOnAction(null);
+		} else {
+			text.setOnAction(event -> {
+				String location = text.getText();
+				if (!location.startsWith("http")) {
+					if (location.contains(" ") || !location.contains(".")) {
+						location = "http://www.google.com/search?q=" + location;
+					} else {
+						location = "http://" + location;
+					}
+					text.setText(location);
+				}
+				handler.handle(event);
+			});
+		}
 		text.setDisable(handler == null);
 		text.setEditable(handler != null);
 	}

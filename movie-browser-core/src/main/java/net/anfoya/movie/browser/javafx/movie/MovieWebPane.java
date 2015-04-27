@@ -100,9 +100,7 @@ public class MovieWebPane extends BorderPane {
 		locationPane.setOnStopAction(event -> engine.getLoadWorker().cancel());
 		if (!website.isSearchable()) {
 			locationPane.setOnAction(event -> load(locationPane.locationProperty().get()));
-			engine.locationProperty().addListener((ov, oldVal, newVal) -> {
-				locationPane.locationProperty().set(newVal);
-			});
+			engine.locationProperty().addListener((ov, oldVal, newVal) -> locationPane.locationProperty().set(newVal));
 		} else {
 			locationPane.locationProperty().bind(view.getEngine().locationProperty());
 		}
