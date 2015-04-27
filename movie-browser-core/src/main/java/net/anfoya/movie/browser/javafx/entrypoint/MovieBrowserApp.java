@@ -130,7 +130,7 @@ public class MovieBrowserApp extends Application {
 		/* tag list */ {
 			sectionListPane.setPrefWidth(250);
 			sectionListPane.prefHeightProperty().bind(selectionPane.heightProperty());
-			sectionListPane.addTagChangeListener(new ChangeListener<Boolean>() {
+			sectionListPane.setTagChangeListener(new ChangeListener<Boolean>() {
 				@Override
 				public void changed(final ObservableValue<? extends Boolean> ov, final Boolean oldVal, final Boolean newVal) {
 					// refresh movie list when a tag is (un)selected
@@ -316,8 +316,7 @@ public class MovieBrowserApp extends Application {
 	}
 
 	private void refreshMovieList() {
-		// refresh movie list
-		movieListPane.refreshWithTags(sectionListPane.getSelectedTags(), sectionListPane.getExcludedTags());
+		movieListPane.refreshWithTags(sectionListPane.getAllTags(), sectionListPane.getIncludedTags(), sectionListPane.getExcludedTags());
 	}
 
 	private void updateMovieCount() {

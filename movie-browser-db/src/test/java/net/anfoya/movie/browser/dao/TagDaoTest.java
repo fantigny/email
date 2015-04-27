@@ -5,10 +5,6 @@ import java.sql.SQLException;
 import java.util.Set;
 
 import junit.framework.Assert;
-import net.anfoya.movie.browser.dao.DataSource;
-import net.anfoya.movie.browser.dao.MovieDao;
-import net.anfoya.movie.browser.dao.MovieTagDao;
-import net.anfoya.movie.browser.dao.TagDao;
 import net.anfoya.movie.browser.model.Section;
 import net.anfoya.movie.browser.model.Tag;
 
@@ -100,7 +96,7 @@ public class TagDaoTest {
 		Tag tag = tagDao.find(tagName);
 		Assert.assertNull(tag);
 
-		Set<Tag> tags = tagDao.find(section);
+		Set<Tag> tags = tagDao.find(section, "");
 		Assert.assertEquals(0, tags.size());
 
 		tagDao.add(new Tag(tagName, sectionName));
@@ -108,7 +104,7 @@ public class TagDaoTest {
 		tag = tagDao.find(tagName);
 		Assert.assertNotNull(tag);
 
-		tags = tagDao.find(section);
+		tags = tagDao.find(section, "");
 		Assert.assertEquals(1, tags.size());
 
 		tags = tagDao.find();

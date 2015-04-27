@@ -11,8 +11,6 @@ import net.anfoya.movie.browser.dao.DataSource;
 import net.anfoya.movie.browser.dao.MovieDao;
 import net.anfoya.movie.browser.dao.MovieTagDao;
 import net.anfoya.movie.browser.dao.TagDao;
-import net.anfoya.movie.browser.javafx.taglist.SectionPane;
-import net.anfoya.movie.browser.javafx.taglist.TagList;
 import net.anfoya.movie.browser.model.Movie;
 import net.anfoya.movie.browser.model.Section;
 import net.anfoya.movie.browser.model.Tag;
@@ -76,12 +74,12 @@ public class SectionPaneTest {
 
 		final TagList tagList = new TagList(tagService, section);
 		final SectionPane sectionPane = new SectionPane(tagService, section, tagList);
-		sectionPane.refresh(EMPTY_TAG_SET);
+		sectionPane.refresh(EMPTY_TAG_SET, "");
 
 		final Labeled title = (Labeled) sectionPane.getGraphic();
 		Assert.assertEquals(section.getName(), title.getText());
 
-		sectionPane.updateMovieCountAsync(-1, tags, EMPTY_TAG_SET, EMPTY_TAG_SET, "");
+		sectionPane.updateMovieCountAsync(-1, tags, EMPTY_TAG_SET, EMPTY_TAG_SET, "", "");
 		//TODO: async update prevent from validating result
 //		Assert.assertEquals(section.getName() + " (12)", title.getText());
 	}

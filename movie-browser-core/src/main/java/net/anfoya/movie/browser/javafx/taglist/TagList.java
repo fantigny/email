@@ -60,6 +60,15 @@ public class TagList extends ListView<TagListItem> {
 		return item.getTag();
 	}
 
+	public Set<Tag> getTags() {
+		final Set<Tag> tags = new LinkedHashSet<Tag>();
+		for(final TagListItem item: getItems()) {
+			tags.add(item.getTag());
+		}
+
+		return Collections.unmodifiableSet(tags);
+	}
+
 	public Set<Tag> getSelectedTags() {
 		final Set<Tag> tags = new LinkedHashSet<Tag>();
 		for(final TagListItem item: getItems()) {
@@ -82,9 +91,9 @@ public class TagList extends ListView<TagListItem> {
 		return Collections.unmodifiableSet(tags);
 	}
 
-	public void refresh(final Set<Tag> selectedTags) {
+	public void refresh(final Set<Tag> selectedTags, final String tagPattern) {
 		// get all tags
-		final Set<Tag> tags = tagService.getTags(section);
+		final Set<Tag> tags = tagService.getTags(section, tagPattern);
 
 		// build items map and restore selection
 		itemMap.clear();
@@ -106,14 +115,14 @@ public class TagList extends ListView<TagListItem> {
 		setItems(items);
 	}
 
-	public void updateMovieCount(final int currentCount, final Set<Tag> availableTags, final Set<Tag> tags, final Set<Tag> excludes, final String pattern) {
+	public void updateMovieCount(final int currentCount, final Set<Tag> availableTags, final Set<Tag> tags, final Set<Tag> excludes, final String namePattern) {
 		for(final TagListItem item: getItems()) {
 			if (availableTags.contains(item.getTag()) || item.excludedProperty().get()) {
 				if (item.includedProperty().get()) {
 					item.countProperty().set(currentCount);
 				} else {
 					// request count for available tags
-					updateMovieCountAsync(item, tags, excludes, pattern);
+					updateMovieCountAsync(item, tags, excludes, namePattern);
 				}
 			} else {
 				item.countProperty().set(0);
@@ -122,7 +131,7 @@ public class TagList extends ListView<TagListItem> {
 		forceRepaint();
 	}
 
-	private void updateMovieCountAsync(final TagListItem item, final Set<Tag> tags, final Set<Tag> excludes, final String pattern) {
+	protected void updateMovieCountAsync(final TagListItem item, final Set<Tag> tags, final Set<Tag> excludes, final String pattern) {
 		final Task<Integer> task = new Task<Integer>() {
 			@Override
 			public Integer call() throws SQLException {

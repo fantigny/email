@@ -147,10 +147,11 @@ public class TagDao {
 		return tags;
 	}
 
-	public Set<Tag> find(final Section section) throws SQLException {
+	public Set<Tag> find(final Section section, final String tagPattern) throws SQLException {
 		final String sql = "SELECT id, name"
 				+ " FROM tag"
 				+ " WHERE section = ?"
+				+ " AND name LIKE CONCAT('%', ?, '%')"
 				+ " ORDER BY CASE"
 					+ " WHEN name = ? THEN 1"
 					+ " WHEN name = ? THEN 2"
@@ -163,6 +164,7 @@ public class TagDao {
 		final PreparedStatement statement = connection.prepareStatement(sql);
 		int i = 0;
 		statement.setString(++i, section.getName());
+		statement.setString(++i, tagPattern);
 		statement.setString(++i, Tag.NO_TAG_NAME);
 		statement.setString(++i, Tag.TO_WATCH_NAME);
 		final ResultSet rs = statement.executeQuery();

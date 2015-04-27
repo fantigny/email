@@ -1,11 +1,8 @@
 package net.anfoya.movie.browser.javafx.movie;
 
-import java.util.Set;
 import java.util.LinkedHashSet;
+import java.util.Set;
 
-import net.anfoya.movie.browser.model.Movie;
-import net.anfoya.movie.browser.model.Tag;
-import net.anfoya.movie.browser.service.TagService;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -13,6 +10,9 @@ import javafx.geometry.Pos;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.TilePane;
+import net.anfoya.movie.browser.model.Movie;
+import net.anfoya.movie.browser.model.Tag;
+import net.anfoya.movie.browser.service.TagService;
 
 public class MovieTagsPane extends TitledPane {
 	private final TagService tagService;

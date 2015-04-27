@@ -13,8 +13,8 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import net.anfoya.movie.browser.model.Movie;
-import net.anfoya.movie.browser.model.Tag;
 import net.anfoya.movie.browser.model.Movie.SortOrder;
+import net.anfoya.movie.browser.model.Tag;
 import net.anfoya.movie.browser.service.MovieService;
 
 //TODO: sort by name when all titles start with a numeric
@@ -33,6 +33,7 @@ public class MovieList extends ListView<Movie> {
 	private Set<Movie> movies;
 
 	private Set<Tag> tags;
+	private Set<Tag> includes;
 	private Set<Tag> excludes;
 	private SortOrder sortOrder;
 	private String namePattern;
@@ -44,6 +45,7 @@ public class MovieList extends ListView<Movie> {
 		this.movies = new LinkedHashSet<Movie>();
 
 		this.tags = new LinkedHashSet<Tag>();
+		this.includes = new LinkedHashSet<Tag>();
 		this.excludes = new LinkedHashSet<Tag>();
 		this.sortOrder = SortOrder.DATE;
 		this.namePattern = "";
@@ -56,7 +58,7 @@ public class MovieList extends ListView<Movie> {
 		namePattern = pattern.toLowerCase();
 
 		if (!namePattern.contains(previousPattern)) {
-			movies = movieService.getMovies(tags, excludes, namePattern);
+			movies = movieService.getMovies(tags, includes, excludes, namePattern);
 		}
 		refresh();
 	}
@@ -66,10 +68,11 @@ public class MovieList extends ListView<Movie> {
 		refresh();
 	}
 
-	public void refreshWithTags(final Set<Tag> tags, final Set<Tag> excludes) {
+	public void refreshWithTags(final Set<Tag> tags, final Set<Tag> includes, final Set<Tag> excludes) {
 		this.tags = tags;
+		this.includes = includes;
 		this.excludes = excludes;
-		movies = movieService.getMovies(tags, excludes, namePattern);
+		movies = movieService.getMovies(tags, includes, excludes, namePattern);
 		refresh();
 	}
 

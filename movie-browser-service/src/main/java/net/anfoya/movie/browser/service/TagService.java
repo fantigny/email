@@ -100,10 +100,10 @@ public class TagService {
 		return tags;
 	}
 
-	public Set<Tag> getTags(final Section section) {
+	public Set<Tag> getTags(final Section section, final String tagPattern) {
 		Set<Tag> tags;
 		try {
-			tags = tagDao.find(section);
+			tags = tagDao.find(section, tagPattern);
 		} catch (final SQLException e) {
 			LOGGER.error("finding tags for section: {}", section.getName(), e);
 			final Alert alertDialog = new Alert(AlertType.ERROR);
@@ -184,13 +184,13 @@ public class TagService {
 		}
 	}
 
-	public int getSectionMovieCount(final Section section, final Set<Tag> tags, final Set<Tag> excludes, final String pattern) {
+	public int getSectionMovieCount(final Section section, final Set<Tag> tags, final Set<Tag> excludes, final String namePattern, final String tagPattern) {
 		try {
-			return movieTagDao.countSectionMovies(section, tags, excludes, pattern);
+			return movieTagDao.countSectionMovies(section, tags, excludes, namePattern, tagPattern);
 		} catch (final SQLException e) {
-			LOGGER.error("counting movies for section: {}, name pattern {} and tags: ({}), exc: ({})", section.getName(), pattern, tags, excludes, e);
+			LOGGER.error("counting movies for section: {}, name pattern {} and tags: ({}), exc: ({})", section.getName(), namePattern, tags, excludes, e);
 			final Alert alertDialog = new Alert(AlertType.ERROR);
-			alertDialog.setHeaderText("error counting movies for section: " + section.getName() + ", name pattern " + pattern + " and tags: " + tags.toString() + ", exc: " + excludes.toString());
+			alertDialog.setHeaderText("error counting movies for section: " + section.getName() + ", name pattern " + namePattern + ", tag pattern " + tagPattern + " and tags: " + tags.toString() + ", exc: " + excludes.toString());
 			alertDialog.setContentText(e.getMessage());
 			alertDialog.show();
 			return 0;

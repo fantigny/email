@@ -125,13 +125,14 @@ public class MovieTagDao {
 		connection.close();
 	}
 
-	public int countSectionMovies(final Section section, final Set<Tag> tags, final Set<Tag> excludes, final String nameSearch) throws SQLException {
-		final boolean tagClause = !tags.isEmpty(), excClause = !excludes.isEmpty(), nameClause = !nameSearch.isEmpty();
+	public int countSectionMovies(final Section section, final Set<Tag> tags, final Set<Tag> excludes, final String namePattern, final String tagPattern) throws SQLException {
+		final boolean tagClause = !tags.isEmpty(), excClause = !excludes.isEmpty(), nameClause = !namePattern.isEmpty();
 		String sql = "SELECT COUNT(DISTINCT(mt.movie_id)) AS movie_count"
 				+ " FROM movie_tag mt"
 				+ " JOIN movie m ON m.id = mt.movie_id"
 				+ " JOIN tag t ON t.id = mt.tag_id"
-				+ " WHERE t.section = ?";
+				+ " WHERE t.section = ?"
+				+ " AND t.name LIKE CONCAT('%', ?, '%')";
 
 		if (tagClause) {
 			sql += " AND ? = (SELECT COUNT(*)"
@@ -170,6 +171,7 @@ public class MovieTagDao {
 		final PreparedStatement statement = connection.prepareStatement(sql);
 		int i=0;
 		statement.setString(++i, section.getName());
+		statement.setString(++i, tagPattern);
 		if (tagClause) {
 			statement.setInt(++i, tags.size());
 			for(final Tag tag: tags) {
@@ -180,7 +182,7 @@ public class MovieTagDao {
 			statement.setInt(++i, tag.getId());
 		}
 		if (nameClause) {
-			statement.setString(++i, nameSearch);
+			statement.setString(++i, namePattern);
 		}
 
 		int count = 0;

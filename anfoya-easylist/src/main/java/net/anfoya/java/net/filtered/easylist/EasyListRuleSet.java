@@ -98,11 +98,11 @@ public class EasyListRuleSet implements RuleSet {
 	public void add(final Rule rule) {
 		switch (rule.getType()) {
 		case exception:
-			LOGGER.debug("exception added {}", rule);
+			LOGGER.debug("added {}", rule);
 			exceptions.add(rule);
 			break;
 		case exclusion:
-			LOGGER.debug("exclusion added {}", rule);
+			LOGGER.debug("added {}", rule);
 			exclusions.add(rule);
 			break;
 		case empty:

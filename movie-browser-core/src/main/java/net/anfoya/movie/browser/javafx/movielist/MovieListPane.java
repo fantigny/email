@@ -92,8 +92,8 @@ public class MovieListPane extends BorderPane {
 		return namePatternField.getText();
 	}
 
-	public void refreshWithTags(final Set<Tag> tags, final Set<Tag> excludes) {
-		movieList.refreshWithTags(tags, excludes);
+	public void refreshWithTags(final Set<Tag> tags, final Set<Tag> includes, final Set<Tag> excludes) {
+		movieList.refreshWithTags(tags, includes, excludes);
 	}
 
 	public int getMovieCount() {

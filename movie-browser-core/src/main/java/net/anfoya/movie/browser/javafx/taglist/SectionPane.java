@@ -33,13 +33,13 @@ public class SectionPane extends TitledPane {
 		this.initialized = false;
 	}
 
-	public void updateMovieCountAsync(final int currentCount, final Set<Tag> availableTags, final Set<Tag> tags, final Set<Tag> excludes, final String pattern) {
-		tagList.updateMovieCount(currentCount, availableTags, tags, excludes, pattern);
+	public void updateMovieCountAsync(final int currentCount, final Set<Tag> availableTags, final Set<Tag> includes, final Set<Tag> excludes, final String namePattern, final String tagPattern) {
+		tagList.updateMovieCount(currentCount, availableTags, includes, excludes, namePattern);
 		if (!isTag) {
 			final Task<Integer> task = new Task<Integer>() {
 				@Override
 				protected Integer call() {
-					return tagService.getSectionMovieCount(tagList.getSection(), tags, excludes, pattern);
+					return tagService.getSectionMovieCount(tagList.getSection(), includes, excludes, namePattern, tagPattern);
 				}
 			};
 			task.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
@@ -49,18 +49,25 @@ public class SectionPane extends TitledPane {
 				}
 			});
 			ThreadPool.getInstance().submit(task);
+		} else {
+			if (tagList.getSectionItem() == null) {
+				sectionItem.countProperty().set(0);
+			}
 		}
 	}
 
-	public void refresh(final Set<Tag> selectedTags) {
-		tagList.refresh(selectedTags);
+	public void refresh(final Set<Tag> selectedTags, final String tagPattern) {
+		tagList.refresh(selectedTags, tagPattern);
 
 		if (!initialized) {
 			init();
 		}
 
 		if (isTag) {
-			final TagListItem sectionItem = tagList.getSectionItem();
+			TagListItem sectionItem = tagList.getSectionItem();
+			if (sectionItem == null) {
+				sectionItem = this.sectionItem;
+			}
 
 			disableProperty().unbind();
 			disableProperty().bind(sectionItem.disableProperty());
