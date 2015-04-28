@@ -1,4 +1,4 @@
-package net.anfoya.javafx;
+package net.anfoya.javafx.scene.layout;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -15,7 +15,7 @@ import javafx.scene.layout.HBox;
 
 public class LocationPane extends BorderPane {
 	private final Button backwardButton;
-	private final Button forwwardButton;
+	private final Button forwardButton;
 	private final Button homeButton;
 	private final TextField text;
 
@@ -30,9 +30,9 @@ public class LocationPane extends BorderPane {
 		backwardButton = new Button();
 		backwardButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("Backward.png"))));
 		backwardButton.setDisable(true);
-		forwwardButton = new Button();
-		forwwardButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("Forward.png"))));
-		forwwardButton.setDisable(true);
+		forwardButton = new Button();
+		forwardButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("Forward.png"))));
+		forwardButton.setDisable(true);
 		homeButton = new Button();
 		homeButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("Home.png"))));
 		reloadButton = new Button();
@@ -40,7 +40,7 @@ public class LocationPane extends BorderPane {
 		stopButton = new Button();
 		stopButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("Cancel.png"))));
 
-		leftBox = new HBox(3, backwardButton, forwwardButton, homeButton);
+		leftBox = new HBox(3, backwardButton, forwardButton, homeButton);
 		setLeft(leftBox);
 
 		loadingProperty = new SimpleBooleanProperty();
@@ -90,7 +90,7 @@ public class LocationPane extends BorderPane {
 	}
 
 	public void setOnForwardAction(final EventHandler<ActionEvent> handler) {
-		forwwardButton.setOnAction(handler);
+		forwardButton.setOnAction(handler);
 	}
 
 	public void setOnStopAction(final EventHandler<ActionEvent> handler) {
@@ -110,6 +110,6 @@ public class LocationPane extends BorderPane {
 	}
 
 	public BooleanProperty forwardDisableProperty() {
-		return forwwardButton.disableProperty();
+		return forwardButton.disableProperty();
 	}
 }

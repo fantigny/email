@@ -22,7 +22,7 @@ import javafx.scene.web.WebHistory;
 import javafx.scene.web.WebHistory.Entry;
 import javafx.scene.web.WebView;
 import javafx.util.Callback;
-import net.anfoya.javafx.LocationPane;
+import net.anfoya.javafx.scene.layout.LocationPane;
 import net.anfoya.movie.browser.model.Movie;
 import net.anfoya.tools.model.Website;
 
