@@ -24,7 +24,7 @@ import javafx.scene.web.WebView;
 import javafx.util.Callback;
 import net.anfoya.javafx.scene.layout.LocationPane;
 import net.anfoya.movie.browser.model.Movie;
-import net.anfoya.tools.model.Website;
+import net.anfoya.movie.browser.model.Website;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

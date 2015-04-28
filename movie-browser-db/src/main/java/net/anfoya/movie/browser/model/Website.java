@@ -1,4 +1,4 @@
-package net.anfoya.tools.model;
+package net.anfoya.movie.browser.model;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;

@@ -24,9 +24,9 @@ import javafx.scene.layout.TilePane;
 import javafx.util.Callback;
 import net.anfoya.movie.browser.model.Movie;
 import net.anfoya.movie.browser.model.Tag;
+import net.anfoya.movie.browser.model.Website;
 import net.anfoya.movie.browser.service.MovieService;
 import net.anfoya.movie.browser.service.TagService;
-import net.anfoya.tools.model.Website;
 
 public class MovieToolboxPane extends TilePane {
 	private final MovieService movieService;

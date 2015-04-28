@@ -1,6 +1,6 @@
 package net.anfoya.movie.browser;
 
-import net.anfoya.tools.model.Website;
+import net.anfoya.movie.browser.model.Website;
 
 public class Config {
 	public Website[] getWebsites() {
