@@ -8,9 +8,12 @@ import javafx.scene.Scene;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import net.anfoya.mail.gmail.GmailImpl;
 import net.anfoya.mail.model.Thread;
+import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.MailServiceException;
 import net.anfoya.mail.tag.TagServiceImpl;
 import net.anfoya.tag.javafx.scene.control.SectionListPane;
@@ -25,8 +28,9 @@ public class MailBrowserApp extends Application {
 
 	private SectionListPane sectionListPane;
 	private TagServiceImpl tagService;
-	private GmailImpl mailService;
-	private ListView<Thread> threadListPane;
+	private MailService mailService;
+	private ListView<Thread> threadList;
+	private WebEngine engine;
 
 	@Override
 	public void start(final Stage primaryStage) throws Exception {
@@ -53,15 +57,18 @@ public class MailBrowserApp extends Application {
 			sectionListPane.prefHeightProperty().bind(selectionPane.heightProperty());
 			sectionListPane.setTagChangeListener((ov, oldVal, newVal) -> refreshThreadList());
 			sectionListPane.setUpdateSectionCallback(v -> {
-				updateMailCount();
+				updateThreadCount();
 				return null;
 			});
 			selectionPane.getChildren().add(sectionListPane);
 		}
 
 		/* movie list */ {
-			threadListPane = new ListView<Thread>();
-			threadListPane.setPrefWidth(250);
+			threadList = new ListView<Thread>();
+			threadList.setPrefWidth(250);
+			threadList.getSelectionModel().selectedItemProperty().addListener((ov, oldVal, newVal) -> {
+				refreshThread(newVal);
+			});
 			/*
 			movieListPane.addSelectionListener(new ChangeListener<Movie>() {
 				@Override
@@ -89,11 +96,14 @@ public class MailBrowserApp extends Application {
 				}
 			});
 			*/
-			selectionPane.getChildren().add(threadListPane);
+			selectionPane.getChildren().add(threadList);
 		}
 
 		/* movie panel */ {
-			final BorderPane moviePane = new BorderPane();
+			final BorderPane mailPane = new BorderPane();
+			final WebView view = new WebView();
+			mailPane.setCenter(view);
+			engine = view.getEngine();
 			/*
 			moviePane.prefHeightProperty().bind(mainPane.heightProperty());
 			moviePane.setOnAddTag(new EventHandler<ActionEvent>() {
@@ -124,7 +134,7 @@ public class MailBrowserApp extends Application {
 				}
 			});
 			*/
-			mainPane.setCenter(moviePane);
+			mainPane.setCenter(mailPane);
 		}
 
 		primaryStage.setTitle("FisherMail / Agaar / Agamar / Agaram");
@@ -136,14 +146,18 @@ public class MailBrowserApp extends Application {
 	private void initData() {
         sectionListPane.refresh();
 		try {
-			sectionListPane.updateMovieCount(1, tagService.getTags(Section.NO_SECTION, ""), "");
+			sectionListPane.updateCount(1, tagService.getTags(Section.NO_SECTION, ""), "");
 		} catch (final TagServiceException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
-	private void updateMailCount() {
+	private void refreshThread(final Thread thread) {
+		engine.load(mailService.getMail(thread.getMailIds().get(0)));
+	}
+
+	private void updateThreadCount() {
 		// TODO Auto-generated method stub
 	}
 
@@ -156,9 +170,9 @@ public class MailBrowserApp extends Application {
 			e.printStackTrace();
 			return;
 		}
-		threadListPane.getItems().clear();
+		threadList.getItems().clear();
 		for(final Thread t: threads) {
-			threadListPane.getItems().add(t);
+			threadList.getItems().add(t);
 		}
 	}
 }

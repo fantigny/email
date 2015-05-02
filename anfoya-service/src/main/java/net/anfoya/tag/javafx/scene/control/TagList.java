@@ -115,9 +115,9 @@ public class TagList extends ListView<TagListItem> {
 		setItems(items);
 	}
 
-	public void updateCount(final int currentCount, final List<Tag> list, final Set<Tag> includes, final Set<Tag> excludes, final String namePattern) {
+	public void updateCount(final int currentCount, final List<Tag> availableTags, final Set<Tag> includes, final Set<Tag> excludes, final String namePattern) {
 		for(final TagListItem item: getItems()) {
-			if (list.contains(item.getTag()) || item.excludedProperty().get()) {
+			if (availableTags.contains(item.getTag()) || item.excludedProperty().get()) {
 				if (item.includedProperty().get()) {
 					item.countProperty().set(currentCount);
 				} else {

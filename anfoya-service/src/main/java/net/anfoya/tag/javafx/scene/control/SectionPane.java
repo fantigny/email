@@ -4,8 +4,6 @@ import java.util.List;
 import java.util.Set;
 
 import javafx.concurrent.Task;
-import javafx.concurrent.WorkerStateEvent;
-import javafx.event.EventHandler;
 import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.TitledPane;
@@ -29,13 +27,13 @@ public class SectionPane extends TitledPane {
 		super("", tagList);
 		this.tagService = tagService;
 		this.tagList = (TagList) getContent();
-		this.sectionItem = new TagListItem(new Tag(section.getName(), section.getName()));
-		this.isTag = false;
-		this.initialized = false;
+		sectionItem = new TagListItem(new Tag(section.getName(), section.getName()));
+		isTag = false;
+		initialized = false;
 	}
 
-	public void updateMovieCountAsync(final int currentCount, final List<Tag> list, final Set<Tag> includes, final Set<Tag> excludes, final String namePattern, final String tagPattern) {
-		tagList.updateCount(currentCount, list, includes, excludes, namePattern);
+	public void updateMovieCountAsync(final int currentCount, final List<Tag> availableTags, final Set<Tag> includes, final Set<Tag> excludes, final String namePattern, final String tagPattern) {
+		tagList.updateCount(currentCount, availableTags, includes, excludes, namePattern);
 		if (!isTag) {
 			final Task<Integer> task = new Task<Integer>() {
 				@Override
@@ -43,12 +41,7 @@ public class SectionPane extends TitledPane {
 					return tagService.getSectionCount(tagList.getSection(), includes, excludes, namePattern, tagPattern);
 				}
 			};
-			task.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-				@Override
-				public void handle(final WorkerStateEvent event) {
-					sectionItem.countProperty().set((int) event.getSource().getValue());
-				}
-			});
+			task.setOnSucceeded(event -> sectionItem.countProperty().set((int) event.getSource().getValue()));
 			ThreadPool.getInstance().submit(task);
 		} else {
 			if (tagList.getSectionItem() == null) {

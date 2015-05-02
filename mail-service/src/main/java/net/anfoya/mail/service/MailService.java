@@ -10,4 +10,5 @@ public interface MailService {
 	public void logout();
 	public List<net.anfoya.mail.model.Thread> getThreads(List<Tag> tags) throws MailServiceException;
 	public List<Tag> getTags() throws MailServiceException;
+	public String getMail(String mailId);
 }

@@ -173,13 +173,13 @@ public class SectionListPane extends BorderPane {
 		}
 	}
 
-	public void updateMovieCount(final int currentCount, final List<Tag> list, final String namePattern) {
+	public void updateCount(final int currentCount, final List<Tag> availableTags, final String namePattern) {
 		final Set<Tag> includes = getIncludedTags();
 		final Set<Tag> excludes = getExcludedTags();
 		final String tagPattern = tagPatternField.getText();
 		for(final TitledPane titledPane: sectionAcc.getPanes()) {
 			final SectionPane sectionPane = (SectionPane) titledPane;
-			sectionPane.updateMovieCountAsync(currentCount, list, includes, excludes, namePattern, tagPattern);
+			sectionPane.updateMovieCountAsync(currentCount, availableTags, includes, excludes, namePattern, tagPattern);
 		}
 	}
 

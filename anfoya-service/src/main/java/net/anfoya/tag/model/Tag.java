@@ -36,7 +36,7 @@ public class Tag {
         if (!this.getClass().equals(other.getClass())) {
 			return false;
 		}
-        return ((Tag) other).id == id;
+        return ((Tag) other).id.equals(id);
     }
     @Override
 	public String toString() {
