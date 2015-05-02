@@ -1,5 +1,6 @@
 package net.anfoya.tag.javafx.scene.control;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -192,8 +193,8 @@ public class SectionListPane extends BorderPane {
 		return Collections.unmodifiableSet(tags);
 	}
 
-	public Set<Tag> getAllSelectedTags() {
-		final Set<Tag> tags = new LinkedHashSet<Tag>();
+	public List<Tag> getAllSelectedTags() {
+		final List<Tag> tags = new ArrayList<Tag>();
 		tags.addAll(getIncludedTags());
 		tags.addAll(getExcludedTags());
 		return tags;

@@ -26,6 +26,7 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Label;
+import com.google.api.services.gmail.model.ListThreadsResponse;
 
 public class GmailImpl implements MailService {
 
@@ -108,7 +109,7 @@ public class GmailImpl implements MailService {
 		try {
 			final List<Tag> tags = new ArrayList<Tag>();
 			for(final Label l: delegate.users().labels().list(USER).execute().getLabels()) {
-				tags.add(new Tag(l.getId(), l.getName()));
+				tags.add(new Tag(l.getId(), l.getName(), "Main"));
 			}
 			return tags;
 		} catch (final IOException e) {
@@ -118,14 +119,21 @@ public class GmailImpl implements MailService {
 
 	@Override
 	public List<Thread> getThreads(final List<Tag> tags) throws MailServiceException {
-		try {
-			final List<Thread> threads = new ArrayList<Thread>();
-			for(final com.google.api.services.gmail.model.Thread t: delegate.users().threads().list(USER).execute().getThreads()) {
-				threads.add(new Thread(t.getId()));
-			}
-			return threads;
-		} catch (final IOException e) {
-			throw new MailServiceException("loading threads for " + tags.toString(), e);
+		final List<String> labelIds = new ArrayList<String>();
+		for(final Tag t: tags) {
+			labelIds.add(t.getId());
 		}
+		ListThreadsResponse response;
+		try {
+			response = delegate.users().threads().list(USER).setLabelIds(labelIds).execute();
+		} catch (final IOException e) {
+			throw new MailServiceException("loading threads for: " + tags.toString(), e);
+		}
+		final List<Thread> threads = new ArrayList<Thread>();
+		for(final com.google.api.services.gmail.model.Thread t : response.getThreads()) {
+			threads.add(new Thread(t.getId()));
+		}
+
+		return threads;
 	}
 }

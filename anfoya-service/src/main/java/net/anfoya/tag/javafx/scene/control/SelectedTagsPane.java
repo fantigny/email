@@ -2,10 +2,7 @@ package net.anfoya.tag.javafx.scene.control;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.scene.control.Button;
 import javafx.scene.layout.FlowPane;
 import javafx.util.Callback;
@@ -22,22 +19,17 @@ public class SelectedTagsPane extends FlowPane {
 		setPrefWidth(0);
 	}
 
-	public void refresh(final Set<Tag> tags) {
+	public void refresh(final List<Tag> list) {
 		final List<Button> buttons = new ArrayList<Button>();
-		for(final Tag tag: tags) {
+		for(final Tag tag: list) {
 			final Button button = new Button(tag.getName() + CROSS);
-			button.setOnAction(new EventHandler<ActionEvent>() {
-				@Override
-				public void handle(final ActionEvent event) {
-					delTagCallBack.call(tag.getName());
-				}
-			});
+			button.setOnAction(event -> delTagCallBack.call(tag.getName()));
 			buttons.add(button);
 		}
 		getChildren().setAll(buttons);
 	}
 
 	public void setDelTagCallBack(final Callback<String, Void> callback) {
-		this.delTagCallBack = callback;
+		delTagCallBack = callback;
 	}
 }

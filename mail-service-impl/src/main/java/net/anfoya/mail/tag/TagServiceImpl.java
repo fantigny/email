@@ -23,7 +23,7 @@ public class TagServiceImpl implements MailTagService, TagService {
 	@SuppressWarnings("serial")
 	@Override
 	public Set<Section> getSections() {
-		return new LinkedHashSet<Section>() {{ add(new Section("test section")); }};
+		return new LinkedHashSet<Section>() {{ add(new Section("Main")); }};
 	}
 
 	@Override

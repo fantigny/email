@@ -1,5 +1,7 @@
 package net.anfoya.mail.browser.javafx.entrypoint;
 
+import java.util.List;
+
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -8,7 +10,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import net.anfoya.mail.gmail.GmailImpl;
-import net.anfoya.mail.service.MailService;
+import net.anfoya.mail.model.Thread;
 import net.anfoya.mail.service.MailServiceException;
 import net.anfoya.mail.tag.TagServiceImpl;
 import net.anfoya.tag.javafx.scene.control.SectionListPane;
@@ -23,6 +25,8 @@ public class MailBrowserApp extends Application {
 
 	private SectionListPane sectionListPane;
 	private TagServiceImpl tagService;
+	private GmailImpl mailService;
+	private ListView<Thread> threadListPane;
 
 	@Override
 	public void start(final Stage primaryStage) throws Exception {
@@ -41,13 +45,13 @@ public class MailBrowserApp extends Application {
 
 		/* tag list */ {
 
-			final MailService mailService = new GmailImpl();
+			mailService = new GmailImpl();
 			mailService.login(null, null);
 			tagService = new TagServiceImpl(mailService);
 			sectionListPane = new SectionListPane(tagService);
 			sectionListPane.setPrefWidth(250);
 			sectionListPane.prefHeightProperty().bind(selectionPane.heightProperty());
-			sectionListPane.setTagChangeListener((ov, oldVal, newVal) -> refreshMailList());
+			sectionListPane.setTagChangeListener((ov, oldVal, newVal) -> refreshThreadList());
 			sectionListPane.setUpdateSectionCallback(v -> {
 				updateMailCount();
 				return null;
@@ -56,8 +60,8 @@ public class MailBrowserApp extends Application {
 		}
 
 		/* movie list */ {
-			final ListView<String> movieListPane = new ListView<String>();
-			movieListPane.setPrefWidth(250);
+			threadListPane = new ListView<Thread>();
+			threadListPane.setPrefWidth(250);
 			/*
 			movieListPane.addSelectionListener(new ChangeListener<Movie>() {
 				@Override
@@ -85,7 +89,7 @@ public class MailBrowserApp extends Application {
 				}
 			});
 			*/
-			selectionPane.getChildren().add(movieListPane);
+			selectionPane.getChildren().add(threadListPane);
 		}
 
 		/* movie panel */ {
@@ -143,8 +147,18 @@ public class MailBrowserApp extends Application {
 		// TODO Auto-generated method stub
 	}
 
-	private Object refreshMailList() {
-		// TODO Auto-generated method stub
-		return null;
+	private void refreshThreadList() {
+		List<Thread> threads;
+		try {
+			threads = mailService.getThreads(sectionListPane.getAllSelectedTags());
+		} catch (final MailServiceException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return;
+		}
+		threadListPane.getItems().clear();
+		for(final Thread t: threads) {
+			threadListPane.getItems().add(t);
+		}
 	}
 }
