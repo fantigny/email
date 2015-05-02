@@ -1,9 +1,10 @@
-package net.anfoya.javafx.scene.control.tag;
+package net.anfoya.tag.javafx.scene.control;
 
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -11,16 +12,13 @@ import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
-import javafx.concurrent.WorkerStateEvent;
-import javafx.event.EventHandler;
-import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
-import javafx.util.Callback;
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.javafx.scene.control.tag.model.Section;
-import net.anfoya.javafx.scene.control.tag.model.Tag;
-import net.anfoya.javafx.scene.control.tag.service.TagService;
+import net.anfoya.tag.model.Section;
+import net.anfoya.tag.model.Tag;
+import net.anfoya.tag.service.TagService;
+import net.anfoya.tag.service.TagServiceException;
 
 public class TagList extends ListView<TagListItem> {
 	private final TagService tagService;
@@ -35,12 +33,7 @@ public class TagList extends ListView<TagListItem> {
 		this.section = section;
 
 		getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-		setCellFactory(new Callback<ListView<TagListItem>, ListCell<TagListItem>>() {
-			@Override
-			public ListCell<TagListItem> call(final ListView<TagListItem> list) {
-				return new TagListCell();
-			}
-		});
+		setCellFactory(list -> new TagListCell());
 	}
 
 	public Tag getSelectedTag() {
@@ -93,7 +86,14 @@ public class TagList extends ListView<TagListItem> {
 
 	public void refresh(final Set<Tag> selectedTags, final String tagPattern) {
 		// get all tags
-		final Set<Tag> tags = tagService.getTags(section, tagPattern);
+		List<Tag> tags;
+		try {
+			tags = tagService.getTags(section, tagPattern);
+		} catch (final TagServiceException e) {
+			//TODO display exception
+			e.printStackTrace();
+			return;
+		}
 
 		// build items map and restore selection
 		itemMap.clear();
@@ -115,14 +115,14 @@ public class TagList extends ListView<TagListItem> {
 		setItems(items);
 	}
 
-	public void updateMovieCount(final int currentCount, final Set<Tag> availableTags, final Set<Tag> tags, final Set<Tag> excludes, final String namePattern) {
+	public void updateCount(final int currentCount, final List<Tag> list, final Set<Tag> includes, final Set<Tag> excludes, final String namePattern) {
 		for(final TagListItem item: getItems()) {
-			if (availableTags.contains(item.getTag()) || item.excludedProperty().get()) {
+			if (list.contains(item.getTag()) || item.excludedProperty().get()) {
 				if (item.includedProperty().get()) {
 					item.countProperty().set(currentCount);
 				} else {
 					// request count for available tags
-					updateCountAsync(item, tags, excludes, namePattern);
+					updateCountAsync(item, includes, excludes, namePattern);
 				}
 			} else {
 				item.countProperty().set(0);
@@ -131,25 +131,22 @@ public class TagList extends ListView<TagListItem> {
 		forceRepaint();
 	}
 
-	protected void updateCountAsync(final TagListItem item, final Set<Tag> tags, final Set<Tag> excludes, final String nameFilter) {
+	protected void updateCountAsync(final TagListItem item, final Set<Tag> includes, final Set<Tag> excludes, final String nameFilter) {
 		final Task<Integer> task = new Task<Integer>() {
 			@Override
 			public Integer call() throws SQLException {
 				final Tag tag = item.getTag();
 				final int excludeFactor = excludes.contains(tag)? -1: 1;
-				final Set<Tag> fakeIncludes = new LinkedHashSet<Tag>(tags);
+				final Set<Tag> fakeIncludes = new LinkedHashSet<Tag>(includes);
 				fakeIncludes.add(tag);
 				final Set<Tag> fakeExcludes = new LinkedHashSet<Tag>(excludes);
 				fakeExcludes.remove(tag);
 				return excludeFactor * tagService.getCount(fakeIncludes, fakeExcludes, nameFilter);
 			}
 		};
-		task.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-			@Override
-			public void handle(final WorkerStateEvent event) {
-				item.countProperty().set((int) event.getSource().getValue());
-				forceRepaint();
-			}
+		task.setOnSucceeded(event -> {
+			item.countProperty().set((int) event.getSource().getValue());
+			forceRepaint();
 		});
 		ThreadPool.getInstance().submit(task);
 	}
@@ -160,12 +157,7 @@ public class TagList extends ListView<TagListItem> {
 
 	// TODO: find a proper way
 	private void forceRepaint() {
-		setCellFactory(new Callback<ListView<TagListItem>, ListCell<TagListItem>>() {
-			@Override
-			public ListCell<TagListItem> call(final ListView<TagListItem> list) {
-				return new TagListCell();
-			}
-		});
+		setCellFactory(list -> new TagListCell());
 	}
 
 	public void setTagSelected(final String tagName, final boolean selected) {

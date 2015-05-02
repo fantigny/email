@@ -1,4 +1,4 @@
-package net.anfoya.javafx.scene.control.tag;
+package net.anfoya.tag.javafx.scene.control;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;

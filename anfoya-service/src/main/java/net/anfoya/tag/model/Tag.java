@@ -1,4 +1,4 @@
-package net.anfoya.javafx.scene.control.tag.model;
+package net.anfoya.tag.model;
 
 
 

@@ -1,4 +1,4 @@
-package net.anfoya.javafx.scene.control.tag;
+package net.anfoya.tag.javafx.scene.control;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
@@ -8,7 +8,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import net.anfoya.javafx.scene.control.tag.model.Tag;
+import net.anfoya.tag.model.Tag;
 
 public class TagListItem {
 	private static final String COUNT_STRING = " (%d)";

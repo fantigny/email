@@ -10,10 +10,10 @@ import java.util.Arrays;
 import java.util.List;
 
 import net.anfoya.java.io.JsonFile;
-import net.anfoya.mail.model.Tag;
 import net.anfoya.mail.model.Thread;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.MailServiceException;
+import net.anfoya.tag.model.Tag;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;

@@ -1,17 +1,19 @@
 package net.anfoya.mail.browser.javafx.entrypoint;
 
 import javafx.application.Application;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.collections.ListChangeListener;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.control.ListView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
-import javafx.util.Callback;
+import net.anfoya.mail.gmail.GmailImpl;
+import net.anfoya.mail.service.MailService;
+import net.anfoya.mail.service.MailServiceException;
+import net.anfoya.mail.tag.TagServiceImpl;
+import net.anfoya.tag.javafx.scene.control.SectionListPane;
+import net.anfoya.tag.model.Section;
+import net.anfoya.tag.service.TagServiceException;
 
 public class MailBrowserApp extends Application {
 
@@ -19,13 +21,16 @@ public class MailBrowserApp extends Application {
 		launch(args);
 	}
 
+	private SectionListPane sectionListPane;
+	private TagServiceImpl tagService;
+
 	@Override
 	public void start(final Stage primaryStage) throws Exception {
 		initGui(primaryStage);
 		initData();
 	}
 
-	private void initGui(final Stage primaryStage) {
+	private void initGui(final Stage primaryStage) throws MailServiceException {
 		final BorderPane mainPane = new BorderPane();
 		mainPane.setPadding(new Insets(5));
 
@@ -36,30 +41,24 @@ public class MailBrowserApp extends Application {
 
 		/* tag list */ {
 
+			final MailService mailService = new GmailImpl();
+			mailService.login(null, null);
+			tagService = new TagServiceImpl(mailService);
+			sectionListPane = new SectionListPane(tagService);
 			sectionListPane.setPrefWidth(250);
 			sectionListPane.prefHeightProperty().bind(selectionPane.heightProperty());
-			sectionListPane.setTagChangeListener(new ChangeListener<Boolean>() {
-				@Override
-				public void changed(final ObservableValue<? extends Boolean> ov, final Boolean oldVal, final Boolean newVal) {
-					// refresh movie list when a tag is (un)selected
-					refreshMovieList();
-				}
+			sectionListPane.setTagChangeListener((ov, oldVal, newVal) -> refreshMailList());
+			sectionListPane.setUpdateSectionCallback(v -> {
+				updateMailCount();
+				return null;
 			});
-			sectionListPane.setUpdateSectionCallback(new Callback<Void, Void>() {
-				@Override
-				public Void call(final Void v) {
-					updateMovieCount();
-					return null;
-				}
-			});
-			if (profile != Profile.RESTRICTED) {
-				selectionPane.getChildren().add(sectionListPane);
-			}
+			selectionPane.getChildren().add(sectionListPane);
 		}
 
 		/* movie list */ {
+			final ListView<String> movieListPane = new ListView<String>();
 			movieListPane.setPrefWidth(250);
-			movieListPane.prefHeightProperty().bind(selectionPane.heightProperty());
+			/*
 			movieListPane.addSelectionListener(new ChangeListener<Movie>() {
 				@Override
 				public void changed(final ObservableValue<? extends Movie> ov, final Movie oldVal, final Movie newVal) {
@@ -73,18 +72,25 @@ public class MailBrowserApp extends Application {
 				@Override
 				public void onChanged(final ListChangeListener.Change<? extends Movie> change) {
 					// update movie count when a new movie list is loaded
-					updateMovieCount();
+					updateMailCount();
 					if (!movieListPane.isRefreshing()) {
 						// update movie details in case no movie is selected
 						refreshMovie();
 					}
 				}
-			});
 
+				private void updateMailCount() {
+					// TODO Auto-generated method stub
+
+				}
+			});
+			*/
 			selectionPane.getChildren().add(movieListPane);
 		}
 
 		/* movie panel */ {
+			final BorderPane moviePane = new BorderPane();
+			/*
 			moviePane.prefHeightProperty().bind(mainPane.heightProperty());
 			moviePane.setOnAddTag(new EventHandler<ActionEvent>() {
 				@Override
@@ -113,7 +119,7 @@ public class MailBrowserApp extends Application {
 					refreshMovieList();
 				}
 			});
-
+			*/
 			mainPane.setCenter(moviePane);
 		}
 
@@ -124,7 +130,21 @@ public class MailBrowserApp extends Application {
 	}
 
 	private void initData() {
-		// TODO Auto-generated method stub
+        sectionListPane.refresh();
+		try {
+			sectionListPane.updateMovieCount(1, tagService.getTags(Section.NO_SECTION, ""), "");
+		} catch (final TagServiceException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
+	private void updateMailCount() {
+		// TODO Auto-generated method stub
+	}
+
+	private Object refreshMailList() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

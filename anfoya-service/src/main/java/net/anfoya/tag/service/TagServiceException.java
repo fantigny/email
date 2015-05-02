@@ -1,4 +1,5 @@
-package net.anfoya.mail.service;
+package net.anfoya.tag.service;
+
 
 @SuppressWarnings("serial")
 public class TagServiceException extends Exception {

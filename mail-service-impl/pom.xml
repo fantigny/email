@@ -20,6 +20,16 @@
 	<dependencies>
 		<dependency>
 			<groupId>net.anfoya</groupId>
+			<artifactId>anfoya-tools</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>net.anfoya</groupId>
+			<artifactId>anfoya-tag</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>	
+		<dependency>
+			<groupId>net.anfoya</groupId>
 			<artifactId>mail-service</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>	
@@ -48,11 +58,6 @@
 			<artifactId>logback-classic</artifactId>
 			<version>1.1.2</version>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>net.anfoya</groupId>
-			<artifactId>anfoya-tools</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 </project>

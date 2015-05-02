@@ -1,4 +1,4 @@
-package net.anfoya.javafx.scene.control.tag;
+package net.anfoya.tag.javafx.scene.control;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -8,10 +8,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.Alert;
@@ -26,9 +23,9 @@ import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.util.Callback;
 import net.anfoya.javafx.scene.control.Title;
-import net.anfoya.javafx.scene.control.tag.model.Section;
-import net.anfoya.javafx.scene.control.tag.model.Tag;
-import net.anfoya.javafx.scene.control.tag.service.TagService;
+import net.anfoya.tag.model.Section;
+import net.anfoya.tag.model.Tag;
+import net.anfoya.tag.service.TagService;
 
 public class SectionListPane extends BorderPane {
 	private final TagService tagService;
@@ -56,34 +53,21 @@ public class SectionListPane extends BorderPane {
 
 		tagPatternField = new TextField();
 		tagPatternField.setPromptText("search");
-		tagPatternField.textProperty().addListener(new ChangeListener<String>() {
-			@Override
-			public void changed(final ObservableValue<? extends String> ov, final String oldPattern, final String newPattern) {
-				refreshWithPattern();
-			}
-		});
+		tagPatternField.textProperty().addListener((ChangeListener<String>) (ov, oldPattern, newPattern) -> refreshWithPattern());
 		patternPane.setCenter(tagPatternField);
 		BorderPane.setMargin(tagPatternField, new Insets(0, 5, 0, 5));
 
 		final Button delPatternButton = new Button("X");
-		delPatternButton.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(final ActionEvent event) {
-				tagPatternField.textProperty().set("");
-			}
-		});
+		delPatternButton.setOnAction(event -> tagPatternField.textProperty().set(""));
 		patternPane.setRight(delPatternButton);
 
 		sectionAcc = new Accordion();
 		setCenter(sectionAcc);
 
 		selectedPane = new SelectedTagsPane();
-		selectedPane.setDelTagCallBack(new Callback<String, Void>() {
-			@Override
-			public Void call(final String tagName) {
-				unselectTag(tagName);
-				return null;
-			}
+		selectedPane.setDelTagCallBack(tagName -> {
+			unselectTag(tagName);
+			return null;
 		});
 		setBottom(selectedPane);
 
@@ -93,12 +77,7 @@ public class SectionListPane extends BorderPane {
 
 		moveToSectionMenu = new Menu("Move to");
 		final MenuItem newSectionItem = new MenuItem("Create new");
-		newSectionItem.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(final ActionEvent event) {
-				createSection();
-			}
-		});
+		newSectionItem.setOnAction(event -> createSection());
 
 		contextMenu = new ContextMenu(moveToSectionMenu, newSectionItem);
 	}
@@ -135,9 +114,8 @@ public class SectionListPane extends BorderPane {
 	public void refreshTags() {
 		final String tagPattern = tagPatternField.getText();
 		final Set<Tag> tags = getIncludedTags();
-		for(final TitledPane titledPane: sectionAcc.getPanes()) {
-			final SectionPane sectionPane = (SectionPane) titledPane;
-			sectionPane.refresh(tags, tagPattern);
+		for(final TitledPane pane: sectionAcc.getPanes()) {
+			((SectionPane) pane).refresh(tags, tagPattern);
 		}
 
 		refreshMoveToSectionMenu();
@@ -175,12 +153,9 @@ public class SectionListPane extends BorderPane {
 	}
 
 	public void setTagChangeListener(final ChangeListener<Boolean> listener) {
-		tagChangeListener = new ChangeListener<Boolean>() {
-			@Override
-			public void changed(final ObservableValue<? extends Boolean> ov, final Boolean oldVal, final Boolean newVal) {
-				listener.changed(ov, oldVal, newVal);
-				selectedPane.refresh(getAllSelectedTags());
-			}
+		tagChangeListener = (ov, oldVal, newVal) -> {
+			listener.changed(ov, oldVal, newVal);
+			selectedPane.refresh(getAllSelectedTags());
 		};
 	}
 
@@ -197,13 +172,13 @@ public class SectionListPane extends BorderPane {
 		}
 	}
 
-	public void updateMovieCount(final int currentCount, final Set<Tag> availableTags, final String namePattern) {
+	public void updateMovieCount(final int currentCount, final List<Tag> list, final String namePattern) {
 		final Set<Tag> includes = getIncludedTags();
 		final Set<Tag> excludes = getExcludedTags();
 		final String tagPattern = tagPatternField.getText();
 		for(final TitledPane titledPane: sectionAcc.getPanes()) {
 			final SectionPane sectionPane = (SectionPane) titledPane;
-			sectionPane.updateMovieCountAsync(currentCount, availableTags, includes, excludes, namePattern, tagPattern);
+			sectionPane.updateMovieCountAsync(currentCount, list, includes, excludes, namePattern, tagPattern);
 		}
 	}
 
@@ -250,12 +225,9 @@ public class SectionListPane extends BorderPane {
 				continue;
 			}
 			final MenuItem item = new MenuItem(section.getName());
-			item.setOnAction(new EventHandler<ActionEvent>() {
-				@Override
-				public void handle(final ActionEvent event) {
-					contextMenu.hide();
-					moveToSection(section);
-				}
+			item.setOnAction(event -> {
+				contextMenu.hide();
+				moveToSection(section);
 			});
 			itemList.add(item);
 		}

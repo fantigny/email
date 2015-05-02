@@ -3,10 +3,10 @@ package net.anfoya.mail.gmail.service;
 import java.util.ArrayList;
 
 import net.anfoya.mail.gmail.GmailImpl;
-import net.anfoya.mail.model.Tag;
 import net.anfoya.mail.model.Thread;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.MailServiceException;
+import net.anfoya.tag.model.Tag;
 
 import org.junit.Test;
 

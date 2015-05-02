@@ -1,4 +1,4 @@
-package net.anfoya.javafx.scene.control.tag;
+package net.anfoya.tag.javafx.scene.control;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +9,7 @@ import javafx.event.EventHandler;
 import javafx.scene.control.Button;
 import javafx.scene.layout.FlowPane;
 import javafx.util.Callback;
-import net.anfoya.javafx.scene.control.tag.model.Tag;
+import net.anfoya.tag.model.Tag;
 
 public class SelectedTagsPane extends FlowPane {
 

@@ -1,5 +1,6 @@
-package net.anfoya.javafx.scene.control.tag;
+package net.anfoya.tag.javafx.scene.control;
 
+import java.util.List;
 import java.util.Set;
 
 import javafx.concurrent.Task;
@@ -10,9 +11,9 @@ import javafx.scene.control.Labeled;
 import javafx.scene.control.TitledPane;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.IncExcBox;
-import net.anfoya.javafx.scene.control.tag.model.Section;
-import net.anfoya.javafx.scene.control.tag.model.Tag;
-import net.anfoya.javafx.scene.control.tag.service.TagService;
+import net.anfoya.tag.model.Section;
+import net.anfoya.tag.model.Tag;
+import net.anfoya.tag.service.TagService;
 
 public class SectionPane extends TitledPane {
 	private final TagService tagService;
@@ -33,8 +34,8 @@ public class SectionPane extends TitledPane {
 		this.initialized = false;
 	}
 
-	public void updateMovieCountAsync(final int currentCount, final Set<Tag> availableTags, final Set<Tag> includes, final Set<Tag> excludes, final String namePattern, final String tagPattern) {
-		tagList.updateMovieCount(currentCount, availableTags, includes, excludes, namePattern);
+	public void updateMovieCountAsync(final int currentCount, final List<Tag> list, final Set<Tag> includes, final Set<Tag> excludes, final String namePattern, final String tagPattern) {
+		tagList.updateCount(currentCount, list, includes, excludes, namePattern);
 		if (!isTag) {
 			final Task<Integer> task = new Task<Integer>() {
 				@Override
