@@ -5,9 +5,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.List;
 
 import net.anfoya.java.io.JsonFile;
 import net.anfoya.mail.model.Tag;
@@ -104,9 +104,9 @@ public class GmailImpl implements MailService {
 	}
 
 	@Override
-	public Set<Tag> getTags() throws MailServiceException {
+	public List<Tag> getTags() throws MailServiceException {
 		try {
-			final Set<Tag> tags = new LinkedHashSet<Tag>();
+			final List<Tag> tags = new ArrayList<Tag>();
 			for(final Label l: delegate.users().labels().list(USER).execute().getLabels()) {
 				tags.add(new Tag(l.getId(), l.getName()));
 			}
@@ -117,9 +117,9 @@ public class GmailImpl implements MailService {
 	}
 
 	@Override
-	public Set<Thread> getThreads(final Set<Tag> tags) throws MailServiceException {
+	public List<Thread> getThreads(final List<Tag> tags) throws MailServiceException {
 		try {
-			final Set<Thread> threads = new LinkedHashSet<Thread>();
+			final List<Thread> threads = new ArrayList<Thread>();
 			for(final com.google.api.services.gmail.model.Thread t: delegate.users().threads().list(USER).execute().getThreads()) {
 				threads.add(new Thread(t.getId()));
 			}
