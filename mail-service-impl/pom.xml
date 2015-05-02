@@ -20,7 +20,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>net.anfoya</groupId>
-			<artifactId>anfoya-mail</artifactId>
+			<artifactId>mail-service</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>	
 	
