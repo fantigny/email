@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import net.anfoya.java.io.JsonFile;
+import net.anfoya.mail.model.Message;
 import net.anfoya.mail.model.Thread;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.MailServiceException;
@@ -27,7 +28,6 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Label;
 import com.google.api.services.gmail.model.ListThreadsResponse;
-import com.google.api.services.gmail.model.Message;
 
 public class GmailImpl implements MailService {
 
@@ -45,8 +45,6 @@ public class GmailImpl implements MailService {
 	private final JsonFactory jsonFactory;
 
 	private Gmail delegate = null;
-
-	private List<com.google.api.services.gmail.model.Thread> lastThreads = null;
 
 	public GmailImpl() {
 		httpTransport = new NetHttpTransport();
@@ -133,6 +131,7 @@ public class GmailImpl implements MailService {
 		for(final Tag t: tags) {
 			labelIds.add(t.getId());
 		}
+		List<com.google.api.services.gmail.model.Thread> lastThreads;
 		try {
 			final ListThreadsResponse response = delegate.users().threads().list(USER).setLabelIds(labelIds).execute();
 			if (response.getThreads() == null) {
@@ -144,30 +143,37 @@ public class GmailImpl implements MailService {
 			throw new MailServiceException("loading threads for: " + tags.toString(), e);
 		}
 		for(final com.google.api.services.gmail.model.Thread t : lastThreads) {
-			final List<String> mailIds = new ArrayList<String>();
-			if (t.getMessages() != null) {
-				for(final Message m: t.getMessages()) {
-					mailIds.add(m.getId());
-				}
-			}
-			threads.add(new Thread(t.getId(), t.getSnippet(), mailIds));
+			threads.add(new Thread(t.getId(), t.getSnippet()));
 		}
 
 		return threads;
 	}
 
 	@Override
-	public String getMail(final String mailId) {
-		String mail = "";
-		if (lastThreads != null) {
-			for(final com.google.api.services.gmail.model.Thread t: lastThreads) {
-				for(final Message m: t.getMessages()) {
-					if (m.getId().equals(mailId)) {
-						mail = m.getPayload().getParts().get(0).getBody().getData();
-					}
-				}
+	public List<String> getMessageIds(final String threadId) {
+		final List<String> ids = new ArrayList<String>();
+		try {
+			final com.google.api.services.gmail.model.Thread thread = delegate.users().threads().get(USER, threadId).execute();
+			for(final com.google.api.services.gmail.model.Message m: thread.getMessages()) {
+				ids.add(m.getId());
 			}
+		} catch (final IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		return mail;
+
+		return ids;
+	}
+
+	@Override
+	public Message getMessage(final String id) {
+		try {
+			final com.google.api.services.gmail.model.Message message = delegate.users().messages().get(USER, id).execute();
+			return new Message(id, message.getSnippet());
+		} catch (final IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
 	}
 }

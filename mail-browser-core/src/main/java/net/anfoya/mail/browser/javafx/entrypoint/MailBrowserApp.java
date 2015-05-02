@@ -12,6 +12,7 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import net.anfoya.mail.gmail.GmailImpl;
+import net.anfoya.mail.model.Message;
 import net.anfoya.mail.model.Thread;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.MailServiceException;
@@ -154,7 +155,13 @@ public class MailBrowserApp extends Application {
 	}
 
 	private void refreshThread(final Thread thread) {
-		engine.load(mailService.getMail(thread.getMailIds().get(0)));
+		engine.loadContent("");
+		if (thread == null) {
+			return;
+		}
+		final List<String> messageIds = mailService.getMessageIds(thread.getId());
+		final Message message = mailService.getMessage(messageIds.get(0));
+		engine.loadContent(message.getSnippet());
 	}
 
 	private void updateThreadCount() {
