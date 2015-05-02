@@ -1,6 +1,6 @@
 package net.anfoya.mail.gmail.service;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 
 import net.anfoya.mail.gmail.GmailImpl;
 import net.anfoya.mail.model.Tag;
@@ -23,7 +23,7 @@ public class GmailTest {
 	public void getHeaders() throws MailServiceException {
 		final MailService service = new GmailImpl();
 		service.login("", "");
-		for(final Thread t: service.getThreads(new HashSet<Tag>())) {
+		for(final Thread t: service.getThreads(new ArrayList<Tag>())) {
 			System.out.println(t.getId());
 		}
 		service.logout();
