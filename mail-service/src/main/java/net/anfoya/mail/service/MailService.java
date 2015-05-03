@@ -1,9 +1,11 @@
 package net.anfoya.mail.service;
 
 import java.util.List;
+import java.util.Set;
 
 import net.anfoya.mail.model.Message;
 import net.anfoya.mail.model.Thread;
+import net.anfoya.tag.model.Section;
 import net.anfoya.tag.model.Tag;
 
 public interface MailService {
@@ -14,4 +16,5 @@ public interface MailService {
 	public List<Tag> getTags() throws MailServiceException;
 	List<String> getMessageIds(String threadId);
 	public Message getMessage(String id);
+	public Set<Section> getSections() throws MailServiceException;
 }

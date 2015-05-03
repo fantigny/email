@@ -1,6 +1,5 @@
 package net.anfoya.mail.tag;
 
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -20,10 +19,13 @@ public class TagServiceImpl implements MailTagService, TagService {
 		this.mailService = mailService;
 	}
 
-	@SuppressWarnings("serial")
 	@Override
-	public Set<Section> getSections() {
-		return new LinkedHashSet<Section>() {{ add(new Section("Main")); }};
+	public Set<Section> getSections() throws TagServiceException {
+		try {
+			return mailService.getSections();
+		} catch (final MailServiceException e) {
+			throw new TagServiceException("", e);
+		}
 	}
 
 	@Override

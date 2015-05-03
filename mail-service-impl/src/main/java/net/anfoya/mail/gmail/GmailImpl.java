@@ -7,13 +7,16 @@ import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import net.anfoya.java.io.JsonFile;
 import net.anfoya.mail.model.Message;
 import net.anfoya.mail.model.Thread;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.MailServiceException;
+import net.anfoya.tag.model.Section;
 import net.anfoya.tag.model.Tag;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
@@ -110,9 +113,15 @@ public class GmailImpl implements MailService {
 		try {
 			final List<Tag> tags = new ArrayList<Tag>();
 			for(final Label l: delegate.users().labels().list(USER).execute().getLabels()) {
-				final String name = l.getName();
-				if (!name.startsWith("CATEGORY_")) {
-					tags.add(new Tag(l.getId(), l.getName(), "Main"));
+				if (!"labelHide".equals(l.getLabelListVisibility())) {
+					String name = l.getName();
+					String section = Section.NO_SECTION.getName();
+					if (name.contains("/")) {
+						final int index = name.lastIndexOf("/");
+						name = name.substring(index, name.length()-1);
+						section = l.getName().substring(index);
+					}
+					tags.add(new Tag(l.getId(), l.getName(), section));
 				}
 			}
 			return tags;
@@ -175,5 +184,15 @@ public class GmailImpl implements MailService {
 			e.printStackTrace();
 			return null;
 		}
+	}
+
+	@Override
+	public Set<Section> getSections() throws MailServiceException {
+		final Set<Section> sections = new LinkedHashSet<Section>();
+		for(final Tag t: getTags()) {
+			sections.add(new Section(t.getSection()));
+		}
+
+		return sections;
 	}
 }

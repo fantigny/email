@@ -8,7 +8,7 @@ import net.anfoya.tag.model.Tag;
 
 public interface TagService {
 
-	Set<Section> getSections();
+	Set<Section> getSections() throws TagServiceException;
 	List<Tag> getTags(Section section, String tagPattern) throws TagServiceException;
 	void addToSection(Tag tag);
 	int getCount(Set<Tag> includes, Set<Tag> excludes, String pattern);

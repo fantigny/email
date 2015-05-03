@@ -27,6 +27,7 @@ import net.anfoya.javafx.scene.control.Title;
 import net.anfoya.tag.model.Section;
 import net.anfoya.tag.model.Tag;
 import net.anfoya.tag.service.TagService;
+import net.anfoya.tag.service.TagServiceException;
 
 public class SectionListPane extends BorderPane {
 	private final TagService tagService;
@@ -84,7 +85,13 @@ public class SectionListPane extends BorderPane {
 	}
 
 	public void refreshSections() {
-		sections = tagService.getSections();
+		try {
+			sections = tagService.getSections();
+		} catch (final TagServiceException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return;
+		}
 
 		// delete sections
 		final Set<Section> existingSections = new LinkedHashSet<Section>();
