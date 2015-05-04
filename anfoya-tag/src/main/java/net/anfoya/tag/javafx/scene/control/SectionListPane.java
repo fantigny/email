@@ -43,6 +43,8 @@ public class SectionListPane extends BorderPane {
 
 	private Callback<Void, Void> updateSectionCallback;
 
+	private boolean isSectionDisableWhenZero;
+
 	public SectionListPane(final TagService tagService) {
 		this.tagService = tagService;
 
@@ -113,6 +115,7 @@ public class SectionListPane extends BorderPane {
 				tagList.setContextMenu(contextMenu);
 
 				final SectionPane sectionPane = new SectionPane(tagService, section, tagList);
+				sectionPane.setDisableWhenZero(isSectionDisableWhenZero);
 				sectionAcc.getPanes().add(index, sectionPane);
 			}
 			index++;
@@ -186,7 +189,7 @@ public class SectionListPane extends BorderPane {
 		final String tagPattern = tagPatternField.getText();
 		for(final TitledPane titledPane: sectionAcc.getPanes()) {
 			final SectionPane sectionPane = (SectionPane) titledPane;
-			sectionPane.updateMovieCountAsync(currentCount, availableTags, includes, excludes, namePattern, tagPattern);
+			sectionPane.updateCountAsync(currentCount, availableTags, includes, excludes, namePattern, tagPattern);
 		}
 	}
 
@@ -289,5 +292,13 @@ public class SectionListPane extends BorderPane {
 
 		tagService.addToSection(tagService.addSection(sectionName), tag);
 		refresh();
+	}
+
+	public boolean isSectionDisableWhenZero() {
+		return isSectionDisableWhenZero;
+	}
+
+	public void setSectionDisableWhenZero(final boolean disable) {
+		this.isSectionDisableWhenZero = disable;
 	}
 }

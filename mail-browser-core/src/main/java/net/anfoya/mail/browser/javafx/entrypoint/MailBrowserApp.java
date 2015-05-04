@@ -58,6 +58,7 @@ public class MailBrowserApp extends Application {
 			sectionListPane = new SectionListPane(mailService);
 			sectionListPane.setPrefWidth(250);
 			sectionListPane.prefHeightProperty().bind(selectionPane.heightProperty());
+			sectionListPane.setSectionDisableWhenZero(false);
 			sectionListPane.setTagChangeListener((ov, oldVal, newVal) -> refreshThreadList());
 			sectionListPane.setUpdateSectionCallback(v -> {
 				updateThreadCount();

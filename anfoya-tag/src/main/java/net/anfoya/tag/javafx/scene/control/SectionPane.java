@@ -23,16 +23,19 @@ public class SectionPane extends TitledPane {
 	private boolean isTag;
 	private TagListItem sectionItem;
 
+	private boolean isDisableWhenZero;
+
 	public SectionPane(final TagService tagService, final Section section, final TagList tagList) {
 		super("", tagList);
 		this.tagService = tagService;
 		this.tagList = (TagList) getContent();
-		sectionItem = new TagListItem(new Tag(section.getName(), section.getName()));
+		sectionItem = new TagListItem(new Tag(section.getId(), section.getName()));
 		isTag = false;
 		initialized = false;
+		isDisableWhenZero = true;
 	}
 
-	public void updateMovieCountAsync(final int currentCount, final Set<Tag> availableTags, final Set<Tag> includes, final Set<Tag> excludes, final String namePattern, final String tagPattern) {
+	public void updateCountAsync(final int currentCount, final Set<Tag> availableTags, final Set<Tag> includes, final Set<Tag> excludes, final String namePattern, final String tagPattern) {
 		tagList.updateCount(currentCount, availableTags, includes, excludes, namePattern);
 		if (!isTag) {
 			final Task<Integer> task = new Task<Integer>() {
@@ -69,8 +72,10 @@ public class SectionPane extends TitledPane {
 				sectionItem = this.sectionItem;
 			}
 
-			disableProperty().unbind();
-			disableProperty().bind(sectionItem.disableProperty());
+			if (isDisableWhenZero) {
+				disableProperty().unbind();
+				disableProperty().bind(sectionItem.disableProperty());
+			}
 
 			final IncExcBox incExcBox = (IncExcBox) titleNode;
 			incExcBox.textProperty().unbind();
@@ -87,14 +92,12 @@ public class SectionPane extends TitledPane {
 
 	public void init() {
 		initialized = true;
-		isTag = tagList.getSectionItem() != null;
+		isTag = tagList.isStandAloneSectionTag();
 
 		if (isTag) {
 			titleNode = new IncExcBox();
-			if (tagList.isStandAloneSectionTag()) {
-				setExpanded(false);
-				setCollapsible(false);
-			}
+			setExpanded(false);
+			setCollapsible(false);
 		} else {
 			titleNode = new Label();
 			titleNode.textProperty().bind(sectionItem.textProperty());
@@ -110,5 +113,13 @@ public class SectionPane extends TitledPane {
 
 	public Section getSection() {
 		return tagList.getSection();
+	}
+
+	public boolean isDisableWhenZero() {
+		return isDisableWhenZero;
+	}
+
+	public void setDisableWhenZero(final boolean disable) {
+		this.isDisableWhenZero = disable;
 	}
 }

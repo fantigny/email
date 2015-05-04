@@ -9,16 +9,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 import javax.security.auth.login.LoginException;
 
 import net.anfoya.java.io.JsonFile;
-import net.anfoya.java.io.SerializedFile;
 import net.anfoya.mail.model.Message;
 import net.anfoya.mail.model.Thread;
 import net.anfoya.mail.service.MailService;
@@ -58,8 +54,6 @@ public class GmailImpl implements MailService {
 
 	private final HttpTransport httpTransport;
 	private final JsonFactory jsonFactory;
-	private final Map<Section, Set<Tag>> sectionTags;
-	private final SerializedFile<Map<Section, Set<Tag>>> sectionTagsFile;
 
 	private Gmail delegate = null;
 
@@ -68,16 +62,6 @@ public class GmailImpl implements MailService {
 	public GmailImpl() {
 		httpTransport = new NetHttpTransport();
 		jsonFactory = new JacksonFactory();
-
-		sectionTagsFile = new SerializedFile<Map<Section,Set<Tag>>>("sectionTags.json");
-
-		Map<Section, Set<Tag>> sectionTags;
-		try {
-			sectionTags = sectionTagsFile.load();
-		} catch (ClassNotFoundException | IOException e) {
-			sectionTags = new ConcurrentHashMap<Section, Set<Tag>>();
-		}
-		this.sectionTags = sectionTags;
 	}
 
 	@Override
@@ -213,7 +197,8 @@ public class GmailImpl implements MailService {
 			if (tag != null
 					&& (section == null
 						|| section == Section.NO_SECTION && !l.getName().contains("/")
-						|| l.getName().contains(section.getName()))
+						|| section.getId().equals(l.getId())
+						|| l.getName().startsWith(section.getName()+"/") && !l.getName().substring(section.getName().length()+1, l.getName().length()).contains("/"))
 					&& tag.getName().contains(tagPattern)) {
 				tags.add(tag);
 			}
@@ -262,22 +247,25 @@ public class GmailImpl implements MailService {
 	public int getSectionCount(final Section section
 			, final Set<Tag> includes, final Set<Tag> excludes
 			, final String namePattern, final String tagPattern) throws TagServiceException {
-		final String sectionName;
+
+		final StringBuilder query = new StringBuilder();
+		String sectionName;
 		if (Section.NO_SECTION.equals(section)) {
 			sectionName = "";
 		} else {
-			sectionName = section.getName().replaceAll("/", "-") + "-";
+			sectionName = section.getName().replaceAll("/", "-").replaceAll(" ", "-");
+			query.append("label:").append(sectionName);
+			sectionName += "-";
 		}
-		final StringBuilder sectionLabels = new StringBuilder();
 		for(final Tag t: getTags(section, tagPattern)) {
-			if (sectionLabels.length() > 0) {
-				sectionLabels.append(" OR ");
+			if (query.length() > 0) {
+				query.append(" OR ");
 			}
-			sectionLabels.append("label:").append(sectionName).append(t.getName());
+			query.append("label:").append(sectionName).append(t.getName().replaceAll("/", "-").replaceAll(" ", "-"));
 		}
 		int count = 0;
 		try {
-			final ListThreadsResponse response = delegate.users().threads().list(USER).setQ(sectionLabels.toString()).execute();
+			final ListThreadsResponse response = delegate.users().threads().list(USER).setQ(query.toString()).execute();
 			if (response.getThreads() != null) {
 				count = response.getThreads().size();
 			}
@@ -285,16 +273,14 @@ public class GmailImpl implements MailService {
 			throw new TagServiceException("counting threads for " + includes.toString(), e);
 		}
 
-		LOGGER.info("count for section({}) includes({}) excludes({}) tagPattern({}): {}"
+		LOGGER.info("threads for section({}) includes({}) excludes({}) tagPattern({}): {}"
 				, section, includes, excludes, tagPattern, count);
 		return count;
 	}
 
 	@Override
 	public Section addSection(final String sectionName) {
-		final Section section = new Section(sectionName);
-		sectionTags.put(section, new CopyOnWriteArraySet<Tag>());
-		return section;
+		return null;
 	}
 
 	private Tag buildTag(final Label l) {
