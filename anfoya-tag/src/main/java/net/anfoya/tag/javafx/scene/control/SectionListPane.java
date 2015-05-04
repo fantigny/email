@@ -180,7 +180,7 @@ public class SectionListPane extends BorderPane {
 		}
 	}
 
-	public void updateCount(final int currentCount, final List<Tag> availableTags, final String namePattern) {
+	public void updateCount(final int currentCount, final Set<Tag> availableTags, final String namePattern) {
 		final Set<Tag> includes = getIncludedTags();
 		final Set<Tag> excludes = getExcludedTags();
 		final String tagPattern = tagPatternField.getText();
@@ -251,7 +251,7 @@ public class SectionListPane extends BorderPane {
 
 		final boolean selected = getIncludedTags().contains(tag);
 
-		tagService.addToSection(tag.copyWithSection(section.getName()));
+		tagService.addToSection(section, tag);
 		refresh();
 
 		if (selected) {
@@ -287,7 +287,7 @@ public class SectionListPane extends BorderPane {
 			return;
 		}
 
-		tagService.addToSection(tag.copyWithSection(sectionName));
+		tagService.addToSection(tagService.addSection(sectionName), tag);
 		refresh();
 	}
 }

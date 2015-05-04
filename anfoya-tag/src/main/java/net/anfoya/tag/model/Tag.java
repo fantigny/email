@@ -2,7 +2,7 @@ package net.anfoya.tag.model;
 
 
 
-public class Tag {
+public class Tag implements Comparable<Tag> {
 	public static final String TO_WATCH_NAME = "To watch";
 	public static final String FRENCH_NAME = "French";
 	public static final String NO_TAG_NAME = "No tag :-(";
@@ -13,16 +13,10 @@ public class Tag {
 
 	private final String id;
 	private final String name;
-	private final String section;
 
-	public Tag(final String id, final String name, final String section) {
-		super();
+	public Tag(final String id, final String name) {
 		this.id = id;
 		this.name = name;
-		this.section = section;
-	}
-	public Tag(final String name, final String section) {
-		this("-1", name, section);
 	}
 	@Override
 	public int hashCode() {
@@ -43,10 +37,7 @@ public class Tag {
     	return name;
     }
 	public Tag copyWithId(final String id) {
-		return new Tag(id, name, section);
-	}
-	public Tag copyWithSection(final String section) {
-		return new Tag(id, name, section);
+		return new Tag(id, name);
 	}
 	public String getId() {
 		return id;
@@ -54,7 +45,8 @@ public class Tag {
 	public String getName() {
 		return name;
 	}
-	public String getSection() {
-		return section;
+	@Override
+	public int compareTo(final Tag o) {
+		return name.compareTo(o.name);
 	}
 }

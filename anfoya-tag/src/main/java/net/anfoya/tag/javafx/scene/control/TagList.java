@@ -4,7 +4,6 @@ import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -86,7 +85,7 @@ public class TagList extends ListView<TagListItem> {
 
 	public void refresh(final Set<Tag> selectedTags, final String tagPattern) {
 		// get all tags
-		List<Tag> tags;
+		Set<Tag> tags;
 		try {
 			tags = tagService.getTags(section, tagPattern);
 		} catch (final TagServiceException e) {
@@ -115,7 +114,7 @@ public class TagList extends ListView<TagListItem> {
 		setItems(items);
 	}
 
-	public void updateCount(final int currentCount, final List<Tag> availableTags, final Set<Tag> includes, final Set<Tag> excludes, final String namePattern) {
+	public void updateCount(final int currentCount, final Set<Tag> availableTags, final Set<Tag> includes, final Set<Tag> excludes, final String namePattern) {
 		for(final TagListItem item: getItems()) {
 			if (availableTags.contains(item.getTag()) || item.excludedProperty().get()) {
 				if (item.includedProperty().get()) {
@@ -141,7 +140,13 @@ public class TagList extends ListView<TagListItem> {
 				fakeIncludes.add(tag);
 				final Set<Tag> fakeExcludes = new LinkedHashSet<Tag>(excludes);
 				fakeExcludes.remove(tag);
-				return excludeFactor * tagService.getCount(fakeIncludes, fakeExcludes, nameFilter);
+				try {
+					return excludeFactor * tagService.getTagCount(fakeIncludes, fakeExcludes, nameFilter);
+				} catch (final TagServiceException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					return 0;
+				}
 			}
 		};
 		task.setOnSucceeded(event -> {

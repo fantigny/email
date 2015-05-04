@@ -1,6 +1,5 @@
 package net.anfoya.tag.javafx.scene.control;
 
-import java.util.List;
 import java.util.Set;
 
 import javafx.concurrent.Task;
@@ -12,6 +11,7 @@ import net.anfoya.javafx.scene.control.IncExcBox;
 import net.anfoya.tag.model.Section;
 import net.anfoya.tag.model.Tag;
 import net.anfoya.tag.service.TagService;
+import net.anfoya.tag.service.TagServiceException;
 
 public class SectionPane extends TitledPane {
 	private final TagService tagService;
@@ -32,13 +32,19 @@ public class SectionPane extends TitledPane {
 		initialized = false;
 	}
 
-	public void updateMovieCountAsync(final int currentCount, final List<Tag> availableTags, final Set<Tag> includes, final Set<Tag> excludes, final String namePattern, final String tagPattern) {
+	public void updateMovieCountAsync(final int currentCount, final Set<Tag> availableTags, final Set<Tag> includes, final Set<Tag> excludes, final String namePattern, final String tagPattern) {
 		tagList.updateCount(currentCount, availableTags, includes, excludes, namePattern);
 		if (!isTag) {
 			final Task<Integer> task = new Task<Integer>() {
 				@Override
 				protected Integer call() {
-					return tagService.getSectionCount(tagList.getSection(), includes, excludes, namePattern, tagPattern);
+					try {
+						return tagService.getSectionCount(tagList.getSection(), includes, excludes, namePattern, tagPattern);
+					} catch (final TagServiceException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+						return 0;
+					}
 				}
 			};
 			task.setOnSucceeded(event -> sectionItem.countProperty().set((int) event.getSource().getValue()));

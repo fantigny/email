@@ -1,8 +1,10 @@
 package net.anfoya.mail.browser.javafx.entrypoint;
 
 import java.util.List;
+import java.util.Set;
 
 import javafx.application.Application;
+import javafx.collections.ListChangeListener;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.ListView;
@@ -11,14 +13,16 @@ import javafx.scene.layout.HBox;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
+
+import javax.security.auth.login.LoginException;
+
 import net.anfoya.mail.gmail.GmailImpl;
 import net.anfoya.mail.model.Message;
 import net.anfoya.mail.model.Thread;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.MailServiceException;
-import net.anfoya.mail.tag.TagServiceImpl;
 import net.anfoya.tag.javafx.scene.control.SectionListPane;
-import net.anfoya.tag.model.Section;
+import net.anfoya.tag.model.Tag;
 import net.anfoya.tag.service.TagServiceException;
 
 public class MailBrowserApp extends Application {
@@ -28,7 +32,6 @@ public class MailBrowserApp extends Application {
 	}
 
 	private SectionListPane sectionListPane;
-	private TagServiceImpl tagService;
 	private MailService mailService;
 	private ListView<Thread> threadList;
 	private WebEngine engine;
@@ -39,7 +42,7 @@ public class MailBrowserApp extends Application {
 		initData();
 	}
 
-	private void initGui(final Stage primaryStage) throws MailServiceException {
+	private void initGui(final Stage primaryStage) throws MailServiceException, LoginException {
 		final BorderPane mainPane = new BorderPane();
 		mainPane.setPadding(new Insets(5));
 
@@ -52,8 +55,7 @@ public class MailBrowserApp extends Application {
 
 			mailService = new GmailImpl();
 			mailService.login(null, null);
-			tagService = new TagServiceImpl(mailService);
-			sectionListPane = new SectionListPane(tagService);
+			sectionListPane = new SectionListPane(mailService);
 			sectionListPane.setPrefWidth(250);
 			sectionListPane.prefHeightProperty().bind(selectionPane.heightProperty());
 			sectionListPane.setTagChangeListener((ov, oldVal, newVal) -> refreshThreadList());
@@ -80,23 +82,9 @@ public class MailBrowserApp extends Application {
 					}
 				}
 			});
-			movieListPane.addChangeListener(new ListChangeListener<Movie>() {
-				@Override
-				public void onChanged(final ListChangeListener.Change<? extends Movie> change) {
-					// update movie count when a new movie list is loaded
-					updateMailCount();
-					if (!movieListPane.isRefreshing()) {
-						// update movie details in case no movie is selected
-						refreshMovie();
-					}
-				}
-
-				private void updateMailCount() {
-					// TODO Auto-generated method stub
-
-				}
-			});
 			*/
+			threadList.getItems().addListener((ListChangeListener<Thread>) change -> updateThreadCount());
+
 			selectionPane.getChildren().add(threadList);
 		}
 
@@ -147,7 +135,7 @@ public class MailBrowserApp extends Application {
 	private void initData() {
         sectionListPane.refresh();
 		try {
-			sectionListPane.updateCount(1, tagService.getTags(Section.NO_SECTION, ""), "");
+			sectionListPane.updateCount(1, mailService.getTags(), "");
 		} catch (final TagServiceException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -165,7 +153,17 @@ public class MailBrowserApp extends Application {
 	}
 
 	private void updateThreadCount() {
-		// TODO Auto-generated method stub
+		final int currentCount = threadList.getItems().size();
+		Set<Tag> availableTags;
+		try {
+			availableTags = mailService.getTags();
+		} catch (final TagServiceException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return;
+		}
+		final String namePattern = "";
+		sectionListPane.updateCount(currentCount, availableTags, namePattern);
 	}
 
 	private void refreshThreadList() {
