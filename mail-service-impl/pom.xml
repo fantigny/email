@@ -27,13 +27,13 @@
 			<groupId>net.anfoya</groupId>
 			<artifactId>anfoya-tag</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
-		</dependency>	
+		</dependency>
 		<dependency>
 			<groupId>net.anfoya</groupId>
 			<artifactId>mail-service</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
-		</dependency>	
-	
+		</dependency>
+
 		<!-- compile -->
 		<dependency>
 			<groupId>com.google.apis</groupId>
@@ -44,6 +44,11 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<version>1.7.10</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.mail</groupId>
+			<artifactId>javax.mail-api</artifactId>
+			<version>1.5.1</version>
 		</dependency>
 
 		<!-- test -->

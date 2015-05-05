@@ -22,6 +22,11 @@
 			<groupId>net.anfoya</groupId>
 			<artifactId>anfoya-tag</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
-		</dependency>	
+		</dependency>
+		<dependency>
+			<groupId>javax.mail</groupId>
+			<artifactId>javax.mail-api</artifactId>
+			<version>1.5.1</version>
+		</dependency>
 	</dependencies>
 </project>

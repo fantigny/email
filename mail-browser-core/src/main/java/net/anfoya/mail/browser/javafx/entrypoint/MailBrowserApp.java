@@ -15,13 +15,14 @@ import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
 import javax.security.auth.login.LoginException;
 
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.gmail.GmailImpl;
 import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.gmail.model.GmailTag;
-import net.anfoya.mail.model.Message;
 import net.anfoya.mail.model.Thread;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.MailServiceException;
@@ -159,8 +160,13 @@ public class MailBrowserApp extends Application {
 		if (thread == null) {
 			return;
 		}
-		final Message message = mailService.getMessage(thread.getMessageIds().iterator().next());
-		engine.loadContent(message.getBody());
+		try {
+			final MimeMessage message = mailService.getMessage(thread.getMessageIds().iterator().next());
+			engine.loadContent(message.getSubject());
+		} catch (MailServiceException | MessagingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	private void updateThreadCount() {

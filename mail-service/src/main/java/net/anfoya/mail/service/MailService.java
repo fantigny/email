@@ -2,9 +2,9 @@ package net.anfoya.mail.service;
 
 import java.util.Set;
 
+import javax.mail.internet.MimeMessage;
 import javax.security.auth.login.LoginException;
 
-import net.anfoya.mail.model.Message;
 import net.anfoya.mail.model.Thread;
 import net.anfoya.tag.model.Section;
 import net.anfoya.tag.model.Tag;
@@ -15,5 +15,5 @@ public interface MailService<S extends Section, T extends Tag> extends TagServic
 	public void login(String id, String pwd) throws LoginException;
 	public void logout();
 	public Set<? extends Thread> getThreads(Set<T> availableTags, Set<T> includes, Set<T> excludes) throws MailServiceException;
-	public Message getMessage(String id);
+	public MimeMessage getMessage(String id) throws MailServiceException;
 }
