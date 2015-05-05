@@ -42,7 +42,7 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 				@Override
 				protected Integer call() {
 					try {
-						return tagService.getSectionCount(tagList.getSection(), includes, excludes, namePattern, tagPattern);
+						return tagService.getThreadCountForSection(tagList.getSection(), includes, excludes, namePattern, tagPattern);
 					} catch (final TagServiceException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();

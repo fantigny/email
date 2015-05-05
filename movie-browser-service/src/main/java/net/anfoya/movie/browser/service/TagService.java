@@ -184,13 +184,13 @@ public class TagService {
 		}
 	}
 
-	public int getSectionMovieCount(final Section section, final Set<Tag> tags, final Set<Tag> excludes, final String namePattern, final String tagPattern) {
+	public int getSectionMovieCount(final Section section, final Set<Tag> includes, final Set<Tag> excludes, final String namePattern, final String tagPattern) {
 		try {
-			return movieTagDao.countSectionMovies(section, tags, excludes, namePattern, tagPattern);
+			return movieTagDao.countSectionMovies(section, includes, excludes, namePattern, tagPattern);
 		} catch (final SQLException e) {
-			LOGGER.error("counting movies for section: {}, name pattern {} and tags: ({}), exc: ({})", section.getName(), namePattern, tags, excludes, e);
+			LOGGER.error("counting movies for section: {}, name pattern {} and tags: ({}), exc: ({})", section.getName(), namePattern, includes, excludes, e);
 			final Alert alertDialog = new Alert(AlertType.ERROR);
-			alertDialog.setHeaderText("error counting movies for section: " + section.getName() + ", name pattern " + namePattern + ", tag pattern " + tagPattern + " and tags: " + tags.toString() + ", exc: " + excludes.toString());
+			alertDialog.setHeaderText("error counting movies for section: " + section.getName() + ", name pattern " + namePattern + ", tag pattern " + tagPattern + " and tags: " + includes.toString() + ", exc: " + excludes.toString());
 			alertDialog.setContentText(e.getMessage());
 			alertDialog.show();
 			return 0;

@@ -3,19 +3,19 @@ package net.anfoya.mail.model;
 public class Message {
 
 	private final String id;
-	private final String snippet;
+	private final String body;
 
-	public Message(final String id, final String snippet) {
+	public Message(final String id, final String body) {
 		this.id = id;
-		this.snippet = snippet;
+		this.body = body;
 	}
 
 	public String getId() {
 		return id;
 	}
 
-	public String getSnippet() {
-		return snippet;
+	public String getBody() {
+		return body;
 	}
 
 }

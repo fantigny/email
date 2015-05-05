@@ -9,12 +9,14 @@ public class GmailSection extends Section {
 
 	private final String string;
 	private final boolean hidden;
+	private final String path;
 
 	private GmailSection(final String name) {
 		super(name);
 
 		string = name;
 		hidden = false;
+		path = name;
 	}
 
 	public GmailSection(final Label label) {
@@ -28,6 +30,7 @@ public class GmailSection extends Section {
 		}
 
 		hidden = "labelHide".equals(label.getLabelListVisibility());
+		path = label.getName();
 	}
 
 	@Override
@@ -37,5 +40,9 @@ public class GmailSection extends Section {
 
 	public boolean isHidden() {
 		return hidden;
+	}
+
+	public String getPath() {
+		return path;
 	}
 }

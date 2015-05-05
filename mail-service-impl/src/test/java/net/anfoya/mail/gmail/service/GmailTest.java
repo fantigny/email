@@ -1,6 +1,6 @@
 package net.anfoya.mail.gmail.service;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 
 import javax.security.auth.login.LoginException;
 
@@ -28,7 +28,7 @@ public class GmailTest {
 	public void getHeaders() throws MailServiceException, LoginException {
 		final MailService<GmailSection, GmailTag> service = new GmailImpl();
 		service.login("", "");
-		for(final Thread t: service.getThreads(new ArrayList<GmailTag>())) {
+		for(final Thread t: service.getThreads(new HashSet<GmailTag>(), new HashSet<GmailTag>(), new HashSet<GmailTag>())) {
 			System.out.println(t.getId());
 		}
 		service.logout();

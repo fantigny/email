@@ -1,10 +1,10 @@
 package net.anfoya.mail.browser.javafx.entrypoint;
 
-import java.util.List;
 import java.util.Set;
 
 import javafx.application.Application;
 import javafx.collections.ListChangeListener;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.ListView;
@@ -13,9 +13,11 @@ import javafx.scene.layout.HBox;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 
 import javax.security.auth.login.LoginException;
 
+import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.gmail.GmailImpl;
 import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.gmail.model.GmailTag;
@@ -39,6 +41,13 @@ public class MailBrowserApp extends Application {
 
 	@Override
 	public void start(final Stage primaryStage) throws Exception {
+		primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+			@Override
+			public void handle(final WindowEvent event) {
+				ThreadPool.getInstance().shutdown();
+			}
+		});
+
 		initGui(primaryStage);
 		initData();
 	}
@@ -48,6 +57,7 @@ public class MailBrowserApp extends Application {
 		mainPane.setPadding(new Insets(5));
 
 		final Scene scene = new Scene(mainPane, 800, 600);
+		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/excludebox.css").toExternalForm());
 
 		final HBox selectionPane = new HBox();
 		mainPane.setLeft(selectionPane);
@@ -62,7 +72,7 @@ public class MailBrowserApp extends Application {
 			sectionListPane.setSectionDisableWhenZero(false);
 			sectionListPane.setTagChangeListener((ov, oldVal, newVal) -> refreshThreadList());
 			sectionListPane.setUpdateSectionCallback(v -> {
-//				updateThreadCount();
+				updateThreadCount();
 				return null;
 			});
 			selectionPane.getChildren().add(sectionListPane);
@@ -149,9 +159,8 @@ public class MailBrowserApp extends Application {
 		if (thread == null) {
 			return;
 		}
-		final List<String> messageIds = mailService.getMessageIds(thread.getId());
-		final Message message = mailService.getMessage(messageIds.get(0));
-		engine.loadContent(message.getSnippet());
+		final Message message = mailService.getMessage(thread.getMessageIds().iterator().next());
+		engine.loadContent(message.getBody());
 	}
 
 	private void updateThreadCount() {
@@ -169,14 +178,13 @@ public class MailBrowserApp extends Application {
 	}
 
 	private void refreshThreadList() {
-		List<Thread> threads;
 		try {
-			threads = mailService.getThreads(sectionListPane.getAllSelectedTags());
+			final Set<? extends Thread> threads = mailService.getThreads(sectionListPane.getAllTags(), sectionListPane.getIncludedTags(), sectionListPane.getExcludedTags());
+			threadList.getItems().setAll(threads);
 		} catch (final MailServiceException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return;
 		}
-		threadList.getItems().setAll(threads);
 	}
 }

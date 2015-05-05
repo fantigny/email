@@ -141,7 +141,7 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 				final Set<T> fakeExcludes = new LinkedHashSet<T>(excludes);
 				fakeExcludes.remove(tag);
 				try {
-					return excludeFactor * tagService.getTagCount(fakeIncludes, fakeExcludes, nameFilter);
+					return excludeFactor * tagService.getThreadCountForTags(fakeIncludes, fakeExcludes, nameFilter);
 				} catch (final TagServiceException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

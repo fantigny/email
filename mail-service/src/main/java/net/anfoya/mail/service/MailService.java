@@ -1,6 +1,6 @@
 package net.anfoya.mail.service;
 
-import java.util.List;
+import java.util.Set;
 
 import javax.security.auth.login.LoginException;
 
@@ -14,7 +14,6 @@ public interface MailService<S extends Section, T extends Tag> extends TagServic
 
 	public void login(String id, String pwd) throws LoginException;
 	public void logout();
-	public List<Thread> getThreads(List<T> tags) throws MailServiceException;
-	public List<String> getMessageIds(String threadId);
+	public Set<? extends Thread> getThreads(Set<T> availableTags, Set<T> includes, Set<T> excludes) throws MailServiceException;
 	public Message getMessage(String id);
 }

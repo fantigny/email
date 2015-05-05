@@ -5,11 +5,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -17,10 +16,11 @@ import java.util.TreeSet;
 import javax.security.auth.login.LoginException;
 
 import net.anfoya.java.io.JsonFile;
+import net.anfoya.mail.gmail.model.GmailMessage;
 import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.gmail.model.GmailTag;
+import net.anfoya.mail.gmail.model.GmailThread;
 import net.anfoya.mail.model.Message;
-import net.anfoya.mail.model.Thread;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.MailServiceException;
 import net.anfoya.tag.service.TagServiceException;
@@ -121,54 +121,63 @@ public class GmailImpl implements MailService<GmailSection, GmailTag> {
 	}
 
 	@Override
-	public List<Thread> getThreads(final List<GmailTag> tags) throws MailServiceException {
-		final List<Thread> threads = new ArrayList<Thread>();
-		if (tags.isEmpty()) {
+	public Set<GmailThread> getThreads(final Set<GmailTag> availableTags, final Set<GmailTag> includes, final Set<GmailTag> excludes) throws MailServiceException {
+		final Set<GmailThread> threads = new HashSet<GmailThread>();
+		if (includes.isEmpty()) {
 			return threads;
 		}
-		final List<String> labelIds = new ArrayList<String>();
-		for(final GmailTag t: tags) {
-			labelIds.add(t.getId());
+		final StringBuilder query = new StringBuilder("");
+		if (includes.size() > 0) {
+			final StringBuilder subQuery = new StringBuilder();
+			for(final GmailTag t: includes) {
+				if (subQuery.length() > 1) {
+					subQuery.append(" AND ");
+				}
+				subQuery.append("label:").append(t.getPath().replaceAll("/", "-").replaceAll(" ", "-"));
+			}
+			query.append("(").append(subQuery).append(")");
 		}
-		List<com.google.api.services.gmail.model.Thread> lastThreads;
+		if (excludes.size() > 0) {
+			final StringBuilder subQuery = new StringBuilder();
+			for(final GmailTag t: excludes) {
+				if (subQuery.length() > 1) {
+					subQuery.append(" AND ");
+				}
+				subQuery.append("-label:").append(t.getPath().replaceAll("/", "-").replaceAll(" ", "-"));
+			}
+			if (query.length() > 0) {
+				query.append(" AND ");
+			}
+			query.append("(").append(subQuery).append(")");
+		}
+
 		try {
-			final ListThreadsResponse response = delegate.users().threads().list(USER).setLabelIds(labelIds).execute();
-			if (response.getThreads() == null) {
-				lastThreads = new ArrayList<com.google.api.services.gmail.model.Thread>();
-			} else {
-				lastThreads = response.getThreads();
+			ListThreadsResponse threadResponse = delegate.users().threads().list(USER).setQ(query.toString()).execute();
+			while (threadResponse.getThreads() != null) {
+				for(final com.google.api.services.gmail.model.Thread t : threadResponse.getThreads()) {
+					final com.google.api.services.gmail.model.Thread thread = delegate.users().threads().get(USER, t.getId()).setFormat("metadata") .execute();
+					if (thread != null) {
+						threads.add(new GmailThread(thread));
+					}
+				}
+				if (threadResponse.getNextPageToken() != null) {
+					final String pageToken = threadResponse.getNextPageToken();
+					threadResponse = delegate.users().threads().list(USER).setQ(query.toString()).setPageToken(pageToken).execute();
+				} else {
+					break;
+				}
 			}
 		} catch (final IOException e) {
-			throw new MailServiceException("loading threads for: " + tags.toString(), e);
-		}
-		for(final com.google.api.services.gmail.model.Thread t : lastThreads) {
-			threads.add(new Thread(t.getId(), t.getSnippet()));
+			throw new MailServiceException("loading threads for: " + includes.toString(), e);
 		}
 
 		return threads;
 	}
 
 	@Override
-	public List<String> getMessageIds(final String threadId) {
-		final List<String> ids = new ArrayList<String>();
-		try {
-			final com.google.api.services.gmail.model.Thread thread = delegate.users().threads().get(USER, threadId).execute();
-			for(final com.google.api.services.gmail.model.Message m: thread.getMessages()) {
-				ids.add(m.getId());
-			}
-		} catch (final IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		return ids;
-	}
-
-	@Override
 	public Message getMessage(final String id) {
 		try {
-			final com.google.api.services.gmail.model.Message message = delegate.users().messages().get(USER, id).execute();
-			return new Message(id, message.getSnippet());
+			return new GmailMessage(delegate.users().messages().get(USER, id).execute());
 		} catch (final IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -213,7 +222,6 @@ public class GmailImpl implements MailService<GmailSection, GmailTag> {
 			final GmailTag tag = new GmailTag(l);
 			if (!tag.isHidden()
 					&& (section == null
-							|| section.getId().equals(tag.getId())
 							|| section.getId().equals(GmailSection.NO_SECTION.getId()) && !l.getName().contains("/")
 							|| l.getName().startsWith(section.getName()+"/") && !l.getName().substring(section.getName().length()+1, l.getName().length()).contains("/"))
 					&& tag.getName().contains(tagPattern)) {
@@ -221,7 +229,7 @@ public class GmailImpl implements MailService<GmailSection, GmailTag> {
 			}
 		}
 
-		LOGGER.info("tags for section({}) tagPattern({}): {}", section, tagPattern, tags);
+		LOGGER.info("tags for section({}) tagPattern({}): {}", section == null? "": section.getPath(), tagPattern, tags);
 		return tags;
 	}
 
@@ -261,23 +269,43 @@ public class GmailImpl implements MailService<GmailSection, GmailTag> {
 	}
 
 	@Override
-	public int getTagCount(final Set<GmailTag> includes, final Set<GmailTag> excludes, final String mailPattern) throws TagServiceException {
+	public int getThreadCountForTags(final Set<GmailTag> includes, final Set<GmailTag> excludes, final String mailPattern) throws TagServiceException {
 		if (includes.isEmpty()) {
 			return 0;
 		}
-		final List<String> includeIds = new ArrayList<String>();
-		for(final GmailTag t: includes) {
-			includeIds.add(t.getId());
+		final StringBuilder query = new StringBuilder("");
+		if (includes.size() > 0) {
+			final StringBuilder subQuery = new StringBuilder();
+			for(final GmailTag t: includes) {
+				if (subQuery.length() > 1) {
+					subQuery.append(" AND ");
+				}
+				subQuery.append("label:").append(t.getPath().replaceAll("/", "-").replaceAll(" ", "-"));
+			}
+			query.append("(").append(subQuery).append(")");
+		}
+		if (excludes.size() > 0) {
+			final StringBuilder subQuery = new StringBuilder();
+			for(final GmailTag t: excludes) {
+				if (subQuery.length() > 1) {
+					subQuery.append(" AND ");
+				}
+				subQuery.append("-label:").append(t.getPath().replaceAll("/", "-").replaceAll(" ", "-"));
+			}
+			if (query.length() > 0) {
+				query.append(" AND ");
+			}
+			query.append("(").append(subQuery).append(")");
 		}
 
 		int count = 0;
 		try {
-			ListThreadsResponse resp = delegate.users().threads().list(USER).setLabelIds(includeIds).execute();
-			while (resp.getThreads() != null) {
-				count += resp.getThreads().size();
-				if (resp.getNextPageToken() != null) {
-					final String pageToken = resp.getNextPageToken();
-					resp = delegate.users().threads().list(USER).setLabelIds(includeIds).setPageToken(pageToken).execute();
+			ListThreadsResponse response = delegate.users().threads().list(USER).setQ(query.toString()).execute();
+			while (response.getThreads() != null) {
+				count += response.getThreads().size();
+				if (response.getNextPageToken() != null) {
+					final String pageToken = response.getNextPageToken();
+					response = delegate.users().threads().list(USER).setQ(query.toString()).setPageToken(pageToken).execute();
 				} else {
 					break;
 				}
@@ -287,43 +315,71 @@ public class GmailImpl implements MailService<GmailSection, GmailTag> {
 		}
 
 		LOGGER.info("count for tag includes({}) excludes({}) mailPattern({}): {}", includes, excludes, mailPattern, count);
+		LOGGER.info("query({})", query);
 
 		return count;
 	}
 
 	@Override
-	public int getSectionCount(final GmailSection section
+	public int getThreadCountForSection(final GmailSection section
 			, final Set<GmailTag> includes, final Set<GmailTag> excludes
 			, final String namePattern, final String tagPattern) throws TagServiceException {
 
-		final StringBuilder query = new StringBuilder();
-		for(final GmailTag t: getTags(section, tagPattern)) {
-			if (query.length() > 0) {
-				query.append(" OR ");
+		final Set<GmailTag> sectionIncludes = new HashSet<GmailTag>(includes);
+		final String includeOperator;
+		if (sectionIncludes.isEmpty()) {
+			includeOperator = "OR";
+			for (final GmailTag t: getTags(section, tagPattern)) {
+				if (!excludes.contains(t)) {
+					sectionIncludes.add(t);
+				}
 			}
-			query.append("label:").append(t.getPath().replaceAll("/", "-").replaceAll(" ", "-"));
+		} else {
+			includeOperator = "AND";
 		}
-		final List<String> includeIds = new ArrayList<String>();
-		for(final GmailTag t: includes) {
-			includeIds.add(t.getId());
+
+		final StringBuilder query = new StringBuilder("");
+		if (sectionIncludes.size() > 0) {
+			final StringBuilder subQuery = new StringBuilder();
+			for(final GmailTag t: sectionIncludes) {
+				if (subQuery.length() > 1) {
+					subQuery.append(" ").append(includeOperator).append(" ");
+				}
+				subQuery.append("label:").append(t.getPath().replaceAll("/", "-").replaceAll(" ", "-"));
+			}
+			query.append("(").append(subQuery).append(")");
+		}
+		if (excludes.size() > 0) {
+			final StringBuilder subQuery = new StringBuilder();
+			for(final GmailTag t: excludes) {
+				if (subQuery.length() > 1) {
+					subQuery.append(" AND ");
+				}
+				subQuery.append("-label:").append(t.getPath().replaceAll("/", "-").replaceAll(" ", "-"));
+			}
+			if (query.length() > 0) {
+				query.append(" AND ");
+			}
+			query.append("(").append(subQuery).append(")");
 		}
 		int count = 0;
 		try {
-			ListThreadsResponse resp = delegate.users().threads().list(USER).setLabelIds(includeIds).setQ(query.toString()).execute();
+			ListThreadsResponse resp = delegate.users().threads().list(USER).setQ(query.toString()).execute();
 			while (resp.getThreads() != null) {
 				count += resp.getThreads().size();
 				if (resp.getNextPageToken() != null) {
 					final String pageToken = resp.getNextPageToken();
-					resp = delegate.users().threads().list(USER).setLabelIds(includeIds).setQ(query.toString()).setPageToken(pageToken).execute();
+					resp = delegate.users().threads().list(USER).setQ(query.toString()).setPageToken(pageToken).execute();
 				} else {
 					break;
 				}
 			}
 		} catch (final IOException e) {
-			throw new TagServiceException("counting threads for " + includes.toString(), e);
+			throw new TagServiceException("counting threads for " + sectionIncludes.toString(), e);
 		}
 
-		LOGGER.info("count for section({}) includes({}) excludes({}) tagPattern({}): {}", section, includes, excludes, tagPattern, count);
+		LOGGER.debug("count for section({}) includes({}) excludes({}) tagPattern({}): {}", section, sectionIncludes, excludes, tagPattern, count);
+		LOGGER.debug("query({})", query);
 		return count;
 	}
 

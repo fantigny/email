@@ -1,22 +1,18 @@
 package net.anfoya.mail.model;
 
-import java.util.List;
+import java.util.Set;
 
 
 public class Thread {
 
 	private final String id;
 	private final String object;
-	private final List<Message> messages;
+	private final Set<String> messageIds;
 
-	public Thread(final String id, final String object) {
-		this(id, object, null);
-	}
-
-	public Thread(final String id, final String object, final List<Message> messages) {
+	public Thread(final String id, final String object, final Set<String> messageIds) {
 		this.id = id;
 		this.object = object;
-		this.messages = messages;
+		this.messageIds = messageIds;
 	}
 
 	@Override
@@ -32,8 +28,8 @@ public class Thread {
 		return object;
 	}
 
-	public List<Message> getMessages() {
-		return messages;
+	public Set<String> getMessageIds() {
+		return messageIds;
 	}
 
 }
