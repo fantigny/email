@@ -18,10 +18,17 @@ public class Tag implements Comparable<Tag> {
 		this.name = name;
 		this.hashCode = id.hashCode();
 	}
+
+    @Override
+	public String toString() {
+    	return name;
+    }
+
 	@Override
 	public int hashCode() {
 	    return hashCode;
 	}
+
     @Override
 	public boolean equals(final Object other) {
         if (other == null) {
@@ -32,21 +39,21 @@ public class Tag implements Comparable<Tag> {
 		}
         return ((Tag) other).id.equals(id);
     }
-    @Override
-	public String toString() {
-    	return name;
-    }
-	public Tag copyWithId(final String id) {
-		return new Tag(id, name);
-	}
-	public String getId() {
-		return id;
-	}
-	public String getName() {
-		return name;
-	}
+
 	@Override
 	public int compareTo(final Tag o) {
 		return name.compareTo(o.name);
+	}
+
+	public Tag copyWithId(final String id) {
+		return new Tag(id, name);
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public String getName() {
+		return name;
 	}
 }

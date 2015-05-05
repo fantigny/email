@@ -23,8 +23,6 @@ import net.anfoya.mail.model.Message;
 import net.anfoya.mail.model.Thread;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.MailServiceException;
-import net.anfoya.tag.model.Section;
-import net.anfoya.tag.model.Tag;
 import net.anfoya.tag.service.TagServiceException;
 
 import org.slf4j.Logger;
@@ -129,7 +127,7 @@ public class GmailImpl implements MailService<GmailSection, GmailTag> {
 			return threads;
 		}
 		final List<String> labelIds = new ArrayList<String>();
-		for(final Tag t: tags) {
+		for(final GmailTag t: tags) {
 			labelIds.add(t.getId());
 		}
 		List<com.google.api.services.gmail.model.Thread> lastThreads;
@@ -215,9 +213,9 @@ public class GmailImpl implements MailService<GmailSection, GmailTag> {
 			final GmailTag tag = new GmailTag(l);
 			if (!tag.isHidden()
 					&& (section == null
-						|| section == Section.NO_SECTION && !l.getName().contains("/")
-						|| section.getId().equals(tag.getId())
-						|| l.getName().startsWith(section.getName()+"/") && !l.getName().substring(section.getName().length()+1, l.getName().length()).contains("/"))
+							|| section.getId().equals(tag.getId())
+							|| section.getId().equals(GmailSection.NO_SECTION.getId()) && !l.getName().contains("/")
+							|| l.getName().startsWith(section.getName()+"/") && !l.getName().substring(section.getName().length()+1, l.getName().length()).contains("/"))
 					&& tag.getName().contains(tagPattern)) {
 				tags.add(tag);
 			}
@@ -268,22 +266,27 @@ public class GmailImpl implements MailService<GmailSection, GmailTag> {
 			return 0;
 		}
 		final List<String> includeIds = new ArrayList<String>();
-		for(final Tag t: includes) {
+		for(final GmailTag t: includes) {
 			includeIds.add(t.getId());
 		}
 
 		int count = 0;
 		try {
-			final ListThreadsResponse response = delegate.users().threads().list(USER).setLabelIds(includeIds).execute();
-			if (response.getThreads() != null) {
-				count = response.getThreads().size();
+			ListThreadsResponse resp = delegate.users().threads().list(USER).setLabelIds(includeIds).execute();
+			while (resp.getThreads() != null) {
+				count += resp.getThreads().size();
+				if (resp.getNextPageToken() != null) {
+					final String pageToken = resp.getNextPageToken();
+					resp = delegate.users().threads().list(USER).setLabelIds(includeIds).setPageToken(pageToken).execute();
+				} else {
+					break;
+				}
 			}
 		} catch (final IOException e) {
 			throw new TagServiceException("counting threads for " + includes.toString(), e);
 		}
 
-		LOGGER.info("count for includes({}) excludes({}) mailPattern({}): {}"
-				, includes, excludes, mailPattern, count);
+		LOGGER.info("count for tag includes({}) excludes({}) mailPattern({}): {}", includes, excludes, mailPattern, count);
 
 		return count;
 	}
@@ -294,28 +297,33 @@ public class GmailImpl implements MailService<GmailSection, GmailTag> {
 			, final String namePattern, final String tagPattern) throws TagServiceException {
 
 		final StringBuilder query = new StringBuilder();
-		for(final Tag t: getTags(section, tagPattern)) {
+		for(final GmailTag t: getTags(section, tagPattern)) {
 			if (query.length() > 0) {
 				query.append(" OR ");
 			}
-			query.append("label:").append(t.getName().replaceAll("/", "-").replaceAll(" ", "-"));
+			query.append("label:").append(t.getPath().replaceAll("/", "-").replaceAll(" ", "-"));
 		}
 		final List<String> includeIds = new ArrayList<String>();
-		for(final Tag t: includes) {
+		for(final GmailTag t: includes) {
 			includeIds.add(t.getId());
 		}
 		int count = 0;
 		try {
-			final ListThreadsResponse response = delegate.users().threads().list(USER).setLabelIds(includeIds).setQ(query.toString()).execute();
-			if (response.getThreads() != null) {
-				count = response.getThreads().size();
+			ListThreadsResponse resp = delegate.users().threads().list(USER).setLabelIds(includeIds).setQ(query.toString()).execute();
+			while (resp.getThreads() != null) {
+				count += resp.getThreads().size();
+				if (resp.getNextPageToken() != null) {
+					final String pageToken = resp.getNextPageToken();
+					resp = delegate.users().threads().list(USER).setLabelIds(includeIds).setQ(query.toString()).setPageToken(pageToken).execute();
+				} else {
+					break;
+				}
 			}
 		} catch (final IOException e) {
 			throw new TagServiceException("counting threads for " + includes.toString(), e);
 		}
 
-		LOGGER.info("threads for section({}) includes({}) excludes({}) tagPattern({}): {}"
-				, section, includes, excludes, tagPattern, count);
+		LOGGER.info("count for section({}) includes({}) excludes({}) tagPattern({}): {}", section, includes, excludes, tagPattern, count);
 		return count;
 	}
 

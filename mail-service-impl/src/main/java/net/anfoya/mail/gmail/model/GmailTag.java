@@ -5,27 +5,29 @@ import net.anfoya.tag.model.Tag;
 import com.google.api.services.gmail.model.Label;
 
 public class GmailTag extends Tag {
-	private final String string;
+	private final String path;
 	private final boolean hidden;
 
-	public GmailTag(final Label label) {
-		super(label.getId(), label.getName());
-
-		String string = label.getName();
-		if (string.contains("/") && string.length() > 1) {
-			string = string.substring(string.lastIndexOf("/") + 1);
+	private static String getTagName(final Label label) {
+		String name = label.getName();
+		if (name.contains("/") && name.length() > 1) {
+			name = name.substring(name.lastIndexOf("/") + 1);
 		}
-		this.string = string;
-
-		this.hidden = "labelHide".equals(label.getLabelListVisibility());
+		return name;
 	}
 
-	@Override
-	public String toString() {
-		return string;
+	public GmailTag(final Label label) {
+		super(label.getId(), getTagName(label));
+
+		this.path = label.getName();
+		this.hidden = "labelHide".equals(label.getLabelListVisibility());
 	}
 
 	public boolean isHidden() {
 		return hidden;
+	}
+
+	public String getPath() {
+		return path;
 	}
 }
