@@ -17,12 +17,13 @@ import javafx.stage.Stage;
 import javax.security.auth.login.LoginException;
 
 import net.anfoya.mail.gmail.GmailImpl;
+import net.anfoya.mail.gmail.model.GmailSection;
+import net.anfoya.mail.gmail.model.GmailTag;
 import net.anfoya.mail.model.Message;
 import net.anfoya.mail.model.Thread;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.MailServiceException;
 import net.anfoya.tag.javafx.scene.control.SectionListPane;
-import net.anfoya.tag.model.Tag;
 import net.anfoya.tag.service.TagServiceException;
 
 public class MailBrowserApp extends Application {
@@ -31,8 +32,8 @@ public class MailBrowserApp extends Application {
 		launch(args);
 	}
 
-	private SectionListPane sectionListPane;
-	private MailService mailService;
+	private SectionListPane<GmailSection, GmailTag> sectionListPane;
+	private MailService<GmailSection, GmailTag> mailService;
 	private ListView<Thread> threadList;
 	private WebEngine engine;
 
@@ -55,7 +56,7 @@ public class MailBrowserApp extends Application {
 
 			mailService = new GmailImpl();
 			mailService.login(null, null);
-			sectionListPane = new SectionListPane(mailService);
+			sectionListPane = new SectionListPane<GmailSection, GmailTag>(mailService);
 			sectionListPane.setPrefWidth(250);
 			sectionListPane.prefHeightProperty().bind(selectionPane.heightProperty());
 			sectionListPane.setSectionDisableWhenZero(false);
@@ -67,11 +68,11 @@ public class MailBrowserApp extends Application {
 			selectionPane.getChildren().add(sectionListPane);
 		}
 
-		/* movie list */ {
+		/* thread list */ {
 			threadList = new ListView<Thread>();
 			threadList.setPrefWidth(250);
 			threadList.getSelectionModel().selectedItemProperty().addListener((ov, oldVal, newVal) -> {
-			//	refreshThread(newVal);
+				refreshThread(newVal);
 			});
 			/*
 			movieListPane.addSelectionListener(new ChangeListener<Movie>() {
@@ -155,7 +156,7 @@ public class MailBrowserApp extends Application {
 
 	private void updateThreadCount() {
 		final int currentCount = threadList.getItems().size();
-		Set<Tag> availableTags;
+		Set<GmailTag> availableTags;
 		try {
 			availableTags = mailService.getTags();
 		} catch (final TagServiceException e) {

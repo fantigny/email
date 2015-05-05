@@ -2,12 +2,10 @@ package net.anfoya.tag.model;
 
 
 public class Section implements Comparable<Section> {
-	private static final String NO_SECTION_NAME = "No section :-(";
+	protected static final String NO_SECTION_NAME = "No section :-(";
 
 	public static final Section NO_SECTION = new Section(NO_SECTION_NAME);
 	public static final Section TO_WATCH = new Section(Tag.TO_WATCH_NAME);
-	public static final Section FRENCH = new Section(Tag.FRENCH_NAME);
-	public static final Section MEI_LIN = new Section(Tag.MEI_LIN_NAME);
 
 	private final String id;
 	private final String name;

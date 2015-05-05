@@ -29,23 +29,23 @@ import net.anfoya.tag.model.Tag;
 import net.anfoya.tag.service.TagService;
 import net.anfoya.tag.service.TagServiceException;
 
-public class SectionListPane extends BorderPane {
-	private final TagService tagService;
+public class SectionListPane<S extends Section, T extends Tag> extends BorderPane {
+	private final TagService<S, T> tagService;
 
 	private TextField tagPatternField;
 	private final Accordion sectionAcc;
-	private final SelectedTagsPane selectedPane;
+	private final SelectedTagsPane<T> selectedPane;
 	private final ContextMenu contextMenu;
 	private final Menu moveToSectionMenu;
 
-	private Set<Section> sections;
+	private Set<S> sections;
 	private ChangeListener<Boolean> tagChangeListener;
 
 	private Callback<Void, Void> updateSectionCallback;
 
 	private boolean isSectionDisableWhenZero;
 
-	public SectionListPane(final TagService tagService) {
+	public SectionListPane(final TagService<S, T> tagService) {
 		this.tagService = tagService;
 
 		final BorderPane patternPane = new BorderPane();
@@ -68,7 +68,7 @@ public class SectionListPane extends BorderPane {
 		sectionAcc = new Accordion();
 		setCenter(sectionAcc);
 
-		selectedPane = new SelectedTagsPane();
+		selectedPane = new SelectedTagsPane<T>();
 		selectedPane.setDelTagCallBack(tagName -> {
 			unselectTag(tagName);
 			return null;
@@ -98,7 +98,7 @@ public class SectionListPane extends BorderPane {
 		// delete sections
 		final Set<Section> existingSections = new LinkedHashSet<Section>();
 		for(final Iterator<TitledPane> i = sectionAcc.getPanes().iterator(); i.hasNext();) {
-			final TagList tagList = (TagList) i.next().getContent();
+			final TagList<S, T> tagList = (TagList<S, T>) i.next().getContent();
 			if (sections.contains(tagList.getSection())) {
 				existingSections.add(tagList.getSection());
 			} else {
@@ -108,13 +108,13 @@ public class SectionListPane extends BorderPane {
 
 		// add new sections
 		int index = 0;
-		for(final Section section: sections) {
+		for(final S section: sections) {
 			if (!existingSections.contains(section)) {
-				final TagList tagList = new TagList(tagService, section);
+				final TagList<S, T> tagList = new TagList<S, T>(tagService, section);
 				tagList.setTagChangeListener(tagChangeListener);
 				tagList.setContextMenu(contextMenu);
 
-				final SectionPane sectionPane = new SectionPane(tagService, section, tagList);
+				final SectionPane<S, T> sectionPane = new SectionPane<S, T>(tagService, section, tagList);
 				sectionPane.setDisableWhenZero(isSectionDisableWhenZero);
 				sectionAcc.getPanes().add(index, sectionPane);
 			}
@@ -124,9 +124,9 @@ public class SectionListPane extends BorderPane {
 
 	public void refreshTags() {
 		final String tagPattern = tagPatternField.getText();
-		final Set<Tag> tags = getIncludedTags();
+		final Set<T> tags = getIncludedTags();
 		for(final TitledPane pane: sectionAcc.getPanes()) {
-			((SectionPane) pane).refresh(tags, tagPattern);
+			((SectionPane<S, T>) pane).refresh(tags, tagPattern);
 		}
 
 		refreshMoveToSectionMenu();
@@ -145,7 +145,7 @@ public class SectionListPane extends BorderPane {
 
 	public void unselectTag(final String tagName) {
 		for(final TitledPane sectionPane: sectionAcc.getPanes()) {
-			final TagList tagList = (TagList) sectionPane.getContent();
+			final TagList<S, T> tagList = (TagList<S, T>) sectionPane.getContent();
 			if (tagList.contains(tagName)) {
 				tagList.setTagSelected(tagName, false);
 				break;
@@ -155,7 +155,7 @@ public class SectionListPane extends BorderPane {
 
 	public void selectTag(final Section section, final String tagName) {
 		for(final TitledPane sectionPane: sectionAcc.getPanes()) {
-			final TagList tagList = (TagList) sectionPane.getContent();
+			final TagList<S, T> tagList = (TagList<S, T>) sectionPane.getContent();
 			if (tagList.getSection().equals(section)) {
 				tagList.setTagSelected(tagName, true);
 				break;
@@ -176,19 +176,19 @@ public class SectionListPane extends BorderPane {
 
 	public void expand(final Section section) {
 		for(final TitledPane titledPane: sectionAcc.getPanes()) {
-			final TagList tagList = (TagList) titledPane.getContent();
+			final TagList<S, T> tagList = (TagList<S, T>) titledPane.getContent();
 			if (tagList.getSection().equals(section)) {
 				titledPane.expandedProperty().set(true);
 			}
 		}
 	}
 
-	public void updateCount(final int currentCount, final Set<Tag> availableTags, final String namePattern) {
-		final Set<Tag> includes = getIncludedTags();
-		final Set<Tag> excludes = getExcludedTags();
+	public void updateCount(final int currentCount, final Set<T> availableTags, final String namePattern) {
+		final Set<T> includes = getIncludedTags();
+		final Set<T> excludes = getExcludedTags();
 		final String tagPattern = tagPatternField.getText();
 		for(final TitledPane titledPane: sectionAcc.getPanes()) {
-			final SectionPane sectionPane = (SectionPane) titledPane;
+			final SectionPane<S, T> sectionPane = (SectionPane<S, T>) titledPane;
 			sectionPane.updateCountAsync(currentCount, availableTags, includes, excludes, namePattern, tagPattern);
 		}
 	}
@@ -196,34 +196,34 @@ public class SectionListPane extends BorderPane {
 	public Set<Tag> getAllTags() {
 		final Set<Tag> tags = new LinkedHashSet<Tag>();
 		for(final TitledPane titledPane: sectionAcc.getPanes()) {
-			final TagList tagList = (TagList) titledPane.getContent();
+			final TagList<S, T> tagList = (TagList<S, T>) titledPane.getContent();
 			tags.addAll(tagList.getTags());
 		}
 
 		return Collections.unmodifiableSet(tags);
 	}
 
-	public List<Tag> getAllSelectedTags() {
-		final List<Tag> tags = new ArrayList<Tag>();
+	public List<T> getAllSelectedTags() {
+		final List<T> tags = new ArrayList<T>();
 		tags.addAll(getIncludedTags());
 		tags.addAll(getExcludedTags());
 		return tags;
 	}
 
-	public Set<Tag> getIncludedTags() {
-		final Set<Tag> tags = new LinkedHashSet<Tag>();
+	public Set<T> getIncludedTags() {
+		final Set<T> tags = new LinkedHashSet<T>();
 		for(final TitledPane titledPane: sectionAcc.getPanes()) {
-			final TagList tagList = (TagList) titledPane.getContent();
+			final TagList<S, T> tagList = (TagList<S, T>) titledPane.getContent();
 			tags.addAll(tagList.getSelectedTags());
 		}
 
 		return Collections.unmodifiableSet(tags);
 	}
 
-	public Set<Tag> getExcludedTags() {
-		final Set<Tag> tags = new LinkedHashSet<Tag>();
+	public Set<T> getExcludedTags() {
+		final Set<T> tags = new LinkedHashSet<T>();
 		for(final TitledPane titledPane: sectionAcc.getPanes()) {
-			final TagList tagList = (TagList) titledPane.getContent();
+			final TagList<S, T> tagList = (TagList<S, T>) titledPane.getContent();
 			tags.addAll(tagList.getExcludedTags());
 		}
 		return Collections.unmodifiableSet(tags);
@@ -231,7 +231,7 @@ public class SectionListPane extends BorderPane {
 
 	private void refreshMoveToSectionMenu() {
 		final List<MenuItem> itemList = FXCollections.observableArrayList();
-		for(final Section section: sections) {
+		for(final S section: sections) {
 			if (section.equals(Section.NO_SECTION) || section.equals(Section.TO_WATCH)) {
 				continue;
 			}
@@ -245,9 +245,9 @@ public class SectionListPane extends BorderPane {
 		moveToSectionMenu.getItems().setAll(itemList);
 	}
 
-	private void moveToSection(final Section section) {
-		final TagList tagList = (TagList) sectionAcc.getExpandedPane().getContent();
-		final Tag tag = tagList.getFocusedTag();
+	private void moveToSection(final S section) {
+		final TagList<S, T> tagList = (TagList<S, T>) sectionAcc.getExpandedPane().getContent();
+		final T tag = tagList.getFocusedTag();
 		if (tag == null) {
 			return;
 		}
@@ -270,8 +270,8 @@ public class SectionListPane extends BorderPane {
 	}
 
 	private void createSection() {
-		final TagList tagList = (TagList) sectionAcc.getExpandedPane().getContent();
-		final Tag tag = tagList.getSelectedTag();
+		final TagList<S, T> tagList = (TagList<S, T>) sectionAcc.getExpandedPane().getContent();
+		final T tag = tagList.getSelectedTag();
 		if (tag == null) {
 			return;
 		}

@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import javax.security.auth.login.LoginException;
 
 import net.anfoya.mail.gmail.GmailImpl;
+import net.anfoya.mail.gmail.model.GmailSection;
+import net.anfoya.mail.gmail.model.GmailTag;
 import net.anfoya.mail.model.Thread;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.MailServiceException;
@@ -17,16 +19,16 @@ public class GmailTest {
 
 	@Test
 	public void login() throws LoginException {
-		final MailService service = new GmailImpl();
+		final MailService<GmailSection, GmailTag> service = new GmailImpl();
 		service.login("", "");
 		service.logout();
 	}
 
 	@Test
 	public void getHeaders() throws MailServiceException, LoginException {
-		final MailService service = new GmailImpl();
+		final MailService<GmailSection, GmailTag> service = new GmailImpl();
 		service.login("", "");
-		for(final Thread t: service.getThreads(new ArrayList<Tag>())) {
+		for(final Thread t: service.getThreads(new ArrayList<GmailTag>())) {
 			System.out.println(t.getId());
 		}
 		service.logout();
@@ -34,7 +36,7 @@ public class GmailTest {
 
 	@Test
 	public void getTags() throws TagServiceException, LoginException {
-		final MailService service = new GmailImpl();
+		final MailService<GmailSection, GmailTag> service = new GmailImpl();
 		service.login("", "");
 		for(final Tag t: service.getTags()) {
 			System.out.println(t);

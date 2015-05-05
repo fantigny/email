@@ -10,16 +10,16 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import net.anfoya.tag.model.Tag;
 
-public class TagListItem {
+public class TagListItem<T extends Tag> {
 	private static final String COUNT_STRING = " (%d)";
 
-	private final Tag tag;
+	private final T tag;
 	private final StringProperty textProperty;
 	private final BooleanProperty disableProperty;
 	private final BooleanProperty includedProperty;
 	private final BooleanProperty excludedProperty;
 	private final IntegerProperty countProperty;
-	public TagListItem(final Tag tag) {
+	public TagListItem(final T tag) {
 		this.tag = tag;
 		textProperty = new SimpleStringProperty(tag.getName());
 		disableProperty = new SimpleBooleanProperty(true);
@@ -61,7 +61,7 @@ public class TagListItem {
 		return textProperty.get();
 	}
 
-	public Tag getTag() {
+	public T getTag() {
 		return tag;
 	}
 	public StringProperty textProperty() {

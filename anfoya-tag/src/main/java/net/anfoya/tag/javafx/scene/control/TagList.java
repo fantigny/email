@@ -19,32 +19,32 @@ import net.anfoya.tag.model.Tag;
 import net.anfoya.tag.service.TagService;
 import net.anfoya.tag.service.TagServiceException;
 
-public class TagList extends ListView<TagListItem> {
-	private final TagService tagService;
+public class TagList<S extends Section, T extends Tag> extends ListView<TagListItem<T>> {
+	private final TagService<S, T> tagService;
 
-	private final Section section;
-	private final Map<String, TagListItem> itemMap = new HashMap<String, TagListItem>();
+	private final S section;
+	private final Map<String, TagListItem<T>> itemMap = new HashMap<String, TagListItem<T>>();
 
 	private ChangeListener<Boolean> tagChangeListener;
 
-	public TagList(final TagService tagService, final Section section) {
+	public TagList(final TagService<S, T> tagService, final S section) {
 		this.tagService = tagService;
 		this.section = section;
 
 		getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-		setCellFactory(list -> new TagListCell());
+		setCellFactory(list -> new TagListCell<T>());
 	}
 
-	public Tag getSelectedTag() {
-		Tag tag = null;
+	public T getSelectedTag() {
+		T tag = null;
 		if (!getSelectionModel().isEmpty()) {
 			tag = getSelectionModel().getSelectedItem().getTag();
 		}
 		return tag;
 	}
 
-	public Tag getFocusedTag() {
-		final TagListItem item = getFocusModel().getFocusedItem();
+	public T getFocusedTag() {
+		final TagListItem<T> item = getFocusModel().getFocusedItem();
 		if (item == null) {
 			return null;
 		}
@@ -52,18 +52,18 @@ public class TagList extends ListView<TagListItem> {
 		return item.getTag();
 	}
 
-	public Set<Tag> getTags() {
-		final Set<Tag> tags = new LinkedHashSet<Tag>();
-		for(final TagListItem item: getItems()) {
+	public Set<T> getTags() {
+		final Set<T> tags = new LinkedHashSet<T>();
+		for(final TagListItem<T> item: getItems()) {
 			tags.add(item.getTag());
 		}
 
 		return Collections.unmodifiableSet(tags);
 	}
 
-	public Set<Tag> getSelectedTags() {
-		final Set<Tag> tags = new LinkedHashSet<Tag>();
-		for(final TagListItem item: getItems()) {
+	public Set<T> getSelectedTags() {
+		final Set<T> tags = new LinkedHashSet<T>();
+		for(final TagListItem<T> item: getItems()) {
 			if (item.includedProperty().get()) {
 				tags.add(item.getTag());
 			}
@@ -72,9 +72,9 @@ public class TagList extends ListView<TagListItem> {
 		return Collections.unmodifiableSet(tags);
 	}
 
-	public Set<Tag> getExcludedTags() {
-		final Set<Tag> tags = new LinkedHashSet<Tag>();
-		for(final TagListItem item: getItems()) {
+	public Set<T> getExcludedTags() {
+		final Set<T> tags = new LinkedHashSet<T>();
+		for(final TagListItem<T> item: getItems()) {
 			if (item.excludedProperty().get()) {
 				tags.add(item.getTag());
 			}
@@ -83,9 +83,9 @@ public class TagList extends ListView<TagListItem> {
 		return Collections.unmodifiableSet(tags);
 	}
 
-	public void refresh(final Set<Tag> selectedTags, final String tagPattern) {
+	public void refresh(final Set<T> selectedTags, final String tagPattern) {
 		// get all tags
-		Set<Tag> tags;
+		Set<T> tags;
 		try {
 			tags = tagService.getTags(section, tagPattern);
 		} catch (final TagServiceException e) {
@@ -96,9 +96,9 @@ public class TagList extends ListView<TagListItem> {
 
 		// build items map and restore selection
 		itemMap.clear();
-		final ObservableList<TagListItem> items = FXCollections.observableArrayList();
-		for(final Tag tag: tags) {
-			final TagListItem item = new TagListItem(tag);
+		final ObservableList<TagListItem<T>> items = FXCollections.observableArrayList();
+		for(final T tag: tags) {
+			final TagListItem<T> item = new TagListItem<T>(tag);
 			if (selectedTags.contains(tag)) {
 				item.includedProperty().set(true);
 			}
@@ -114,8 +114,8 @@ public class TagList extends ListView<TagListItem> {
 		setItems(items);
 	}
 
-	public void updateCount(final int currentCount, final Set<Tag> availableTags, final Set<Tag> includes, final Set<Tag> excludes, final String namePattern) {
-		for(final TagListItem item: getItems()) {
+	public void updateCount(final int currentCount, final Set<T> availableTags, final Set<T> includes, final Set<T> excludes, final String namePattern) {
+		for(final TagListItem<T> item: getItems()) {
 			if (availableTags.contains(item.getTag()) || item.excludedProperty().get()) {
 				if (item.includedProperty().get()) {
 					item.countProperty().set(currentCount);
@@ -130,15 +130,15 @@ public class TagList extends ListView<TagListItem> {
 		forceRepaint();
 	}
 
-	protected void updateCountAsync(final TagListItem item, final Set<Tag> includes, final Set<Tag> excludes, final String nameFilter) {
+	protected void updateCountAsync(final TagListItem<T> item, final Set<T> includes, final Set<T> excludes, final String nameFilter) {
 		final Task<Integer> task = new Task<Integer>() {
 			@Override
 			public Integer call() throws SQLException {
-				final Tag tag = item.getTag();
+				final T tag = item.getTag();
 				final int excludeFactor = excludes.contains(tag)? -1: 1;
-				final Set<Tag> fakeIncludes = new LinkedHashSet<Tag>(includes);
+				final Set<T> fakeIncludes = new LinkedHashSet<T>(includes);
 				fakeIncludes.add(tag);
-				final Set<Tag> fakeExcludes = new LinkedHashSet<Tag>(excludes);
+				final Set<T> fakeExcludes = new LinkedHashSet<T>(excludes);
 				fakeExcludes.remove(tag);
 				try {
 					return excludeFactor * tagService.getTagCount(fakeIncludes, fakeExcludes, nameFilter);
@@ -162,12 +162,12 @@ public class TagList extends ListView<TagListItem> {
 
 	// TODO: find a proper way
 	private void forceRepaint() {
-		setCellFactory(list -> new TagListCell());
+		setCellFactory(list -> new TagListCell<T>());
 	}
 
 	public void setTagSelected(final String tagName, final boolean selected) {
 		if (itemMap.containsKey(tagName)) {
-			final TagListItem item = itemMap.get(tagName);
+			final TagListItem<T> item = itemMap.get(tagName);
 			item.includedProperty().set(selected);
 			if (!selected) {
 				item.excludedProperty().set(false);
@@ -175,7 +175,7 @@ public class TagList extends ListView<TagListItem> {
 		}
 	}
 
-	public Section getSection() {
+	public S getSection() {
 		return section;
 	}
 
@@ -183,7 +183,7 @@ public class TagList extends ListView<TagListItem> {
 		return itemMap.containsKey(tagName);
 	}
 
-	protected TagListItem getSectionItem() {
+	protected TagListItem<T> getSectionItem() {
 		return itemMap.get(section.getName());
 	}
 

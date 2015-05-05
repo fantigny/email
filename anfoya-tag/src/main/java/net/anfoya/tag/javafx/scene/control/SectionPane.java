@@ -13,29 +13,30 @@ import net.anfoya.tag.model.Tag;
 import net.anfoya.tag.service.TagService;
 import net.anfoya.tag.service.TagServiceException;
 
-public class SectionPane extends TitledPane {
-	private final TagService tagService;
-	private final TagList tagList;
+public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
+	private final TagService<S, T> tagService;
+	private final TagList<S, T> tagList;
 
 	private boolean initialized;
 	private Labeled titleNode;
 
 	private boolean isTag;
-	private TagListItem sectionItem;
+	private TagListItem<Tag> sectionItem;
 
 	private boolean isDisableWhenZero;
 
-	public SectionPane(final TagService tagService, final Section section, final TagList tagList) {
+	@SuppressWarnings("unchecked")
+	public SectionPane(final TagService<S, T> tagService, final Section section, final TagList<S, T> tagList) {
 		super("", tagList);
 		this.tagService = tagService;
-		this.tagList = (TagList) getContent();
-		sectionItem = new TagListItem(new Tag(section.getId(), section.getName()));
+		this.tagList = (TagList<S, T>) getContent();
+		this.sectionItem = new TagListItem<Tag>(new Tag(section.getId(), section.getName()));
 		isTag = false;
 		initialized = false;
 		isDisableWhenZero = true;
 	}
 
-	public void updateCountAsync(final int currentCount, final Set<Tag> availableTags, final Set<Tag> includes, final Set<Tag> excludes, final String namePattern, final String tagPattern) {
+	public void updateCountAsync(final int currentCount, final Set<T> availableTags, final Set<T> includes, final Set<T> excludes, final String namePattern, final String tagPattern) {
 		if (!isTag) {
 			final Task<Integer> task = new Task<Integer>() {
 				@Override
@@ -59,7 +60,7 @@ public class SectionPane extends TitledPane {
 		tagList.updateCount(currentCount, availableTags, includes, excludes, namePattern);
 	}
 
-	public void refresh(final Set<Tag> selectedTags, final String tagPattern) {
+	public void refresh(final Set<T> selectedTags, final String tagPattern) {
 		tagList.refresh(selectedTags, tagPattern);
 
 		if (!initialized) {
@@ -67,7 +68,7 @@ public class SectionPane extends TitledPane {
 		}
 
 		if (isTag) {
-			TagListItem sectionItem = tagList.getSectionItem();
+			TagListItem<? extends Tag> sectionItem = tagList.getSectionItem();
 			if (sectionItem == null) {
 				sectionItem = this.sectionItem;
 			}
@@ -86,7 +87,7 @@ public class SectionPane extends TitledPane {
 			}
 			incExcBox.includedProperty().bindBidirectional(sectionItem.includedProperty());
 			incExcBox.excludedProperty().bindBidirectional(sectionItem.excludedProperty());
-			this.sectionItem = sectionItem;
+			this.sectionItem = new TagListItem<Tag>(new Tag(sectionItem.getTag().getId(), sectionItem.getTag().getName()));
 		}
 	}
 
@@ -107,7 +108,7 @@ public class SectionPane extends TitledPane {
 		setGraphic(titleNode);
 	}
 
-	public TagList getTagList() {
+	public TagList<S, T> getTagList() {
 		return tagList;
 	}
 

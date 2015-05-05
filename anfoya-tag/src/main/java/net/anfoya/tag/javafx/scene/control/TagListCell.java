@@ -7,20 +7,21 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.util.Callback;
 import net.anfoya.javafx.scene.control.ExcludeBox;
+import net.anfoya.tag.model.Tag;
 
-class TagListCell extends CheckBoxListCell<TagListItem> {
+class TagListCell<T extends Tag> extends CheckBoxListCell<TagListItem<T>> {
 	public TagListCell() {
 		super();
-		setSelectedStateCallback(new Callback<TagListItem, ObservableValue<Boolean>>() {
+		setSelectedStateCallback(new Callback<TagListItem<T>, ObservableValue<Boolean>>() {
 			@Override
-			public ObservableValue<Boolean> call(final TagListItem item) {
+			public ObservableValue<Boolean> call(final TagListItem<T> item) {
 				return item.includedProperty();
 			}
 		});
 	}
 
 	@Override
-    public void updateItem(final TagListItem item, final boolean empty) {
+    public void updateItem(final TagListItem<T> item, final boolean empty) {
         super.updateItem(item, empty);
 
     	if (item == null || empty) {

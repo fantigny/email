@@ -17,6 +17,8 @@ import java.util.TreeSet;
 import javax.security.auth.login.LoginException;
 
 import net.anfoya.java.io.JsonFile;
+import net.anfoya.mail.gmail.model.GmailSection;
+import net.anfoya.mail.gmail.model.GmailTag;
 import net.anfoya.mail.model.Message;
 import net.anfoya.mail.model.Thread;
 import net.anfoya.mail.service.MailService;
@@ -41,7 +43,7 @@ import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Label;
 import com.google.api.services.gmail.model.ListThreadsResponse;
 
-public class GmailImpl implements MailService {
+public class GmailImpl implements MailService<GmailSection, GmailTag> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GmailImpl.class);
 
 	// Check https://developers.google.com/gmail/api/auth/scopes for all
@@ -121,7 +123,7 @@ public class GmailImpl implements MailService {
 	}
 
 	@Override
-	public List<Thread> getThreads(final List<Tag> tags) throws MailServiceException {
+	public List<Thread> getThreads(final List<GmailTag> tags) throws MailServiceException {
 		final List<Thread> threads = new ArrayList<Thread>();
 		if (tags.isEmpty()) {
 			return threads;
@@ -177,16 +179,16 @@ public class GmailImpl implements MailService {
 	}
 
 	@Override
-	public Set<Section> getSections() throws TagServiceException {
-		final Set<Section> sections = new TreeSet<Section>();
+	public Set<GmailSection> getSections() throws TagServiceException {
+		final Set<GmailSection> sections = new TreeSet<GmailSection>();
 		for(final Label l: getLabels().values()) {
-			final Section section = buildSection(l);
-			if (section != null) {
+			final GmailSection section = new GmailSection(l);
+			if (!section.isHidden()) {
 				sections.add(section);
 			}
 		}
 
-		for(final Iterator<Section> i=sections.iterator(); i.hasNext();) {
+		for(final Iterator<GmailSection> i=sections.iterator(); i.hasNext();) {
 			final String s = i.next().getName() + "/";
 			boolean section = false;
 			for(final Label l: getLabels().values()) {
@@ -200,18 +202,18 @@ public class GmailImpl implements MailService {
 			}
 		}
 
-		sections.add(Section.NO_SECTION);
+		sections.add(GmailSection.NO_SECTION);
 
 		LOGGER.info("sections: {}", sections);
 		return sections;
 	}
 
 	@Override
-	public Set<Tag> getTags(final Section section, final String tagPattern) throws TagServiceException {
-		final Set<Tag> tags = new TreeSet<Tag>();
+	public Set<GmailTag> getTags(final GmailSection section, final String tagPattern) throws TagServiceException {
+		final Set<GmailTag> tags = new TreeSet<GmailTag>();
 		for(final Label l: getLabels().values()) {
-			final Tag tag = buildTag(l);
-			if (tag != null
+			final GmailTag tag = new GmailTag(l);
+			if (!tag.isHidden()
 					&& (section == null
 						|| section == Section.NO_SECTION && !l.getName().contains("/")
 						|| section.getId().equals(tag.getId())
@@ -226,12 +228,12 @@ public class GmailImpl implements MailService {
 	}
 
 	@Override
-	public Set<Tag> getTags() throws TagServiceException {
+	public Set<GmailTag> getTags() throws TagServiceException {
 		return getTags(null, "");
 	}
 
 	@Override
-	public Section addSection(final String sectionName) throws TagServiceException {
+	public GmailSection addSection(final String sectionName) throws TagServiceException {
 		Label label = new Label();
 		label.setMessageListVisibility("show");
 		label.setLabelListVisibility("labelShow");
@@ -243,11 +245,11 @@ public class GmailImpl implements MailService {
 		}
 
 		idLabels.put(label.getId(), label);
-		return buildSection(label);
+		return new GmailSection(label);
 	}
 
 	@Override
-	public void moveToSection(final Section section, final Tag tag) throws TagServiceException {
+	public void moveToSection(final GmailSection section, final GmailTag tag) throws TagServiceException {
 		Label label = getLabels().get(tag.getId());
 		label.setName(section.getName() + "/" + tag.getName());
 		try {
@@ -261,7 +263,7 @@ public class GmailImpl implements MailService {
 	}
 
 	@Override
-	public int getTagCount(final Set<Tag> includes, final Set<Tag> excludes, final String mailPattern) throws TagServiceException {
+	public int getTagCount(final Set<GmailTag> includes, final Set<GmailTag> excludes, final String mailPattern) throws TagServiceException {
 		if (includes.isEmpty()) {
 			return 0;
 		}
@@ -287,22 +289,16 @@ public class GmailImpl implements MailService {
 	}
 
 	@Override
-	public int getSectionCount(final Section section
-			, final Set<Tag> includes, final Set<Tag> excludes
+	public int getSectionCount(final GmailSection section
+			, final Set<GmailTag> includes, final Set<GmailTag> excludes
 			, final String namePattern, final String tagPattern) throws TagServiceException {
 
 		final StringBuilder query = new StringBuilder();
-		String sectionName;
-		if (Section.NO_SECTION.equals(section)) {
-			sectionName = "";
-		} else {
-			sectionName = section.getName().replaceAll("/", "-").replaceAll(" ", "-") + "-";
-		}
 		for(final Tag t: getTags(section, tagPattern)) {
 			if (query.length() > 0) {
 				query.append(" OR ");
 			}
-			query.append("label:").append(sectionName).append(t.getName().replaceAll("/", "-").replaceAll(" ", "-"));
+			query.append("label:").append(t.getName().replaceAll("/", "-").replaceAll(" ", "-"));
 		}
 		final List<String> includeIds = new ArrayList<String>();
 		for(final Tag t: includes) {
@@ -321,32 +317,6 @@ public class GmailImpl implements MailService {
 		LOGGER.info("threads for section({}) includes({}) excludes({}) tagPattern({}): {}"
 				, section, includes, excludes, tagPattern, count);
 		return count;
-	}
-
-	private Tag buildTag(final Label l) {
-		if ("labelHide".equals(l.getLabelListVisibility())) {
-			return null;
-		}
-
-		String name = l.getName();
-		if (name.contains("/") && name.length() > 1) {
-			name = name.substring(name.lastIndexOf("/") + 1);
-		}
-
-		return new Tag(l.getId(), name);
-	}
-
-	private Section buildSection(final Label l) {
-		if ("labelHide".equals(l.getLabelListVisibility())) {
-			return null;
-		}
-
-		String name = l.getName();
-		if (name.contains("/")) {
-			name = name.substring(0, name.lastIndexOf("/"));
-		}
-
-		return new Section(l.getId(), name);
 	}
 
 	private Map<String, Label> getLabels() throws TagServiceException {
