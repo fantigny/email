@@ -9,8 +9,8 @@ public interface TagService {
 
 	public Set<Section> getSections() throws TagServiceException;
 	public int getSectionCount(Section section, Set<Tag> includes, Set<Tag> excludes, String namePattern, String tagPattern) throws TagServiceException;
-	public void addToSection(Section section, Tag tag);
-	public Section addSection(String sectionName);
+	public void moveToSection(Section section, Tag tag) throws TagServiceException;
+	public Section addSection(String sectionName) throws TagServiceException;
 
 	public Set<Tag> getTags() throws TagServiceException;
 	public Set<Tag> getTags(Section section, String tagPattern) throws TagServiceException;

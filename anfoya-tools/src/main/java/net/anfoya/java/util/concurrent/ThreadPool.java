@@ -20,7 +20,7 @@ public final class ThreadPool {
 	private final ExecutorService delegate;
 
 	private ThreadPool() {
-		delegate = Executors.newCachedThreadPool();
+		delegate = Executors.newFixedThreadPool(20);
 		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 			@Override
 			public void run() {

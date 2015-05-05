@@ -36,7 +36,6 @@ public class SectionPane extends TitledPane {
 	}
 
 	public void updateCountAsync(final int currentCount, final Set<Tag> availableTags, final Set<Tag> includes, final Set<Tag> excludes, final String namePattern, final String tagPattern) {
-		tagList.updateCount(currentCount, availableTags, includes, excludes, namePattern);
 		if (!isTag) {
 			final Task<Integer> task = new Task<Integer>() {
 				@Override
@@ -57,6 +56,7 @@ public class SectionPane extends TitledPane {
 				sectionItem.countProperty().set(0);
 			}
 		}
+		tagList.updateCount(currentCount, availableTags, includes, excludes, namePattern);
 	}
 
 	public void refresh(final Set<Tag> selectedTags, final String tagPattern) {

@@ -254,7 +254,12 @@ public class SectionListPane extends BorderPane {
 
 		final boolean selected = getIncludedTags().contains(tag);
 
-		tagService.addToSection(section, tag);
+		try {
+			tagService.moveToSection(section, tag);
+		} catch (final TagServiceException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		refresh();
 
 		if (selected) {
@@ -290,7 +295,12 @@ public class SectionListPane extends BorderPane {
 			return;
 		}
 
-		tagService.addToSection(tagService.addSection(sectionName), tag);
+		try {
+			tagService.moveToSection(tagService.addSection(sectionName), tag);
+		} catch (final TagServiceException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		refresh();
 	}
 

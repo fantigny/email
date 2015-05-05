@@ -61,7 +61,7 @@ public class MailBrowserApp extends Application {
 			sectionListPane.setSectionDisableWhenZero(false);
 			sectionListPane.setTagChangeListener((ov, oldVal, newVal) -> refreshThreadList());
 			sectionListPane.setUpdateSectionCallback(v -> {
-				updateThreadCount();
+//				updateThreadCount();
 				return null;
 			});
 			selectionPane.getChildren().add(sectionListPane);
@@ -71,7 +71,7 @@ public class MailBrowserApp extends Application {
 			threadList = new ListView<Thread>();
 			threadList.setPrefWidth(250);
 			threadList.getSelectionModel().selectedItemProperty().addListener((ov, oldVal, newVal) -> {
-				refreshThread(newVal);
+			//	refreshThread(newVal);
 			});
 			/*
 			movieListPane.addSelectionListener(new ChangeListener<Movie>() {
@@ -176,9 +176,6 @@ public class MailBrowserApp extends Application {
 			e.printStackTrace();
 			return;
 		}
-		threadList.getItems().clear();
-		for(final Thread t: threads) {
-			threadList.getItems().add(t);
-		}
+		threadList.getItems().setAll(threads);
 	}
 }
