@@ -187,10 +187,9 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 		final Set<T> includes = getIncludedTags();
 		final Set<T> excludes = getExcludedTags();
 		final String tagPattern = tagPatternField.getText();
-		int i=0;
+		final int i=0;
 		for(final TitledPane titledPane: sectionAcc.getPanes()) {
 			final SectionPane<S, T> sectionPane = (SectionPane<S, T>) titledPane;
-			if (i++ > 0) continue; //TODO: remove
 			sectionPane.updateCountAsync(currentCount, availableTags, includes, excludes, namePattern, tagPattern);
 		}
 	}
