@@ -1,11 +1,11 @@
 package net.anfoya.mail.gmail.model;
 
-import net.anfoya.tag.model.TagSection;
+import net.anfoya.tag.model.SimpleSection;
 
 import com.google.api.services.gmail.model.Label;
 
-public class GmailSection extends TagSection {
-	public static final GmailSection NO_SECTION = new GmailSection(TagSection.NO_SECTION_NAME);
+public class GmailSection extends SimpleSection {
+	public static final GmailSection NO_SECTION = new GmailSection(SimpleSection.NO_SECTION_NAME);
 
 	private final String string;
 	private final boolean hidden;

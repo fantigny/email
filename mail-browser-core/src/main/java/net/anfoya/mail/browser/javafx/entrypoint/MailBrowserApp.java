@@ -22,7 +22,7 @@ import net.anfoya.mail.gmail.GmailImpl;
 import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.gmail.model.GmailTag;
 import net.anfoya.mail.gmail.model.GmailThread;
-import net.anfoya.mail.model.MailThread;
+import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.MailServiceException;
 import net.anfoya.tag.javafx.scene.control.SectionListPane;
@@ -110,7 +110,7 @@ public class MailBrowserApp extends Application {
 				}
 			});
 			*/
-			threadList.getItems().addListener((ListChangeListener<MailThread>) change -> {
+			threadList.getItems().addListener((ListChangeListener<SimpleThread>) change -> {
 				updateThreadCount();
 			});
 			threadListPane.setCenter(threadList);

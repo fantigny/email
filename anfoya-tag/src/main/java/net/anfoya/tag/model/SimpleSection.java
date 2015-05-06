@@ -1,20 +1,20 @@
 package net.anfoya.tag.model;
 
 
-public class TagSection implements Comparable<TagSection> {
+public class SimpleSection implements Comparable<SimpleSection> {
 	protected static final String NO_SECTION_NAME = "No section :-(";
 
-	public static final TagSection NO_SECTION = new TagSection(NO_SECTION_NAME);
-	public static final TagSection TO_WATCH = new TagSection(ThreadTag.TO_WATCH_NAME);
+	public static final SimpleSection NO_SECTION = new SimpleSection(NO_SECTION_NAME);
+	public static final SimpleSection TO_WATCH = new SimpleSection(SimpleTag.TO_WATCH_NAME);
 
 	private final String id;
 	private final String name;
 	private final int hash;
 
-	public TagSection(final String name) {
+	public SimpleSection(final String name) {
 		this(name, name);
 	}
-	public TagSection(final String id, final String name) {
+	public SimpleSection(final String id, final String name) {
 		this.id = id;
 		this.name = name;
 		hash = id.hashCode();
@@ -38,13 +38,13 @@ public class TagSection implements Comparable<TagSection> {
         if (!this.getClass().equals(other.getClass())) {
 			return false;
 		}
-        return ((TagSection) other).name.equals(name);
+        return ((SimpleSection) other).name.equals(name);
     }
 	public String getId() {
 		return id;
 	}
 	@Override
-	public int compareTo(final TagSection o) {
+	public int compareTo(final SimpleSection o) {
 		return name.compareTo(o.name);
 	}
 }

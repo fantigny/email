@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 
 import javafx.concurrent.Task;
+import javafx.geometry.Insets;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.web.WebView;
@@ -17,10 +18,10 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.mail.model.MailThread;
+import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailService;
-import net.anfoya.tag.model.TagSection;
-import net.anfoya.tag.model.ThreadTag;
+import net.anfoya.tag.model.SimpleSection;
+import net.anfoya.tag.model.SimpleTag;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,18 +31,18 @@ import com.sun.mail.util.BASE64DecoderStream;
 public class MessagePane extends TitledPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessagePane.class);
 
-	private final MailService<? extends TagSection, ? extends ThreadTag, ? extends MailThread> mailService;
+	private final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread> mailService;
 
 	private final WebView bodyView;
 
-	public MessagePane(final MailService<? extends TagSection, ? extends ThreadTag, ? extends MailThread> mailService) {
+	public MessagePane(final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread> mailService) {
+		super("loading...", new BorderPane());
+		setPadding(new Insets(0));
+
 		this.mailService = mailService;
 
-		final BorderPane contentPane = new BorderPane();
-		setContent(contentPane);
-
 		bodyView = new WebView();
-		contentPane.setCenter(bodyView);
+		((BorderPane)getContent()).setCenter(bodyView);
 	}
 
 	public void load(final String messageId) {

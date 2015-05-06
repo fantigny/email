@@ -2,14 +2,14 @@ package net.anfoya.mail.model;
 
 import java.util.Set;
 
-public class MailThread {
-	protected static final String EMPTY = "<EMPTY>";
+public class SimpleThread {
+	protected static final String EMPTY = "[empty]";
 
 	private final String id;
 	private final String subject;
 	private final Set<String> messageIds;
 
-	public MailThread(final String id, final String subject, final Set<String> messageIds) {
+	public SimpleThread(final String id, final String subject, final Set<String> messageIds) {
 		this.id = id;
 		this.subject = subject;
 		this.messageIds = messageIds;

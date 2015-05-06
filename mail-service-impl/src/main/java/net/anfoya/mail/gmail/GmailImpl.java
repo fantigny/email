@@ -323,8 +323,8 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 			throw new TagServiceException("counting threads for " + includes.toString(), e);
 		}
 
-		LOGGER.info("count for tag includes({}) excludes({}) mailPattern({}): {}", includes, excludes, mailPattern, count);
-		LOGGER.info("query({})", query);
+		LOGGER.debug("count for tag includes({}) excludes({}) mailPattern({}): {}", includes, excludes, mailPattern, count);
+		LOGGER.debug("query({})", query);
 
 		return count;
 	}
@@ -334,43 +334,51 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 			, final Set<GmailTag> includes, final Set<GmailTag> excludes
 			, final String namePattern, final String tagPattern) throws TagServiceException {
 
-		final Set<GmailTag> sectionIncludes = new HashSet<GmailTag>(includes);
-		final String includeOperator;
-		if (sectionIncludes.isEmpty()) {
-			includeOperator = "OR";
-			for (final GmailTag t: getTags(section, tagPattern)) {
-				if (!excludes.contains(t)) {
-					sectionIncludes.add(t);
+		final StringBuilder query = new StringBuilder();
+		boolean multiple;
+
+		// label in section
+		query.append("(");
+		multiple = false;
+		for (final GmailTag t: getTags(section, tagPattern)) {
+			if (!includes.contains(t) && !excludes.contains(t)) {
+				if (multiple) {
+					query.append(" OR ");
 				}
+				query.append("label:").append(t.getPath().replaceAll("/", "-").replaceAll(" ", "-"));
+				multiple = true;
 			}
-		} else {
-			includeOperator = "AND";
+		}
+		query.append(")");
+
+		// includes
+		if (includes.size() > 0) {
+			query.append(" AND (");
+			multiple = false;
+			for (final GmailTag t: includes) {
+				if (multiple) {
+					query.append(" AND ");
+				}
+				query.append("label:").append(t.getPath().replaceAll("/", "-").replaceAll(" ", "-"));
+				multiple = true;
+			}
+			query.append(")");
 		}
 
-		final StringBuilder query = new StringBuilder("");
-		if (sectionIncludes.size() > 0) {
-			final StringBuilder subQuery = new StringBuilder();
-			for(final GmailTag t: sectionIncludes) {
-				if (subQuery.length() > 1) {
-					subQuery.append(" ").append(includeOperator).append(" ");
-				}
-				subQuery.append("label:").append(t.getPath().replaceAll("/", "-").replaceAll(" ", "-"));
-			}
-			query.append("(").append(subQuery).append(")");
-		}
+		// includes
 		if (excludes.size() > 0) {
-			final StringBuilder subQuery = new StringBuilder();
-			for(final GmailTag t: excludes) {
-				if (subQuery.length() > 1) {
-					subQuery.append(" AND ");
+			query.append(" AND (");
+			multiple = false;
+			for (final GmailTag t: excludes) {
+				if (multiple) {
+					query.append(" AND ");
 				}
-				subQuery.append("-label:").append(t.getPath().replaceAll("/", "-").replaceAll(" ", "-"));
+				query.append("label:").append(t.getPath().replaceAll("/", "-").replaceAll(" ", "-"));
+				multiple = true;
 			}
-			if (query.length() > 0) {
-				query.append(" AND ");
-			}
-			query.append("(").append(subQuery).append(")");
+			query.append(")");
 		}
+
 		int count = 0;
 		try {
 			ListThreadsResponse resp = delegate.users().threads().list(USER).setQ(query.toString()).execute();
@@ -384,11 +392,11 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 				}
 			}
 		} catch (final IOException e) {
-			throw new TagServiceException("counting threads for " + sectionIncludes.toString(), e);
+			throw new TagServiceException("counting threads for " + section.getPath(), e);
 		}
 
-		LOGGER.debug("count for section({}) includes({}) excludes({}) tagPattern({}): {}", section, sectionIncludes, excludes, tagPattern, count);
-		LOGGER.debug("query({})", query);
+		LOGGER.info("count for section({}) includes({}) excludes({}) tagPattern(\"{}\"): {}", section, includes, excludes, tagPattern, count);
+		LOGGER.info("query({})", query);
 		return count;
 	}
 

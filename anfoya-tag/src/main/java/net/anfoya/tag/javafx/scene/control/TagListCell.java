@@ -7,9 +7,9 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.util.Callback;
 import net.anfoya.javafx.scene.control.ExcludeBox;
-import net.anfoya.tag.model.ThreadTag;
+import net.anfoya.tag.model.SimpleTag;
 
-class TagListCell<T extends ThreadTag> extends CheckBoxListCell<TagListItem<T>> {
+class TagListCell<T extends SimpleTag> extends CheckBoxListCell<TagListItem<T>> {
 	public TagListCell() {
 		super();
 		setSelectedStateCallback(new Callback<TagListItem<T>, ObservableValue<Boolean>>() {

@@ -24,12 +24,12 @@ import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.util.Callback;
 import net.anfoya.javafx.scene.control.Title;
-import net.anfoya.tag.model.TagSection;
-import net.anfoya.tag.model.ThreadTag;
+import net.anfoya.tag.model.SimpleSection;
+import net.anfoya.tag.model.SimpleTag;
 import net.anfoya.tag.service.TagService;
 import net.anfoya.tag.service.TagServiceException;
 
-public class SectionListPane<S extends TagSection, T extends ThreadTag> extends BorderPane {
+public class SectionListPane<S extends SimpleSection, T extends SimpleTag> extends BorderPane {
 	private final TagService<S, T> tagService;
 
 	private TextField tagPatternField;
@@ -96,7 +96,7 @@ public class SectionListPane<S extends TagSection, T extends ThreadTag> extends 
 		}
 
 		// delete sections
-		final Set<TagSection> existingSections = new LinkedHashSet<TagSection>();
+		final Set<SimpleSection> existingSections = new LinkedHashSet<SimpleSection>();
 		for(final Iterator<TitledPane> i = sectionAcc.getPanes().iterator(); i.hasNext();) {
 			@SuppressWarnings("unchecked")
 			final TagList<S, T> tagList = (TagList<S, T>) i.next().getContent();
@@ -157,7 +157,7 @@ public class SectionListPane<S extends TagSection, T extends ThreadTag> extends 
 		}
 	}
 
-	public void selectTag(final TagSection section, final String tagName) {
+	public void selectTag(final SimpleSection section, final String tagName) {
 		for(final TitledPane sectionPane: sectionAcc.getPanes()) {
 			@SuppressWarnings("unchecked")
 			final TagList<S, T> tagList = (TagList<S, T>) sectionPane.getContent();
@@ -179,7 +179,7 @@ public class SectionListPane<S extends TagSection, T extends ThreadTag> extends 
 		updateSectionCallback = callback;
 	}
 
-	public void expand(final TagSection section) {
+	public void expand(final SimpleSection section) {
 		for(final TitledPane titledPane: sectionAcc.getPanes()) {
 			@SuppressWarnings("unchecked")
 			final TagList<S, T> tagList = (TagList<S, T>) titledPane.getContent();
@@ -242,7 +242,7 @@ public class SectionListPane<S extends TagSection, T extends ThreadTag> extends 
 	private void refreshMoveToSectionMenu() {
 		final List<MenuItem> itemList = FXCollections.observableArrayList();
 		for(final S section: sections) {
-			if (section.equals(TagSection.NO_SECTION) || section.equals(TagSection.TO_WATCH)) {
+			if (section.equals(SimpleSection.NO_SECTION) || section.equals(SimpleSection.TO_WATCH)) {
 				continue;
 			}
 			final MenuItem item = new MenuItem(section.getName());

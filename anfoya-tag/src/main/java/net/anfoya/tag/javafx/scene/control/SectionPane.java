@@ -8,12 +8,12 @@ import javafx.scene.control.Labeled;
 import javafx.scene.control.TitledPane;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.IncExcBox;
-import net.anfoya.tag.model.TagSection;
-import net.anfoya.tag.model.ThreadTag;
+import net.anfoya.tag.model.SimpleSection;
+import net.anfoya.tag.model.SimpleTag;
 import net.anfoya.tag.service.TagService;
 import net.anfoya.tag.service.TagServiceException;
 
-public class SectionPane<S extends TagSection, T extends ThreadTag> extends TitledPane {
+public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends TitledPane {
 	private final TagService<S, T> tagService;
 	private final TagList<S, T> tagList;
 
@@ -21,16 +21,16 @@ public class SectionPane<S extends TagSection, T extends ThreadTag> extends Titl
 	private Labeled titleNode;
 
 	private boolean isTag;
-	private TagListItem<ThreadTag> sectionItem;
+	private TagListItem<SimpleTag> sectionItem;
 
 	private boolean isDisableWhenZero;
 
 	@SuppressWarnings("unchecked")
-	public SectionPane(final TagService<S, T> tagService, final TagSection section, final TagList<S, T> tagList) {
+	public SectionPane(final TagService<S, T> tagService, final SimpleSection section, final TagList<S, T> tagList) {
 		super("", tagList);
 		this.tagService = tagService;
 		this.tagList = (TagList<S, T>) getContent();
-		this.sectionItem = new TagListItem<ThreadTag>(new ThreadTag(section.getId(), section.getName()));
+		this.sectionItem = new TagListItem<SimpleTag>(new SimpleTag(section.getId(), section.getName()));
 		isTag = false;
 		initialized = false;
 		isDisableWhenZero = true;
@@ -53,7 +53,7 @@ public class SectionPane<S extends TagSection, T extends ThreadTag> extends Titl
 			task.setOnSucceeded(event -> {
 				sectionItem.countProperty().set((int) event.getSource().getValue());
 			});
-			ThreadPool.getInstance().submitLow(task);
+			ThreadPool.getInstance().submit(task);
 		} else {
 			if (tagList.getSectionItem() == null) {
 				sectionItem.countProperty().set(0);
@@ -70,7 +70,7 @@ public class SectionPane<S extends TagSection, T extends ThreadTag> extends Titl
 		}
 
 		if (isTag) {
-			TagListItem<? extends ThreadTag> sectionItem = tagList.getSectionItem();
+			TagListItem<? extends SimpleTag> sectionItem = tagList.getSectionItem();
 			if (sectionItem == null) {
 				sectionItem = this.sectionItem;
 			}
@@ -89,7 +89,7 @@ public class SectionPane<S extends TagSection, T extends ThreadTag> extends Titl
 			}
 			incExcBox.includedProperty().bindBidirectional(sectionItem.includedProperty());
 			incExcBox.excludedProperty().bindBidirectional(sectionItem.excludedProperty());
-			this.sectionItem = new TagListItem<ThreadTag>(new ThreadTag(sectionItem.getTag().getId(), sectionItem.getTag().getName()));
+			this.sectionItem = new TagListItem<SimpleTag>(new SimpleTag(sectionItem.getTag().getId(), sectionItem.getTag().getName()));
 		}
 	}
 
@@ -104,7 +104,9 @@ public class SectionPane<S extends TagSection, T extends ThreadTag> extends Titl
 		} else {
 			titleNode = new Label();
 			titleNode.textProperty().bind(sectionItem.textProperty());
-			disableProperty().bind(sectionItem.disableProperty());
+			if (isDisableWhenZero) {
+				disableProperty().bind(sectionItem.disableProperty());
+			}
 		}
 
 		setGraphic(titleNode);
@@ -114,7 +116,7 @@ public class SectionPane<S extends TagSection, T extends ThreadTag> extends Titl
 		return tagList;
 	}
 
-	public TagSection getSection() {
+	public SimpleSection getSection() {
 		return tagList.getSection();
 	}
 
