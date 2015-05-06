@@ -3,12 +3,12 @@ package net.anfoya.mail.gmail.model;
 import java.util.HashSet;
 import java.util.Set;
 
-import net.anfoya.mail.model.MailThread;
+import net.anfoya.mail.model.MessageThread;
 
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.MessagePartHeader;
 
-public class GmailThread extends MailThread {
+public class GmailThread extends MessageThread {
 
 	private static String findSubject(final com.google.api.services.gmail.model.Thread thread) {
 		for(final MessagePartHeader h:thread.getMessages().get(0).getPayload().getHeaders()) {

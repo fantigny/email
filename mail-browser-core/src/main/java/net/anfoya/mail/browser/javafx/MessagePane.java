@@ -17,7 +17,7 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.mail.model.MailThread;
+import net.anfoya.mail.model.MessageThread;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.tag.model.TagSection;
 import net.anfoya.tag.model.ThreadTag;
@@ -30,11 +30,11 @@ import com.sun.mail.util.BASE64DecoderStream;
 public class MessagePane extends TitledPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessagePane.class);
 
-	private final MailService<? extends TagSection, ? extends ThreadTag, ? extends MailThread> mailService;
+	private final MailService<? extends TagSection, ? extends ThreadTag, ? extends MessageThread> mailService;
 
 	private final WebView bodyView;
 
-	public MessagePane(final MailService<? extends TagSection, ? extends ThreadTag, ? extends MailThread> mailService) {
+	public MessagePane(final MailService<? extends TagSection, ? extends ThreadTag, ? extends MessageThread> mailService) {
 		this.mailService = mailService;
 
 		final BorderPane contentPane = new BorderPane();

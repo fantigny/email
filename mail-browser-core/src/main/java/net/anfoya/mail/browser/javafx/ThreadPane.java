@@ -4,18 +4,18 @@ import javafx.geometry.Insets;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
-import net.anfoya.mail.model.MailThread;
+import net.anfoya.mail.model.MessageThread;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.tag.model.TagSection;
 import net.anfoya.tag.model.ThreadTag;
 
 public class ThreadPane extends BorderPane {
-	private final MailService<? extends TagSection, ? extends ThreadTag, ? extends MailThread> mailService;
+	private final MailService<? extends TagSection, ? extends ThreadTag, ? extends MessageThread> mailService;
 
 	private final TextField subjectField;
 	private final Accordion messageAcc;
 
-	public ThreadPane(final MailService<? extends TagSection, ? extends ThreadTag, ? extends MailThread> mailService) {
+	public ThreadPane(final MailService<? extends TagSection, ? extends ThreadTag, ? extends MessageThread> mailService) {
 		this.mailService = mailService;
 
 		setPadding(new Insets(5));
@@ -27,7 +27,7 @@ public class ThreadPane extends BorderPane {
 		setCenter(messageAcc);
 	}
 
-	public void load(final MailThread thread) {
+	public void load(final MessageThread thread) {
 		messageAcc.getPanes().clear();
 		if (thread == null) {
 			subjectField.setText("no thread selected");

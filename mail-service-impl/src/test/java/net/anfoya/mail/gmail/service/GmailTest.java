@@ -8,7 +8,7 @@ import net.anfoya.mail.gmail.GmailImpl;
 import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.gmail.model.GmailTag;
 import net.anfoya.mail.gmail.model.GmailThread;
-import net.anfoya.mail.model.MailThread;
+import net.anfoya.mail.model.MessageThread;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.MailServiceException;
 import net.anfoya.tag.model.ThreadTag;
@@ -29,7 +29,7 @@ public class GmailTest {
 	public void getHeaders() throws MailServiceException, LoginException {
 		final MailService<GmailSection, GmailTag, GmailThread> service = new GmailImpl();
 		service.login("", "");
-		for(final MailThread t: service.getThreads(new HashSet<GmailTag>(), new HashSet<GmailTag>(), new HashSet<GmailTag>())) {
+		for(final MessageThread t: service.getThreads(new HashSet<GmailTag>(), new HashSet<GmailTag>(), new HashSet<GmailTag>())) {
 			System.out.println(t.getId());
 		}
 		service.logout();

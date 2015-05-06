@@ -5,12 +5,12 @@ import java.util.Set;
 import javax.mail.internet.MimeMessage;
 import javax.security.auth.login.LoginException;
 
-import net.anfoya.mail.model.MailThread;
+import net.anfoya.mail.model.MessageThread;
 import net.anfoya.tag.model.TagSection;
 import net.anfoya.tag.model.ThreadTag;
 import net.anfoya.tag.service.TagService;
 
-public interface MailService<S extends TagSection, T extends ThreadTag, H extends MailThread> extends TagService<S, T> {
+public interface MailService<S extends TagSection, T extends ThreadTag, H extends MessageThread> extends TagService<S, T> {
 
 	public void login(String id, String pwd) throws LoginException;
 	public void logout();
