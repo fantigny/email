@@ -10,6 +10,7 @@ import com.google.api.services.gmail.model.MessagePartHeader;
 import com.google.api.services.gmail.model.Thread;
 
 public class GmailThread extends MailThread {
+
 	private static String findSubject(final com.google.api.services.gmail.model.Thread thread) {
 		for(final MessagePartHeader h:thread.getMessages().get(0).getPayload().getHeaders()) {
 			if ("Subject".equals(h.getName())) {

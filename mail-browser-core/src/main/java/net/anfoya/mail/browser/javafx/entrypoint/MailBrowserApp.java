@@ -70,7 +70,7 @@ public class MailBrowserApp extends Application {
 		final BorderPane mainPane = new BorderPane();
 		mainPane.setPadding(new Insets(5));
 
-		final Scene scene = new Scene(mainPane, 1024, 768);
+		final Scene scene = new Scene(mainPane, 1524, 780);
 		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/excludebox.css").toExternalForm());
 
 		final HBox selectionPane = new HBox();
@@ -91,6 +91,9 @@ public class MailBrowserApp extends Application {
 		}
 
 		/* thread list */ {
+			final BorderPane threadListPane = new BorderPane();
+			threadListPane.setPadding(new Insets(5, 0, 5, 0));
+
 			threadList = new ListView<GmailThread>();
 			threadList.setPrefWidth(250);
 			threadList.getSelectionModel().selectedItemProperty().addListener((ov, oldVal, newVal) -> {
@@ -107,9 +110,12 @@ public class MailBrowserApp extends Application {
 				}
 			});
 			*/
-			threadList.getItems().addListener((ListChangeListener<MailThread>) change -> updateThreadCount());
+			threadList.getItems().addListener((ListChangeListener<MailThread>) change -> {
+				updateThreadCount();
+			});
+			threadListPane.setCenter(threadList);
 
-			selectionPane.getChildren().add(threadList);
+			selectionPane.getChildren().add(threadListPane);
 		}
 
 		/* movie panel */ {
