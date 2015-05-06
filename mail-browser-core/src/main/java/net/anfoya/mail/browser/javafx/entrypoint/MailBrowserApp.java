@@ -161,6 +161,12 @@ public class MailBrowserApp extends Application {
 
 	private void initData() {
         sectionListPane.refresh();
+		try {
+			sectionListPane.updateCount(1, mailService.getTags(), "");
+		} catch (final TagServiceException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	private void updateThreadCount() {

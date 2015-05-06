@@ -107,7 +107,7 @@ public class MovieDao {
 				+ " WHERE m.path LIKE CONCAT('%', ?, '%')"
 				+ " ORDER BY movie_id, tag_id";
 
-		LOGGER.info(sql);
+		LOGGER.debug(sql);
 		final Connection connection = dataSource.getConnection();
 		final PreparedStatement statement = connection.prepareStatement(sql);
 			statement.setString(1, namePattern);

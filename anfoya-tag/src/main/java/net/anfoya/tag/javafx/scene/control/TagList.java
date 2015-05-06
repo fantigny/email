@@ -11,8 +11,10 @@ import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
+import javafx.util.Callback;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
@@ -156,7 +158,19 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 
 	// TODO: find a proper way
 	private void forceRepaint() {
-		setCellFactory(list -> new TagListCell<T>());
+		setCellFactory(new Callback<ListView<TagListItem<T>>, ListCell<TagListItem<T>>>() {
+			@Override
+			public ListCell<TagListItem<T>> call(final ListView<TagListItem<T>> param) {
+				return new TagListCell<T>();
+			}
+		});
+		
+//		setCellFactory(new Callback<ListView<TagListItem<T>>, ListCell<TagListItem<T>>>() {
+//			@Override
+//			public ListCell<TagListItem<T>> call(final ListView<TagListItem<T>> param) {
+//				return new TagListCell<T>();
+//			}
+//		});
 	}
 
 	public void setTagSelected(final String tagName, final boolean selected) {

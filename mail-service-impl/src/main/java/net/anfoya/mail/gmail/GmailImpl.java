@@ -267,6 +267,8 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 			, final GmailTag tag) throws TagServiceException {
 		Label label = getLabels().get(tag.getId());
 		label.setName(section.getName() + "/" + tag.getName());
+		label.setMessageListVisibility("show");
+		label.setLabelListVisibility("labelShow");
 		try {
 			label = delegate.users().labels().update(USER, label.getId(), label).execute();
 		} catch (final IOException e) {
