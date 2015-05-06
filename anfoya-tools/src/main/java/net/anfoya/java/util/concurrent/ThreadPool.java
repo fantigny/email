@@ -1,7 +1,5 @@
 package net.anfoya.java.util.concurrent;
 
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -41,15 +39,6 @@ public final class ThreadPool {
 
 	private void shutdown(final ExecutorService service) {
 		if (!service.isShutdown()) {
-			new Timer().schedule(new TimerTask() {
-				@Override
-				public void run() {
-					if (!service.isTerminated()) {
-						service.shutdownNow();
-						LOGGER.info("stop forced.");
-					}
-				}
-			}, 10000);
 			service.shutdown();
 		}
 		LOGGER.info("stopped.");

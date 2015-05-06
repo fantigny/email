@@ -30,7 +30,7 @@ import net.anfoya.movie.browser.model.Section;
 import net.anfoya.movie.browser.model.Tag;
 import net.anfoya.movie.browser.service.MovieTagService;
 
-public class SectionListPaneOld extends BorderPane {
+public class SectionListPane extends BorderPane {
 	private final MovieTagService tagService;
 
 	private TextField tagPatternField;
@@ -44,7 +44,7 @@ public class SectionListPaneOld extends BorderPane {
 
 	private Callback<Void, Void> updateSectionCallback;
 
-	public SectionListPaneOld(final MovieTagService tagService) {
+	public SectionListPane(final MovieTagService tagService) {
 		this.tagService = tagService;
 
 		final BorderPane patternPane = new BorderPane();

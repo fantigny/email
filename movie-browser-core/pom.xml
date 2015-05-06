@@ -69,11 +69,11 @@
 			<artifactId>anfoya-easylist</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
-		<!-- dependency>
+		<dependency>
 			<groupId>net.anfoya</groupId>
 			<artifactId>anfoya-tag</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
-		</dependency-->
+		</dependency>
 		
 		<!-- compile -->
 		<dependency>

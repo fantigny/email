@@ -16,7 +16,6 @@ import net.anfoya.movie.browser.javafx.consolidation.FileConsolidationService;
 import net.anfoya.movie.browser.javafx.consolidation.MovieConsolidationService;
 import net.anfoya.movie.browser.javafx.movie.MoviePane;
 import net.anfoya.movie.browser.javafx.movielist.MovieListPane;
-import net.anfoya.movie.browser.javafx.taglist.SectionListPaneOld;
 import net.anfoya.movie.browser.model.Profile;
 import net.anfoya.movie.browser.model.Section;
 import net.anfoya.movie.browser.model.Tag;
@@ -48,8 +47,7 @@ public class ComponentBuilder {
 	private final FileConsolidationService fileConsoService;
 	private final MovieConsolidationService movieConsoService;
 
-	//TODO: uncomment
-//	private final SectionListPane<Section, Tag> sectionListPane;
+	private final SectionListPane<Section, Tag> sectionListPane;
 	private final MovieListPane movieListPane;
 	private final MoviePane moviePane;
 
@@ -106,18 +104,13 @@ public class ComponentBuilder {
 				, movieService
 				, movieFileService);
 
-		//TODO: uncomment
-//		this.sectionListPane = new SectionListPane<Section, Tag>(tagService);
+		this.sectionListPane = new SectionListPane<Section, Tag>(tagService);
 		this.movieListPane = new MovieListPane(movieService);
 		this.moviePane = new MoviePane(movieService, tagService, profile);
 	}
 
 	public SectionListPane<Section, Tag> buildSectionListPane() {
-		return new SectionListPane<Section, Tag>(tagService);
-	}
-
-	public SectionListPaneOld buildSectionListPaneOld() {
-		return new SectionListPaneOld(tagService);
+		return sectionListPane;
 	}
 
 	public MovieListPane buildMovieListPane() {
