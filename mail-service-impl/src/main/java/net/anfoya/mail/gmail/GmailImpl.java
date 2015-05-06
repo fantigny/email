@@ -278,7 +278,7 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 	}
 
 	@Override
-	public int getThreadCountForTags(final Set<GmailTag> includes, final Set<GmailTag> excludes, final String mailPattern) throws TagServiceException {
+	public int getCountForTags(final Set<GmailTag> includes, final Set<GmailTag> excludes, final String mailPattern) throws TagServiceException {
 		if (includes.isEmpty()) {
 			return 0;
 		}
@@ -330,7 +330,7 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 	}
 
 	@Override
-	public int getThreadCountForSection(final GmailSection section
+	public int getCountForSection(final GmailSection section
 			, final Set<GmailTag> includes, final Set<GmailTag> excludes
 			, final String namePattern, final String tagPattern) throws TagServiceException {
 
