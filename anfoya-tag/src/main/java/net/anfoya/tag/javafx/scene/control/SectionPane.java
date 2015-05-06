@@ -50,8 +50,10 @@ public class SectionPane<S extends TagSection, T extends ThreadTag> extends Titl
 					}
 				}
 			};
-			task.setOnSucceeded(event -> sectionItem.countProperty().set((int) event.getSource().getValue()));
-			ThreadPool.getInstance().submit(task);
+			task.setOnSucceeded(event -> {
+				sectionItem.countProperty().set((int) event.getSource().getValue());
+			});
+			ThreadPool.getInstance().submitLow(task);
 		} else {
 			if (tagList.getSectionItem() == null) {
 				sectionItem.countProperty().set(0);

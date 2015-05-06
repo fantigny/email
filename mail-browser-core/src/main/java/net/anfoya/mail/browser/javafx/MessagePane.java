@@ -3,10 +3,9 @@ package net.anfoya.mail.browser.javafx;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 
 import javafx.concurrent.Task;
-import javafx.geometry.Insets;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.web.WebView;
@@ -33,23 +32,16 @@ public class MessagePane extends TitledPane {
 
 	private final MailService<? extends TagSection, ? extends ThreadTag, ? extends MailThread> mailService;
 
-	private final TextArea headerArea;
 	private final WebView bodyView;
 
 	public MessagePane(final MailService<? extends TagSection, ? extends ThreadTag, ? extends MailThread> mailService) {
 		this.mailService = mailService;
 
 		final BorderPane contentPane = new BorderPane();
-		contentPane.setPadding(new Insets(5));
 		setContent(contentPane);
-
-		headerArea = new TextArea("loading...");
-		headerArea.setPrefRowCount(3);
-		contentPane.setTop(headerArea);
 
 		bodyView = new WebView();
 		contentPane.setCenter(bodyView);
-
 	}
 
 	public void load(final String messageId) {
@@ -72,12 +64,8 @@ public class MessagePane extends TitledPane {
 	}
 
 	private void display(final MimeMessage message) throws IOException, MessagingException {
-		displayHeader(message);
-		displayContent(message);
-	}
-
-	private void displayContent(final MimeMessage message) throws IOException, MessagingException {
 		bodyView.getEngine().loadContent(toHtml(message.getContent(), message.getContentType()));
+		setText(new SimpleDateFormat().format(message.getSentDate()));
 	}
 
 	private String toHtml(final Object mimeContent, final String mimeType) throws MessagingException, IOException {
@@ -109,16 +97,7 @@ public class MessagePane extends TitledPane {
 		}
 	}
 
-	private void displayHeader(final MimeMessage message) throws MessagingException {
-		final StringBuilder header = new StringBuilder();
-		header.append(message.getHeader("Subject", "---"));
-		header.append("\nFrom: ");
-		header.append(message.getHeader("From", ", "));
-		headerArea.setText(header.toString());
-	}
-
 	public void clear() {
-		headerArea.setText("");
 		bodyView.getEngine().loadContent("");
 	}
 }

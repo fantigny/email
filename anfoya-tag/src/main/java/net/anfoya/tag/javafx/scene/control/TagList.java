@@ -153,7 +153,7 @@ public class TagList<S extends TagSection, T extends ThreadTag> extends ListView
 			item.countProperty().set((int) event.getSource().getValue());
 			forceRepaint();
 		});
-		ThreadPool.getInstance().submit(task);
+		ThreadPool.getInstance().submitLow(task);
 	}
 
 	public void setTagChangeListener(final ChangeListener<Boolean> listener) {

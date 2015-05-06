@@ -19,10 +19,12 @@ public final class ThreadPool {
 		return THREAD_POOL;
 	}
 
-	private final ExecutorService delegate;
+	private final ExecutorService delegateHigh;
+	private final ExecutorService delegateLow;
 
 	private ThreadPool() {
-		delegate = Executors.newFixedThreadPool(100);
+		delegateHigh = Executors.newCachedThreadPool();
+		delegateLow = Executors.newFixedThreadPool(10);
 		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -33,26 +35,39 @@ public final class ThreadPool {
 	}
 
 	public void shutdown() {
-		if (!delegate.isShutdown()) {
+		shutdown(delegateHigh);
+		shutdown(delegateLow);
+	}
+
+	private void shutdown(final ExecutorService service) {
+		if (!service.isShutdown()) {
 			new Timer().schedule(new TimerTask() {
 				@Override
 				public void run() {
-					if (!delegate.isTerminated()) {
-						delegate.shutdownNow();
+					if (!service.isTerminated()) {
+						service.shutdownNow();
 						LOGGER.info("stop forced.");
 					}
 				}
 			}, 10000);
-			delegate.shutdown();
+			service.shutdown();
 		}
 		LOGGER.info("stopped.");
 	}
 
 	public Future<?> submit(final Runnable runnable) {
-		return delegate.submit(runnable);
+		return delegateHigh.submit(runnable);
 	}
 
 	public <T> Future<T> submit(final Callable<T> callable) {
-		return delegate.submit(callable);
+		return delegateHigh.submit(callable);
+	}
+
+	public Future<?> submitLow(final Runnable runnable) {
+		return delegateLow.submit(runnable);
+	}
+
+	public <T> Future<T> submitLow(final Callable<T> callable) {
+		return delegateLow.submit(callable);
 	}
 }

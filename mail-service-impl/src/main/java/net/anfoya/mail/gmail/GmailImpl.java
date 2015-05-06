@@ -45,6 +45,7 @@ import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Label;
 import com.google.api.services.gmail.model.ListThreadsResponse;
 import com.google.api.services.gmail.model.Message;
+import com.google.api.services.gmail.model.Thread;
 
 public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThread> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GmailImpl.class);
@@ -159,8 +160,8 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 		try {
 			ListThreadsResponse threadResponse = delegate.users().threads().list(USER).setQ(query.toString()).execute();
 			while (threadResponse.getThreads() != null) {
-				for(final com.google.api.services.gmail.model.Thread t : threadResponse.getThreads()) {
-					final com.google.api.services.gmail.model.Thread thread = delegate.users().threads().get(USER, t.getId()).setFormat("metadata") .execute();
+				for(final Thread t : threadResponse.getThreads()) {
+					final Thread thread = delegate.users().threads().get(USER, t.getId()).setFormat("metadata") .execute();
 					if (thread != null) {
 						threads.add(new GmailThread(thread));
 					}

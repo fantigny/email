@@ -2,34 +2,32 @@ package net.anfoya.mail.model;
 
 import java.util.Set;
 
-
 public class MailThread {
 
 	private final String id;
-	private final String object;
+	private final String subject;
 	private final Set<String> messageIds;
 
-	public MailThread(final String id, final String object, final Set<String> messageIds) {
+	public MailThread(final String id, final String subject, final Set<String> messageIds) {
 		this.id = id;
-		this.object = object;
+		this.subject = subject;
 		this.messageIds = messageIds;
 	}
 
 	@Override
 	public String toString() {
-		return object;
+		return subject;
 	}
 
 	public String getId() {
 		return id;
 	}
 
-	public String getObject() {
-		return object;
+	public String getSubject() {
+		return subject;
 	}
 
 	public Set<String> getMessageIds() {
 		return messageIds;
 	}
-
 }
