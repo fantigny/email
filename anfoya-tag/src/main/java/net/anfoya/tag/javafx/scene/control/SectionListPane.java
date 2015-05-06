@@ -43,7 +43,8 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 
 	private Callback<Void, Void> updateSectionCallback;
 
-	private boolean isSectionDisableWhenZero;
+	private boolean lazyCounting = true;
+	private boolean sectionDisableWhenZero = true;
 
 	public SectionListPane(final TagService<S, T> tagService) {
 		this.tagService = tagService;
@@ -116,7 +117,8 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 				tagList.setContextMenu(contextMenu);
 
 				final SectionPane<S, T> sectionPane = new SectionPane<S, T>(tagService, section, tagList);
-				sectionPane.setDisableWhenZero(isSectionDisableWhenZero);
+				sectionPane.setDisableWhenZero(sectionDisableWhenZero);
+				sectionPane.setLazyCount(lazyCounting);
 				sectionAcc.getPanes().add(index, sectionPane);
 			}
 			index++;
@@ -317,10 +319,18 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 	}
 
 	public boolean isSectionDisableWhenZero() {
-		return isSectionDisableWhenZero;
+		return sectionDisableWhenZero;
 	}
 
 	public void setSectionDisableWhenZero(final boolean disable) {
-		this.isSectionDisableWhenZero = disable;
+		this.sectionDisableWhenZero = disable;
+	}
+
+	public boolean isLazy() {
+		return lazyCounting;
+	}
+
+	public void setLazy(final boolean isLazy) {
+		this.lazyCounting = isLazy;
 	}
 }

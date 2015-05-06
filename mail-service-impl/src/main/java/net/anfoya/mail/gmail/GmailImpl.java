@@ -9,8 +9,8 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -128,7 +128,7 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 
 	@Override
 	public Set<GmailThread> getThreads(final Set<GmailTag> availableTags, final Set<GmailTag> includes, final Set<GmailTag> excludes) throws MailServiceException {
-		final Set<GmailThread> threads = new HashSet<GmailThread>();
+		final Set<GmailThread> threads = new LinkedHashSet<GmailThread>();
 		if (includes.isEmpty()) {
 			return threads;
 		}

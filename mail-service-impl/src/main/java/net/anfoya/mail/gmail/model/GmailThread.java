@@ -1,6 +1,6 @@
 package net.anfoya.mail.gmail.model;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import net.anfoya.mail.model.SimpleThread;
@@ -23,7 +23,7 @@ public class GmailThread extends SimpleThread {
 	}
 
 	private static Set<String> findMessageIds(final Thread thread) {
-		final Set<String> messageIds = new HashSet<String>();
+		final Set<String> messageIds = new LinkedHashSet<String>();
 		for(final Message m: thread.getMessages()) {
 			messageIds.add(m.getId());
 		}

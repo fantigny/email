@@ -3,7 +3,6 @@ package net.anfoya.mail.browser.javafx;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.text.SimpleDateFormat;
 
 import javafx.concurrent.Task;
 import javafx.geometry.Insets;
@@ -11,9 +10,12 @@ import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.web.WebView;
 
+import javax.mail.Address;
 import javax.mail.BodyPart;
+import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
+import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 
@@ -34,6 +36,8 @@ public class MessagePane extends TitledPane {
 	private final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread> mailService;
 
 	private final WebView bodyView;
+
+	private MimeMessage message;
 
 	public MessagePane(final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread> mailService) {
 		super("loading...", new BorderPane());
@@ -56,7 +60,8 @@ public class MessagePane extends TitledPane {
 		};
 		task.setOnSucceeded(event -> {
 			try {
-				display(task.get());
+				this.message = task.get();
+				load();
 			} catch (final Exception e) {
 				LOGGER.error("loading message id: " + messageId, e);
 			}
@@ -64,9 +69,43 @@ public class MessagePane extends TitledPane {
 		ThreadPool.getInstance().submit(task);
 	}
 
-	private void display(final MimeMessage message) throws IOException, MessagingException {
+	private void load() throws IOException, MessagingException {
+		loadTitle();
+		loadBody();
+	}
+
+	private void loadTitle() throws MessagingException {
+		final StringBuilder title = new StringBuilder();
+		title.append(message.getSentDate());
+		title.append(" from ").append(getMailAddress(message.getFrom()[0]));
+		title.append(" to ");
+		boolean multiple = false;
+		for(final Address a: message.getRecipients(Message.RecipientType.TO)) {
+			if (multiple) {
+				title.append(", ");
+			}
+			title.append(getMailAddress(a));
+			multiple = true;
+		}
+		setText(title.toString());
+	}
+
+	private String getMailAddress(final Address address) {
+		if (address != null && address.getType().equalsIgnoreCase("rfc822")) {
+			final InternetAddress mailAddress = (InternetAddress) address;
+			if (mailAddress.getPersonal() != null) {
+				return mailAddress.getPersonal();
+			} else {
+				return mailAddress.getAddress();
+			}
+		} else {
+			return "[unknown]";
+		}
+
+	}
+
+	private void loadBody() throws IOException, MessagingException {
 		bodyView.getEngine().loadContent(toHtml(message.getContent(), message.getContentType()));
-		setText(new SimpleDateFormat().format(message.getSentDate()));
 	}
 
 	private String toHtml(final Object mimeContent, final String mimeType) throws MessagingException, IOException {

@@ -23,7 +23,10 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 	private boolean isTag;
 	private TagListItem<SimpleTag> sectionItem;
 
-	private boolean isDisableWhenZero;
+	private boolean lazyCount;
+	private Runnable lazyCountTask;
+
+	private boolean disableWhenZero;
 
 	@SuppressWarnings("unchecked")
 	public SectionPane(final TagService<S, T> tagService, final SimpleSection section, final TagList<S, T> tagList) {
@@ -33,7 +36,15 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 		this.sectionItem = new TagListItem<SimpleTag>(new SimpleTag(section.getId(), section.getName()));
 		isTag = false;
 		initialized = false;
-		isDisableWhenZero = true;
+		disableWhenZero = false;
+		lazyCount = true;
+		lazyCountTask = null;
+
+		expandedProperty().addListener((ov, oldVal, newVal) -> {
+			if (newVal && lazyCount && lazyCountTask != null) {
+				ThreadPool.getInstance().submit(lazyCountTask);
+			}
+		});
 	}
 
 	public void updateCountAsync(final int currentCount, final Set<T> availableTags, final Set<T> includes, final Set<T> excludes, final String namePattern, final String tagPattern) {
@@ -59,7 +70,17 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 				sectionItem.countProperty().set(0);
 			}
 		}
-		tagList.updateCount(currentCount, availableTags, includes, excludes, namePattern);
+
+		if (lazyCount) {
+			lazyCountTask = new Runnable() {
+				@Override
+				public void run() {
+					tagList.updateCount(currentCount, availableTags, includes, excludes, namePattern);
+				}
+			};
+		} else {
+			tagList.updateCount(currentCount, availableTags, includes, excludes, namePattern);
+		}
 	}
 
 	public void refresh(final Set<T> selectedTags, final String tagPattern) {
@@ -75,7 +96,7 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 				sectionItem = this.sectionItem;
 			}
 
-			if (isDisableWhenZero) {
+			if (disableWhenZero) {
 				disableProperty().unbind();
 				disableProperty().bind(sectionItem.disableProperty());
 			}
@@ -104,7 +125,7 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 		} else {
 			titleNode = new Label();
 			titleNode.textProperty().bind(sectionItem.textProperty());
-			if (isDisableWhenZero) {
+			if (disableWhenZero) {
 				disableProperty().bind(sectionItem.disableProperty());
 			}
 		}
@@ -121,10 +142,18 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 	}
 
 	public boolean isDisableWhenZero() {
-		return isDisableWhenZero;
+		return disableWhenZero;
 	}
 
 	public void setDisableWhenZero(final boolean disable) {
-		this.isDisableWhenZero = disable;
+		this.disableWhenZero = disable;
+	}
+
+	public boolean isLazyCount() {
+		return lazyCount;
+	}
+
+	public void setLazyCount(final boolean lazy) {
+		this.lazyCount = lazy;
 	}
 }
