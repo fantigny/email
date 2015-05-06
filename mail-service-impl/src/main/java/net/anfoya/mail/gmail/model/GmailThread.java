@@ -7,20 +7,21 @@ import net.anfoya.mail.model.MailThread;
 
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.MessagePartHeader;
+import com.google.api.services.gmail.model.Thread;
 
 public class GmailThread extends MailThread {
-
 	private static String findSubject(final com.google.api.services.gmail.model.Thread thread) {
 		for(final MessagePartHeader h:thread.getMessages().get(0).getPayload().getHeaders()) {
 			if ("Subject".equals(h.getName())) {
-				return h.getValue();
+				final String subject = h.getValue();
+				return subject.isEmpty()? EMPTY: subject;
 			}
 		}
 
-		return "n/d";
+		return EMPTY;
 	}
 
-	private static Set<String> findMessageIds(final com.google.api.services.gmail.model.Thread thread) {
+	private static Set<String> findMessageIds(final Thread thread) {
 		final Set<String> messageIds = new HashSet<String>();
 		for(final Message m: thread.getMessages()) {
 			messageIds.add(m.getId());
@@ -29,7 +30,7 @@ public class GmailThread extends MailThread {
 		return messageIds;
 	}
 
-	public GmailThread(final com.google.api.services.gmail.model.Thread thread) {
+	public GmailThread(final Thread thread) {
 		super(thread.getId(), findSubject(thread), findMessageIds(thread));
 	}
 }

@@ -3,6 +3,7 @@ package net.anfoya.mail.model;
 import java.util.Set;
 
 public class MailThread {
+	protected static final String EMPTY = "<EMPTY>";
 
 	private final String id;
 	private final String subject;
