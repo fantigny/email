@@ -30,6 +30,6 @@ public class Tag extends SimpleTag {
 		return id;
 	}
 	public Tag copyWithSection(final String section) {
-		return new Tag(getName(), section);
+		return new Tag(id, getName(), section);
 	}
 }

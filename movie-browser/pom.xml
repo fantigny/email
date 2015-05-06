@@ -16,6 +16,7 @@
 
 		<module>../movie-browser-db</module>
 		<module>../movie-browser-service</module>
-		<module>../movie-browser-core</module>		
+		<module>../movie-browser-core</module>
+		<module>../anfoya-tag</module>
 	</modules>
 </project>

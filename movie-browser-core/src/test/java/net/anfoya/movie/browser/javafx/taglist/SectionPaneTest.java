@@ -21,6 +21,7 @@ import net.anfoya.tag.javafx.scene.control.TagList;
 import org.jgroups.JChannel;
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -36,6 +37,7 @@ public class SectionPaneTest {
 	private static MovieDao movieDao;
 	private static MovieTagDao movieTagDao;
 
+	@Ignore
 	@BeforeClass
 	public static void init() throws Exception {
 		final DataSource dataSource = new DataSource();
@@ -51,6 +53,7 @@ public class SectionPaneTest {
 		tagService = new MovieTagService(updateMgr, tagDao, movieTagDao);
 	}
 
+	@Ignore
 	@Test @TestInJfxThread @SuppressWarnings("serial")
 	public void regularUpdateMovieCount() throws SQLException {
 
