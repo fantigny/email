@@ -12,10 +12,10 @@ import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.IncExcBox;
 import net.anfoya.movie.browser.model.Section;
 import net.anfoya.movie.browser.model.Tag;
-import net.anfoya.movie.browser.service.TagService;
+import net.anfoya.movie.browser.service.MovieTagService;
 
 public class SectionPane extends TitledPane {
-	private final TagService tagService;
+	private final MovieTagService tagService;
 	private final TagList tagList;
 
 	private boolean initialized;
@@ -24,7 +24,7 @@ public class SectionPane extends TitledPane {
 	private boolean isTag;
 	private TagListItem sectionItem;
 
-	public SectionPane(final TagService tagService, final Section section, final TagList tagList) {
+	public SectionPane(final MovieTagService tagService, final Section section, final TagList tagList) {
 		super("", tagList);
 		this.tagService = tagService;
 		this.tagList = (TagList) getContent();
@@ -39,7 +39,7 @@ public class SectionPane extends TitledPane {
 			final Task<Integer> task = new Task<Integer>() {
 				@Override
 				protected Integer call() {
-					return tagService.getSectionMovieCount(tagList.getSection(), includes, excludes, namePattern, tagPattern);
+					return tagService.getCountForSection(tagList.getSection(), includes, excludes, namePattern, tagPattern);
 				}
 			};
 			task.setOnSucceeded(new EventHandler<WorkerStateEvent>() {

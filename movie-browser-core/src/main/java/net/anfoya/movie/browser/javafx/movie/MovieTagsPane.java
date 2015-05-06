@@ -12,10 +12,10 @@ import javafx.scene.control.TitledPane;
 import javafx.scene.layout.TilePane;
 import net.anfoya.movie.browser.model.Movie;
 import net.anfoya.movie.browser.model.Tag;
-import net.anfoya.movie.browser.service.TagService;
+import net.anfoya.movie.browser.service.MovieTagService;
 
 public class MovieTagsPane extends TitledPane {
-	private final TagService tagService;
+	private final MovieTagService tagService;
 
 	private final TilePane tilePane;
 	private final EventHandler<ActionEvent> checkBoxEventHandler = new EventHandler<ActionEvent>() {
@@ -29,7 +29,7 @@ public class MovieTagsPane extends TitledPane {
 	private EventHandler<ActionEvent> addTagHandler;
 	private EventHandler<ActionEvent> delTagHandler;
 
-	public MovieTagsPane(final TagService tagService) {
+	public MovieTagsPane(final MovieTagService tagService) {
 		this.tagService = tagService;
 		this.movies = new LinkedHashSet<Movie>();
 
@@ -72,7 +72,7 @@ public class MovieTagsPane extends TitledPane {
 			}
 		}
 
-		final Set<Tag> allTags = tagService.getAllTags();
+		final Set<Tag> allTags = tagService.getTags();
 		for(final Tag tag: allTags) {
 			final CheckBox checkBox = new CheckBox(tag.getName());
 			checkBox.setOnAction(checkBoxEventHandler);

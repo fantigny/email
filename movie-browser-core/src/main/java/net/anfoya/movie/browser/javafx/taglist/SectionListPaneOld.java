@@ -28,10 +28,10 @@ import javafx.util.Callback;
 import net.anfoya.javafx.scene.control.Title;
 import net.anfoya.movie.browser.model.Section;
 import net.anfoya.movie.browser.model.Tag;
-import net.anfoya.movie.browser.service.TagService;
+import net.anfoya.movie.browser.service.MovieTagService;
 
-public class SectionListPane extends BorderPane {
-	private final TagService tagService;
+public class SectionListPaneOld extends BorderPane {
+	private final MovieTagService tagService;
 
 	private TextField tagPatternField;
 	private final Accordion sectionAcc;
@@ -44,7 +44,7 @@ public class SectionListPane extends BorderPane {
 
 	private Callback<Void, Void> updateSectionCallback;
 
-	public SectionListPane(final TagService tagService) {
+	public SectionListPaneOld(final MovieTagService tagService) {
 		this.tagService = tagService;
 
 		final BorderPane patternPane = new BorderPane();
@@ -197,7 +197,7 @@ public class SectionListPane extends BorderPane {
 		}
 	}
 
-	public void updateMovieCount(final int currentCount, final Set<Tag> availableTags, final String namePattern) {
+	public void updateCount(final int currentCount, final Set<Tag> availableTags, final String namePattern) {
 		final Set<Tag> includes = getIncludedTags();
 		final Set<Tag> excludes = getExcludedTags();
 		final String tagPattern = tagPatternField.getText();
@@ -271,7 +271,7 @@ public class SectionListPane extends BorderPane {
 
 		final boolean selected = getIncludedTags().contains(tag);
 
-		tagService.addToSection(tag.copyWithSection(section.getName()));
+		tagService.moveToSection(section, tag.copyWithSection(section.getName()));
 		refresh();
 
 		if (selected) {
@@ -307,7 +307,7 @@ public class SectionListPane extends BorderPane {
 			return;
 		}
 
-		tagService.addToSection(tag.copyWithSection(sectionName));
+		tagService.moveToSection(null, tag.copyWithSection(sectionName));
 		refresh();
 	}
 }

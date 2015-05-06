@@ -27,11 +27,11 @@ public class MovieService {
 
 	private final MovieDao movieDao;
 
-	private final TagService tagService;
+	private final MovieTagService tagService;
 	private final MovieFileService movieFileService;
 	private final UpdateManager updateMgr;
 
-	public MovieService(final TagService tagService, final MovieFileService movieFileService, final UpdateManager updateMgr, final MovieDao movieDao) {
+	public MovieService(final MovieTagService tagService, final MovieFileService movieFileService, final UpdateManager updateMgr, final MovieDao movieDao) {
 		this.tagService = tagService;
 		this.movieFileService = movieFileService;
 		this.updateMgr = updateMgr;

@@ -218,7 +218,7 @@ public class TagDao {
 		final Connection connection = dataSource.getConnection();
 		final PreparedStatement statement = connection.prepareStatement(sql);
 		statement.setString(1, tag.getSection());
-		statement.setInt(2, tag.getId());
+		statement.setInt(2, tag.getIntId());
 		statement.executeUpdate();
 		statement.close();
 		connection.close();

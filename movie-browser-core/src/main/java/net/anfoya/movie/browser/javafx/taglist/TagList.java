@@ -20,17 +20,18 @@ import javafx.util.Callback;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.movie.browser.model.Section;
 import net.anfoya.movie.browser.model.Tag;
-import net.anfoya.movie.browser.service.TagService;
+import net.anfoya.movie.browser.service.MovieTagService;
+import net.anfoya.tag.service.TagServiceException;
 
 public class TagList extends ListView<TagListItem> {
-	private final TagService tagService;
+	private final MovieTagService tagService;
 
 	private final Section section;
 	private final Map<String, TagListItem> itemMap = new HashMap<String, TagListItem>();
 
 	private ChangeListener<Boolean> tagChangeListener;
 
-	public TagList(final TagService tagService, final Section section) {
+	public TagList(final MovieTagService tagService, final Section section) {
 		this.tagService = tagService;
 		this.section = section;
 
@@ -134,14 +135,14 @@ public class TagList extends ListView<TagListItem> {
 	protected void updateMovieCountAsync(final TagListItem item, final Set<Tag> tags, final Set<Tag> excludes, final String pattern) {
 		final Task<Integer> task = new Task<Integer>() {
 			@Override
-			public Integer call() throws SQLException {
+			public Integer call() throws SQLException, TagServiceException {
 				final Tag tag = item.getTag();
 				final int excludeFactor = excludes.contains(tag)? -1: 1;
 				final Set<Tag> fakeTags = new LinkedHashSet<Tag>(tags);
 				fakeTags.add(tag);
 				final Set<Tag> fakeExcludes = new LinkedHashSet<Tag>(excludes);
 				fakeExcludes.remove(tag);
-				return excludeFactor * tagService.getMovieCount(fakeTags, fakeExcludes, pattern);
+				return excludeFactor * tagService.getCountForTags(fakeTags, fakeExcludes, pattern);
 			}
 		};
 		task.setOnSucceeded(new EventHandler<WorkerStateEvent>() {

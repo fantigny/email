@@ -62,7 +62,7 @@ public class MovieTagDao {
 		int i = 0;
 		for(final Movie movie: movies) {
 			statement.setInt(++i, movie.getId());
-			statement.setInt(++i, tag.getId());
+			statement.setInt(++i, tag.getIntId());
 		}
 		statement.execute();
 		statement.close();
@@ -90,7 +90,7 @@ public class MovieTagDao {
 		int i = 0;
 		for(final Movie movie: movies) {
 			statement.setInt(++i, movie.getId());
-			statement.setInt(++i, tag.getId());
+			statement.setInt(++i, tag.getIntId());
 		}
 		statement.execute();
 		statement.close();
@@ -175,11 +175,11 @@ public class MovieTagDao {
 		if (incClause) {
 			statement.setInt(++i, includes.size());
 			for(final Tag tag: includes) {
-				statement.setInt(++i, tag.getId());
+				statement.setInt(++i, tag.getIntId());
 			}
 		}
 		for(final Tag tag: excludes) {
-			statement.setInt(++i, tag.getId());
+			statement.setInt(++i, tag.getIntId());
 		}
 		if (nameClause) {
 			statement.setString(++i, namePattern);
@@ -248,11 +248,11 @@ public class MovieTagDao {
 		if (tagClause) {
 			statement.setInt(++i, tags.size());
 			for(final Tag tag: tags) {
-				statement.setInt(++i, tag.getId());
+				statement.setInt(++i, tag.getIntId());
 			}
 		}
 		for(final Tag tag: excludes) {
-			statement.setInt(++i, tag.getId());
+			statement.setInt(++i, tag.getIntId());
 		}
 		if (nameClause) {
 			statement.setString(++i, nameSearch);

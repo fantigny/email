@@ -17,7 +17,7 @@ import net.anfoya.movie.browser.model.Movie;
 import net.anfoya.movie.browser.model.Tag;
 import net.anfoya.movie.browser.service.MovieFileService;
 import net.anfoya.movie.browser.service.MovieService;
-import net.anfoya.movie.browser.service.TagService;
+import net.anfoya.movie.browser.service.MovieTagService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,12 +27,12 @@ public class MovieConsolidationService extends ScheduledService<Boolean> {
 
 	private final LockManager lockMgr;
 	private final MovieService movieService;
-	private final TagService tagService;
+	private final MovieTagService tagService;
 	private final MovieFileService fileService;
 
 	private Callback<Set<Movie>, Void> toManyDeleteCallBack;
 
-	public MovieConsolidationService(final LockManager lockMgr, final MovieService movieService, final TagService tagService, final MovieFileService fileService) {
+	public MovieConsolidationService(final LockManager lockMgr, final MovieService movieService, final MovieTagService tagService, final MovieFileService fileService) {
 		this.movieService = movieService;
 		this.tagService = tagService;
 		this.fileService = fileService;

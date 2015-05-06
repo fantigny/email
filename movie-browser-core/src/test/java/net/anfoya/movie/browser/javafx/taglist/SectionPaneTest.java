@@ -14,7 +14,7 @@ import net.anfoya.movie.browser.dao.TagDao;
 import net.anfoya.movie.browser.model.Movie;
 import net.anfoya.movie.browser.model.Section;
 import net.anfoya.movie.browser.model.Tag;
-import net.anfoya.movie.browser.service.TagService;
+import net.anfoya.movie.browser.service.MovieTagService;
 
 import org.jgroups.JChannel;
 import org.junit.Assert;
@@ -29,7 +29,7 @@ import de.saxsys.javafx.test.TestInJfxThread;
 public class SectionPaneTest {
 	private static final Set<Tag> EMPTY_TAG_SET = new LinkedHashSet<Tag>();
 
-	private static TagService tagService;
+	private static MovieTagService tagService;
 	private static TagDao tagDao;
 	private static MovieDao movieDao;
 	private static MovieTagDao movieTagDao;
@@ -46,7 +46,7 @@ public class SectionPaneTest {
 
 		final UpdateManager updateMgr = new UpdateManager(new StatusManager("Section pane test", new JChannel()));
 
-		tagService = new TagService(updateMgr, tagDao, movieTagDao);
+		tagService = new MovieTagService(updateMgr, tagDao, movieTagDao);
 	}
 
 	@Test @TestInJfxThread @SuppressWarnings("serial")

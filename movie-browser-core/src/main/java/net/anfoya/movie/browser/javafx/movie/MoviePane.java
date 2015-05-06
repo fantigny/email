@@ -22,7 +22,7 @@ import net.anfoya.movie.browser.model.Profile;
 import net.anfoya.movie.browser.model.Tag;
 import net.anfoya.movie.browser.model.Website;
 import net.anfoya.movie.browser.service.MovieService;
-import net.anfoya.movie.browser.service.TagService;
+import net.anfoya.movie.browser.service.MovieTagService;
 
 
 public class MoviePane extends BorderPane {
@@ -38,7 +38,7 @@ public class MoviePane extends BorderPane {
 	private final MovieToolboxPane toolboxPane;
 	private final MovieTagsPane tagsPane;
 
-	public MoviePane(final MovieService movieService, final TagService tagService, final Profile profile) {
+	public MoviePane(final MovieService movieService, final MovieTagService tagService, final Profile profile) {
 		this.movies = new LinkedHashSet<Movie>();
 
 		title = new Title(NO_MOVIE_TITLE);

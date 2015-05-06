@@ -26,11 +26,11 @@ import net.anfoya.movie.browser.model.Movie;
 import net.anfoya.movie.browser.model.Tag;
 import net.anfoya.movie.browser.model.Website;
 import net.anfoya.movie.browser.service.MovieService;
-import net.anfoya.movie.browser.service.TagService;
+import net.anfoya.movie.browser.service.MovieTagService;
 
 public class MovieToolboxPane extends TilePane {
 	private final MovieService movieService;
-	private final TagService tagService;
+	private final MovieTagService tagService;
 
 	private final Callback<MovieWebPane, Void> savePageCallback = new Callback<MovieWebPane, Void>() {
 		@Override
@@ -51,7 +51,7 @@ public class MovieToolboxPane extends TilePane {
 	private Set<Movie> movies;
 
 
-	public MovieToolboxPane(final MovieService movieService, final TagService tagService, final TabPane tabWebPane) {
+	public MovieToolboxPane(final MovieService movieService, final MovieTagService tagService, final TabPane tabWebPane) {
 		this.tagService = tagService;
 		this.movieService = movieService;
 		this.tabWebPane = tabWebPane;

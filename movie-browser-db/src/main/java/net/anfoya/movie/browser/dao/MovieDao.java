@@ -217,16 +217,16 @@ public class MovieDao {
 		final PreparedStatement statement = connection.prepareStatement(sql);
 		int i=0;
 		for(final Tag tag: tags) {
-			statement.setInt(++i, tag.getId());
+			statement.setInt(++i, tag.getIntId());
 		}
 		if (incClause) {
 			statement.setInt(++i, includes.size());
 			for(final Tag tag: includes) {
-				statement.setInt(++i, tag.getId());
+				statement.setInt(++i, tag.getIntId());
 			}
 		}
 		for(final Tag tag: excludes) {
-			statement.setInt(++i, tag.getId());
+			statement.setInt(++i, tag.getIntId());
 		}
 		if (nameClause) {
 			statement.setString(++i, namePattern);

@@ -14,7 +14,7 @@ import net.anfoya.movie.browser.model.Profile;
 import net.anfoya.movie.browser.service.MovieFileService;
 import net.anfoya.movie.browser.service.MovieService;
 import net.anfoya.movie.browser.service.ProfileService;
-import net.anfoya.movie.browser.service.TagService;
+import net.anfoya.movie.browser.service.MovieTagService;
 
 import org.jgroups.JChannel;
 import org.junit.BeforeClass;
@@ -33,7 +33,7 @@ public class MoviePaneTest {
 	private static MovieDao movieDao;
 	private static MovieTagDao movieTagDao;
 	private static MovieFileService movieFileService;
-	private static TagService tagService;
+	private static MovieTagService tagService;
 	private static MovieService movieService;
 
 	@BeforeClass
@@ -51,7 +51,7 @@ public class MoviePaneTest {
 
 		movieFileService = new MovieFileService();
 
-		tagService = new TagService(updateMgr, tagDao , movieTagDao);
+		tagService = new MovieTagService(updateMgr, tagDao , movieTagDao);
 		movieService = new MovieService(tagService, movieFileService, updateMgr, movieDao);
 	}
 

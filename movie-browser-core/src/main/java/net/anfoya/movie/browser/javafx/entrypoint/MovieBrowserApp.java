@@ -42,12 +42,13 @@ import net.anfoya.movie.browser.javafx.consolidation.FileConsolidationService;
 import net.anfoya.movie.browser.javafx.consolidation.MovieConsolidationService;
 import net.anfoya.movie.browser.javafx.movie.MoviePane;
 import net.anfoya.movie.browser.javafx.movielist.MovieListPane;
-import net.anfoya.movie.browser.javafx.taglist.SectionListPane;
+import net.anfoya.movie.browser.javafx.taglist.SectionListPaneOld;
 import net.anfoya.movie.browser.model.Movie;
 import net.anfoya.movie.browser.model.Profile;
 import net.anfoya.movie.browser.model.Section;
 import net.anfoya.movie.browser.model.Tag;
 import net.anfoya.movie.browser.service.MovieService;
+import net.anfoya.tag.javafx.scene.control.SectionListPane;
 
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
@@ -74,7 +75,8 @@ public class MovieBrowserApp extends Application {
 	private final MovieConsolidationService movieConsoService;
 	private final FileConsolidationService fileConsoService;
 
-	private final SectionListPane sectionListPane;
+	private final SectionListPane<Section, Tag> sectionListPaneTmp;
+	private final SectionListPaneOld sectionListPaneOld;
 	private final MovieListPane movieListPane;
 	private final MoviePane moviePane;
 
@@ -85,7 +87,8 @@ public class MovieBrowserApp extends Application {
 		final ComponentBuilder compBuilder = new ComponentBuilder();
 		this.profile = compBuilder.buildProfile();
 		this.movieService = compBuilder.buildMovieService();
-		this.sectionListPane = compBuilder.buildSectionListPane();
+		this.sectionListPaneTmp = null;//compBuilder.buildSectionListPane();
+		this.sectionListPaneOld = compBuilder.buildSectionListPaneOld();
 		this.movieListPane = compBuilder.buildMovieListPane();
 		this.moviePane = compBuilder.buildMoviePane();
 		this.statusMgr = compBuilder.buildStatusManager();
@@ -129,16 +132,16 @@ public class MovieBrowserApp extends Application {
 		mainPane.setLeft(selectionPane);
 
 		/* tag list */ {
-			sectionListPane.setPrefWidth(250);
-			sectionListPane.prefHeightProperty().bind(selectionPane.heightProperty());
-			sectionListPane.setTagChangeListener(new ChangeListener<Boolean>() {
+			sectionListPaneOld.setPrefWidth(250);
+			sectionListPaneOld.prefHeightProperty().bind(selectionPane.heightProperty());
+			sectionListPaneOld.setTagChangeListener(new ChangeListener<Boolean>() {
 				@Override
 				public void changed(final ObservableValue<? extends Boolean> ov, final Boolean oldVal, final Boolean newVal) {
 					// refresh movie list when a tag is (un)selected
 					refreshMovieList();
 				}
 			});
-			sectionListPane.setUpdateSectionCallback(new Callback<Void, Void>() {
+			sectionListPaneOld.setUpdateSectionCallback(new Callback<Void, Void>() {
 				@Override
 				public Void call(final Void v) {
 					updateMovieCount();
@@ -146,7 +149,7 @@ public class MovieBrowserApp extends Application {
 				}
 			});
 			if (profile != Profile.RESTRICTED) {
-				selectionPane.getChildren().add(sectionListPane);
+				selectionPane.getChildren().add(sectionListPaneOld);
 			}
 		}
 
@@ -219,10 +222,10 @@ public class MovieBrowserApp extends Application {
 	private void initData() {
 		refreshSectionList();
 		if (profile == Profile.RESTRICTED) {
-			sectionListPane.selectTag(Section.MEI_LIN, Tag.MEI_LIN_NAME);
+			sectionListPaneOld.selectTag(Section.MEI_LIN, Tag.MEI_LIN_NAME);
 		} else  {
-			sectionListPane.selectTag(Section.TO_WATCH, Tag.TO_WATCH_NAME);
-			sectionListPane.expand(new Section("Style"));
+			sectionListPaneOld.selectTag(Section.TO_WATCH, Tag.TO_WATCH_NAME);
+			sectionListPaneOld.expand(new Section("Style"));
 		}
 
 		fileConsoService.reset();
@@ -311,20 +314,20 @@ public class MovieBrowserApp extends Application {
 
 	private void refreshSectionList() {
 		// refresh tag list
-		sectionListPane.refresh();
+		sectionListPaneOld.refresh();
 		// refresh available tags in movie tag list
 		moviePane.refreshTags();
 	}
 
 	private void refreshMovieList() {
-		movieListPane.refreshWithTags(sectionListPane.getAllTags(), sectionListPane.getIncludedTags(), sectionListPane.getExcludedTags());
+		movieListPane.refreshWithTags(sectionListPaneOld.getAllTags(), sectionListPaneOld.getIncludedTags(), sectionListPaneOld.getExcludedTags());
 	}
 
 	private void updateMovieCount() {
 		final int currentCount = movieListPane.getMovieCount();
 		final Set<Tag> availableTags = movieListPane.getMoviesTags();
 		final String namePattern = movieListPane.getNamePattern();
-		sectionListPane.updateMovieCount(currentCount, availableTags, namePattern);
+		sectionListPaneOld.updateCount(currentCount, availableTags, namePattern);
 	}
 
 	private void refreshMovie() {

@@ -12,19 +12,23 @@ import net.anfoya.movie.browser.dao.TagDao;
 import net.anfoya.movie.browser.model.Movie;
 import net.anfoya.movie.browser.model.Section;
 import net.anfoya.movie.browser.model.Tag;
+import net.anfoya.tag.service.TagService;
+import net.anfoya.tag.service.TagServiceException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TagService {
-	private static final Logger LOGGER = LoggerFactory.getLogger(TagService.class);
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
+public class MovieTagService implements TagService<Section, Tag> {
+	private static final Logger LOGGER = LoggerFactory.getLogger(MovieTagService.class);
 
 	private final TagDao tagDao;
 	private final MovieTagDao movieTagDao;
 
 	private final UpdateManager updateMgr;
 
-	public TagService(final UpdateManager liveConsoService, final TagDao tagDao, final MovieTagDao movieTagDao) {
+	public MovieTagService(final UpdateManager liveConsoService, final TagDao tagDao, final MovieTagDao movieTagDao) {
 		updateMgr = liveConsoService;
 		this.tagDao = tagDao;
 		this.movieTagDao = movieTagDao;
@@ -84,7 +88,8 @@ public class TagService {
 		delOrphanTags();
 	}
 
-	public Set<Tag> getAllTags() {
+	@Override
+	public Set<Tag> getTags() {
 		Set<Tag> tags;
 		try {
 			tags = tagDao.find();
@@ -100,6 +105,7 @@ public class TagService {
 		return tags;
 	}
 
+	@Override
 	public Set<Tag> getTags(final Section section, final String tagPattern) {
 		Set<Tag> tags;
 		try {
@@ -157,6 +163,7 @@ public class TagService {
 		}
 	}
 
+	@Override
 	public Set<Section> getSections() {
 		try {
 			return tagDao.findSections();
@@ -170,7 +177,8 @@ public class TagService {
 		}
 	}
 
-	public void addToSection(final Tag tag) {
+	@Override
+	public void moveToSection(final Section section, final Tag tag) {
 		try {
 			tagDao.updateSection(tag);
 			updateMgr.updatePerformed();
@@ -184,7 +192,8 @@ public class TagService {
 		}
 	}
 
-	public int getSectionMovieCount(final Section section, final Set<Tag> includes, final Set<Tag> excludes, final String namePattern, final String tagPattern) {
+	@Override
+	public int getCountForSection(final Section section, final Set<Tag> includes, final Set<Tag> excludes, final String namePattern, final String tagPattern) {
 		try {
 			return movieTagDao.countSectionMovies(section, includes, excludes, namePattern, tagPattern);
 		} catch (final SQLException e) {
@@ -197,16 +206,23 @@ public class TagService {
 		}
 	}
 
-	public int getMovieCount(final Set<Tag> tags, final Set<Tag> excludes, final String pattern) {
+
+	@Override
+	public int getCountForTags(final Set<Tag> includes, final Set<Tag> excludes, final String pattern) throws TagServiceException {
 		try {
-			return movieTagDao.countMovies(tags, excludes, pattern);
+			return movieTagDao.countMovies(includes, excludes, pattern);
 		} catch (final SQLException e) {
-			LOGGER.error("counting movies with name pattern: %{}% and tags: ({}), exc: ({})", pattern, tags, excludes, e);
+			LOGGER.error("counting movies with name pattern: %{}% and tags: ({}), exc: ({})", pattern, includes, excludes, e);
 			final Alert alertDialog = new Alert(AlertType.ERROR);
-			alertDialog.setHeaderText("error counting movies with name pattern: %" + pattern + "% and tags: " + tags.toString() + ", exc: " + excludes.toString());
+			alertDialog.setHeaderText("error counting movies with name pattern: %" + pattern + "% and tags: " + includes.toString() + ", exc: " + excludes.toString());
 			alertDialog.setContentText(e.getMessage());
 			alertDialog.show();
 			return 0;
 		}
+	}
+
+	@Override
+	public Section addSection(final String sectionName) throws TagServiceException {
+		throw new NotImplementedException();
 	}
 }

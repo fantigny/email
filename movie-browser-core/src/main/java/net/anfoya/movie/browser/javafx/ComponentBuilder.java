@@ -16,12 +16,15 @@ import net.anfoya.movie.browser.javafx.consolidation.FileConsolidationService;
 import net.anfoya.movie.browser.javafx.consolidation.MovieConsolidationService;
 import net.anfoya.movie.browser.javafx.movie.MoviePane;
 import net.anfoya.movie.browser.javafx.movielist.MovieListPane;
-import net.anfoya.movie.browser.javafx.taglist.SectionListPane;
+import net.anfoya.movie.browser.javafx.taglist.SectionListPaneOld;
 import net.anfoya.movie.browser.model.Profile;
+import net.anfoya.movie.browser.model.Section;
+import net.anfoya.movie.browser.model.Tag;
 import net.anfoya.movie.browser.service.MovieFileService;
 import net.anfoya.movie.browser.service.MovieService;
+import net.anfoya.movie.browser.service.MovieTagService;
 import net.anfoya.movie.browser.service.ProfileService;
-import net.anfoya.movie.browser.service.TagService;
+import net.anfoya.tag.javafx.scene.control.SectionListPane;
 
 import org.jgroups.JChannel;
 import org.slf4j.Logger;
@@ -35,7 +38,7 @@ public class ComponentBuilder {
 	private final MovieTagDao movieTagDao;
 
 	private final Profile profile;
-	private final TagService tagService;
+	private final MovieTagService tagService;
 	private final MovieService movieService;
 	private final MovieFileService movieFileService;
 
@@ -45,7 +48,8 @@ public class ComponentBuilder {
 	private final FileConsolidationService fileConsoService;
 	private final MovieConsolidationService movieConsoService;
 
-	private final SectionListPane sectionListPane;
+	//TODO: uncomment
+//	private final SectionListPane<Section, Tag> sectionListPane;
 	private final MovieListPane movieListPane;
 	private final MoviePane moviePane;
 
@@ -87,7 +91,7 @@ public class ComponentBuilder {
 		this.urlFilter = new EasyListRuleSet(false);
 
 		this.updateMgr = new UpdateManager(statusMgr);
-		this.tagService = new TagService(updateMgr, tagDao, movieTagDao);
+		this.tagService = new MovieTagService(updateMgr, tagDao, movieTagDao);
 		this.movieFileService = new MovieFileService();
 		this.movieService = new MovieService(tagService, movieFileService, updateMgr, movieDao);
 
@@ -102,13 +106,18 @@ public class ComponentBuilder {
 				, movieService
 				, movieFileService);
 
-		this.sectionListPane = new SectionListPane(tagService);
+		//TODO: uncomment
+//		this.sectionListPane = new SectionListPane<Section, Tag>(tagService);
 		this.movieListPane = new MovieListPane(movieService);
 		this.moviePane = new MoviePane(movieService, tagService, profile);
 	}
 
-	public SectionListPane buildSectionListPane() {
-		return sectionListPane;
+	public SectionListPane<Section, Tag> buildSectionListPane() {
+		return new SectionListPane<Section, Tag>(tagService);
+	}
+
+	public SectionListPaneOld buildSectionListPaneOld() {
+		return new SectionListPaneOld(tagService);
 	}
 
 	public MovieListPane buildMovieListPane() {
