@@ -30,6 +30,6 @@ public class SelectedTagsPane<T extends SimpleTag> extends FlowPane {
 	}
 
 	public void setDelTagCallBack(final Callback<String, Void> callback) {
-		delTagCallBack = callback;
+		this.delTagCallBack = callback;
 	}
 }

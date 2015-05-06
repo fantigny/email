@@ -43,13 +43,25 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 		expandedProperty().addListener((ov, oldVal, newVal) -> {
 			if (newVal && lazyCount && lazyCountTask != null) {
 				ThreadPool.getInstance().submit(lazyCountTask);
+				lazyCountTask = null;
 			}
 		});
 	}
 
 	public void updateCountAsync(final int currentCount, final Set<T> availableTags, final Set<T> includes, final Set<T> excludes, final String namePattern, final String tagPattern) {
+		final Runnable tagListTask = new Runnable() {
+				@Override
+				public void run() {
+					tagList.updateCount(currentCount, availableTags, includes, excludes, namePattern);
+				}
+			};
+		if (isExpanded() || !lazyCount) {
+			tagListTask.run();
+		} else {
+			lazyCountTask = tagListTask;
+		}
 		if (!isTag) {
-			final Task<Integer> task = new Task<Integer>() {
+			final Task<Integer> sectionTask = new Task<Integer>() {
 				@Override
 				protected Integer call() {
 					try {
@@ -61,25 +73,14 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 					}
 				}
 			};
-			task.setOnSucceeded(event -> {
+			sectionTask.setOnSucceeded(event -> {
 				sectionItem.countProperty().set((int) event.getSource().getValue());
 			});
-			ThreadPool.getInstance().submit(task);
+			ThreadPool.getInstance().submit(sectionTask);
 		} else {
 			if (tagList.getSectionItem() == null) {
 				sectionItem.countProperty().set(0);
 			}
-		}
-
-		if (lazyCount) {
-			lazyCountTask = new Runnable() {
-				@Override
-				public void run() {
-					tagList.updateCount(currentCount, availableTags, includes, excludes, namePattern);
-				}
-			};
-		} else {
-			tagList.updateCount(currentCount, availableTags, includes, excludes, namePattern);
 		}
 	}
 

@@ -21,7 +21,7 @@ public class TagListItem<T extends SimpleTag> {
 	private final IntegerProperty countProperty;
 	public TagListItem(final T tag) {
 		this.tag = tag;
-		textProperty = new SimpleStringProperty(tag.toString());
+		textProperty = new SimpleStringProperty(tag.getName());
 		disableProperty = new SimpleBooleanProperty(true);
 		countProperty = new SimpleIntegerProperty(0);
 		countProperty.addListener(new ChangeListener<Number>() {

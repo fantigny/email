@@ -133,20 +133,14 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 	protected void updateCountAsync(final TagListItem<T> item, final Set<T> includes, final Set<T> excludes, final String nameFilter) {
 		final Task<Integer> task = new Task<Integer>() {
 			@Override
-			public Integer call() throws SQLException {
+			public Integer call() throws SQLException, TagServiceException {
 				final T tag = item.getTag();
 				final int excludeFactor = excludes.contains(tag)? -1: 1;
 				final Set<T> fakeIncludes = new LinkedHashSet<T>(includes);
 				fakeIncludes.add(tag);
 				final Set<T> fakeExcludes = new LinkedHashSet<T>(excludes);
 				fakeExcludes.remove(tag);
-				try {
-					return excludeFactor * tagService.getCountForTags(fakeIncludes, fakeExcludes, nameFilter);
-				} catch (final TagServiceException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-					return 0;
-				}
+				return excludeFactor * tagService.getCountForTags(fakeIncludes, fakeExcludes, nameFilter);
 			}
 		};
 		task.setOnSucceeded(event -> {
