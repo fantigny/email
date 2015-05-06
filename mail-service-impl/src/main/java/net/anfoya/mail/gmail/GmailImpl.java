@@ -46,7 +46,7 @@ import com.google.api.services.gmail.model.Label;
 import com.google.api.services.gmail.model.ListThreadsResponse;
 import com.google.api.services.gmail.model.Message;
 
-public class GmailImpl implements MailService<GmailSection, GmailTag> {
+public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThread> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GmailImpl.class);
 
 	// Check https://developers.google.com/gmail/api/auth/scopes for all
@@ -183,7 +183,7 @@ public class GmailImpl implements MailService<GmailSection, GmailTag> {
 	public MimeMessage getMessage(final String id) throws MailServiceException {
 		try {
 			final Message message = delegate.users().messages().get(USER, id).setFormat("raw").execute();
-			final byte[] emailBytes = Base64.getMimeDecoder().decode(message.getRaw());
+			final byte[] emailBytes = Base64.getUrlDecoder().decode(message.getRaw());
 			final Properties props = new Properties();
 		    final Session session = Session.getDefaultInstance(props, null);
 		    return new MimeMessage(session, new ByteArrayInputStream(emailBytes));
@@ -262,7 +262,8 @@ public class GmailImpl implements MailService<GmailSection, GmailTag> {
 	}
 
 	@Override
-	public void moveToSection(final GmailSection section, final GmailTag tag) throws TagServiceException {
+	public void moveToSection(final GmailSection section
+			, final GmailTag tag) throws TagServiceException {
 		Label label = getLabels().get(tag.getId());
 		label.setName(section.getName() + "/" + tag.getName());
 		try {

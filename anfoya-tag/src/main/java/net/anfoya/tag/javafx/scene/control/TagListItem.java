@@ -8,9 +8,9 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import net.anfoya.tag.model.Tag;
+import net.anfoya.tag.model.ThreadTag;
 
-public class TagListItem<T extends Tag> {
+public class TagListItem<T extends ThreadTag> {
 	private static final String COUNT_STRING = " (%d)";
 
 	private final T tag;

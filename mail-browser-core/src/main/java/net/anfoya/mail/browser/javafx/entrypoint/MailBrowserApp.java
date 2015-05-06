@@ -4,41 +4,41 @@ import java.util.Set;
 
 import javafx.application.Application;
 import javafx.collections.ListChangeListener;
+import javafx.concurrent.Task;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.ListView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.web.WebEngine;
-import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
 import javax.security.auth.login.LoginException;
 
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.mail.browser.javafx.ThreadPane;
 import net.anfoya.mail.gmail.GmailImpl;
 import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.gmail.model.GmailTag;
-import net.anfoya.mail.model.Thread;
+import net.anfoya.mail.gmail.model.GmailThread;
+import net.anfoya.mail.model.MailThread;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.MailServiceException;
 import net.anfoya.tag.javafx.scene.control.SectionListPane;
 import net.anfoya.tag.service.TagServiceException;
 
 public class MailBrowserApp extends Application {
+//	private static final Logger LOGGER = LoggerFactory.getLogger(MailBrowserApp.class);
 
 	public static void main(final String[] args) {
 		launch(args);
 	}
 
 	private SectionListPane<GmailSection, GmailTag> sectionListPane;
-	private MailService<GmailSection, GmailTag> mailService;
-	private ListView<Thread> threadList;
-	private WebEngine engine;
+	private MailService<GmailSection, GmailTag, GmailThread> mailService;
+	private ListView<GmailThread> threadList;
+	private ThreadPane threadPane;
 
 	@Override
 	public void start(final Stage primaryStage) throws Exception {
@@ -46,6 +46,19 @@ public class MailBrowserApp extends Application {
 			@Override
 			public void handle(final WindowEvent event) {
 				ThreadPool.getInstance().shutdown();
+			}
+		});
+
+		mailService = new GmailImpl();
+		ThreadPool.getInstance().submit(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					mailService.login(null, null);
+				} catch (final LoginException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		});
 
@@ -57,7 +70,7 @@ public class MailBrowserApp extends Application {
 		final BorderPane mainPane = new BorderPane();
 		mainPane.setPadding(new Insets(5));
 
-		final Scene scene = new Scene(mainPane, 800, 600);
+		final Scene scene = new Scene(mainPane, 1024, 768);
 		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/excludebox.css").toExternalForm());
 
 		final HBox selectionPane = new HBox();
@@ -65,8 +78,6 @@ public class MailBrowserApp extends Application {
 
 		/* tag list */ {
 
-			mailService = new GmailImpl();
-			mailService.login(null, null);
 			sectionListPane = new SectionListPane<GmailSection, GmailTag>(mailService);
 			sectionListPane.setPrefWidth(250);
 			sectionListPane.prefHeightProperty().bind(selectionPane.heightProperty());
@@ -80,10 +91,10 @@ public class MailBrowserApp extends Application {
 		}
 
 		/* thread list */ {
-			threadList = new ListView<Thread>();
+			threadList = new ListView<GmailThread>();
 			threadList.setPrefWidth(250);
 			threadList.getSelectionModel().selectedItemProperty().addListener((ov, oldVal, newVal) -> {
-				refreshThread(newVal);
+				threadPane.load(newVal);
 			});
 			/*
 			movieListPane.addSelectionListener(new ChangeListener<Movie>() {
@@ -96,16 +107,13 @@ public class MailBrowserApp extends Application {
 				}
 			});
 			*/
-			threadList.getItems().addListener((ListChangeListener<Thread>) change -> updateThreadCount());
+			threadList.getItems().addListener((ListChangeListener<MailThread>) change -> updateThreadCount());
 
 			selectionPane.getChildren().add(threadList);
 		}
 
 		/* movie panel */ {
-			final BorderPane mailPane = new BorderPane();
-			final WebView view = new WebView();
-			mailPane.setCenter(view);
-			engine = view.getEngine();
+			threadPane = new ThreadPane(mailService);
 			/*
 			moviePane.prefHeightProperty().bind(mainPane.heightProperty());
 			moviePane.setOnAddTag(new EventHandler<ActionEvent>() {
@@ -136,7 +144,7 @@ public class MailBrowserApp extends Application {
 				}
 			});
 			*/
-			mainPane.setCenter(mailPane);
+			mainPane.setCenter(threadPane);
 		}
 
 		primaryStage.setTitle("FisherMail / Agaar / Agamar / Agaram");
@@ -150,20 +158,6 @@ public class MailBrowserApp extends Application {
 		try {
 			sectionListPane.updateCount(1, mailService.getTags(), "");
 		} catch (final TagServiceException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	private void refreshThread(final Thread thread) {
-		engine.loadContent("");
-		if (thread == null) {
-			return;
-		}
-		try {
-			final MimeMessage message = mailService.getMessage(thread.getMessageIds().iterator().next());
-			engine.loadContent(message.getSubject());
-		} catch (MailServiceException | MessagingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -184,13 +178,21 @@ public class MailBrowserApp extends Application {
 	}
 
 	private void refreshThreadList() {
-		try {
-			final Set<? extends Thread> threads = mailService.getThreads(sectionListPane.getAllTags(), sectionListPane.getIncludedTags(), sectionListPane.getExcludedTags());
-			threadList.getItems().setAll(threads);
-		} catch (final MailServiceException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return;
-		}
+		threadList.getItems().clear();
+		final Task<Set<GmailThread>> task = new Task<Set<GmailThread>>() {
+			@Override
+			protected Set<GmailThread> call() throws Exception {
+				return mailService.getThreads(sectionListPane.getAllTags(), sectionListPane.getIncludedTags(), sectionListPane.getExcludedTags());
+			}
+		};
+		task.setOnSucceeded(event -> {
+			try {
+				threadList.getItems().setAll(task.get());
+			} catch (final Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		});
+		ThreadPool.getInstance().submit(task);
 	}
 }

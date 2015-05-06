@@ -2,10 +2,10 @@ package net.anfoya.tag.service;
 
 import java.util.Set;
 
-import net.anfoya.tag.model.Section;
-import net.anfoya.tag.model.Tag;
+import net.anfoya.tag.model.TagSection;
+import net.anfoya.tag.model.ThreadTag;
 
-public interface TagService<S extends Section, T extends Tag> {
+public interface TagService<S extends TagSection, T extends ThreadTag> {
 
 	public Set<S> getSections() throws TagServiceException;
 	public int getThreadCountForSection(S section, Set<T> includes, Set<T> excludes, String namePattern, String tagPattern) throws TagServiceException;

@@ -14,12 +14,12 @@ import javafx.concurrent.Task;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.tag.model.Section;
-import net.anfoya.tag.model.Tag;
+import net.anfoya.tag.model.TagSection;
+import net.anfoya.tag.model.ThreadTag;
 import net.anfoya.tag.service.TagService;
 import net.anfoya.tag.service.TagServiceException;
 
-public class TagList<S extends Section, T extends Tag> extends ListView<TagListItem<T>> {
+public class TagList<S extends TagSection, T extends ThreadTag> extends ListView<TagListItem<T>> {
 	private final TagService<S, T> tagService;
 
 	private final S section;

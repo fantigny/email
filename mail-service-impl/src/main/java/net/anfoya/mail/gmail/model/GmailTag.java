@@ -1,10 +1,10 @@
 package net.anfoya.mail.gmail.model;
 
-import net.anfoya.tag.model.Tag;
+import net.anfoya.tag.model.ThreadTag;
 
 import com.google.api.services.gmail.model.Label;
 
-public class GmailTag extends Tag {
+public class GmailTag extends ThreadTag {
 	private final String path;
 	private final boolean hidden;
 

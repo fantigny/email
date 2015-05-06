@@ -6,9 +6,9 @@ import java.util.List;
 import javafx.scene.control.Button;
 import javafx.scene.layout.FlowPane;
 import javafx.util.Callback;
-import net.anfoya.tag.model.Tag;
+import net.anfoya.tag.model.ThreadTag;
 
-public class SelectedTagsPane<T extends Tag> extends FlowPane {
+public class SelectedTagsPane<T extends ThreadTag> extends FlowPane {
 
 	protected static final String CROSS = " X";
 	private Callback<String, Void> delTagCallBack;

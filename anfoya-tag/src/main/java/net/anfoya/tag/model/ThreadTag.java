@@ -2,7 +2,7 @@ package net.anfoya.tag.model;
 
 
 
-public class Tag implements Comparable<Tag> {
+public class ThreadTag implements Comparable<ThreadTag> {
 	public static final String NO_TAG_NAME = "No tag :-(";
 	public static final String TO_WATCH_NAME = "To watch";
 
@@ -10,10 +10,10 @@ public class Tag implements Comparable<Tag> {
 	private final String name;
 	private final int hashCode;
 
-	public Tag() {
+	public ThreadTag() {
 		this("n/d", "n/d");
 	}
-	public Tag(final String id, final String name) {
+	public ThreadTag(final String id, final String name) {
 		this.id = id;
 		this.name = name;
 		this.hashCode = id.hashCode();
@@ -37,16 +37,16 @@ public class Tag implements Comparable<Tag> {
         if (!this.getClass().equals(other.getClass())) {
 			return false;
 		}
-        return ((Tag) other).id.equals(id);
+        return ((ThreadTag) other).id.equals(id);
     }
 
 	@Override
-	public int compareTo(final Tag o) {
+	public int compareTo(final ThreadTag o) {
 		return name.compareTo(o.name);
 	}
 
-	public Tag copyWithId(final String id) {
-		return new Tag(id, name);
+	public ThreadTag copyWithId(final String id) {
+		return new ThreadTag(id, name);
 	}
 
 	public String getId() {

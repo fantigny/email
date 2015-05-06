@@ -8,12 +8,12 @@ import javafx.scene.control.Labeled;
 import javafx.scene.control.TitledPane;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.IncExcBox;
-import net.anfoya.tag.model.Section;
-import net.anfoya.tag.model.Tag;
+import net.anfoya.tag.model.TagSection;
+import net.anfoya.tag.model.ThreadTag;
 import net.anfoya.tag.service.TagService;
 import net.anfoya.tag.service.TagServiceException;
 
-public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
+public class SectionPane<S extends TagSection, T extends ThreadTag> extends TitledPane {
 	private final TagService<S, T> tagService;
 	private final TagList<S, T> tagList;
 
@@ -21,16 +21,16 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 	private Labeled titleNode;
 
 	private boolean isTag;
-	private TagListItem<Tag> sectionItem;
+	private TagListItem<ThreadTag> sectionItem;
 
 	private boolean isDisableWhenZero;
 
 	@SuppressWarnings("unchecked")
-	public SectionPane(final TagService<S, T> tagService, final Section section, final TagList<S, T> tagList) {
+	public SectionPane(final TagService<S, T> tagService, final TagSection section, final TagList<S, T> tagList) {
 		super("", tagList);
 		this.tagService = tagService;
 		this.tagList = (TagList<S, T>) getContent();
-		this.sectionItem = new TagListItem<Tag>(new Tag(section.getId(), section.getName()));
+		this.sectionItem = new TagListItem<ThreadTag>(new ThreadTag(section.getId(), section.getName()));
 		isTag = false;
 		initialized = false;
 		isDisableWhenZero = true;
@@ -68,7 +68,7 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 		}
 
 		if (isTag) {
-			TagListItem<? extends Tag> sectionItem = tagList.getSectionItem();
+			TagListItem<? extends ThreadTag> sectionItem = tagList.getSectionItem();
 			if (sectionItem == null) {
 				sectionItem = this.sectionItem;
 			}
@@ -87,7 +87,7 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 			}
 			incExcBox.includedProperty().bindBidirectional(sectionItem.includedProperty());
 			incExcBox.excludedProperty().bindBidirectional(sectionItem.excludedProperty());
-			this.sectionItem = new TagListItem<Tag>(new Tag(sectionItem.getTag().getId(), sectionItem.getTag().getName()));
+			this.sectionItem = new TagListItem<ThreadTag>(new ThreadTag(sectionItem.getTag().getId(), sectionItem.getTag().getName()));
 		}
 	}
 
@@ -112,7 +112,7 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 		return tagList;
 	}
 
-	public Section getSection() {
+	public TagSection getSection() {
 		return tagList.getSection();
 	}
 
