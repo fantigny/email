@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
@@ -50,6 +51,7 @@ import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Label;
 import com.google.api.services.gmail.model.ListThreadsResponse;
 import com.google.api.services.gmail.model.Message;
+import com.google.api.services.gmail.model.ModifyThreadRequest;
 import com.google.api.services.gmail.model.Thread;
 
 public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThread> {
@@ -243,15 +245,14 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 
 	@Override
 	public Set<GmailSection> getSections() throws TagServiceException {
-		final Set<GmailSection> sections = new TreeSet<GmailSection>();
+		final Set<GmailSection> sectionTemp = new TreeSet<GmailSection>();
 		for(final Label l: getLabels().values()) {
 			final GmailSection section = new GmailSection(l);
 			if (!section.isHidden()) {
-				sections.add(section);
+				sectionTemp.add(section);
 			}
 		}
-
-		for(final Iterator<GmailSection> i=sections.iterator(); i.hasNext();) {
+		for(final Iterator<GmailSection> i=sectionTemp.iterator(); i.hasNext();) {
 			final String s = i.next().getName() + "/";
 			boolean section = false;
 			for(final Label l: getLabels().values()) {
@@ -265,7 +266,10 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 			}
 		}
 
+		final Set<GmailSection> sections = new TreeSet<GmailSection>();
+		sections.add(GmailSection.GMAIL_SYSTEM);
 		sections.add(GmailSection.NO_SECTION);
+		sections.addAll(sectionTemp);
 
 		LOGGER.debug("get sections: {}", sections);
 		return sections;
@@ -284,7 +288,8 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 			final GmailTag tag = new GmailTag(l);
 			if (!tag.isHidden()
 					&& (section == null
-							|| section.getId().equals(GmailSection.NO_SECTION.getId()) && !l.getName().contains("/")
+							|| section.equals(GmailSection.GMAIL_SYSTEM) && l.getType().equals("system")
+							|| section.getId().equals(GmailSection.NO_SECTION.getId()) && !l.getName().contains("/") && !l.getType().equals("system")
 							|| l.getName().startsWith(section.getName()+"/") && !l.getName().substring(section.getName().length()+1, l.getName().length()).contains("/"))
 					&& tag.getName().toLowerCase().contains(pattern)) {
 				tags.add(tag);
@@ -464,5 +469,29 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 			LOGGER.debug("get labels: {}", idLabels.values());
 		}
 		return idLabels;
+	}
+
+	@Override
+	public void addTag(final GmailTag tag, final Set<GmailThread> threads) throws MailServiceException {
+		for(final GmailThread t: threads) {
+			try {
+				@SuppressWarnings("serial")
+				final ModifyThreadRequest request = new ModifyThreadRequest().setAddLabelIds(new ArrayList<String>() {{ add(tag.getId()); }});
+				delegate.users().threads().modify(USER, t.getId(), request).execute();
+			} catch (final IOException e) {
+				throw new MailServiceException("adding tag", e);
+			}
+		}
+	}
+
+	@Override
+	public void remTag(final GmailTag tag, final GmailThread thread) throws MailServiceException {
+		try {
+			@SuppressWarnings("serial")
+			final ModifyThreadRequest request = new ModifyThreadRequest().setRemoveLabelIds(new ArrayList<String>() {{ add(tag.getId()); }});
+			delegate.users().threads().modify(USER, thread.getId(), request).execute();
+		} catch (final IOException e) {
+			throw new MailServiceException("adding tag", e);
+		}
 	}
 }

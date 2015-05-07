@@ -11,9 +11,11 @@ import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
+import javafx.event.EventHandler;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.input.DragEvent;
 import javafx.util.Callback;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.tag.model.SimpleSection;
@@ -29,12 +31,15 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 
 	private ChangeListener<Boolean> tagChangeListener;
 
+	private EventHandler<? super DragEvent> tagDragOverHandler;
+	private EventHandler<? super DragEvent> tagDragDroppedHandler;
+
 	public TagList(final TagService<S, T> tagService, final S section) {
 		this.tagService = tagService;
 		this.section = section;
 
 		getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-		setCellFactory(list -> new TagListCell<T>());
+		setCellFactory(list -> new TagListCell<T>(tagDragOverHandler, tagDragDroppedHandler));
 	}
 
 	public T getSelectedTag() {
@@ -161,10 +166,10 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 		setCellFactory(new Callback<ListView<TagListItem<T>>, ListCell<TagListItem<T>>>() {
 			@Override
 			public ListCell<TagListItem<T>> call(final ListView<TagListItem<T>> param) {
-				return new TagListCell<T>();
+				return new TagListCell<T>(tagDragOverHandler, tagDragDroppedHandler);
 			}
 		});
-		
+
 //		setCellFactory(new Callback<ListView<TagListItem<T>>, ListCell<TagListItem<T>>>() {
 //			@Override
 //			public ListCell<TagListItem<T>> call(final ListView<TagListItem<T>> param) {
@@ -197,5 +202,13 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 
 	protected boolean isStandAloneSectionTag() {
 		return getSectionItem() != null && getItems().size() == 1;
+	}
+
+	public void setOnTagDragOver(final EventHandler<? super DragEvent> handler) {
+		this.tagDragOverHandler = handler;
+	}
+
+	public void setOnTagDragDropped(final EventHandler<? super DragEvent> handler) {
+		this.tagDragDroppedHandler = handler;
 	}
 }

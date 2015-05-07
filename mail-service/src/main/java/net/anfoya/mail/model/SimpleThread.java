@@ -1,11 +1,12 @@
 package net.anfoya.mail.model;
 
+import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class SimpleThread {
+@SuppressWarnings("serial")
+public class SimpleThread implements Serializable {
 	protected static final String EMPTY = "[empty]";
 
 	public enum SortOrder {
@@ -38,11 +39,11 @@ public class SimpleThread {
 	private final Set<String> messageIds;
 	private final Set<String> tagIds;
 
-	public SimpleThread(final String id, final String subject, final Set<String> messageIds) {
+	public SimpleThread(final String id, final String subject, final Set<String> messageIds, final Set<String> tagIds) {
 		this.id = id;
 		this.subject = subject;
 		this.messageIds = messageIds;
-		this.tagIds = new LinkedHashSet<String>();
+		this.tagIds = tagIds;
 	}
 
 	public Date getSentDate() {

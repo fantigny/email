@@ -20,4 +20,7 @@ public interface MailService<S extends SimpleSection, T extends SimpleTag, H ext
 	public T getTag(String id) throws TagServiceException;
 	public H getThread(String id) throws MailServiceException;
 	public MimeMessage getMessage(String id) throws MailServiceException;
+
+	public void addTag(T tag, Set<H> threads) throws MailServiceException;
+	public void remTag(T tag, H thread) throws MailServiceException;
 }

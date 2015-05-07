@@ -16,6 +16,7 @@ import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import net.anfoya.javafx.scene.control.Title;
@@ -105,7 +106,7 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 	}
 
 	public Set<H> getSelectedMovies() {
-		return threadList.getSelectedMovies();
+		return threadList.getSelectedThreads();
 	}
 
 	public boolean isRefreshing() {
@@ -124,8 +125,7 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		threadList.getItems().addListener(listener);
 	}
 
-	public void addChangeListener(final Object listener) {
-		// TODO Auto-generated method stub
-
-	}
+	public void setOnThreadDragDetected(final EventHandler<? super MouseEvent> handler) {
+		threadList.setOnDragDetected(handler);
+    }
 }

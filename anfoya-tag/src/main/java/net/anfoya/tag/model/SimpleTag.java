@@ -1,8 +1,10 @@
 package net.anfoya.tag.model;
 
+import java.io.Serializable;
 
 
-public class SimpleTag implements Comparable<SimpleTag> {
+@SuppressWarnings("serial")
+public class SimpleTag implements Serializable, Comparable<SimpleTag> {
 	public static final String NO_TAG_NAME = "No tag :-(";
 	public static final String TO_WATCH_NAME = "To watch";
 

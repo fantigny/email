@@ -1,6 +1,5 @@
 package net.anfoya.tag.javafx.scene.control;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -10,6 +9,7 @@ import java.util.Set;
 
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.Alert;
@@ -21,6 +21,8 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TitledPane;
+import javafx.scene.input.DataFormat;
+import javafx.scene.input.DragEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.util.Callback;
 import net.anfoya.javafx.scene.control.Title;
@@ -30,6 +32,8 @@ import net.anfoya.tag.service.TagService;
 import net.anfoya.tag.service.TagServiceException;
 
 public class SectionListPane<S extends SimpleSection, T extends SimpleTag> extends BorderPane {
+	public static final DataFormat DND_TAG_DATA_FORMAT = new DataFormat("anfoya-tag");
+
 	private final TagService<S, T> tagService;
 
 	private TextField tagPatternField;
@@ -45,6 +49,10 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 
 	private boolean lazyCount = true;
 	private boolean sectionDisableWhenZero = true;
+
+	private EventHandler<? super DragEvent> tagDragDroppedHandler;
+
+	private EventHandler<? super DragEvent> tagDragOverHandler;
 
 	public SectionListPane(final TagService<S, T> tagService) {
 		this.tagService = tagService;
@@ -70,8 +78,8 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		setCenter(sectionAcc);
 
 		selectedPane = new SelectedTagsPane<T>();
-		selectedPane.setDelTagCallBack(tagName -> {
-			unselectTag(tagName);
+		selectedPane.setDelTagCallBack(tag -> {
+			unselectTag(tag.getName());
 			return null;
 		});
 		setBottom(selectedPane);
@@ -115,6 +123,8 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 				final TagList<S, T> tagList = new TagList<S, T>(tagService, section);
 				tagList.setTagChangeListener(tagChangeListener);
 				tagList.setContextMenu(contextMenu);
+				tagList.setOnTagDragOver(tagDragOverHandler);
+				tagList.setOnTagDragDropped(tagDragDroppedHandler);
 
 				final SectionPane<S, T> sectionPane = new SectionPane<S, T>(tagService, section, tagList);
 				sectionPane.setDisableWhenZero(sectionDisableWhenZero);
@@ -215,8 +225,8 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		return Collections.unmodifiableSet(tags);
 	}
 
-	public List<T> getAllSelectedTags() {
-		final List<T> tags = new ArrayList<T>();
+	public Set<T> getAllSelectedTags() {
+		final Set<T> tags = new LinkedHashSet<T>();
 		tags.addAll(getIncludedTags());
 		tags.addAll(getExcludedTags());
 		return tags;
@@ -334,5 +344,17 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 
 	public void setLazyCount(final boolean lazy) {
 		this.lazyCount = lazy;
+	}
+
+	public S getSectionAt(final double x, final double y) {
+		return null;
+	}
+
+	public void setOnTagDragDropped(final EventHandler<? super DragEvent> handler) {
+		tagDragDroppedHandler = handler;
+	}
+
+	public void setOnTagDragOver(final EventHandler<? super DragEvent> handler) {
+		tagDragOverHandler = handler;
 	}
 }

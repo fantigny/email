@@ -112,7 +112,7 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 	public void refresh() {
 		// get previously selected indices
 		final List<String> previouslySelectedIds = new ArrayList<String>();
-		for(final H thread: getSelectedMovies()) {
+		for(final H thread: getSelectedThreads()) {
 			previouslySelectedIds.add(thread.getId());
 		}
 
@@ -169,11 +169,11 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 		return refreshing;
 	}
 
-	public Set<H> getSelectedMovies() {
-		final List<H> selectedMovies = getSelectionModel().getSelectedItems();
-		if (!selectedMovies.isEmpty() && selectedMovies.iterator().next() == null) {
+	public Set<H> getSelectedThreads() {
+		final List<H> selectedThreads = getSelectionModel().getSelectedItems();
+		if (!selectedThreads.isEmpty() && selectedThreads.iterator().next() == null) {
 			return Collections.unmodifiableSet(new LinkedHashSet<H>());
 		}
-		return Collections.unmodifiableSet(new LinkedHashSet<H>(selectedMovies));
+		return Collections.unmodifiableSet(new LinkedHashSet<H>(selectedThreads));
 	}
 }

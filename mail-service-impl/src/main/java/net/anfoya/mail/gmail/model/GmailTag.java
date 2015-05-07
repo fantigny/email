@@ -4,6 +4,7 @@ import net.anfoya.tag.model.SimpleTag;
 
 import com.google.api.services.gmail.model.Label;
 
+@SuppressWarnings("serial")
 public class GmailTag extends SimpleTag {
 	private final String path;
 	private final boolean hidden;

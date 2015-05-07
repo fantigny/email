@@ -2,6 +2,7 @@ package net.anfoya.tag.javafx.scene.control;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javafx.scene.control.Button;
 import javafx.scene.layout.FlowPane;
@@ -11,7 +12,7 @@ import net.anfoya.tag.model.SimpleTag;
 public class SelectedTagsPane<T extends SimpleTag> extends FlowPane {
 
 	protected static final String CROSS = " X";
-	private Callback<String, Void> delTagCallBack;
+	private Callback<T, Void> delTagCallBack;
 
 	public SelectedTagsPane() {
 		setVgap(3);
@@ -19,17 +20,25 @@ public class SelectedTagsPane<T extends SimpleTag> extends FlowPane {
 		setPrefWidth(0);
 	}
 
-	public void refresh(final List<T> list) {
+	public void refresh(final Set<T> tags) {
 		final List<Button> buttons = new ArrayList<Button>();
-		for(final T tag: list) {
+		for(final T tag: tags) {
 			final Button button = new Button(tag.getName() + CROSS);
-			button.setOnAction(event -> delTagCallBack.call(tag.getName()));
+			button.setOnAction(event -> {
+				if (delTagCallBack != null) {
+					delTagCallBack.call(tag);
+				}
+			});
 			buttons.add(button);
 		}
 		getChildren().setAll(buttons);
 	}
 
-	public void setDelTagCallBack(final Callback<String, Void> callback) {
+	public void setDelTagCallBack(final Callback<T, Void> callback) {
 		this.delTagCallBack = callback;
+	}
+
+	public void clear() {
+		getChildren().clear();
 	}
 }
