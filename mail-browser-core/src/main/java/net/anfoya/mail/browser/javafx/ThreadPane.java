@@ -23,12 +23,12 @@ public class ThreadPane<S extends SimpleSection, T extends SimpleTag, H extends 
 		setPadding(new Insets(5));
 
 		subjectField = new TextField("select a thread");
+		BorderPane.setMargin(subjectField, new Insets(0, 0, 5, 0));
 		setTop(subjectField);
 
 		messageAcc = new Accordion();
 		setCenter(messageAcc);
 
-		setMargin(subjectField, new Insets(0, 0, 5, 0));
 	}
 
 	public void load(final Set<H> threads) {

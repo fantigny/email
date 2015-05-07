@@ -41,12 +41,13 @@ public class MessagePane extends TitledPane {
 
 	public MessagePane(final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread> mailService) {
 		super("loading...", new BorderPane());
-		setPadding(new Insets(0));
-
 		this.mailService = mailService;
 
+		final BorderPane mainPane = (BorderPane) getContent();
+		mainPane.setPadding(new Insets(0));
+
 		bodyView = new WebView();
-		((BorderPane)getContent()).setCenter(bodyView);
+		mainPane.setCenter(bodyView);
 	}
 
 	public void load(final String messageId) {
