@@ -72,7 +72,7 @@ public class MovieList extends ListView<Movie> {
 		this.tags = tags;
 		this.includes = includes;
 		this.excludes = excludes;
-		movies = movieService.getMovies(tags, includes, excludes, namePattern);
+		this.movies = movieService.getMovies(tags, includes, excludes, namePattern);
 		refresh();
 	}
 

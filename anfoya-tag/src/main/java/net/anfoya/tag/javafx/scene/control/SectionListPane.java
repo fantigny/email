@@ -145,7 +145,9 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 
 	protected void refreshWithPattern() {
 		refresh();
-		tagChangeListener.changed(null, null, null);
+		if (!lazyCount) {
+			tagChangeListener.changed(null, null, null);
+		}
 	}
 
 	public void unselectTag(final String tagName) {

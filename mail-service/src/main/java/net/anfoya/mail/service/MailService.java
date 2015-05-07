@@ -9,12 +9,15 @@ import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
 import net.anfoya.tag.service.TagService;
+import net.anfoya.tag.service.TagServiceException;
 
 public interface MailService<S extends SimpleSection, T extends SimpleTag, H extends SimpleThread> extends TagService<S, T> {
 
 	public void login(String id, String pwd) throws LoginException;
 	public void logout();
-	public Set<String> getThreadIds(Set<T> availableTags, Set<T> includes, Set<T> excludes) throws MailServiceException;
+	public Set<H> getThreads(Set<T> availableTags, Set<T> includes, Set<T> excludes, String pattern) throws MailServiceException;
+
+	public T getTag(String id) throws TagServiceException;
 	public H getThread(String id) throws MailServiceException;
 	public MimeMessage getMessage(String id) throws MailServiceException;
 }

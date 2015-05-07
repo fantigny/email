@@ -1,19 +1,11 @@
 package net.anfoya.mail.browser.javafx.entrypoint;
 
-import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 import javafx.application.Application;
-import javafx.collections.ListChangeListener;
-import javafx.concurrent.Task;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.ListView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
@@ -22,12 +14,12 @@ import javafx.stage.WindowEvent;
 import javax.security.auth.login.LoginException;
 
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.mail.browser.javafx.ThreadListPane;
 import net.anfoya.mail.browser.javafx.ThreadPane;
 import net.anfoya.mail.gmail.GmailImpl;
 import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.gmail.model.GmailTag;
 import net.anfoya.mail.gmail.model.GmailThread;
-import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.MailServiceException;
 import net.anfoya.tag.javafx.scene.control.SectionListPane;
@@ -42,8 +34,8 @@ public class MailBrowserApp extends Application {
 
 	private SectionListPane<GmailSection, GmailTag> sectionListPane;
 	private MailService<GmailSection, GmailTag, GmailThread> mailService;
-	private ListView<GmailThread> threadList;
-	private ThreadPane threadPane;
+	private ThreadListPane<GmailSection, GmailTag, GmailThread> threadListPane;
+	private ThreadPane<GmailSection, GmailTag, GmailThread> threadPane;
 
 	@Override
 	public void start(final Stage primaryStage) throws Exception {
@@ -82,12 +74,13 @@ public class MailBrowserApp extends Application {
 		mainPane.setLeft(selectionPane);
 
 		/* tag list */ {
-
 			sectionListPane = new SectionListPane<GmailSection, GmailTag>(mailService);
 			sectionListPane.setPrefWidth(250);
 			sectionListPane.prefHeightProperty().bind(selectionPane.heightProperty());
 			sectionListPane.setSectionDisableWhenZero(false);
-			sectionListPane.setTagChangeListener((ov, oldVal, newVal) -> refreshThreadList());
+			sectionListPane.setTagChangeListener((ov, oldVal, newVal) -> {
+				refreshThreadList();
+			});
 			sectionListPane.setUpdateSectionCallback(v -> {
 				updateThreadCount();
 				return null;
@@ -96,35 +89,29 @@ public class MailBrowserApp extends Application {
 		}
 
 		/* thread list */ {
-			final BorderPane threadListPane = new BorderPane();
-			threadListPane.setPadding(new Insets(5, 0, 5, 0));
-
-			threadList = new ListView<GmailThread>();
-			threadList.setPrefWidth(250);
-			threadList.getSelectionModel().selectedItemProperty().addListener((ov, oldVal, newVal) -> {
-				threadPane.load(newVal);
-			});
-			/*
-			movieListPane.addSelectionListener(new ChangeListener<Movie>() {
-				@Override
-				public void changed(final ObservableValue<? extends Movie> ov, final Movie oldVal, final Movie newVal) {
-					if (!movieListPane.isRefreshing()) {
-						// update movie details when (a) movie(s) is/are selected
-						refreshMovie();
-					}
+			threadListPane = new ThreadListPane<GmailSection, GmailTag, GmailThread>(mailService);
+			threadListPane.setPrefWidth(250);
+			threadListPane.prefHeightProperty().bind(selectionPane.heightProperty());
+			threadListPane.addSelectionListener((ov, oldVal, newVal) -> {
+				if (!threadListPane.isRefreshing()) {
+					// update movie details when (a) movie(s) is/are selected
+					refreshThread();
 				}
 			});
-			*/
-			threadList.getItems().addListener((ListChangeListener<SimpleThread>) change -> {
+			threadListPane.addChangeListener(change -> {
+				// update movie count when a new movie list is loaded
 				updateThreadCount();
+				if (!threadListPane.isRefreshing()) {
+					// update movie details in case no movie is selected
+					refreshThread();
+				}
 			});
-			threadListPane.setCenter(threadList);
 
 			selectionPane.getChildren().add(threadListPane);
 		}
 
 		/* movie panel */ {
-			threadPane = new ThreadPane(mailService);
+			threadPane = new ThreadPane<GmailSection, GmailTag, GmailThread>(mailService);
 			/*
 			moviePane.prefHeightProperty().bind(mainPane.heightProperty());
 			moviePane.setOnAddTag(new EventHandler<ActionEvent>() {
@@ -164,6 +151,11 @@ public class MailBrowserApp extends Application {
         primaryStage.show();
 	}
 
+	private void refreshThread() {
+		final Set<GmailThread> selectedThreads = threadListPane.getSelectedMovies();
+		threadPane.load(selectedThreads);
+	}
+
 	private void initData() {
         sectionListPane.refresh();
 		try {
@@ -175,7 +167,7 @@ public class MailBrowserApp extends Application {
 	}
 
 	private void updateThreadCount() {
-		final int currentCount = threadList.getItems().size();
+		final int currentCount = threadListPane.getThreadCount();
 		Set<GmailTag> availableTags;
 		try {
 			availableTags = mailService.getTags();
@@ -189,37 +181,6 @@ public class MailBrowserApp extends Application {
 	}
 
 	private void refreshThreadList() {
-		threadList.getItems().clear();
-		final Task<Set<GmailThread>> task = new Task<Set<GmailThread>>() {
-			@Override
-			protected Set<GmailThread> call() throws Exception {
-				final ExecutorService service = Executors.newFixedThreadPool(10);
-				final Set<Future<GmailThread>> tasks = new LinkedHashSet<Future<GmailThread>>();
-				for(final String id: mailService.getThreadIds(sectionListPane.getAllTags(), sectionListPane.getIncludedTags(), sectionListPane.getExcludedTags())) {
-					final Callable<GmailThread> c = new Callable<GmailThread>() {
-						@Override
-						public GmailThread call() throws Exception {
-							return mailService.getThread(id);
-						}
-					};
-					tasks.add(service.submit(c));
-				}
-				final Set<GmailThread> threads = new LinkedHashSet<GmailThread>();
-				for(final Future<GmailThread> f: tasks) {
-					threads.add(f.get());
-				}
-				service.shutdown();
-				return threads;
-			}
-		};
-		task.setOnSucceeded(event -> {
-			try {
-				threadList.getItems().setAll(task.get());
-			} catch (final Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		});
-		ThreadPool.getInstance().submit(task);
+		threadListPane.refreshWithTags(sectionListPane.getAllTags(), sectionListPane.getIncludedTags(), sectionListPane.getExcludedTags());
 	}
 }
