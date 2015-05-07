@@ -233,13 +233,14 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 	@Override
 	public Set<GmailTag> getTags(final GmailSection section, final String tagPattern) throws TagServiceException {
 		final Set<GmailTag> tags = new TreeSet<GmailTag>();
+		final String pattern = tagPattern.trim().toLowerCase();
 		for(final Label l: getLabels().values()) {
 			final GmailTag tag = new GmailTag(l);
 			if (!tag.isHidden()
 					&& (section == null
 							|| section.getId().equals(GmailSection.NO_SECTION.getId()) && !l.getName().contains("/")
 							|| l.getName().startsWith(section.getName()+"/") && !l.getName().substring(section.getName().length()+1, l.getName().length()).contains("/"))
-					&& tag.getName().contains(tagPattern)) {
+					&& tag.getName().toLowerCase().contains(pattern)) {
 				tags.add(tag);
 			}
 		}
