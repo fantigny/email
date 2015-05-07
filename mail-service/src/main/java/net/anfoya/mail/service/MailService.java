@@ -14,6 +14,7 @@ public interface MailService<S extends SimpleSection, T extends SimpleTag, H ext
 
 	public void login(String id, String pwd) throws LoginException;
 	public void logout();
-	public Set<H> getThreads(Set<T> availableTags, Set<T> includes, Set<T> excludes) throws MailServiceException;
+	public Set<String> getThreadIds(Set<T> availableTags, Set<T> includes, Set<T> excludes) throws MailServiceException;
+	public H getThread(String id) throws MailServiceException;
 	public MimeMessage getMessage(String id) throws MailServiceException;
 }

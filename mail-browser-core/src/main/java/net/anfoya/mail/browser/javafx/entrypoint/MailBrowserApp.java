@@ -1,5 +1,6 @@
 package net.anfoya.mail.browser.javafx.entrypoint;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import javafx.application.Application;
@@ -188,7 +189,11 @@ public class MailBrowserApp extends Application {
 		final Task<Set<GmailThread>> task = new Task<Set<GmailThread>>() {
 			@Override
 			protected Set<GmailThread> call() throws Exception {
-				return mailService.getThreads(sectionListPane.getAllTags(), sectionListPane.getIncludedTags(), sectionListPane.getExcludedTags());
+				final Set<GmailThread> threads = new LinkedHashSet<GmailThread>();
+				for(final String id: mailService.getThreadIds(sectionListPane.getAllTags(), sectionListPane.getIncludedTags(), sectionListPane.getExcludedTags())) {
+					threads.add(new GmailThread(id, mailService));
+				}
+				return threads;
 			}
 		};
 		task.setOnSucceeded(event -> {

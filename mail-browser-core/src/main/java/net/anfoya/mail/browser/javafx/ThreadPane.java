@@ -38,7 +38,7 @@ public class ThreadPane extends BorderPane {
 
 		for(final String id: thread.getMessageIds()) {
 			final MessagePane pane = new MessagePane(mailService);
-			messageAcc.getPanes().add(pane);
+			messageAcc.getPanes().add(0, pane);
 			pane.load(id);
 		}
 
