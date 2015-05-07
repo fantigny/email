@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 
 import javafx.collections.FXCollections;
@@ -23,6 +24,7 @@ import net.anfoya.tag.service.TagServiceException;
 
 public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends SimpleThread> extends ListView<H> {
 	private final MailService<S, T, H> mailService;
+	private final AtomicLong taskId = new AtomicLong();
 
 	private final Predicate<H> nameFilter = new Predicate<H>() {
 		@Override

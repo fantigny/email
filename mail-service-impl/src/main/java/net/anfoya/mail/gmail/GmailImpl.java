@@ -164,7 +164,7 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 			query.append("(").append(subQuery).append(")");
 		}
 
-		LOGGER.debug("get thread ids for tags({}) include({}) excludes({}) tagPattern(\"\") == {}", availableTags, includes, excludes, pattern, query);
+		LOGGER.debug("get thread ids for tags({}) include({}) excludes({}) tagPattern(\"\") == query({})", availableTags, includes, excludes, pattern, query);
 		final Set<String> threadIds = new LinkedHashSet<String>();
 		try {
 			ListThreadsResponse threadResponse = delegate.users().threads().list(USER).setQ(query.toString()).execute();
@@ -331,9 +331,7 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 		try {
 			label = delegate.users().labels().update(USER, label.getId(), label).execute();
 		} catch (final IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return;
+			throw new TagServiceException("moving " + tag.getName(), e);
 		}
 		idLabels.put(label.getId(), label);
 	}
@@ -493,5 +491,15 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 		} catch (final IOException e) {
 			throw new MailServiceException("adding tag", e);
 		}
+	}
+
+	@Override
+	public GmailTag findTag(final String name) throws TagServiceException {
+		for(final Label l: getLabels().values()) {
+			if (l.getName().equalsIgnoreCase(name)) {
+				return new GmailTag(l);
+			}
+		}
+		return null;
 	}
 }

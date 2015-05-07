@@ -1,5 +1,7 @@
 package net.anfoya.mail.service;
 
+//aflaml12
+
 import java.util.Set;
 
 import javax.mail.internet.MimeMessage;
@@ -23,4 +25,5 @@ public interface MailService<S extends SimpleSection, T extends SimpleTag, H ext
 
 	public void addTag(T tag, Set<H> threads) throws MailServiceException;
 	public void remTag(T tag, H thread) throws MailServiceException;
+	public T findTag(String name) throws TagServiceException;
 }

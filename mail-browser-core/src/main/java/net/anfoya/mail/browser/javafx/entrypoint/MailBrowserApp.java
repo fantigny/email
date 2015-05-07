@@ -8,6 +8,7 @@ import javafx.application.Application;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
@@ -160,19 +161,6 @@ public class MailBrowserApp extends Application {
 				refreshThreadList();
 			});
 			/*
-			moviePane.prefHeightProperty().bind(mainPane.heightProperty());
-			new Callback<T, Void>() {
-			@Override
-			public Void call(final T tag) {
-				try {
-					mailService.remTag(tag, thread);
-				} catch (final MailServiceException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				return null;
-			}
-		}
 			moviePane.setOnCreateTag(new EventHandler<ActionEvent>() {
 				@Override
 				public void handle(final ActionEvent event) {
@@ -191,9 +179,15 @@ public class MailBrowserApp extends Application {
 		}
 
 		primaryStage.setTitle("FisherMail / Agaar / Agamar / Agaram");
-//		primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("Movies.png")));
+		primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("Mail.png")));
         primaryStage.setScene(scene);
         primaryStage.show();
+	}
+
+	private void initData() {
+        sectionListPane.refresh();
+		sectionListPane.selectTag(GmailSection.GMAIL_SYSTEM, "INBOX");
+		sectionListPane.expand(GmailSection.GMAIL_SYSTEM);
 	}
 
 	private void refreshSectionList() {
@@ -204,10 +198,6 @@ public class MailBrowserApp extends Application {
 	private void refreshThread() {
 		final Set<GmailThread> selectedThreads = threadListPane.getSelectedMovies();
 		threadPane.refresh(selectedThreads);
-	}
-
-	private void initData() {
-        sectionListPane.refresh();
 	}
 
 	private void updateThreadCount() {
