@@ -2,6 +2,10 @@ package net.anfoya.mail.browser.javafx.entrypoint;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import javafx.application.Application;
 import javafx.collections.ListChangeListener;
@@ -189,10 +193,22 @@ public class MailBrowserApp extends Application {
 		final Task<Set<GmailThread>> task = new Task<Set<GmailThread>>() {
 			@Override
 			protected Set<GmailThread> call() throws Exception {
-				final Set<GmailThread> threads = new LinkedHashSet<GmailThread>();
+				final ExecutorService service = Executors.newFixedThreadPool(10);
+				final Set<Future<GmailThread>> tasks = new LinkedHashSet<Future<GmailThread>>();
 				for(final String id: mailService.getThreadIds(sectionListPane.getAllTags(), sectionListPane.getIncludedTags(), sectionListPane.getExcludedTags())) {
-					threads.add(new GmailThread(id, mailService));
+					final Callable<GmailThread> c = new Callable<GmailThread>() {
+						@Override
+						public GmailThread call() throws Exception {
+							return mailService.getThread(id);
+						}
+					};
+					tasks.add(service.submit(c));
 				}
+				final Set<GmailThread> threads = new LinkedHashSet<GmailThread>();
+				for(final Future<GmailThread> f: tasks) {
+					threads.add(f.get());
+				}
+				service.shutdown();
 				return threads;
 			}
 		};
