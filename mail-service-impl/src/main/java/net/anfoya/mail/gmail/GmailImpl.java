@@ -536,4 +536,34 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 		// TODO Auto-generated method stub
 
 	}
+
+	@Override
+	public GmailTag addTag(final String name) throws TagServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void rename(final GmailTag Tag, final String name) throws TagServiceException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void remove(final GmailTag tag) throws TagServiceException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void archive(final Set<GmailThread> threads) throws MailServiceException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void delete(final Set<GmailThread> threads) throws MailServiceException {
+		// TODO Auto-generated method stub
+
+	}
 }

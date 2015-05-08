@@ -15,6 +15,10 @@ public interface TagService<S extends SimpleSection, T extends SimpleTag> {
 	public int getCountForSection(S section, Set<T> includes, Set<T> excludes, String namePattern, String tagPattern) throws TagServiceException;
 	public void moveToSection(S section, T tag) throws TagServiceException;
 
+	public T addTag(String name) throws TagServiceException;
+	public void rename(T Tag, String name) throws TagServiceException;
+	public void remove(T tag) throws TagServiceException;
+
 	public Set<T> getTags() throws TagServiceException;
 	public Set<T> getTags(S section, String tagPattern) throws TagServiceException;
 	public int getCountForTags(Set<T> includes, Set<T> excludes, String pattern) throws TagServiceException;

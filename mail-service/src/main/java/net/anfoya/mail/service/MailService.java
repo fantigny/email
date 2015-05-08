@@ -17,13 +17,16 @@ public interface MailService<S extends SimpleSection, T extends SimpleTag, H ext
 
 	public void login(String id, String pwd) throws LoginException;
 	public void logout();
-	public Set<H> getThreads(Set<T> availableTags, Set<T> includes, Set<T> excludes, String pattern) throws MailServiceException;
 
 	public T getTag(String id) throws TagServiceException;
-	public H getThread(String id) throws MailServiceException;
-	public MimeMessage getMessage(String id) throws MailServiceException;
-
+	public T findTag(String name) throws TagServiceException;
 	public void addTag(T tag, Set<H> threads) throws MailServiceException;
 	public void remTag(T tag, H thread) throws MailServiceException;
-	public T findTag(String name) throws TagServiceException;
+
+	public H getThread(String id) throws MailServiceException;
+	public Set<H> getThreads(Set<T> availableTags, Set<T> includes, Set<T> excludes, String pattern) throws MailServiceException;
+	public void archive(Set<H> threads) throws MailServiceException;
+	public void delete(Set<H> threads) throws MailServiceException;
+
+	public MimeMessage getMessage(String id) throws MailServiceException;
 }

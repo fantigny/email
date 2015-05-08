@@ -17,12 +17,12 @@ import net.anfoya.tag.model.SimpleTag;
 import net.anfoya.tag.service.TagService;
 import net.anfoya.tag.service.TagServiceException;
 
-public class SectionDropPane<S extends SimpleSection> extends GridPane {
-	protected static final DataFormat DND_SECTION_DATA_FORMAT = new DataFormat(SimpleSection.class.getCanonicalName());
+public class TagDropPane<T extends SimpleTag> extends GridPane {
+	protected static final DataFormat DND_TAG_DATA_FORMAT = new DataFormat(SimpleTag.class.getCanonicalName());
 
-	private final TagService<S, ? extends SimpleTag> tagService;
+	private final TagService<? extends SimpleSection, T> tagService;
 
-	public SectionDropPane(final TagService<S, ? extends SimpleTag> tagService) {
+	public TagDropPane(final TagService<? extends SimpleSection, T> tagService) {
 		this.tagService = tagService;
 
 		setPadding(new Insets(5));
@@ -47,16 +47,16 @@ public class SectionDropPane<S extends SimpleSection> extends GridPane {
 			event.consume();
 		});
 		removeBox.setOnDragOver(event -> {
-			if (event.getDragboard().hasContent(DND_SECTION_DATA_FORMAT)) {
+			if (event.getDragboard().hasContent(DND_TAG_DATA_FORMAT)) {
 				event.acceptTransferModes(TransferMode.ANY);
 				event.consume();
 			}
 		});
 		removeBox.setOnDragDropped(event -> {
-			if (event.getDragboard().hasContent(DND_SECTION_DATA_FORMAT)) {
+			if (event.getDragboard().hasContent(DND_TAG_DATA_FORMAT)) {
 				@SuppressWarnings("unchecked")
-				final S section = (S) event.getDragboard().getContent(DND_SECTION_DATA_FORMAT);
-				remove(section);
+				final T tag = (T) event.getDragboard().getContent(DND_TAG_DATA_FORMAT);
+				remove(tag);
 				event.setDropCompleted(true);
 				event.consume();
 			}
@@ -76,16 +76,16 @@ public class SectionDropPane<S extends SimpleSection> extends GridPane {
 			event.consume();
 		});
 		renameBox.setOnDragOver(event -> {
-			if (event.getDragboard().hasContent(DND_SECTION_DATA_FORMAT)) {
+			if (event.getDragboard().hasContent(DND_TAG_DATA_FORMAT)) {
 				event.acceptTransferModes(TransferMode.ANY);
 				event.consume();
 			}
 		});
 		renameBox.setOnDragDropped(event -> {
-			if (event.getDragboard().hasContent(DND_SECTION_DATA_FORMAT)) {
+			if (event.getDragboard().hasContent(DND_TAG_DATA_FORMAT)) {
 				@SuppressWarnings("unchecked")
-				final S section = (S) event.getDragboard().getContent(DND_SECTION_DATA_FORMAT);
-				rename(section);
+				final T tag = (T) event.getDragboard().getContent(DND_TAG_DATA_FORMAT);
+				rename(tag);
 				event.setDropCompleted(true);
 				event.consume();
 			}
@@ -94,13 +94,13 @@ public class SectionDropPane<S extends SimpleSection> extends GridPane {
 		addRow(0, renameBox, removeBox);
 	}
 
-	private void rename(final S section) {
+	private void rename(final T tag) {
 		String name = "";
 		while(name.isEmpty()) {
 			final TextInputDialog inputDialog = new TextInputDialog();
-			inputDialog.setTitle("Create new section");
+			inputDialog.setTitle("Create new tag");
 			inputDialog.setHeaderText("");
-			inputDialog.setContentText("Section name");
+			inputDialog.setContentText("Tag name");
 			final Optional<String> response = inputDialog.showAndWait();
 			if (!response.isPresent()) {
 				return;
@@ -108,30 +108,30 @@ public class SectionDropPane<S extends SimpleSection> extends GridPane {
 			name = response.get();
 			if (name.length() < 3) {
 				final Alert alertDialog = new Alert(AlertType.ERROR);
-				alertDialog.setTitle("Create new section");
-				alertDialog.setHeaderText("Section name is too short: " + name);
-				alertDialog.setContentText("Section name should be a least 3 letters long.");
+				alertDialog.setTitle("Create new tag");
+				alertDialog.setHeaderText("Tag name is too short: " + name);
+				alertDialog.setContentText("Tag name should be a least 3 letters long.");
 				alertDialog.showAndWait();
 				name = "";
 			}
 		}
 
 		try {
-			tagService.rename(section, name);
+			tagService.rename(tag, name);
 		} catch (final TagServiceException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 
-	private void remove(final S section) {
+	private void remove(final T tag) {
 		final Alert alertDialog = new Alert(AlertType.ERROR);
-		alertDialog.setTitle("Remove section");
+		alertDialog.setTitle("Remove tag");
 		alertDialog.setHeaderText("To be implemented");
 		alertDialog.setContentText("");
 		alertDialog.showAndWait();
 		try {
-			tagService.remove(section);
+			tagService.remove(tag);
 		} catch (final Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

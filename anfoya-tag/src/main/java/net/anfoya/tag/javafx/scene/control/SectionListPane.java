@@ -34,7 +34,7 @@ import net.anfoya.tag.model.SimpleTag;
 import net.anfoya.tag.service.TagService;
 import net.anfoya.tag.service.TagServiceException;
 
-public class SectionListPane<S extends SimpleSection, T extends SimpleTag> extends StackPane {
+public class SectionListPane<S extends SimpleSection, T extends SimpleTag> extends BorderPane {
 	public static final DataFormat DND_TAG_DATA_FORMAT = new DataFormat("anfoya-tag");
 
 	private final TagService<S, T> tagService;
@@ -59,6 +59,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		this.tagService = tagService;
 
 		final BorderPane patternPane = new BorderPane();
+		setTop(patternPane);
 
 		final Title title = new Title("Tags");
 		title.setPadding(new Insets(0, 10, 0, 5));
@@ -75,35 +76,46 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		patternPane.setRight(delPatternButton);
 
 		sectionAcc = new Accordion();
+		final StackPane stackPane = new StackPane(sectionAcc);
+		stackPane.setAlignment(Pos.BOTTOM_CENTER);
+
+		final SectionDropPane<S> sectionDropPane = new SectionDropPane<S>(tagService);
+		sectionDropPane.prefWidthProperty().bind(stackPane.widthProperty());
+
+		final TagDropPane<T> tagDropPane = new TagDropPane<T>(tagService);
+		tagDropPane.prefWidthProperty().bind(stackPane.widthProperty());
+
+		stackPane.setOnDragEntered(event -> {
+			if (event.getDragboard().hasContent(SectionDropPane.DND_SECTION_DATA_FORMAT)
+					&& !stackPane.getChildren().contains(sectionDropPane)) {
+				stackPane.getChildren().add(sectionDropPane);
+			} else if (event.getDragboard().hasContent(TagDropPane.DND_TAG_DATA_FORMAT)
+					&& !stackPane.getChildren().contains(tagDropPane)) {
+				stackPane.getChildren().add(tagDropPane);
+			}
+
+		});
+		stackPane.setOnDragExited(event -> {
+			if (event.getDragboard().hasContent(SectionDropPane.DND_SECTION_DATA_FORMAT)
+					&& stackPane.getChildren().contains(sectionDropPane)) {
+				stackPane.getChildren().remove(sectionDropPane);
+			} else if (event.getDragboard().hasContent(TagDropPane.DND_TAG_DATA_FORMAT)
+					&& stackPane.getChildren().contains(tagDropPane)) {
+				stackPane.getChildren().remove(tagDropPane);
+			}
+		});
+		setCenter(stackPane);
 
 		selectedPane = new SelectedTagsPane<T>();
 		selectedPane.setDelTagCallBack(tag -> {
 			unselectTag(tag.getName());
 			return null;
 		});
+		setBottom(selectedPane);
 
-		final BorderPane mainPane = new BorderPane(sectionAcc, patternPane, null, selectedPane, null);
 		BorderPane.setMargin(patternPane, new Insets(5));
-		BorderPane.setMargin(sectionAcc, new Insets(0, 5, 0, 5));
+		BorderPane.setMargin(stackPane, new Insets(0, 5, 0, 5));
 		BorderPane.setMargin(selectedPane, new Insets(5));
-
-		final SectionDropPane<S, T> dropPane = new SectionDropPane<S, T>(tagService);
-		dropPane.prefWidthProperty().bind(mainPane.widthProperty());
-
-		setAlignment(Pos.BOTTOM_CENTER);
-		getChildren().add(mainPane);
-		setOnDragEntered(event -> {
-			if (event.getDragboard().hasContent(SectionDropPane.DND_SECTION_DATA_FORMAT)
-					&& !getChildren().contains(dropPane)) {
-				getChildren().add(dropPane);
-			}
-		});
-		setOnDragExited(event -> {
-			if (event.getDragboard().hasContent(SectionDropPane.DND_SECTION_DATA_FORMAT)
-					&& getChildren().contains(dropPane)) {
-				getChildren().remove(dropPane);
-			}
-		});
 
 		moveToSectionMenu = new Menu("Move to");
 		final MenuItem newSectionItem = new MenuItem("Create new");
@@ -150,6 +162,14 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 			        content.put(SectionDropPane.DND_SECTION_DATA_FORMAT, section);
 			        final Dragboard db = sectionPane.startDragAndDrop(TransferMode.ANY);
 			        db.setContent(content);
+				});
+				sectionPane.setOnDragOver(event -> {
+					if (!sectionPane.isExpanded()
+							&& (event.getDragboard().hasContent(tagDropDataFormat)
+									|| event.getDragboard().hasContent(DND_TAG_DATA_FORMAT))) {
+						sectionPane.setExpanded(true);
+						event.consume();
+					}
 				});
 				sectionAcc.getPanes().add(index, sectionPane);
 			}

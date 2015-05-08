@@ -15,10 +15,6 @@ import net.anfoya.tag.model.SimpleTag;
 
 class TagListCell<T extends SimpleTag> extends CheckBoxListCell<TagListItem<T>> {
 	public TagListCell() {
-		this(null);
-	}
-
-	public TagListCell(final DataFormat dropDataFormat) {
 		super();
 		setSelectedStateCallback(new Callback<TagListItem<T>, ObservableValue<Boolean>>() {
 			@Override
@@ -26,35 +22,47 @@ class TagListCell<T extends SimpleTag> extends CheckBoxListCell<TagListItem<T>> 
 				return item.includedProperty();
 			}
 		});
-		if (dropDataFormat != null) {
-	        setOnDragEntered(event -> {
-				if (getItem() != null && event.getDragboard().hasContent(dropDataFormat)) {
-		            setOpacity(0.3);
-		            event.consume();
-	        	}
-	        });
-	        setOnDragExited(event -> {
-				if (getItem() != null && event.getDragboard().hasContent(dropDataFormat)) {
-		            setOpacity(1);
-		            event.consume();
-	        	}
-	        });
-			setOnDragOver(event -> {
-				if (getItem() != null && event.getDragboard().hasContent(dropDataFormat)) {
-					event.acceptTransferModes(TransferMode.ANY);
-					event.consume();
-				}
-			});
-			setOnDragDropped(event -> {
-				final Dragboard db = event.getDragboard();
-				if (getItem() != null && db.hasContent(dropDataFormat)) {
-					final ClipboardContent content = new ClipboardContent();
-					content.put(dropDataFormat, db.getContent(dropDataFormat));
-					content.put(SectionListPane.DND_TAG_DATA_FORMAT, getItem().getTag());
-					db.setContent(content);
-				}
-			});
-		}
+	}
+
+	public TagListCell(final DataFormat dropDataFormat) {
+		this();
+
+		setOnDragDetected(event -> {
+			if (getItem() != null) {
+		        final ClipboardContent content = new ClipboardContent();
+		        content.put(TagDropPane.DND_TAG_DATA_FORMAT, getItem().getTag());
+		        final Dragboard db = startDragAndDrop(TransferMode.ANY);
+		        db.setContent(content);
+			}
+		});
+
+        setOnDragEntered(event -> {
+			if (getItem() != null && event.getDragboard().hasContent(dropDataFormat)) {
+	            setOpacity(0.3);
+	            event.consume();
+        	}
+        });
+        setOnDragExited(event -> {
+			if (getItem() != null && event.getDragboard().hasContent(dropDataFormat)) {
+	            setOpacity(1);
+	            event.consume();
+        	}
+        });
+		setOnDragOver(event -> {
+			if (getItem() != null && event.getDragboard().hasContent(dropDataFormat)) {
+				event.acceptTransferModes(TransferMode.ANY);
+				event.consume();
+			}
+		});
+		setOnDragDropped(event -> {
+			final Dragboard db = event.getDragboard();
+			if (getItem() != null && db.hasContent(dropDataFormat)) {
+				final ClipboardContent content = new ClipboardContent();
+				content.put(dropDataFormat, db.getContent(dropDataFormat));
+				content.put(SectionListPane.DND_TAG_DATA_FORMAT, getItem().getTag());
+				db.setContent(content);
+			}
+		});
 	}
 
 	@Override

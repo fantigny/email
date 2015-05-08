@@ -59,6 +59,7 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 	}
 
 	public void refreshWithPattern(final String pattern) {
+		final long taskId = this.taskId.incrementAndGet();
 		final String previousPattern = namePattern;
 		namePattern = pattern.toLowerCase();
 
@@ -72,6 +73,9 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 				}
 			};
 			task.setOnSucceeded(event -> {
+				if (this.taskId.get() != taskId) {
+					return;
+				}
 				try {
 					threads = task.get();
 					refresh();
@@ -90,6 +94,7 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 	}
 
 	public void refreshWithTags(final Set<T> tags, final Set<T> includes, final Set<T> excludes) {
+		final long taskId = this.taskId.incrementAndGet();
 		this.tags = tags;
 		this.includes = includes;
 		this.excludes = excludes;
@@ -100,6 +105,9 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 			}
 		};
 		task.setOnSucceeded(event -> {
+			if (this.taskId.get() != taskId) {
+				return;
+			}
 			try {
 				threads = task.get();
 				refresh();
