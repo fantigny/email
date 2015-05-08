@@ -24,6 +24,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import net.anfoya.javafx.scene.control.Title;
+import net.anfoya.mail.browser.javafx.dnd.ThreadListDropPane;
+import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.model.SimpleThread.SortOrder;
 import net.anfoya.mail.service.MailService;
@@ -36,7 +38,7 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 	private final ThreadList<S, T, H> threadList;
 	private final TextField namePatternField;
 
-	public ThreadListPane(final MailService<S, T, H> mailService) {
+	public ThreadListPane(final MailService<S, T, H, ? extends SimpleMessage> mailService) {
 		final BorderPane patternPane = new BorderPane();
 		setTop(patternPane);
 

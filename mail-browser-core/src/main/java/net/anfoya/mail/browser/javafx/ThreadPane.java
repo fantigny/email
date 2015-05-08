@@ -6,11 +6,14 @@ import java.util.Set;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.util.Callback;
+import net.anfoya.mail.browser.javafx.dnd.ThreadDropPane;
+import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.MailServiceException;
@@ -19,8 +22,8 @@ import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
 import net.anfoya.tag.service.TagServiceException;
 
-public class ThreadPane<S extends SimpleSection, T extends SimpleTag, H extends SimpleThread> extends BorderPane {
-	private final MailService<S, T, H> mailService;
+public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage> extends BorderPane {
+	private final MailService<? extends SimpleSection, T, H, M> mailService;
 
 	private final TextField subjectField;
 	private final Accordion messageAcc;
@@ -29,7 +32,7 @@ public class ThreadPane<S extends SimpleSection, T extends SimpleTag, H extends 
 	private EventHandler<ActionEvent> delTagHandler;
 	private Set<T> tags;
 
-	public ThreadPane(final MailService<S, T, H> mailService) {
+	public ThreadPane(final MailService<? extends SimpleSection, T, H, M> mailService) {
 		this.mailService = mailService;
 
 		setPadding(new Insets(5));
@@ -42,9 +45,29 @@ public class ThreadPane<S extends SimpleSection, T extends SimpleTag, H extends 
 		BorderPane.setMargin(messageAcc, new Insets(5, 0, 5, 0));
 
 		final StackPane stackPane = new StackPane(messageAcc);
+		stackPane.setAlignment(Pos.BOTTOM_CENTER);
+
+		final ThreadDropPane<H, M> threadDropPane = new ThreadDropPane<H, M>(mailService);
+		threadDropPane.prefWidthProperty().bind(stackPane.widthProperty());
+
+		stackPane.setOnDragEntered(event -> {
+			if ((event.getDragboard().hasContent(ThreadListPane.DND_THREADS_DATA_FORMAT) || event.getDragboard().hasContent(ThreadDropPane.MESSAGE_DATA_FORMAT))
+					&& !stackPane.getChildren().contains(threadDropPane)) {
+				threadDropPane.init(event.getDragboard());
+				stackPane.getChildren().add(threadDropPane);
+			}
+		});
+		stackPane.setOnDragExited(event -> {
+			if ((event.getDragboard().hasContent(ThreadListPane.DND_THREADS_DATA_FORMAT) || event.getDragboard().hasContent(ThreadDropPane.MESSAGE_DATA_FORMAT))
+					&& stackPane.getChildren().contains(threadDropPane)) {
+				stackPane.getChildren().remove(threadDropPane);
+			}
+		});
+		stackPane.setOnDragDone(event -> {
+			//TODO
+		});
 		setCenter(stackPane);
 
-		final ThreadDropPane<H> threadDropPane = new ThreadDropPane<H>(mailService);
 
 		tagsPane = new SelectedTagsPane<T>();
 		setBottom(tagsPane);
@@ -70,7 +93,7 @@ public class ThreadPane<S extends SimpleSection, T extends SimpleTag, H extends 
 		subjectField.setText(thread.getSubject());
 
 		for(final String id: thread.getMessageIds()) {
-			final MessagePane pane = new MessagePane(mailService);
+			final MessagePane<M> pane = new MessagePane<M>(mailService);
 			messageAcc.getPanes().add(0, pane);
 			pane.load(id);
 		}

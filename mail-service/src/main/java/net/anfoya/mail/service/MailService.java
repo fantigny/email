@@ -1,19 +1,20 @@
 package net.anfoya.mail.service;
 
-//aflaml12
-
 import java.util.Set;
 
-import javax.mail.internet.MimeMessage;
 import javax.security.auth.login.LoginException;
 
+import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
 import net.anfoya.tag.service.TagService;
 import net.anfoya.tag.service.TagServiceException;
 
-public interface MailService<S extends SimpleSection, T extends SimpleTag, H extends SimpleThread> extends TagService<S, T> {
+public interface MailService<S extends SimpleSection
+		, T extends SimpleTag
+		, H extends SimpleThread
+		, M extends SimpleMessage> extends TagService<S, T> {
 
 	public void login(String id, String pwd) throws LoginException;
 	public void logout();
@@ -28,5 +29,5 @@ public interface MailService<S extends SimpleSection, T extends SimpleTag, H ext
 	public void archive(Set<H> threads) throws MailServiceException;
 	public void delete(Set<H> threads) throws MailServiceException;
 
-	public MimeMessage getMessage(String id) throws MailServiceException;
+	public SimpleMessage getMessage(String id) throws MailServiceException;
 }

@@ -24,6 +24,7 @@ import net.anfoya.mail.gmail.GmailImpl;
 import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.gmail.model.GmailTag;
 import net.anfoya.mail.gmail.model.GmailThread;
+import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.MailServiceException;
 import net.anfoya.tag.javafx.scene.control.SectionListPane;
@@ -38,9 +39,9 @@ public class MailBrowserApp extends Application {
 	}
 
 	private SectionListPane<GmailSection, GmailTag> sectionListPane;
-	private MailService<GmailSection, GmailTag, GmailThread> mailService;
+	private MailService<GmailSection, GmailTag, GmailThread, SimpleMessage> mailService;
 	private ThreadListPane<GmailSection, GmailTag, GmailThread> threadListPane;
-	private ThreadPane<GmailSection, GmailTag, GmailThread> threadPane;
+	private ThreadPane<GmailTag, GmailThread, SimpleMessage> threadPane;
 
 	@Override
 	public void start(final Stage primaryStage) throws Exception {
@@ -128,7 +129,7 @@ public class MailBrowserApp extends Application {
 		}
 
 		/* movie panel */ {
-			threadPane = new ThreadPane<GmailSection, GmailTag, GmailThread>(mailService);
+			threadPane = new ThreadPane<GmailTag, GmailThread, SimpleMessage>(mailService);
 			threadPane.setOnDelTag(event -> {
 				refreshSectionList();
 				refreshThreadList();

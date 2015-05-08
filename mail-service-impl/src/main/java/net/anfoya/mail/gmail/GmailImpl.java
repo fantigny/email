@@ -1,7 +1,6 @@
 package net.anfoya.mail.gmail;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -13,7 +12,6 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
@@ -22,9 +20,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.internet.MimeMessage;
 import javax.security.auth.login.LoginException;
 
 import net.anfoya.java.io.JsonFile;
@@ -32,6 +27,7 @@ import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.gmail.model.GmailTag;
 import net.anfoya.mail.gmail.model.GmailThread;
+import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.MailServiceException;
 import net.anfoya.tag.service.TagServiceException;
@@ -55,7 +51,7 @@ import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.ModifyThreadRequest;
 import com.google.api.services.gmail.model.Thread;
 
-public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThread> {
+public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThread, SimpleMessage> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GmailImpl.class);
 
 	// Check https://developers.google.com/gmail/api/auth/scopes for all
@@ -231,15 +227,13 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 	}
 
 	@Override
-	public MimeMessage getMessage(final String id) throws MailServiceException {
+	public SimpleMessage getMessage(final String id) throws MailServiceException {
 		try {
 			LOGGER.debug("get message for id: {}", id);
 			final Message message = delegate.users().messages().get(USER, id).setFormat("raw").execute();
 			final byte[] emailBytes = Base64.getUrlDecoder().decode(message.getRaw());
-			final Properties props = new Properties();
-		    final Session session = Session.getDefaultInstance(props, null);
-		    return new MimeMessage(session, new ByteArrayInputStream(emailBytes));
-		} catch (final IOException | MessagingException e) {
+		    return new SimpleMessage(message.getId(), emailBytes);
+		} catch (final IOException e) {
 			throw new MailServiceException("loading message id: " + id, e);
 		}
 	}

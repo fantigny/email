@@ -106,7 +106,6 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 					&& !stackPane.getChildren().contains(extItemDropPane)) {
 				stackPane.getChildren().add(extItemDropPane);
 			}
-
 		});
 		stackPane.setOnDragExited(event -> {
 			if (event.getDragboard().hasContent(DndFormat.SECTION_DATA_FORMAT)

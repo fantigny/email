@@ -15,6 +15,7 @@ import javafx.concurrent.Task;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.model.SimpleThread.SortOrder;
 import net.anfoya.mail.service.MailService;
@@ -23,7 +24,7 @@ import net.anfoya.tag.model.SimpleTag;
 import net.anfoya.tag.service.TagServiceException;
 
 public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends SimpleThread> extends ListView<H> {
-	private final MailService<S, T, H> mailService;
+	private final MailService<S, T, H, ? extends SimpleMessage> mailService;
 	private final AtomicLong taskId = new AtomicLong();
 
 	private final Predicate<H> nameFilter = new Predicate<H>() {
@@ -43,7 +44,7 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 	private SortOrder sortOrder;
 	private String namePattern;
 
-	public ThreadList(final MailService<S, T, H> mailService) {
+	public ThreadList(final MailService<S, T, H, ? extends SimpleMessage> mailService) {
 		this.mailService = mailService;
 
 		this.refreshing = false;

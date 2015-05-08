@@ -1,4 +1,4 @@
-package net.anfoya.mail.browser.javafx;
+package net.anfoya.mail.browser.javafx.dnd;
 
 import static net.anfoya.mail.browser.javafx.ThreadListPane.DND_THREADS_DATA_FORMAT;
 
@@ -6,23 +6,20 @@ import java.util.Set;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
-import javafx.scene.input.DataFormat;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
-
-import javax.mail.internet.MimeMessage;
-
+import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailService;
+import net.anfoya.mail.service.MailServiceException;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
 
-public class ThreadDropPane<H extends SimpleThread> extends GridPane {
-	private static final DataFormat MESSAGE_DATA_FORMAT = new DataFormat(MimeMessage.class.getCanonicalName());
-	private final MailService<? extends SimpleSection, ? extends SimpleTag, H> mailService;
+public class ThreadListDropPane<H extends SimpleThread> extends GridPane {
+	private final MailService<? extends SimpleSection, ? extends SimpleTag, H, ? extends SimpleMessage> mailService;
 
-	public ThreadDropPane(final MailService<? extends SimpleSection, ? extends SimpleTag, H> tagService) {
+	public ThreadListDropPane(final MailService<? extends SimpleSection, ? extends SimpleTag, H, ? extends SimpleMessage> tagService) {
 		this.mailService = tagService;
 
 		setVgap(2);
@@ -32,10 +29,10 @@ public class ThreadDropPane<H extends SimpleThread> extends GridPane {
 
 		setMaxHeight(60);
 
-		final HBox archiveBox = new HBox(0, new Label("add to thread"));
+		final HBox archiveBox = new HBox(0, new Label("archive"));
 		archiveBox.setAlignment(Pos.CENTER);
 		archiveBox.setStyle("-fx-background-color: #DDDDDD; -fx-border-color: black");
-		archiveBox.prefWidthProperty().bind(widthProperty());
+		archiveBox.setPrefWidth(200);
 		archiveBox.setPrefHeight(50);
 		archiveBox.setOnDragEntered(event -> {
 			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)) {
@@ -59,16 +56,16 @@ public class ThreadDropPane<H extends SimpleThread> extends GridPane {
 			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)) {
 				@SuppressWarnings("unchecked")
 				final Set<H> threads = (Set<H>) event.getDragboard().getContent(DND_THREADS_DATA_FORMAT);
-				addThreads(threads);
+				archive(threads);
 				event.setDropCompleted(true);
 				event.consume();
 			}
 		});
 
-		final HBox deleteBox = new HBox(0, new Label("extract to new thread"));
+		final HBox deleteBox = new HBox(0, new Label("delete"));
 		deleteBox.setAlignment(Pos.CENTER);
 		deleteBox.setStyle("-fx-background-color: #DDDDDD; -fx-border-color: black");
-		deleteBox.prefWidthProperty().bind(widthProperty());
+		deleteBox.setPrefWidth(200);
 		deleteBox.setPrefHeight(50);
 		deleteBox.setOnDragEntered(event -> {
 			deleteBox.setStyle("-fx-background-color: #DDDDDD; -fx-border-color: red");
@@ -79,16 +76,16 @@ public class ThreadDropPane<H extends SimpleThread> extends GridPane {
 			event.consume();
 		});
 		deleteBox.setOnDragOver(event -> {
-			if (event.getDragboard().hasContent(MESSAGE_DATA_FORMAT)) {
+			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)) {
 				event.acceptTransferModes(TransferMode.ANY);
 				event.consume();
 			}
 		});
 		deleteBox.setOnDragDropped(event -> {
-			if (event.getDragboard().hasContent(MESSAGE_DATA_FORMAT)) {
+			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)) {
 				@SuppressWarnings("unchecked")
-				final MimeMessage message = (MimeMessage) event.getDragboard().getContent(MESSAGE_DATA_FORMAT);
-				remove(message);
+				final Set<H> threads = (Set<H>) event.getDragboard().getContent(DND_THREADS_DATA_FORMAT);
+				delete(threads);
 				event.setDropCompleted(true);
 				event.consume();
 			}
@@ -97,14 +94,21 @@ public class ThreadDropPane<H extends SimpleThread> extends GridPane {
 		addRow(0, archiveBox, deleteBox);
 	}
 
-	private void remove(final MimeMessage message) {
-		// TODO Auto-generated method stub
-
+	private void archive(final Set<H> threads) {
+		try {
+			mailService.archive(threads);
+		} catch (final MailServiceException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
-
-	private void addThreads(final Set<H> threads) {
-		// TODO Auto-generated method stub
-
+	private void delete(final Set<H> threads) {
+		try {
+			mailService.delete(threads);
+		} catch (final MailServiceException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

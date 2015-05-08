@@ -1,12 +1,17 @@
 package net.anfoya.mail.browser.javafx;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Properties;
 
 import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.scene.control.TitledPane;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.web.WebView;
 
@@ -15,11 +20,14 @@ import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
+import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.mail.browser.javafx.dnd.ThreadDropPane;
+import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.tag.model.SimpleSection;
@@ -30,16 +38,18 @@ import org.slf4j.LoggerFactory;
 
 import com.sun.mail.util.BASE64DecoderStream;
 
-public class MessagePane extends TitledPane {
+public class MessagePane<M extends SimpleMessage> extends TitledPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessagePane.class);
+	private static final Session SESSION = Session.getDefaultInstance(new Properties(), null);
 
-	private final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread> mailService;
+	private final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService;
 
 	private final WebView bodyView;
 
-	private MimeMessage message;
+	private SimpleMessage message;
+	private MimeMessage mimeMessage;
 
-	public MessagePane(final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread> mailService) {
+	public MessagePane(final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService) {
 		super("loading...", new BorderPane());
 		this.mailService = mailService;
 
@@ -48,20 +58,28 @@ public class MessagePane extends TitledPane {
 
 		bodyView = new WebView();
 		mainPane.setCenter(bodyView);
+
+		setOnDragDetected(event -> {
+	        final ClipboardContent content = new ClipboardContent();
+	        content.put(ThreadDropPane.MESSAGE_DATA_FORMAT, message);
+	        final Dragboard db = startDragAndDrop(TransferMode.ANY);
+	        db.setContent(content);
+		});
 	}
 
 	public void load(final String messageId) {
 		clear();
 
-		final Task<MimeMessage> task = new Task<MimeMessage>() {
+		final Task<Void> task = new Task<Void>() {
 			@Override
-			protected MimeMessage call() throws Exception {
-				return mailService.getMessage(messageId);
+			protected Void call() throws Exception {
+				message = mailService.getMessage(messageId);
+			    mimeMessage = new MimeMessage(SESSION, new ByteArrayInputStream(message.getRfc822mimeRaw()));
+				return null;
 			}
 		};
 		task.setOnSucceeded(event -> {
 			try {
-				this.message = task.get();
 				load();
 			} catch (final Exception e) {
 				LOGGER.error("loading message id: " + messageId, e);
@@ -77,11 +95,11 @@ public class MessagePane extends TitledPane {
 
 	private void loadTitle() throws MessagingException {
 		final StringBuilder title = new StringBuilder();
-		title.append(message.getSentDate());
-		title.append(" from ").append(getMailAddress(message.getFrom()[0]));
+		title.append(mimeMessage.getSentDate());
+		title.append(" from ").append(getMailAddress(mimeMessage.getFrom()[0]));
 		title.append(" to ");
 		boolean multiple = false;
-		for(final Address a: message.getRecipients(Message.RecipientType.TO)) { //TODO nullpointer
+		for(final Address a: mimeMessage.getRecipients(Message.RecipientType.TO)) { //TODO nullpointer
 			if (multiple) {
 				title.append(", ");
 			}
@@ -107,9 +125,9 @@ public class MessagePane extends TitledPane {
 	}
 
 	private void loadBody() throws IOException, MessagingException {
-		String html = toHtml(message.getContent(), message.getContentType(), false);
+		String html = toHtml(mimeMessage.getContent(), mimeMessage.getContentType(), false);
 		if (html.isEmpty()) {
-			html = toHtml(message.getContent(), message.getContentType(), true);
+			html = toHtml(mimeMessage.getContent(), mimeMessage.getContentType(), true);
 			html = "<html><body><pre>" + html + "</pre></body></html>";
 		}
 		bodyView.getEngine().loadContent(html);
