@@ -42,10 +42,10 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 		setTop(subjectField);
 
 		messageAcc = new Accordion();
-		BorderPane.setMargin(messageAcc, new Insets(5, 0, 5, 0));
 
 		final StackPane stackPane = new StackPane(messageAcc);
 		stackPane.setAlignment(Pos.BOTTOM_CENTER);
+		BorderPane.setMargin(stackPane, new Insets(5, 0, 5, 0));
 
 		final ThreadDropPane<H, M> threadDropPane = new ThreadDropPane<H, M>(mailService);
 		threadDropPane.prefWidthProperty().bind(stackPane.widthProperty());

@@ -91,7 +91,7 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 
 	public void refreshWithOrder(final SortOrder order) {
 		sortOrder = order;
-		refresh();
+		refreshWithTags(tags, includes, excludes);
 	}
 
 	public void refreshWithTags(final Set<T> tags, final Set<T> includes, final Set<T> excludes) {
