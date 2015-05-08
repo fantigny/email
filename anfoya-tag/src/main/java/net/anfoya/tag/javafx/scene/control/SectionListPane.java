@@ -9,8 +9,8 @@ import java.util.Set;
 
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -21,9 +21,12 @@ import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.control.TitledPane;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
-import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 import javafx.util.Callback;
 import net.anfoya.javafx.scene.control.Title;
 import net.anfoya.tag.model.SimpleSection;
@@ -31,7 +34,7 @@ import net.anfoya.tag.model.SimpleTag;
 import net.anfoya.tag.service.TagService;
 import net.anfoya.tag.service.TagServiceException;
 
-public class SectionListPane<S extends SimpleSection, T extends SimpleTag> extends BorderPane {
+public class SectionListPane<S extends SimpleSection, T extends SimpleTag> extends StackPane {
 	public static final DataFormat DND_TAG_DATA_FORMAT = new DataFormat("anfoya-tag");
 
 	private final TagService<S, T> tagService;
@@ -50,15 +53,12 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 	private boolean lazyCount = true;
 	private boolean sectionDisableWhenZero = true;
 
-	private EventHandler<? super DragEvent> tagDragDroppedHandler;
-
-	private EventHandler<? super DragEvent> tagDragOverHandler;
+	private DataFormat tagDropDataFormat;
 
 	public SectionListPane(final TagService<S, T> tagService) {
 		this.tagService = tagService;
 
 		final BorderPane patternPane = new BorderPane();
-		setTop(patternPane);
 
 		final Title title = new Title("Tags");
 		title.setPadding(new Insets(0, 10, 0, 5));
@@ -75,18 +75,35 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		patternPane.setRight(delPatternButton);
 
 		sectionAcc = new Accordion();
-		setCenter(sectionAcc);
 
 		selectedPane = new SelectedTagsPane<T>();
 		selectedPane.setDelTagCallBack(tag -> {
 			unselectTag(tag.getName());
 			return null;
 		});
-		setBottom(selectedPane);
 
-		setMargin(patternPane, new Insets(5));
-		setMargin(sectionAcc, new Insets(0, 5, 0, 5));
-		setMargin(selectedPane, new Insets(5));
+		final BorderPane mainPane = new BorderPane(sectionAcc, patternPane, null, selectedPane, null);
+		BorderPane.setMargin(patternPane, new Insets(5));
+		BorderPane.setMargin(sectionAcc, new Insets(0, 5, 0, 5));
+		BorderPane.setMargin(selectedPane, new Insets(5));
+
+		final SectionDropPane<S, T> dropPane = new SectionDropPane<S, T>(tagService);
+		dropPane.prefWidthProperty().bind(mainPane.widthProperty());
+
+		setAlignment(Pos.BOTTOM_CENTER);
+		getChildren().add(mainPane);
+		setOnDragEntered(event -> {
+			if (event.getDragboard().hasContent(SectionDropPane.DND_SECTION_DATA_FORMAT)
+					&& !getChildren().contains(dropPane)) {
+				getChildren().add(dropPane);
+			}
+		});
+		setOnDragExited(event -> {
+			if (event.getDragboard().hasContent(SectionDropPane.DND_SECTION_DATA_FORMAT)
+					&& getChildren().contains(dropPane)) {
+				getChildren().remove(dropPane);
+			}
+		});
 
 		moveToSectionMenu = new Menu("Move to");
 		final MenuItem newSectionItem = new MenuItem("Create new");
@@ -123,12 +140,17 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 				final TagList<S, T> tagList = new TagList<S, T>(tagService, section);
 				tagList.setTagChangeListener(tagChangeListener);
 				tagList.setContextMenu(contextMenu);
-				tagList.setOnTagDragOver(tagDragOverHandler);
-				tagList.setOnTagDragDropped(tagDragDroppedHandler);
+				tagList.setTagDropDataFormat(tagDropDataFormat);
 
 				final SectionPane<S, T> sectionPane = new SectionPane<S, T>(tagService, section, tagList);
 				sectionPane.setDisableWhenZero(sectionDisableWhenZero);
 				sectionPane.setLazyCount(lazyCount);
+				sectionPane.setOnDragDetected(event -> {
+			        final ClipboardContent content = new ClipboardContent();
+			        content.put(SectionDropPane.DND_SECTION_DATA_FORMAT, section);
+			        final Dragboard db = sectionPane.startDragAndDrop(TransferMode.ANY);
+			        db.setContent(content);
+				});
 				sectionAcc.getPanes().add(index, sectionPane);
 			}
 			index++;
@@ -350,11 +372,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		return null;
 	}
 
-	public void setOnTagDragDropped(final EventHandler<? super DragEvent> handler) {
-		tagDragDroppedHandler = handler;
-	}
-
-	public void setOnTagDragOver(final EventHandler<? super DragEvent> handler) {
-		tagDragOverHandler = handler;
+	public void setTagDropDataFormat(final DataFormat dataFormat) {
+		tagDropDataFormat = dataFormat;
 	}
 }

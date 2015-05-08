@@ -1,5 +1,6 @@
 package net.anfoya.mail.browser.javafx.entrypoint;
 
+import static net.anfoya.mail.browser.javafx.ThreadListPane.DND_THREADS_DATA_FORMAT;
 import static net.anfoya.tag.javafx.scene.control.SectionListPane.DND_TAG_DATA_FORMAT;
 
 import java.util.Set;
@@ -9,10 +10,7 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
-import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
@@ -34,7 +32,6 @@ import net.anfoya.tag.service.TagServiceException;
 
 public class MailBrowserApp extends Application {
 //	private static final Logger LOGGER = LoggerFactory.getLogger(MailBrowserApp.class);
-	private static final DataFormat DND_THREADS_DATA_FORMAT = new DataFormat("fishermail-thread");
 
 	public static void main(final String[] args) {
 		launch(args);
@@ -93,30 +90,18 @@ public class MailBrowserApp extends Application {
 				updateThreadCount();
 				return null;
 			});
-			sectionListPane.setOnTagDragOver(event -> {
-				if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)) {
-					event.acceptTransferModes(TransferMode.ANY);
-				}
-
-				event.consume();
-			});
-			sectionListPane.setOnTagDragDropped(event -> {
+			sectionListPane.setTagDropDataFormat(DND_THREADS_DATA_FORMAT);
+			sectionListPane.setOnDragDropped(event -> {
 				final Dragboard db = event.getDragboard();
-				if (db.hasContent(DND_THREADS_DATA_FORMAT) && db.hasContent(DND_TAG_DATA_FORMAT)) {
-					try {
-						mailService.addTag(
-								(GmailTag) db.getContent(DND_TAG_DATA_FORMAT)
-								, (Set<GmailThread>) db.getContent(DND_THREADS_DATA_FORMAT));
-						event.setDropCompleted(true);
-						refreshSectionList();
-						refreshThreadList();
-					} catch (final Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+				if (db.hasContent(ThreadListPane.DND_THREADS_DATA_FORMAT)
+						&& db.hasContent(DND_TAG_DATA_FORMAT)) {
+					@SuppressWarnings("unchecked")
+					final Set<GmailThread> threads = (Set<GmailThread>) db.getContent(DND_THREADS_DATA_FORMAT);
+					final GmailTag tag = (GmailTag) db.getContent(DND_TAG_DATA_FORMAT);
+					addTag(tag, threads);
+					event.setDropCompleted(true);
+					event.consume();
 				}
-
-				event.consume();
 			});
 			selectionPane.getChildren().add(sectionListPane);
 		}
@@ -138,17 +123,6 @@ public class MailBrowserApp extends Application {
 					// update movie details in case no movie is selected
 					refreshThread();
 				}
-			});
-			threadListPane.setOnThreadDragDetected(event -> {
-				final Set<GmailThread> threads = threadListPane.getSelectedMovies();
-				if (threads.size() == 0) {
-					return;
-				}
-
-		        final ClipboardContent content = new ClipboardContent();
-		        content.put(DND_THREADS_DATA_FORMAT, threads);
-		        final Dragboard db = threadListPane.startDragAndDrop(TransferMode.ANY);
-		        db.setContent(content);
 			});
 
 			selectionPane.getChildren().add(threadListPane);
@@ -184,6 +158,17 @@ public class MailBrowserApp extends Application {
         primaryStage.show();
 	}
 
+	private void addTag(final GmailTag tag, final Set<GmailThread> threads) {
+		try {
+			mailService.addTag(tag, threads);
+		} catch (final Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		refreshSectionList();
+		refreshThreadList();
+	}
+
 	private void initData() {
         sectionListPane.refresh();
 		sectionListPane.selectTag(GmailSection.GMAIL_SYSTEM, "INBOX");
@@ -196,7 +181,7 @@ public class MailBrowserApp extends Application {
 	}
 
 	private void refreshThread() {
-		final Set<GmailThread> selectedThreads = threadListPane.getSelectedMovies();
+		final Set<GmailThread> selectedThreads = threadListPane.getSelectedThreads();
 		threadPane.refresh(selectedThreads);
 	}
 

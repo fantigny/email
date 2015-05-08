@@ -1,7 +1,10 @@
 package net.anfoya.tag.model;
 
+import java.io.Serializable;
 
-public class SimpleSection implements Comparable<SimpleSection> {
+
+@SuppressWarnings("serial")
+public class SimpleSection implements Serializable, Comparable<SimpleSection> {
 	protected static final String NO_SECTION_NAME = "No section :-(";
 
 	public static final SimpleSection NO_SECTION = new SimpleSection(NO_SECTION_NAME);

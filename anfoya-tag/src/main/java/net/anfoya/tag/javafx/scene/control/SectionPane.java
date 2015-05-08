@@ -29,7 +29,7 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 	private boolean disableWhenZero;
 
 	@SuppressWarnings("unchecked")
-	public SectionPane(final TagService<S, T> tagService, final SimpleSection section, final TagList<S, T> tagList) {
+	public SectionPane(final TagService<S, T> tagService, final S section, final TagList<S, T> tagList) {
 		super("", tagList);
 		this.tagService = tagService;
 		this.tagList = (TagList<S, T>) getContent();

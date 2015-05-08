@@ -33,12 +33,10 @@ public class MovieTagsPane extends TitledPane {
 		this.tagService = tagService;
 		this.movies = new LinkedHashSet<Movie>();
 
-		this.tilePane = new TilePane();
+		this.tilePane = new TilePane(5, 3);
 		this.tilePane.setTileAlignment(Pos.BASELINE_LEFT);
 		this.tilePane.setStyle("-fx-background-color: #DDDDDD;");
 		this.tilePane.setPadding(new Insets(5, 5, 5, 5));
-		this.tilePane.setVgap(3);
-		this.tilePane.setHgap(5);
 
 		setText("Customize");
 		setContent(tilePane);

@@ -153,7 +153,6 @@ public class MovieToolboxPane extends TilePane {
 		inputDialog.setContentText("Tag name:");
 		inputDialog.setHeaderText("");
 		final Optional<String> response = inputDialog.showAndWait();
-
 		if (!response.isPresent()) {
 			return;
 		}

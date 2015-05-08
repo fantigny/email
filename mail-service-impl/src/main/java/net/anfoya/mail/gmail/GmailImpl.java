@@ -306,15 +306,15 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 	}
 
 	@Override
-	public GmailSection addSection(final String sectionName) throws TagServiceException {
+	public GmailSection addSection(final String name) throws TagServiceException {
 		Label label = new Label();
 		label.setMessageListVisibility("show");
 		label.setLabelListVisibility("labelShow");
-		label.setName(sectionName);
+		label.setName(name);
 		try {
 			label = delegate.users().labels().create(USER, label).execute();
 		} catch (final IOException e) {
-			throw new TagServiceException("adding " + sectionName, e);
+			throw new TagServiceException("adding " + name, e);
 		}
 
 		idLabels.put(label.getId(), label);
@@ -322,8 +322,7 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 	}
 
 	@Override
-	public void moveToSection(final GmailSection section
-			, final GmailTag tag) throws TagServiceException {
+	public void moveToSection(final GmailSection section, final GmailTag tag) throws TagServiceException {
 		Label label = getLabels().get(tag.getId());
 		label.setName(section.getName() + "/" + tag.getName());
 		label.setMessageListVisibility("show");
@@ -333,7 +332,6 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 		} catch (final IOException e) {
 			throw new TagServiceException("moving " + tag.getName(), e);
 		}
-		idLabels.put(label.getId(), label);
 	}
 
 	@Override
@@ -501,5 +499,41 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 			}
 		}
 		return null;
+	}
+
+	@Override
+	public void rename(final GmailSection section, final String name) throws TagServiceException {
+		// get sub tags
+		final Set<GmailTag> tags = getTags(section, "");
+
+		// rename section
+		Label label = getLabels().get(section.getId());
+		String newName = label.getName();
+		if (newName.contains("/")) {
+			newName = newName.substring(0, newName.lastIndexOf("/"));
+		} else {
+			newName = "";
+		}
+		newName += name;
+		label.setName(newName);
+		try {
+			label = delegate.users().labels().update(USER, label.getId(), label).execute();
+		} catch (final IOException e) {
+			throw new TagServiceException("rename section " + section, e);
+		}
+
+		// move tags to new section
+		final GmailSection newSection = new GmailSection(label);
+		for(final GmailTag t: tags) {
+			moveToSection(newSection, t);
+		}
+
+		idLabels.clear();
+	}
+
+	@Override
+	public void remove(final GmailSection Section) throws TagServiceException {
+		// TODO Auto-generated method stub
+
 	}
 }

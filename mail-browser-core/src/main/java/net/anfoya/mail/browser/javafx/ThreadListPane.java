@@ -16,7 +16,10 @@ import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.DataFormat;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import net.anfoya.javafx.scene.control.Title;
@@ -27,6 +30,8 @@ import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
 
 public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H extends SimpleThread> extends BorderPane {
+	public static final DataFormat DND_THREADS_DATA_FORMAT = new DataFormat("Set<" + SimpleThread.class.getName() + ">");
+
 	private final ThreadList<S, T, H> threadList;
 	private final TextField namePatternField;
 
@@ -59,6 +64,18 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		patternPane.setRight(delPatternButton);
 
 		threadList = new ThreadList<S, T, H>(mailService);
+		threadList.setOnDragDetected(event -> {
+			final Set<H> threads = getSelectedThreads();
+			if (threads.size() == 0) {
+				return;
+			}
+
+	        final ClipboardContent content = new ClipboardContent();
+	        content.put(DND_THREADS_DATA_FORMAT, threads);
+	        final Dragboard db = threadList.startDragAndDrop(TransferMode.ANY);
+	        db.setContent(content);
+		});
+
 		setCenter(threadList);
 
 		final ToggleGroup toggleGroup = new ToggleGroup();
@@ -105,7 +122,7 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		return threadList.getThreadsTags();
 	}
 
-	public Set<H> getSelectedMovies() {
+	public Set<H> getSelectedThreads() {
 		return threadList.getSelectedThreads();
 	}
 
@@ -124,8 +141,4 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 	public void addChangeListener(final ListChangeListener<H> listener) {
 		threadList.getItems().addListener(listener);
 	}
-
-	public void setOnThreadDragDetected(final EventHandler<? super MouseEvent> handler) {
-		threadList.setOnDragDetected(handler);
-    }
 }
