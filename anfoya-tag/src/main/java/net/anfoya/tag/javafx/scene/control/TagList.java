@@ -29,14 +29,14 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 	private final Map<String, TagListItem<T>> itemMap = new HashMap<String, TagListItem<T>>();
 
 	private ChangeListener<Boolean> tagChangeListener;
-	private DataFormat tagDropDataFormat;
+	private DataFormat extItemDataFormat;
 
 	public TagList(final TagService<S, T> tagService, final S section) {
 		this.tagService = tagService;
 		this.section = section;
 
 		getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-		setCellFactory(list -> new TagListCell<T>(tagDropDataFormat));
+		setCellFactory(list -> new TagListCell<T>(extItemDataFormat));
 	}
 
 	public T getSelectedTag() {
@@ -163,7 +163,7 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 		setCellFactory(new Callback<ListView<TagListItem<T>>, ListCell<TagListItem<T>>>() {
 			@Override
 			public ListCell<TagListItem<T>> call(final ListView<TagListItem<T>> param) {
-				return new TagListCell<T>(tagDropDataFormat);
+				return new TagListCell<T>(extItemDataFormat);
 			}
 		});
 
@@ -201,7 +201,7 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 		return getSectionItem() != null && getItems().size() == 1;
 	}
 
-	public void setTagDropDataFormat(final DataFormat dataFormat) {
-		this.tagDropDataFormat = dataFormat;
+	public void setExtItemDataFormat(final DataFormat dataFormat) {
+		this.extItemDataFormat = dataFormat;
 	}
 }

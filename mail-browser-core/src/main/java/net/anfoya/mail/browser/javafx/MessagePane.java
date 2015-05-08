@@ -81,7 +81,7 @@ public class MessagePane extends TitledPane {
 		title.append(" from ").append(getMailAddress(message.getFrom()[0]));
 		title.append(" to ");
 		boolean multiple = false;
-		for(final Address a: message.getRecipients(Message.RecipientType.TO)) {
+		for(final Address a: message.getRecipients(Message.RecipientType.TO)) { //TODO nullpointer
 			if (multiple) {
 				title.append(", ");
 			}
@@ -91,6 +91,7 @@ public class MessagePane extends TitledPane {
 		setText(title.toString());
 	}
 
+	//TODO replace with getMailAddress*es*
 	private String getMailAddress(final Address address) {
 		if (address != null && address.getType().equalsIgnoreCase("rfc822")) {
 			final InternetAddress mailAddress = (InternetAddress) address;
@@ -106,21 +107,26 @@ public class MessagePane extends TitledPane {
 	}
 
 	private void loadBody() throws IOException, MessagingException {
-		bodyView.getEngine().loadContent(toHtml(message.getContent(), message.getContentType()));
+		String html = toHtml(message.getContent(), message.getContentType(), false);
+		if (html.isEmpty()) {
+			html = toHtml(message.getContent(), message.getContentType(), true);
+			html = "<html><body><pre>" + html + "</pre></body></html>";
+		}
+		bodyView.getEngine().loadContent(html);
 	}
 
-	private String toHtml(final Object mimeContent, final String mimeType) throws MessagingException, IOException {
-		if (mimeContent instanceof String && mimeType.contains("html")) {
+	private String toHtml(final Object mimeContent, final String mimeType, final boolean allowText) throws MessagingException, IOException {
+		if (mimeContent instanceof String && (mimeType.toLowerCase().contains("html") || allowText)) {
 			return (String) mimeContent;
 		} else if (mimeContent instanceof MimeBodyPart) {
 			final MimeBodyPart part = (MimeBodyPart) mimeContent;
-			return toHtml(part.getContent(), part.getContentType());
+			return toHtml(part.getContent(), part.getContentType(), allowText);
 		} else if (mimeContent instanceof Multipart) {
 			final Multipart parts = (Multipart) mimeContent;
 			final StringBuilder html = new StringBuilder();
 			for(int i=0, n=parts.getCount(); i<n; i++) {
 				final BodyPart part = parts.getBodyPart(i);
-				html.append(toHtml(part.getContent(), part.getContentType()));
+				html.append(toHtml(part.getContent(), part.getContentType(), allowText));
 			}
 			return html.toString();
 		} else if (mimeContent instanceof BASE64DecoderStream) {
@@ -131,7 +137,7 @@ public class MessagePane extends TitledPane {
 			while((line=reader.readLine()) != null) {
 				content.append(line);
 			}
-			return toHtml(content.toString(), mimeType);
+			return toHtml(content.toString(), mimeType, allowText);
 		} else {
 			LOGGER.warn("no handler for class {} and type {}", mimeContent.getClass().getName(), mimeType);
 			return "";

@@ -9,6 +9,7 @@ import javafx.geometry.Insets;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 import javafx.util.Callback;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailService;
@@ -39,7 +40,11 @@ public class ThreadPane<S extends SimpleSection, T extends SimpleTag, H extends 
 
 		messageAcc = new Accordion();
 		BorderPane.setMargin(messageAcc, new Insets(5, 0, 5, 0));
-		setCenter(messageAcc);
+
+		final StackPane stackPane = new StackPane(messageAcc);
+		setCenter(stackPane);
+
+		final ThreadDropPane<H> threadDropPane = new ThreadDropPane<H>(mailService);
 
 		tagsPane = new SelectedTagsPane<T>();
 		setBottom(tagsPane);

@@ -225,4 +225,34 @@ public class MovieTagService implements TagService<Section, Tag> {
 	public Section addSection(final String sectionName) throws TagServiceException {
 		throw new NotImplementedException();
 	}
+
+	@Override
+	public void rename(final Section Section, final String name) throws TagServiceException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void remove(final Section Section) throws TagServiceException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public Tag createTag(final String name) throws TagServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void rename(final Tag Tag, final String name) throws TagServiceException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void remove(final Tag tag) throws TagServiceException {
+		// TODO Auto-generated method stub
+
+	}
 }

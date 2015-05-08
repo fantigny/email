@@ -1,7 +1,6 @@
 package net.anfoya.mail.browser.javafx.entrypoint;
 
 import static net.anfoya.mail.browser.javafx.ThreadListPane.DND_THREADS_DATA_FORMAT;
-import static net.anfoya.tag.javafx.scene.control.SectionListPane.DND_TAG_DATA_FORMAT;
 
 import java.util.Set;
 
@@ -28,6 +27,7 @@ import net.anfoya.mail.gmail.model.GmailThread;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.MailServiceException;
 import net.anfoya.tag.javafx.scene.control.SectionListPane;
+import net.anfoya.tag.javafx.scene.control.dnd.DndFormat;
 import net.anfoya.tag.service.TagServiceException;
 
 public class MailBrowserApp extends Application {
@@ -79,7 +79,7 @@ public class MailBrowserApp extends Application {
 		mainPane.setLeft(selectionPane);
 
 		/* tag list */ {
-			sectionListPane = new SectionListPane<GmailSection, GmailTag>(mailService);
+			sectionListPane = new SectionListPane<GmailSection, GmailTag>(mailService, DND_THREADS_DATA_FORMAT);
 			sectionListPane.setPrefWidth(250);
 			sectionListPane.prefHeightProperty().bind(selectionPane.heightProperty());
 			sectionListPane.setSectionDisableWhenZero(false);
@@ -90,14 +90,13 @@ public class MailBrowserApp extends Application {
 				updateThreadCount();
 				return null;
 			});
-			sectionListPane.setTagDropDataFormat(DND_THREADS_DATA_FORMAT);
 			sectionListPane.setOnDragDropped(event -> {
 				final Dragboard db = event.getDragboard();
 				if (db.hasContent(ThreadListPane.DND_THREADS_DATA_FORMAT)
-						&& db.hasContent(DND_TAG_DATA_FORMAT)) {
+						&& db.hasContent(DndFormat.TAG_DATA_FORMAT)) {
 					@SuppressWarnings("unchecked")
 					final Set<GmailThread> threads = (Set<GmailThread>) db.getContent(DND_THREADS_DATA_FORMAT);
-					final GmailTag tag = (GmailTag) db.getContent(DND_TAG_DATA_FORMAT);
+					final GmailTag tag = (GmailTag) db.getContent(DndFormat.TAG_DATA_FORMAT);
 					addTag(tag, threads);
 					event.setDropCompleted(true);
 					event.consume();

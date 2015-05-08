@@ -22,6 +22,7 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import net.anfoya.javafx.scene.control.Title;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.model.SimpleThread.SortOrder;
@@ -63,20 +64,43 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		});
 		patternPane.setRight(delPatternButton);
 
+		final StackPane stackPane = new StackPane();
+		stackPane.setAlignment(Pos.BOTTOM_CENTER);
+
+		final ThreadListDropPane<H> threadListDropPane = new ThreadListDropPane<H>(mailService);
+		threadListDropPane.prefWidthProperty().bind(stackPane.widthProperty());
+
+		stackPane.setOnDragEntered(event -> {
+			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)
+					&& !stackPane.getChildren().contains(threadListDropPane)) {
+				stackPane.getChildren().add(threadListDropPane);
+			}
+
+		});
+		stackPane.setOnDragExited(event -> {
+			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)
+					&& stackPane.getChildren().contains(threadListDropPane)) {
+				stackPane.getChildren().remove(threadListDropPane);
+			}
+		});
+		setCenter(stackPane);
+
 		threadList = new ThreadList<S, T, H>(mailService);
 		threadList.setOnDragDetected(event -> {
 			final Set<H> threads = getSelectedThreads();
 			if (threads.size() == 0) {
 				return;
 			}
-
 	        final ClipboardContent content = new ClipboardContent();
 	        content.put(DND_THREADS_DATA_FORMAT, threads);
 	        final Dragboard db = threadList.startDragAndDrop(TransferMode.ANY);
 	        db.setContent(content);
 		});
-
-		setCenter(threadList);
+		threadList.setOnDragDone(event -> {
+			threadList.refresh();
+			event.consume();
+		});
+		stackPane.getChildren().add(threadList);
 
 		final ToggleGroup toggleGroup = new ToggleGroup();
 

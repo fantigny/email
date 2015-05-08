@@ -11,6 +11,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.util.Callback;
 import net.anfoya.javafx.scene.control.ExcludeBox;
+import net.anfoya.tag.javafx.scene.control.dnd.DndFormat;
 import net.anfoya.tag.model.SimpleTag;
 
 class TagListCell<T extends SimpleTag> extends CheckBoxListCell<TagListItem<T>> {
@@ -24,42 +25,41 @@ class TagListCell<T extends SimpleTag> extends CheckBoxListCell<TagListItem<T>> 
 		});
 	}
 
-	public TagListCell(final DataFormat dropDataFormat) {
+	public TagListCell(final DataFormat extItemDataFormat) {
 		this();
 
 		setOnDragDetected(event -> {
 			if (getItem() != null) {
 		        final ClipboardContent content = new ClipboardContent();
-		        content.put(TagDropPane.DND_TAG_DATA_FORMAT, getItem().getTag());
+		        content.put(DndFormat.TAG_DATA_FORMAT, getItem().getTag());
 		        final Dragboard db = startDragAndDrop(TransferMode.ANY);
 		        db.setContent(content);
 			}
 		});
 
         setOnDragEntered(event -> {
-			if (getItem() != null && event.getDragboard().hasContent(dropDataFormat)) {
+			if (getItem() != null && event.getDragboard().hasContent(extItemDataFormat)) {
 	            setOpacity(0.3);
-	            event.consume();
         	}
         });
         setOnDragExited(event -> {
-			if (getItem() != null && event.getDragboard().hasContent(dropDataFormat)) {
+			if (getItem() != null && event.getDragboard().hasContent(extItemDataFormat)) {
 	            setOpacity(1);
 	            event.consume();
         	}
         });
 		setOnDragOver(event -> {
-			if (getItem() != null && event.getDragboard().hasContent(dropDataFormat)) {
+			if (getItem() != null && event.getDragboard().hasContent(extItemDataFormat)) {
 				event.acceptTransferModes(TransferMode.ANY);
 				event.consume();
 			}
 		});
 		setOnDragDropped(event -> {
 			final Dragboard db = event.getDragboard();
-			if (getItem() != null && db.hasContent(dropDataFormat)) {
+			if (getItem() != null && db.hasContent(extItemDataFormat)) {
 				final ClipboardContent content = new ClipboardContent();
-				content.put(dropDataFormat, db.getContent(dropDataFormat));
-				content.put(SectionListPane.DND_TAG_DATA_FORMAT, getItem().getTag());
+				content.put(extItemDataFormat, db.getContent(extItemDataFormat));
+				content.put(DndFormat.TAG_DATA_FORMAT, getItem().getTag());
 				db.setContent(content);
 			}
 		});

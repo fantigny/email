@@ -9,15 +9,16 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -72,7 +73,7 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 
 	private Gmail delegate = null;
 
-	private final Map<String, Label> idLabels = new HashMap<String, Label>();
+	private final Map<String, Label> idLabels = new ConcurrentHashMap<String, Label>();
 
 	public GmailImpl() {
 		httpTransport = new NetHttpTransport();
@@ -306,22 +307,6 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 	}
 
 	@Override
-	public GmailSection addSection(final String name) throws TagServiceException {
-		Label label = new Label();
-		label.setMessageListVisibility("show");
-		label.setLabelListVisibility("labelShow");
-		label.setName(name);
-		try {
-			label = delegate.users().labels().create(USER, label).execute();
-		} catch (final IOException e) {
-			throw new TagServiceException("adding " + name, e);
-		}
-
-		idLabels.put(label.getId(), label);
-		return new GmailSection(label);
-	}
-
-	@Override
 	public void moveToSection(final GmailSection section, final GmailTag tag) throws TagServiceException {
 		Label label = getLabels().get(tag.getId());
 		label.setName(section.getName() + "/" + tag.getName());
@@ -331,6 +316,8 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 			label = delegate.users().labels().update(USER, label.getId(), label).execute();
 		} catch (final IOException e) {
 			throw new TagServiceException("moving " + tag.getName(), e);
+		} finally {
+			idLabels.clear();
 		}
 	}
 
@@ -488,6 +475,8 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 			delegate.users().threads().modify(USER, thread.getId(), request).execute();
 		} catch (final IOException e) {
 			throw new MailServiceException("adding tag", e);
+		} finally {
+			idLabels.clear();
 		}
 	}
 
@@ -503,23 +492,12 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 
 	@Override
 	public void rename(final GmailSection section, final String name) throws TagServiceException {
-		// get sub tags
 		final Set<GmailTag> tags = getTags(section, "");
-
-		// rename section
 		Label label = getLabels().get(section.getId());
-		String newName = label.getName();
-		if (newName.contains("/")) {
-			newName = newName.substring(0, newName.lastIndexOf("/"));
-		} else {
-			newName = "";
-		}
-		newName += name;
-		label.setName(newName);
 		try {
-			label = delegate.users().labels().update(USER, label.getId(), label).execute();
+			label = rename(label, name);
 		} catch (final IOException e) {
-			throw new TagServiceException("rename section " + section, e);
+			throw new TagServiceException("rename section " + label.getName(), e);
 		}
 
 		// move tags to new section
@@ -527,43 +505,104 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 		for(final GmailTag t: tags) {
 			moveToSection(newSection, t);
 		}
+	}
 
-		idLabels.clear();
+	private Label rename(Label label, final String name) throws IOException {
+		try {
+			String newName = label.getName();
+			if (newName.contains("/")) {
+				newName = newName.substring(0, newName.lastIndexOf("/"));
+			} else {
+				newName = "";
+			}
+			newName += name;
+			label.setName(newName);
+			label = delegate.users().labels().update(USER, label.getId(), label).execute();
+
+			return label;
+		} finally {
+			idLabels.clear();
+		}
 	}
 
 	@Override
-	public void remove(final GmailSection Section) throws TagServiceException {
-		// TODO Auto-generated method stub
-
+	public void rename(final GmailTag tag, final String name) throws TagServiceException {
+		try {
+			rename(getLabels().get(tag.getId()), name);
+		} catch (final IOException e) {
+			throw new TagServiceException("rename tag " + tag.getName(), e);
+		}
 	}
 
 	@Override
-	public GmailTag addTag(final String name) throws TagServiceException {
+	public GmailSection addSection(final String name) throws TagServiceException {
+
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public void rename(final GmailTag Tag, final String name) throws TagServiceException {
-		// TODO Auto-generated method stub
+	public GmailTag createTag(final String name) throws TagServiceException {
 
+		Label label = new Label();
+		label.setMessageListVisibility("show");
+		label.setLabelListVisibility("labelShow");
+		label.setName(name);
+		try {
+			label = delegate.users().labels().create(USER, label).execute();
+		} catch (final IOException e) {
+			throw new TagServiceException("adding " + name, e);
+		} finally {
+			idLabels.clear();
+		}
+
+		return new GmailTag(label);
+	}
+
+	@Override
+	public void remove(final GmailSection section) throws TagServiceException {
+		try {
+			delegate.users().labels().delete(USER, section.getId());
+		} catch (final IOException e) {
+			throw new TagServiceException("remove section " + section.getName(), e);
+		} finally {
+			idLabels.clear();
+		}
 	}
 
 	@Override
 	public void remove(final GmailTag tag) throws TagServiceException {
-		// TODO Auto-generated method stub
-
+		try {
+			delegate.users().labels().delete(USER, tag.getId());
+		} catch (final IOException e) {
+			throw new TagServiceException("remove tag " + tag.getName(), e);
+		} finally {
+			idLabels.clear();
+		}
 	}
 
 	@Override
 	public void archive(final Set<GmailThread> threads) throws MailServiceException {
-		// TODO Auto-generated method stub
-
+		try {
+			@SuppressWarnings("serial")
+			final List<String> inboxId = new ArrayList<String>() {{ add(findTag("INBOX").getId());}};
+			final ModifyThreadRequest request = new ModifyThreadRequest().setRemoveLabelIds(inboxId);
+			for(final GmailThread t: threads) {
+				delegate.users().threads().modify(USER, t.getId(), request).execute();
+			}
+		} catch (final IOException | TagServiceException e) {
+			throw new MailServiceException("trashing threads " + threads, e);
+		}
 	}
 
 	@Override
 	public void delete(final Set<GmailThread> threads) throws MailServiceException {
-		// TODO Auto-generated method stub
-
+		try {
+			for(final GmailThread t: threads) {
+				delegate.users().threads().trash(USER, t.getId()).execute();
+			}
+		} catch (final IOException e) {
+			throw new MailServiceException("trashing threads " + threads, e);
+		}
 	}
 }

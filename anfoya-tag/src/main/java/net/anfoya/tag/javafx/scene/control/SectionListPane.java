@@ -29,17 +29,20 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.util.Callback;
 import net.anfoya.javafx.scene.control.Title;
+import net.anfoya.tag.javafx.scene.control.dnd.DndFormat;
+import net.anfoya.tag.javafx.scene.control.dnd.ExtItemDropPane;
+import net.anfoya.tag.javafx.scene.control.dnd.SectionDropPane;
+import net.anfoya.tag.javafx.scene.control.dnd.TagDropPane;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
 import net.anfoya.tag.service.TagService;
 import net.anfoya.tag.service.TagServiceException;
 
 public class SectionListPane<S extends SimpleSection, T extends SimpleTag> extends BorderPane {
-	public static final DataFormat DND_TAG_DATA_FORMAT = new DataFormat("anfoya-tag");
-
 	private final TagService<S, T> tagService;
+	private final DataFormat extItemDataFormat;
 
-	private TextField tagPatternField;
+	private final TextField tagPatternField;
 	private final Accordion sectionAcc;
 	private final SelectedTagsPane<T> selectedPane;
 	private final ContextMenu contextMenu;
@@ -53,10 +56,13 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 	private boolean lazyCount = true;
 	private boolean sectionDisableWhenZero = true;
 
-	private DataFormat tagDropDataFormat;
-
 	public SectionListPane(final TagService<S, T> tagService) {
+		this(tagService, null);
+	}
+
+	public SectionListPane(final TagService<S, T> tagService, final DataFormat extItemDataFormat) {
 		this.tagService = tagService;
+		this.extItemDataFormat = extItemDataFormat;
 
 		final BorderPane patternPane = new BorderPane();
 		setTop(patternPane);
@@ -79,30 +85,44 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		final StackPane stackPane = new StackPane(sectionAcc);
 		stackPane.setAlignment(Pos.BOTTOM_CENTER);
 
+		final ExtItemDropPane<T> extItemDropPane = new ExtItemDropPane<T>(tagService, extItemDataFormat);
+		extItemDropPane.prefWidthProperty().bind(stackPane.widthProperty());
+
 		final SectionDropPane<S> sectionDropPane = new SectionDropPane<S>(tagService);
 		sectionDropPane.prefWidthProperty().bind(stackPane.widthProperty());
 
-		final TagDropPane<T> tagDropPane = new TagDropPane<T>(tagService);
+		final TagDropPane<S, T> tagDropPane = new TagDropPane<S, T>(tagService);
 		tagDropPane.prefWidthProperty().bind(stackPane.widthProperty());
 
 		stackPane.setOnDragEntered(event -> {
-			if (event.getDragboard().hasContent(SectionDropPane.DND_SECTION_DATA_FORMAT)
+			if (event.getDragboard().hasContent(DndFormat.SECTION_DATA_FORMAT)
 					&& !stackPane.getChildren().contains(sectionDropPane)) {
 				stackPane.getChildren().add(sectionDropPane);
-			} else if (event.getDragboard().hasContent(TagDropPane.DND_TAG_DATA_FORMAT)
+			} else if (event.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT)
 					&& !stackPane.getChildren().contains(tagDropPane)) {
 				stackPane.getChildren().add(tagDropPane);
+			} else if (extItemDataFormat != null
+					&& event.getDragboard().hasContent(extItemDataFormat)
+					&& !stackPane.getChildren().contains(extItemDropPane)) {
+				stackPane.getChildren().add(extItemDropPane);
 			}
 
 		});
 		stackPane.setOnDragExited(event -> {
-			if (event.getDragboard().hasContent(SectionDropPane.DND_SECTION_DATA_FORMAT)
+			if (event.getDragboard().hasContent(DndFormat.SECTION_DATA_FORMAT)
 					&& stackPane.getChildren().contains(sectionDropPane)) {
 				stackPane.getChildren().remove(sectionDropPane);
-			} else if (event.getDragboard().hasContent(TagDropPane.DND_TAG_DATA_FORMAT)
+			} else if (event.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT)
 					&& stackPane.getChildren().contains(tagDropPane)) {
 				stackPane.getChildren().remove(tagDropPane);
+			} else if (extItemDataFormat != null
+					&& event.getDragboard().hasContent(extItemDataFormat)
+					&& stackPane.getChildren().contains(extItemDropPane)) {
+				stackPane.getChildren().remove(extItemDropPane);
 			}
+		});
+		stackPane.setOnDragDone(event -> {
+			refresh();
 		});
 		setCenter(stackPane);
 
@@ -152,24 +172,28 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 				final TagList<S, T> tagList = new TagList<S, T>(tagService, section);
 				tagList.setTagChangeListener(tagChangeListener);
 				tagList.setContextMenu(contextMenu);
-				tagList.setTagDropDataFormat(tagDropDataFormat);
+				tagList.setExtItemDataFormat(extItemDataFormat);
 
 				final SectionPane<S, T> sectionPane = new SectionPane<S, T>(tagService, section, tagList);
 				sectionPane.setDisableWhenZero(sectionDisableWhenZero);
 				sectionPane.setLazyCount(lazyCount);
 				sectionPane.setOnDragDetected(event -> {
 			        final ClipboardContent content = new ClipboardContent();
-			        content.put(SectionDropPane.DND_SECTION_DATA_FORMAT, section);
+			        content.put(DndFormat.SECTION_DATA_FORMAT, section);
 			        final Dragboard db = sectionPane.startDragAndDrop(TransferMode.ANY);
 			        db.setContent(content);
 				});
 				sectionPane.setOnDragOver(event -> {
 					if (!sectionPane.isExpanded()
-							&& (event.getDragboard().hasContent(tagDropDataFormat)
-									|| event.getDragboard().hasContent(DND_TAG_DATA_FORMAT))) {
+							&& (event.getDragboard().hasContent(extItemDataFormat)
+									|| event.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT))) {
 						sectionPane.setExpanded(true);
 						event.consume();
 					}
+				});
+				sectionPane.setOnDragDone(event -> {
+					refresh();
+					event.consume();
 				});
 				sectionAcc.getPanes().add(index, sectionPane);
 			}
@@ -390,9 +414,5 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 
 	public S getSectionAt(final double x, final double y) {
 		return null;
-	}
-
-	public void setTagDropDataFormat(final DataFormat dataFormat) {
-		tagDropDataFormat = dataFormat;
 	}
 }
