@@ -10,8 +10,8 @@ import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.IncExcBox;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
-import net.anfoya.tag.service.TagService;
 import net.anfoya.tag.service.TagException;
+import net.anfoya.tag.service.TagService;
 
 public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends TitledPane {
 	private final TagService<S, T> tagService;
@@ -49,17 +49,6 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 	}
 
 	public void updateCountAsync(final int currentCount, final Set<T> availableTags, final Set<T> includes, final Set<T> excludes, final String namePattern, final String tagPattern) {
-		final Runnable tagListTask = new Runnable() {
-				@Override
-				public void run() {
-					tagList.updateCount(currentCount, availableTags, includes, excludes, namePattern);
-				}
-			};
-		if (isExpanded() || !lazyCount) {
-			tagListTask.run();
-		} else {
-			lazyCountTask = tagListTask;
-		}
 		if (!isTag) {
 			final Task<Integer> sectionTask = new Task<Integer>() {
 				@Override
@@ -74,13 +63,28 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 				}
 			};
 			sectionTask.setOnSucceeded(event -> {
-				sectionItem.countProperty().set((int) event.getSource().getValue());
+				try {
+					sectionItem.countProperty().set(sectionTask.get());
+				} catch (final Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			});
 			ThreadPool.getInstance().submit(sectionTask);
 		} else {
 			if (tagList.getSectionItem() == null) {
 				sectionItem.countProperty().set(0);
 			}
+		}
+
+		final Runnable tagListTask = () -> {
+			System.out.println("updateCount");
+			tagList.updateCount(currentCount, availableTags, includes, excludes, namePattern);
+		};
+		if (isExpanded() || !lazyCount) {
+			tagListTask.run();
+		} else {
+			lazyCountTask = tagListTask;
 		}
 	}
 

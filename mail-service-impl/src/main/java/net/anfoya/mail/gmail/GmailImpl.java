@@ -439,7 +439,7 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 	}
 
 	@Override
-	public void addTag(final GmailTag tag, final Set<GmailThread> threads) throws GMailException {
+	public void addForThread(final GmailTag tag, final Set<GmailThread> threads) throws GMailException {
 		for(final GmailThread t: threads) {
 			try {
 				@SuppressWarnings("serial")
@@ -452,7 +452,7 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 	}
 
 	@Override
-	public void remTag(final GmailTag tag, final GmailThread thread) throws GMailException {
+	public void removeForThread(final GmailTag tag, final GmailThread thread) throws GMailException {
 		try {
 			@SuppressWarnings("serial")
 			final ModifyThreadRequest request = new ModifyThreadRequest().setRemoveLabelIds(new ArrayList<String>() {{ add(tag.getId()); }});

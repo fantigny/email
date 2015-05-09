@@ -150,7 +150,7 @@ public class MailBrowserApp extends Application {
 
 	private void addTag(final GmailTag tag, final Set<GmailThread> threads) {
 		try {
-			mailService.addTag(tag, threads);
+			mailService.addForThread(tag, threads);
 		} catch (final Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -177,14 +177,7 @@ public class MailBrowserApp extends Application {
 
 	private void updateThreadCount() {
 		final int currentCount = threadListPane.getThreadCount();
-		Set<GmailTag> availableTags;
-		try {
-			availableTags = mailService.getTags();
-		} catch (final TagException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return;
-		}
+		Set<GmailTag> availableTags = threadListPane.getThreadTags();
 		final String namePattern = "";
 		sectionListPane.updateCount(currentCount, availableTags, namePattern);
 	}

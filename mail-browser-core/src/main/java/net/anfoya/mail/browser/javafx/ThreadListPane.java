@@ -1,13 +1,11 @@
 package net.anfoya.mail.browser.javafx;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -28,6 +26,7 @@ import net.anfoya.mail.browser.javafx.dnd.ThreadListDropPane;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.model.SimpleThread.SortOrder;
+import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
@@ -35,10 +34,13 @@ import net.anfoya.tag.model.SimpleTag;
 public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H extends SimpleThread> extends BorderPane {
 	public static final DataFormat DND_THREADS_DATA_FORMAT = new DataFormat("Set<" + SimpleThread.class.getName() + ">");
 
+	private final MailService<S, T, H, ? extends SimpleMessage> mailService;
 	private final ThreadList<S, T, H> threadList;
 	private final TextField namePatternField;
 
 	public ThreadListPane(final MailService<S, T, H, ? extends SimpleMessage> mailService) {
+		this.mailService = mailService;
+		
 		final BorderPane patternPane = new BorderPane();
 		setTop(patternPane);
 
@@ -48,22 +50,12 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 
 		namePatternField = new TextField();
 		namePatternField.setPromptText("search");
-		namePatternField.textProperty().addListener(new ChangeListener<String>() {
-			@Override
-			public void changed(final ObservableValue<? extends String> ov, final String oldPattern, final String newPattern) {
-				threadList.refreshWithPattern(newPattern);
-			}
-		});
+		namePatternField.textProperty().addListener((ChangeListener<String>) (ov, oldPattern, newPattern) -> threadList.refreshWithPattern(newPattern));
 		patternPane.setCenter(namePatternField);
 		BorderPane.setMargin(namePatternField, new Insets(0, 5, 0, 5));
 
 		final Button delPatternButton = new Button("X");
-		delPatternButton.setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(final ActionEvent event) {
-				namePatternField.textProperty().set("");
-			}
-		});
+		delPatternButton.setOnAction(event -> namePatternField.textProperty().set(""));
 		patternPane.setRight(delPatternButton);
 
 		final StackPane stackPane = new StackPane();
@@ -112,14 +104,9 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		final RadioButton dateSortButton = new RadioButton("date");
 		dateSortButton.setToggleGroup(toggleGroup);
 
-		toggleGroup.selectedToggleProperty().addListener(new ChangeListener<Toggle>() {
-			@Override
-			public void changed(final ObservableValue<? extends Toggle> ov, final Toggle oldVal, final Toggle newVal) {
-				threadList.refreshWithOrder(nameSortButton.isSelected()
-						? SortOrder.SUBJECT
-						: SortOrder.DATE);
-			}
-		});
+		toggleGroup.selectedToggleProperty().addListener((ChangeListener<Toggle>) (ov, oldVal, newVal) -> threadList.refreshWithOrder(nameSortButton.isSelected()
+				? SortOrder.SUBJECT
+				: SortOrder.DATE));
 		dateSortButton.setSelected(true);
 
 		final HBox box = new HBox(new Label("Sort by: "), nameSortButton, dateSortButton);
@@ -166,5 +153,21 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 
 	public void addChangeListener(final ListChangeListener<H> listener) {
 		threadList.getItems().addListener(listener);
+	}
+
+	public Set<T> getThreadTags() {
+		try {
+			final Set<T> tags = new LinkedHashSet<T>();
+			for(final H t: getItems()) {
+				for(final String id: t.getTagIds()) {
+					tags.add(mailService.getTag(id));
+				}
+			}
+			return tags;
+		} catch (final MailException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
 	}
 }

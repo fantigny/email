@@ -11,16 +11,14 @@ import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
-import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.input.DataFormat;
-import javafx.util.Callback;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
-import net.anfoya.tag.service.TagService;
 import net.anfoya.tag.service.TagException;
+import net.anfoya.tag.service.TagService;
 
 public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListView<TagListItem<T>> {
 	private final TagService<S, T> tagService;
@@ -140,10 +138,10 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 			public Integer call() throws SQLException, TagException {
 				final T tag = item.getTag();
 				final int excludeFactor = excludes.contains(tag)? -1: 1;
-				final Set<T> fakeIncludes = new LinkedHashSet<T>(includes);
-				fakeIncludes.add(tag);
-				final Set<T> fakeExcludes = new LinkedHashSet<T>(excludes);
-				fakeExcludes.remove(tag);
+				@SuppressWarnings("serial")
+				final Set<T> fakeIncludes = new LinkedHashSet<T>(includes) {{ add(tag); }};
+				@SuppressWarnings("serial")
+				final Set<T> fakeExcludes = new LinkedHashSet<T>(excludes) {{ remove(tag); }};
 				return excludeFactor * tagService.getCountForTags(fakeIncludes, fakeExcludes, nameFilter);
 			}
 		};
@@ -160,12 +158,7 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 
 	// TODO: find a proper way
 	private void forceRepaint() {
-		setCellFactory(new Callback<ListView<TagListItem<T>>, ListCell<TagListItem<T>>>() {
-			@Override
-			public ListCell<TagListItem<T>> call(final ListView<TagListItem<T>> param) {
-				return new TagListCell<T>(extItemDataFormat);
-			}
-		});
+		setCellFactory(param -> new TagListCell<T>(extItemDataFormat));
 
 //		setCellFactory(new Callback<ListView<TagListItem<T>>, ListCell<TagListItem<T>>>() {
 //			@Override
