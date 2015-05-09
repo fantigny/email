@@ -33,6 +33,8 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 	
 	private EventHandler<ActionEvent> delTagHandler;
 
+	private Set<H> threads;
+
 	private H thread;
 
 	public ThreadPane(final MailService<? extends SimpleSection, T, H, M> mailService) {
@@ -77,46 +79,44 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 	}
 
 	public void refresh(final Set<H> threads) {
-		switch (threads.size()) {
-		case 0:
-			clear();
-			subjectField.setText("select a thread");
-			break;
-		case 1:
-			refresh(threads.iterator().next());
-			break;
-		default:
-			clear();
-			subjectField.setText("multiple thread selected");
-			break;
-		}
-	}
+		this.threads = threads;
 
-	private void clear() {
-		subjectField.clear();
-		messageAcc.getPanes().clear();
-		tagsPane.clear();
-	}
-
-	private void refresh(final H thread) {
-		final H previous = this.thread;
-		this.thread = thread;
-		
 		refreshSubject();
+		refreshThread();
 		refreshTags();
+	}
 
+	private void refreshThread() {
+		if (threads.size() != 1) {
+			thread = null;
+			messageAcc.getPanes().clear();
+			return;
+		}
+		
+		final H previous = thread;
+		thread = threads.iterator().next();
 		if (previous != null && previous.getId().equals(thread.getId())) {
-			refreshThread();
+			refreshCurrentThread();
 		} else {
 			loadThread();
 		}
 	}
 
 	private void refreshSubject() {
-		subjectField.setText(thread.getSubject());
+		switch (threads.size()) {
+		case 0:
+			subjectField.setText("select a thread");
+			break;
+		case 1:
+			subjectField.setText(threads.iterator().next().getSubject());
+			break;
+		default:
+			subjectField.setText("multiple thread selected");
+			break;
+		}
 	}
 
-	private void refreshThread() {
+	private void refreshCurrentThread() {
 		for (final Iterator<TitledPane> i = messageAcc.getPanes().iterator(); i.hasNext();) {
 			@SuppressWarnings("unchecked")
 			final MessagePane<M> messagePane = (MessagePane<M>) i.next();
@@ -157,25 +157,32 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 	}
 
 	public void refreshTags() {
-		final Set<T> tags = new LinkedHashSet<T>();
-		for(final String id: thread.getTagIds()) {
-			try {
-				tags.add(mailService.getTag(id));
-			} catch (final TagServiceException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+		if (threads.size() == 0) {
+			tagsPane.clear();
+			return;
 		}
-		tagsPane.setDelTagCallBack(tag -> {
-			try {
-				mailService.remTag(tag, thread);
-			} catch (final MailServiceException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		
+		final Set<T> tags = new LinkedHashSet<T>();
+		for(final H t: threads) {
+			for(final String id: t.getTagIds()) {
+				try {
+					tags.add(mailService.getTag(id));
+				} catch (final TagServiceException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
-			delTagHandler.handle(null);
-			return null;
-		});
-		tagsPane.refresh(tags);
+			tagsPane.setDelTagCallBack(tag -> {
+				try {
+					mailService.remTag(tag, t);
+				} catch (final MailServiceException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				delTagHandler.handle(null);
+				return null;
+			});
+			tagsPane.refresh(tags);
+		}
 	}
 }
