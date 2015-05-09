@@ -27,14 +27,6 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 	private final MailService<S, T, H, ? extends SimpleMessage> mailService;
 	private final AtomicLong taskId = new AtomicLong();
 
-	private final Predicate<H> nameFilter = new Predicate<H>() {
-		@Override
-		public boolean test(final H thread) {
-			//TODO compare sender?
-			return thread.getSubject().toLowerCase().contains(namePattern);
-		}
-	};
-
 	private boolean refreshing;
 	private Set<H> threads;
 
@@ -43,6 +35,9 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 	private Set<T> excludes;
 	private SortOrder sortOrder;
 	private String namePattern;
+
+	//TODO enhance
+	private final Predicate<H> nameFilter = thread -> thread.getSubject().toLowerCase().contains(namePattern);
 
 	public ThreadList(final MailService<S, T, H, ? extends SimpleMessage> mailService) {
 		this.mailService = mailService;
@@ -60,45 +55,35 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 	}
 
 	public void refreshWithPattern(final String pattern) {
-		final long taskId = this.taskId.incrementAndGet();
 		final String previousPattern = namePattern;
 		namePattern = pattern.toLowerCase();
 
 		if (namePattern.contains(previousPattern)) {
 			refresh();
 		} else {
-			final Task<Set<H>> task = new Task<Set<H>>() {
-				@Override
-				protected Set<H> call() throws Exception {
-					return mailService.getThreads(tags, includes, excludes, namePattern);
-				}
-			};
-			task.setOnSucceeded(event -> {
-				if (this.taskId.get() != taskId) {
-					return;
-				}
-				try {
-					threads = task.get();
-					refresh();
-				} catch (final Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			});
-			ThreadPool.getInstance().submit(task);
+			refresh(tags, includes, excludes);
 		}
 	}
 
 	public void refreshWithOrder(final SortOrder order) {
 		sortOrder = order;
-		refreshWithTags(tags, includes, excludes);
+		load();
 	}
 
-	public void refreshWithTags(final Set<T> tags, final Set<T> includes, final Set<T> excludes) {
-		final long taskId = this.taskId.incrementAndGet();
+	public void refreshWithTags2(final Set<T> tags) {
+		this.tags = tags;
+		load();
+	}
+
+	public void refresh(final Set<T> tags, final Set<T> includes, final Set<T> excludes) {
 		this.tags = tags;
 		this.includes = includes;
 		this.excludes = excludes;
+		load();
+	}
+
+	private void load() {
+		final long id = this.taskId.incrementAndGet();
 		final Task<Set<H>> task = new Task<Set<H>>() {
 			@Override
 			protected Set<H> call() throws Exception {
@@ -106,12 +91,11 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 			}
 		};
 		task.setOnSucceeded(event -> {
-			if (this.taskId.get() != taskId) {
-				return;
-			}
 			try {
 				threads = task.get();
-				refresh();
+				if (id == taskId.get()) {
+					refresh();
+				}
 			} catch (final Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -150,7 +134,7 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 
 		// display
 		refreshing = !previouslySelectedIds.isEmpty() && indices.length > 0 && indices[0] != -1;
-		getItems().setAll(obsThreads);
+		getItems().setAll(threads);
 		refreshing = false;
 
 		// restore selection

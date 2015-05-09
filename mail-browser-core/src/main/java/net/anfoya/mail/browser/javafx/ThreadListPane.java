@@ -137,7 +137,7 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 	}
 
 	public void refreshWithTags(final Set<T> tags, final Set<T> includes, final Set<T> excludes) {
-		threadList.refreshWithTags(tags, includes, excludes);
+		threadList.refresh(tags, includes, excludes);
 	}
 
 	public int getThreadCount() {

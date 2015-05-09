@@ -5,7 +5,6 @@ import static net.anfoya.mail.browser.javafx.ThreadListPane.DND_THREADS_DATA_FOR
 import java.util.Set;
 
 import javafx.application.Application;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -13,7 +12,6 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 
 import javax.security.auth.login.LoginException;
 
@@ -45,23 +43,15 @@ public class MailBrowserApp extends Application {
 
 	@Override
 	public void start(final Stage primaryStage) throws Exception {
-		primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-			@Override
-			public void handle(final WindowEvent event) {
-				ThreadPool.getInstance().shutdown();
-			}
-		});
+		primaryStage.setOnCloseRequest(event -> ThreadPool.getInstance().shutdown());
 
 		mailService = new GmailImpl();
-		ThreadPool.getInstance().submit(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					mailService.login(null, null);
-				} catch (final LoginException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+		ThreadPool.getInstance().submit(() -> {
+			try {
+				mailService.login(null, null);
+			} catch (final LoginException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		});
 
