@@ -17,12 +17,11 @@ import javafx.scene.layout.StackPane;
 import net.anfoya.mail.browser.javafx.dnd.ThreadDropPane;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
+import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
-import net.anfoya.mail.service.MailServiceException;
 import net.anfoya.tag.javafx.scene.control.SelectedTagsPane;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
-import net.anfoya.tag.service.TagServiceException;
 
 public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage> extends BorderPane {
 	private final MailService<? extends SimpleSection, T, H, M> mailService;
@@ -137,6 +136,10 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 			}
 			index++;
 		}
+
+		if (!messageAcc.getPanes().isEmpty()) {
+			messageAcc.setExpandedPane(messageAcc.getPanes().get(0));
+		}
 	}
 
 	private void loadThread() {
@@ -150,6 +153,15 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 		if (!messageAcc.getPanes().isEmpty()) {
 			messageAcc.setExpandedPane(messageAcc.getPanes().get(0));
 		}
+		
+		try {
+			mailService.remTag(mailService.findTag("UNREAD"), thread);
+		} catch (final MailException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		delTagHandler.handle(null);
 	}
 
 	public void setOnDelTag(final EventHandler<ActionEvent> handler) {
@@ -167,7 +179,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 			for(final String id: t.getTagIds()) {
 				try {
 					tags.add(mailService.getTag(id));
-				} catch (final TagServiceException e) {
+				} catch (final MailException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
@@ -175,7 +187,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 			tagsPane.setDelTagCallBack(tag -> {
 				try {
 					mailService.remTag(tag, t);
-				} catch (final MailServiceException e) {
+				} catch (final MailException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}

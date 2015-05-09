@@ -1,29 +1,28 @@
 package net.anfoya.mail.gmail.service;
 
-import javax.security.auth.login.LoginException;
-
 import net.anfoya.mail.gmail.GmailImpl;
 import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.gmail.model.GmailTag;
 import net.anfoya.mail.gmail.model.GmailThread;
 import net.anfoya.mail.model.SimpleMessage;
+import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.tag.model.SimpleTag;
-import net.anfoya.tag.service.TagServiceException;
+import net.anfoya.tag.service.TagException;
 
 import org.junit.Test;
 
 public class GmailTest {
 
 	@Test
-	public void login() throws LoginException {
+	public void login() throws MailException {
 		final MailService<GmailSection, GmailTag, GmailThread, SimpleMessage> service = new GmailImpl();
 		service.login("", "");
 		service.logout();
 	}
 
 	@Test
-	public void getTags() throws TagServiceException, LoginException {
+	public void getTags() throws MailException, TagException {
 		final MailService<GmailSection, GmailTag, GmailThread, SimpleMessage> service = new GmailImpl();
 		service.login("", "");
 		for(final SimpleTag t: service.getTags()) {

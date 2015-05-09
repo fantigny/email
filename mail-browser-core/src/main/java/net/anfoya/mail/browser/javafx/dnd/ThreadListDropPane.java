@@ -12,7 +12,7 @@ import javafx.scene.layout.HBox;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailService;
-import net.anfoya.mail.service.MailServiceException;
+import net.anfoya.mail.service.MailException;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
 
@@ -97,7 +97,7 @@ public class ThreadListDropPane<H extends SimpleThread> extends GridPane {
 	private void archive(final Set<H> threads) {
 		try {
 			mailService.archive(threads);
-		} catch (final MailServiceException e) {
+		} catch (final MailException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -106,7 +106,7 @@ public class ThreadListDropPane<H extends SimpleThread> extends GridPane {
 	private void delete(final Set<H> threads) {
 		try {
 			mailService.delete(threads);
-		} catch (final MailServiceException e) {
+		} catch (final MailException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

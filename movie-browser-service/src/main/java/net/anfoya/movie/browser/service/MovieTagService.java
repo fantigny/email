@@ -12,13 +12,11 @@ import net.anfoya.movie.browser.dao.TagDao;
 import net.anfoya.movie.browser.model.Movie;
 import net.anfoya.movie.browser.model.Section;
 import net.anfoya.movie.browser.model.Tag;
+import net.anfoya.tag.service.TagException;
 import net.anfoya.tag.service.TagService;
-import net.anfoya.tag.service.TagServiceException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class MovieTagService implements TagService<Section, Tag> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MovieTagService.class);
@@ -178,17 +176,18 @@ public class MovieTagService implements TagService<Section, Tag> {
 	}
 
 	@Override
-	public void moveToSection(final Section section, final Tag tag) {
+	public Tag moveToSection(final Tag tag, final Section section) throws TagException {
 		try {
 			tagDao.updateSection(tag);
 			updateMgr.updatePerformed();
+			return tag;
 		} catch (final SQLException e) {
 			LOGGER.error("adding tag to section", e);
 			final Alert alertDialog = new Alert(AlertType.ERROR);
 			alertDialog.setHeaderText("error adding tag to section");
 			alertDialog.setContentText(e.getMessage());
 			alertDialog.show();
-			return;
+			return null;
 		}
 	}
 
@@ -208,7 +207,7 @@ public class MovieTagService implements TagService<Section, Tag> {
 
 
 	@Override
-	public int getCountForTags(final Set<Tag> includes, final Set<Tag> excludes, final String pattern) throws TagServiceException {
+	public int getCountForTags(final Set<Tag> includes, final Set<Tag> excludes, final String pattern) throws TagException {
 		try {
 			return movieTagDao.countMovies(includes, excludes, pattern);
 		} catch (final SQLException e) {
@@ -222,36 +221,37 @@ public class MovieTagService implements TagService<Section, Tag> {
 	}
 
 	@Override
-	public Section addSection(final String sectionName) throws TagServiceException {
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public void rename(final Section Section, final String name) throws TagServiceException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void remove(final Section Section) throws TagServiceException {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public Tag createTag(final String name) throws TagServiceException {
+	public Section addSection(final String sectionName) throws TagException {		
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public void rename(final Tag Tag, final String name) throws TagServiceException {
+	public Section rename(final Section Section, final String name) throws TagException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void remove(final Section Section) throws TagException {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void remove(final Tag tag) throws TagServiceException {
+	public Tag createTag(final String name) throws TagException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Tag rename(final Tag Tag, final String name) throws TagException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void remove(final Tag tag) throws TagException {
 		// TODO Auto-generated method stub
 
 	}

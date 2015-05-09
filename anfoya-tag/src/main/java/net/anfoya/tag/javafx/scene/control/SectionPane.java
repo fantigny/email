@@ -11,7 +11,7 @@ import net.anfoya.javafx.scene.control.IncExcBox;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
 import net.anfoya.tag.service.TagService;
-import net.anfoya.tag.service.TagServiceException;
+import net.anfoya.tag.service.TagException;
 
 public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends TitledPane {
 	private final TagService<S, T> tagService;
@@ -66,7 +66,7 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 				protected Integer call() {
 					try {
 						return tagService.getCountForSection(tagList.getSection(), includes, excludes, namePattern, tagPattern);
-					} catch (final TagServiceException e) {
+					} catch (final TagException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 						return 0;

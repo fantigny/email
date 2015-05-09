@@ -18,10 +18,10 @@ import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.model.SimpleThread.SortOrder;
+import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
-import net.anfoya.tag.service.TagServiceException;
 
 public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends SimpleThread> extends ListView<H> {
 	private final MailService<S, T, H, ? extends SimpleMessage> mailService;
@@ -150,7 +150,7 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 			for(final String id: thread.getTagIds()) {
 				try {
 					tags.add(mailService.getTag(id));
-				} catch (final TagServiceException e) {
+				} catch (final MailException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}

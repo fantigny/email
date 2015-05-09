@@ -13,7 +13,7 @@ import javafx.scene.layout.HBox;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
 import net.anfoya.tag.service.TagService;
-import net.anfoya.tag.service.TagServiceException;
+import net.anfoya.tag.service.TagException;
 
 public class SectionDropPane<S extends SimpleSection> extends GridPane {
 
@@ -118,7 +118,7 @@ public class SectionDropPane<S extends SimpleSection> extends GridPane {
 
 		try {
 			tagService.rename(section, name);
-		} catch (final TagServiceException e) {
+		} catch (final TagException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

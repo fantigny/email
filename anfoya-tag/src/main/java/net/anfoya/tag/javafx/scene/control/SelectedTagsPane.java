@@ -26,6 +26,7 @@ public class SelectedTagsPane<T extends SimpleTag> extends FlowPane {
 			final Button button = new Button(tag.getName() + CROSS);
 			button.setOnAction(event -> {
 				if (delTagCallBack != null) {
+					SelectedTagsPane.this.getChildren().remove(button);
 					delTagCallBack.call(tag);
 				}
 			});

@@ -8,19 +8,16 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-
-import javax.security.auth.login.LoginException;
 
 import net.anfoya.java.io.JsonFile;
 import net.anfoya.java.util.concurrent.ThreadPool;
@@ -29,8 +26,6 @@ import net.anfoya.mail.gmail.model.GmailTag;
 import net.anfoya.mail.gmail.model.GmailThread;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.service.MailService;
-import net.anfoya.mail.service.MailServiceException;
-import net.anfoya.tag.service.TagServiceException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,9 +62,8 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 	private final HttpTransport httpTransport;
 	private final JsonFactory jsonFactory;
 
-	private Gmail delegate = null;
-
-	private final Map<String, Label> idLabels = new ConcurrentHashMap<String, Label>();
+	private Gmail gmail;
+	private LabelService labelService;
 
 	public GmailImpl() {
 		httpTransport = new NetHttpTransport();
@@ -77,7 +71,7 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 	}
 
 	@Override
-	public void login(final String id, final String pwd) throws LoginException {
+	public void login(final String id, final String pwd) throws GMailException {
 		try {
 			final String path = this.getClass().getResource(CLIENT_SECRET_PATH).toURI().getPath();
 			final GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(jsonFactory, new FileReader(path));
@@ -115,13 +109,15 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 			}
 
 			// Create a new authorized Gmail API client
-			delegate = new Gmail.Builder(httpTransport, jsonFactory, credential).setApplicationName(APP_NAME).build();
+			gmail = new Gmail.Builder(httpTransport, jsonFactory, credential).setApplicationName(APP_NAME).build();
 
 			// save refresh token
 			refreshTokenFile.save(credential.getRefreshToken());
 		} catch (final URISyntaxException | IOException e) {
-			throw new LoginException("");
+			throw new GMailException("login", e);
 		}
+		
+		labelService = new LabelService(gmail, USER);
 	}
 
 	@Override
@@ -131,7 +127,7 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 	}
 
 	@Override
-	public Set<GmailThread> getThreads(final Set<GmailTag> availableTags, final Set<GmailTag> includes, final Set<GmailTag> excludes, final String pattern) throws MailServiceException {
+	public Set<GmailThread> getThreads(final Set<GmailTag> availableTags, final Set<GmailTag> includes, final Set<GmailTag> excludes, final String pattern) throws GMailException {
 		final Set<GmailThread> threads = new LinkedHashSet<GmailThread>();
 		if (includes.isEmpty()) {
 			return threads;
@@ -164,7 +160,7 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 		LOGGER.debug("get thread ids for tags({}) include({}) excludes({}) tagPattern(\"\") == query({})", availableTags, includes, excludes, pattern, query);
 		final Set<String> threadIds = new LinkedHashSet<String>();
 		try {
-			ListThreadsResponse threadResponse = delegate.users().threads().list(USER).setQ(query.toString()).execute();
+			ListThreadsResponse threadResponse = gmail.users().threads().list(USER).setQ(query.toString()).execute();
 			while (threadResponse.getThreads() != null) {
 				for(final Thread t : threadResponse.getThreads()) {
 					threadIds.add(t.getId());
@@ -172,37 +168,32 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 				if (threadResponse.getNextPageToken() != null) {
 					final String pageToken = threadResponse.getNextPageToken();
 					LOGGER.debug("get thread ids for tags({}) include({}) excludes({}) tagPattern(\"\") == {}", availableTags, includes, excludes, pattern, query);
-					threadResponse = delegate.users().threads().list(USER).setQ(query.toString()).setPageToken(pageToken).execute();
+					threadResponse = gmail.users().threads().list(USER).setQ(query.toString()).setPageToken(pageToken).execute();
 				} else {
 					break;
 				}
 			}
 		} catch (final IOException e) {
-			throw new MailServiceException("loading thread ids for: " + includes.toString(), e);
+			throw new GMailException("loading thread ids for: " + includes.toString(), e);
 		}
 
 		final Set<Future<GmailThread>> futures = new LinkedHashSet<Future<GmailThread>>();
 		try {
-			ListThreadsResponse threadResponse = delegate.users().threads().list(USER).setQ(query.toString()).execute();
+			ListThreadsResponse threadResponse = gmail.users().threads().list(USER).setQ(query.toString()).execute();
 			while (threadResponse.getThreads() != null) {
 				for(final Thread t : threadResponse.getThreads()) {
-					final Callable<GmailThread> c = new Callable<GmailThread>() {
-						@Override
-						public GmailThread call() throws Exception {
-							return getThread(t.getId());
-						}
-					};
+					final Callable<GmailThread> c = () -> getThread(t.getId());
 					futures.add(ThreadPool.getInstance().submit(c));
 				}
 				if (threadResponse.getNextPageToken() != null) {
 					final String pageToken = threadResponse.getNextPageToken();
-					threadResponse = delegate.users().threads().list(USER).setQ(query.toString()).setPageToken(pageToken).execute();
+					threadResponse = gmail.users().threads().list(USER).setQ(query.toString()).setPageToken(pageToken).execute();
 				} else {
 					break;
 				}
 			}
 		} catch (final IOException e) {
-			throw new MailServiceException("loading threads for: " + includes.toString(), e);
+			throw new GMailException("loading threads for: " + includes.toString(), e);
 		}
 
 		try {
@@ -210,113 +201,126 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 				threads.add(f.get());
 			}
 		} catch(final CancellationException | InterruptedException | ExecutionException e) {
-			throw new MailServiceException("loading threads for: " + includes.toString(), e);
+			throw new GMailException("loading threads for: " + includes.toString(), e);
 		}
 
 		return threads;
 	}
 
 	@Override
-	public GmailThread getThread(final String id) throws MailServiceException {
+	public GmailThread getThread(final String id) throws GMailException {
 		try {
 			LOGGER.debug("get thread for id: {}", id);
-			return new GmailThread(delegate.users().threads().get(USER, id).setFormat("metadata") .execute());
+			return new GmailThread(gmail.users().threads().get(USER, id).setFormat("metadata") .execute());
 		} catch (final IOException e) {
-			throw new MailServiceException("loading thread " + id, e);
+			throw new GMailException("loading thread " + id, e);
 		}
 	}
 
 	@Override
-	public SimpleMessage getMessage(final String id) throws MailServiceException {
+	public SimpleMessage getMessage(final String id) throws GMailException {
 		try {
 			LOGGER.debug("get message for id: {}", id);
-			final Message message = delegate.users().messages().get(USER, id).setFormat("raw").execute();
+			final Message message = gmail.users().messages().get(USER, id).setFormat("raw").execute();
 			final byte[] emailBytes = Base64.getUrlDecoder().decode(message.getRaw());
 		    return new SimpleMessage(message.getId(), emailBytes);
 		} catch (final IOException e) {
-			throw new MailServiceException("loading message id: " + id, e);
+			throw new GMailException("loading message id: " + id, e);
 		}
 	}
 
 	@Override
-	public Set<GmailSection> getSections() throws TagServiceException {
-		final Set<GmailSection> sectionTemp = new TreeSet<GmailSection>();
-		for(final Label l: getLabels().values()) {
-			final GmailSection section = new GmailSection(l);
-			if (!section.isHidden()) {
-				sectionTemp.add(section);
-			}
-		}
-		for(final Iterator<GmailSection> i=sectionTemp.iterator(); i.hasNext();) {
-			final String s = i.next().getName() + "/";
-			boolean section = false;
-			for(final Label l: getLabels().values()) {
-				if (l.getName().contains(s)) {
-					section = true;
-					break;
+	public Set<GmailSection> getSections() throws GMailException {
+		try {
+			final Set<GmailSection> sectionTemp = new TreeSet<GmailSection>();
+			final Collection<Label> labels = labelService.getAll();
+			for(final Label l: labels) {
+				final GmailSection section = new GmailSection(l);
+				if (!section.isHidden()) {
+					sectionTemp.add(section);
 				}
 			}
-			if (!section) {
-				i.remove();
+			for(final Iterator<GmailSection> i=sectionTemp.iterator(); i.hasNext();) {
+				final String s = i.next().getName() + "/";
+				boolean section = false;
+				for(final Label l: labels) {
+					if (l.getName().contains(s)) {
+						section = true;
+						break;
+					}
+				}
+				if (!section) {
+					i.remove();
+				}
 			}
+	
+			final Set<GmailSection> sections = new TreeSet<GmailSection>();
+			sections.add(GmailSection.GMAIL_SYSTEM);
+			sections.add(GmailSection.NO_SECTION);
+			sections.addAll(sectionTemp);
+	
+			LOGGER.debug("get sections: {}", sections);
+			return sections;
+		} catch (final LabelException e) {
+			throw new GMailException("getting sections", e);
 		}
-
-		final Set<GmailSection> sections = new TreeSet<GmailSection>();
-		sections.add(GmailSection.GMAIL_SYSTEM);
-		sections.add(GmailSection.NO_SECTION);
-		sections.addAll(sectionTemp);
-
-		LOGGER.debug("get sections: {}", sections);
-		return sections;
 	}
 
 	@Override
-	public GmailTag getTag(final String id) throws TagServiceException {
-		return new GmailTag(getLabels().get(id));
+	public GmailTag getTag(final String id) throws GMailException {
+		try {
+			return new GmailTag(labelService.get(id));
+		} catch (final LabelException e) {
+			throw new GMailException("getting tag " + id, e);
+		}
 	}
 
 	@Override
-	public Set<GmailTag> getTags(final GmailSection section, final String tagPattern) throws TagServiceException {
-		final Set<GmailTag> tags = new TreeSet<GmailTag>();
-		final String pattern = tagPattern.trim().toLowerCase();
-		for(final Label l: getLabels().values()) {
-			final GmailTag tag = new GmailTag(l);
-			if (!tag.isHidden()
-					&& (section == null
-							|| section.equals(GmailSection.GMAIL_SYSTEM) && l.getType().equals("system")
-							|| section.getId().equals(GmailSection.NO_SECTION.getId()) && !l.getName().contains("/") && !l.getType().equals("system")
-							|| l.getName().startsWith(section.getName()+"/") && !l.getName().substring(section.getName().length()+1, l.getName().length()).contains("/"))
-					&& tag.getName().toLowerCase().contains(pattern)) {
-				tags.add(tag);
+	public Set<GmailTag> getTags(final GmailSection section, final String tagPattern) throws GMailException {
+		try {
+			final Set<GmailTag> tags = new TreeSet<GmailTag>();
+			final String pattern = tagPattern.trim().toLowerCase();
+			final Collection<Label> labels = labelService.getAll();
+			for(final Label l:labels) {
+				final GmailTag tag = new GmailTag(l);
+				if (!tag.isHidden()
+						&& (section == null
+								|| section.equals(GmailSection.GMAIL_SYSTEM) && l.getType().equals("system")
+								|| section.getId().equals(GmailSection.NO_SECTION.getId()) && !l.getName().contains("/") && !l.getType().equals("system")
+								|| l.getName().startsWith(section.getName()+"/") && !l.getName().substring(section.getName().length()+1, l.getName().length()).contains("/"))
+						&& tag.getName().toLowerCase().contains(pattern)) {
+					tags.add(tag);
+				}
 			}
-		}
 
-		LOGGER.debug("tags for section({}) tagPattern({}): {}", section == null? "": section.getPath(), tagPattern, tags);
-		return tags;
+			LOGGER.debug("tags for section({}) tagPattern({}): {}", section == null? "": section.getPath(), tagPattern, tags);
+			return tags;
+		} catch (final LabelException e) {
+			throw new GMailException("getting tags for section " + section.getName() + " and pattern \" + tagPattern + \"", e);
+		}
 	}
 
 	@Override
-	public Set<GmailTag> getTags() throws TagServiceException {
+	public Set<GmailTag> getTags() throws GMailException {
 		return getTags(null, "");
 	}
 
 	@Override
-	public void moveToSection(final GmailSection section, final GmailTag tag) throws TagServiceException {
-		Label label = getLabels().get(tag.getId());
-		label.setName(section.getName() + "/" + tag.getName());
-		label.setMessageListVisibility("show");
-		label.setLabelListVisibility("labelShow");
+	public GmailTag moveToSection(final GmailTag tag, final GmailSection section) throws GMailException {
 		try {
-			label = delegate.users().labels().update(USER, label.getId(), label).execute();
-		} catch (final IOException e) {
-			throw new TagServiceException("moving " + tag.getName(), e);
-		} finally {
-			idLabels.clear();
+			Label label = labelService.get(tag.getId());
+			label.setName(section.getName() + "/" + tag.getName());
+			label.setMessageListVisibility("show");
+			label.setLabelListVisibility("labelShow");
+			label = gmail.users().labels().update(USER, label.getId(), label).execute();
+			return new GmailTag(label);
+		} catch (final IOException | LabelException e) {
+			throw new GMailException("moving " + tag.getName() + " to " + section.getName(), e);
 		}
 	}
 
 	@Override
-	public int getCountForTags(final Set<GmailTag> includes, final Set<GmailTag> excludes, final String mailPattern) throws TagServiceException {
+	public int getCountForTags(final Set<GmailTag> includes, final Set<GmailTag> excludes, final String mailPattern) throws GMailException {
 		if (includes.isEmpty()) {
 			return 0;
 		}
@@ -348,18 +352,18 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 
 		int count = 0;
 		try {
-			ListThreadsResponse response = delegate.users().threads().list(USER).setQ(query.toString()).execute();
+			ListThreadsResponse response = gmail.users().threads().list(USER).setQ(query.toString()).execute();
 			while (response.getThreads() != null) {
 				count += response.getThreads().size();
 				if (response.getNextPageToken() != null) {
 					final String pageToken = response.getNextPageToken();
-					response = delegate.users().threads().list(USER).setQ(query.toString()).setPageToken(pageToken).execute();
+					response = gmail.users().threads().list(USER).setQ(query.toString()).setPageToken(pageToken).execute();
 				} else {
 					break;
 				}
 			}
 		} catch (final IOException e) {
-			throw new TagServiceException("counting threads for " + includes.toString(), e);
+			throw new GMailException("counting threads for " + includes.toString(), e);
 		}
 
 		LOGGER.debug("count for tag includes({}) excludes({}) mailPattern({}): {} == query({})", includes, excludes, mailPattern, count, query);
@@ -370,7 +374,7 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 	@Override
 	public int getCountForSection(final GmailSection section
 			, final Set<GmailTag> includes, final Set<GmailTag> excludes
-			, final String namePattern, final String tagPattern) throws TagServiceException {
+			, final String namePattern, final String tagPattern) throws GMailException {
 
 		final StringBuilder query = new StringBuilder();
 
@@ -416,187 +420,152 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 
 		int count = 0;
 		try {
-			ListThreadsResponse resp = delegate.users().threads().list(USER).setQ(query.toString()).execute();
+			ListThreadsResponse resp = gmail.users().threads().list(USER).setQ(query.toString()).execute();
 			while (resp.getThreads() != null) {
 				count += resp.getThreads().size();
 				if (resp.getNextPageToken() != null) {
 					final String pageToken = resp.getNextPageToken();
-					resp = delegate.users().threads().list(USER).setQ(query.toString()).setPageToken(pageToken).execute();
+					resp = gmail.users().threads().list(USER).setQ(query.toString()).setPageToken(pageToken).execute();
 				} else {
 					break;
 				}
 			}
 		} catch (final IOException e) {
-			throw new TagServiceException("counting threads for " + section.getPath(), e);
+			throw new GMailException("counting threads for " + section.getPath(), e);
 		}
 
 		LOGGER.debug("count for section({}) includes({}) excludes({}) tagPattern(\"{}\"): {} == query({})", section, includes, excludes, tagPattern, count, query);
 		return count;
 	}
 
-	private Map<String, Label> getLabels() throws TagServiceException {
-		if (idLabels.isEmpty()) {
-			try {
-				for(final Label l: delegate.users().labels().list(USER).execute().getLabels()) {
-					idLabels.put(l.getId(), l);
-				}
-			} catch (final IOException e) {
-				throw new TagServiceException("getting labels", e);
-			}
-			LOGGER.debug("get labels: {}", idLabels.values());
-		}
-		return idLabels;
-	}
-
 	@Override
-	public void addTag(final GmailTag tag, final Set<GmailThread> threads) throws MailServiceException {
+	public void addTag(final GmailTag tag, final Set<GmailThread> threads) throws GMailException {
 		for(final GmailThread t: threads) {
 			try {
 				@SuppressWarnings("serial")
 				final ModifyThreadRequest request = new ModifyThreadRequest().setAddLabelIds(new ArrayList<String>() {{ add(tag.getId()); }});
-				delegate.users().threads().modify(USER, t.getId(), request).execute();
+				gmail.users().threads().modify(USER, t.getId(), request).execute();
 			} catch (final IOException e) {
-				throw new MailServiceException("adding tag", e);
+				throw new GMailException("adding tag", e);
 			}
 		}
 	}
 
 	@Override
-	public void remTag(final GmailTag tag, final GmailThread thread) throws MailServiceException {
+	public void remTag(final GmailTag tag, final GmailThread thread) throws GMailException {
 		try {
 			@SuppressWarnings("serial")
 			final ModifyThreadRequest request = new ModifyThreadRequest().setRemoveLabelIds(new ArrayList<String>() {{ add(tag.getId()); }});
-			delegate.users().threads().modify(USER, thread.getId(), request).execute();
+			gmail.users().threads().modify(USER, thread.getId(), request).execute();
 		} catch (final IOException e) {
-			throw new MailServiceException("adding tag", e);
-		} finally {
-			idLabels.clear();
+			throw new GMailException("adding tag", e);
 		}
 	}
 
 	@Override
-	public GmailTag findTag(final String name) throws TagServiceException {
-		for(final Label l: getLabels().values()) {
-			if (l.getName().equalsIgnoreCase(name)) {
-				return new GmailTag(l);
+	public GmailTag findTag(final String name) throws GMailException {
+		try {
+			for(final Label l: labelService.getAll()) {
+				if (l.getName().equalsIgnoreCase(name)) {
+					return new GmailTag(l);
+				}
 			}
+		} catch (final LabelException e) {
+			throw new GMailException("finf tag " + name, e);
 		}
 		return null;
 	}
 
 	@Override
-	public void rename(final GmailSection section, final String name) throws TagServiceException {
+	public GmailSection rename(GmailSection section, final String name) throws GMailException {
 		final Set<GmailTag> tags = getTags(section, "");
-		Label label = getLabels().get(section.getId());
+		Label label;
 		try {
-			label = rename(label, name);
-		} catch (final IOException e) {
-			throw new TagServiceException("rename section " + label.getName(), e);
+			label = labelService.get(section.getId());
+			label = labelService.rename(label, name);
+		} catch (final LabelException e) {
+			throw new GMailException("rename section " + section.getName() + " to " + name, e);
 		}
+		section = new GmailSection(label);
 
 		// move tags to new section
-		final GmailSection newSection = new GmailSection(label);
 		for(final GmailTag t: tags) {
-			moveToSection(newSection, t);
+			moveToSection(t, section);
 		}
+		
+		return section;
 	}
 
-	private Label rename(Label label, final String name) throws IOException {
+	@Override
+	public GmailTag rename(final GmailTag tag, final String name) throws GMailException {
 		try {
-			String newName = label.getName();
-			if (newName.contains("/")) {
-				newName = newName.substring(0, newName.lastIndexOf("/"));
-			} else {
-				newName = "";
-			}
-			newName += name;
-			label.setName(newName);
-			label = delegate.users().labels().update(USER, label.getId(), label).execute();
-
-			return label;
-		} finally {
-			idLabels.clear();
+			return new GmailTag(labelService.rename(labelService.get(tag.getId()), name));
+		} catch (final LabelException e) {
+			throw new GMailException("rename tag " + tag.getName(), e);
 		}
 	}
 
 	@Override
-	public void rename(final GmailTag tag, final String name) throws TagServiceException {
-		try {
-			rename(getLabels().get(tag.getId()), name);
-		} catch (final IOException e) {
-			throw new TagServiceException("rename tag " + tag.getName(), e);
-		}
-	}
-
-	@Override
-	public GmailSection addSection(final String name) throws TagServiceException {
+	public GmailSection addSection(final String name) throws GMailException {
 
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public GmailTag createTag(final String name) throws TagServiceException {
-
-		Label label = new Label();
-		label.setMessageListVisibility("show");
-		label.setLabelListVisibility("labelShow");
-		label.setName(name);
+	public GmailTag createTag(final String name) throws GMailException {
 		try {
-			label = delegate.users().labels().create(USER, label).execute();
-		} catch (final IOException e) {
-			throw new TagServiceException("adding " + name, e);
-		} finally {
-			idLabels.clear();
-		}
-
-		return new GmailTag(label);
-	}
-
-	@Override
-	public void remove(final GmailSection section) throws TagServiceException {
-		try {
-			delegate.users().labels().delete(USER, section.getId());
-		} catch (final IOException e) {
-			throw new TagServiceException("remove section " + section.getName(), e);
-		} finally {
-			idLabels.clear();
+			Label label = new Label();
+			label.setMessageListVisibility("show");
+			label.setLabelListVisibility("labelShow");
+			label.setName(name);
+			label = labelService.add(label);
+			return new GmailTag(label);
+		} catch (final LabelException e) {
+			throw new GMailException("adding " + name, e);
 		}
 	}
 
 	@Override
-	public void remove(final GmailTag tag) throws TagServiceException {
+	public void remove(final GmailSection section) throws GMailException {
 		try {
-			delegate.users().labels().delete(USER, tag.getId());
+			gmail.users().labels().delete(USER, section.getId());
 		} catch (final IOException e) {
-			throw new TagServiceException("remove tag " + tag.getName(), e);
-		} finally {
-			idLabels.clear();
+			throw new GMailException("remove section " + section.getName(), e);
 		}
 	}
 
 	@Override
-	public void archive(final Set<GmailThread> threads) throws MailServiceException {
+	public void remove(final GmailTag tag) throws GMailException {
+		try {
+			labelService.remove(labelService.get(tag.getId()));
+		} catch (final LabelException e) {
+			throw new GMailException("remove tag " + tag.getName(), e);
+		}
+	}
+
+	@Override
+	public void archive(final Set<GmailThread> threads) throws GMailException {
 		try {
 			@SuppressWarnings("serial")
 			final List<String> inboxId = new ArrayList<String>() {{ add(findTag("INBOX").getId());}};
 			final ModifyThreadRequest request = new ModifyThreadRequest().setRemoveLabelIds(inboxId);
 			for(final GmailThread t: threads) {
-				delegate.users().threads().modify(USER, t.getId(), request).execute();
+				gmail.users().threads().modify(USER, t.getId(), request).execute();
 			}
-		} catch (final IOException | TagServiceException e) {
-			throw new MailServiceException("trashing threads " + threads, e);
+		} catch (final IOException | GMailException e) {
+			throw new GMailException("trashing threads " + threads, e);
 		}
 	}
 
 	@Override
-	public void delete(final Set<GmailThread> threads) throws MailServiceException {
+	public void delete(final Set<GmailThread> threads) throws GMailException {
 		try {
 			for(final GmailThread t: threads) {
-				delegate.users().threads().trash(USER, t.getId()).execute();
+				gmail.users().threads().trash(USER, t.getId()).execute();
 			}
 		} catch (final IOException e) {
-			throw new MailServiceException("trashing threads " + threads, e);
+			throw new GMailException("trashing threads " + threads, e);
 		}
 	}
 }

@@ -14,7 +14,7 @@ import javafx.scene.layout.HBox;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
 import net.anfoya.tag.service.TagService;
-import net.anfoya.tag.service.TagServiceException;
+import net.anfoya.tag.service.TagException;
 
 public class TagDropPane<S extends SimpleSection, T extends SimpleTag> extends GridPane {
 	private final TagService<S, T> tagService;
@@ -146,8 +146,8 @@ public class TagDropPane<S extends SimpleSection, T extends SimpleTag> extends G
 
 		try {
 			final S section = tagService.addSection(name);
-			tagService.moveToSection(section, tag);
-		} catch (final TagServiceException e) {
+			tagService.moveToSection(tag, section);
+		} catch (final TagException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -177,7 +177,7 @@ public class TagDropPane<S extends SimpleSection, T extends SimpleTag> extends G
 
 		try {
 			tagService.rename(tag, name);
-		} catch (final TagServiceException e) {
+		} catch (final TagException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
@@ -192,7 +192,7 @@ public class TagDropPane<S extends SimpleSection, T extends SimpleTag> extends G
 		if (response.isPresent() && response.get() == ButtonType.OK) {
 			try {
 				tagService.remove(tag);
-			} catch (final TagServiceException e) {
+			} catch (final TagException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}

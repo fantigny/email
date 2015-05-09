@@ -24,10 +24,10 @@ import net.anfoya.mail.gmail.model.GmailTag;
 import net.anfoya.mail.gmail.model.GmailThread;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.service.MailService;
-import net.anfoya.mail.service.MailServiceException;
+import net.anfoya.mail.service.MailException;
 import net.anfoya.tag.javafx.scene.control.SectionListPane;
 import net.anfoya.tag.javafx.scene.control.dnd.DndFormat;
-import net.anfoya.tag.service.TagServiceException;
+import net.anfoya.tag.service.TagException;
 
 public class MailBrowserApp extends Application {
 //	private static final Logger LOGGER = LoggerFactory.getLogger(MailBrowserApp.class);
@@ -49,7 +49,7 @@ public class MailBrowserApp extends Application {
 		ThreadPool.getInstance().submit(() -> {
 			try {
 				mailService.login(null, null);
-			} catch (final LoginException e) {
+			} catch (final MailException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -59,7 +59,7 @@ public class MailBrowserApp extends Application {
 		initData();
 	}
 
-	private void initGui(final Stage primaryStage) throws MailServiceException, LoginException {
+	private void initGui(final Stage primaryStage) throws MailException, LoginException {
 		final BorderPane mainPane = new BorderPane();
 		mainPane.setPadding(new Insets(5));
 
@@ -180,7 +180,7 @@ public class MailBrowserApp extends Application {
 		Set<GmailTag> availableTags;
 		try {
 			availableTags = mailService.getTags();
-		} catch (final TagServiceException e) {
+		} catch (final TagException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return;
