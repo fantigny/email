@@ -45,13 +45,15 @@ public class MessagePane<M extends SimpleMessage> extends TitledPane {
 	private final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService;
 
 	private final WebView bodyView;
-
-	private SimpleMessage message;
+	private final String messageId;
+	
+	private M message;
 	private MimeMessage mimeMessage;
 
-	public MessagePane(final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService) {
+	public MessagePane(final String messageId, final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService) {
 		super("loading...", new BorderPane());
 		this.mailService = mailService;
+		this.messageId = messageId;
 
 		final BorderPane mainPane = (BorderPane) getContent();
 		mainPane.setPadding(new Insets(0));
@@ -67,7 +69,7 @@ public class MessagePane<M extends SimpleMessage> extends TitledPane {
 		});
 	}
 
-	public void load(final String messageId) {
+	public void refresh() {
 		clear();
 
 		final Task<Void> task = new Task<Void>() {
@@ -80,7 +82,8 @@ public class MessagePane<M extends SimpleMessage> extends TitledPane {
 		};
 		task.setOnSucceeded(event -> {
 			try {
-				load();
+				refreshTitle();
+				refreshBody();
 			} catch (final Exception e) {
 				LOGGER.error("loading message id: " + messageId, e);
 			}
@@ -88,43 +91,43 @@ public class MessagePane<M extends SimpleMessage> extends TitledPane {
 		ThreadPool.getInstance().submit(task);
 	}
 
-	private void load() throws IOException, MessagingException {
-		loadTitle();
-		loadBody();
-	}
-
-	private void loadTitle() throws MessagingException {
+	private void refreshTitle() throws MessagingException {
 		final StringBuilder title = new StringBuilder();
 		title.append(mimeMessage.getSentDate());
-		title.append(" from ").append(getMailAddress(mimeMessage.getFrom()[0]));
-		title.append(" to ");
-		boolean multiple = false;
-		for(final Address a: mimeMessage.getRecipients(Message.RecipientType.TO)) { //TODO nullpointer
-			if (multiple) {
-				title.append(", ");
-			}
-			title.append(getMailAddress(a));
-			multiple = true;
-		}
+		title.append(" from ").append(getMailAddresses(mimeMessage.getFrom()));
+		title.append(" to ").append(getMailAddresses(mimeMessage.getRecipients(Message.RecipientType.TO)));;
 		setText(title.toString());
 	}
 
-	//TODO replace with getMailAddress*es*
-	private String getMailAddress(final Address address) {
-		if (address != null && address.getType().equalsIgnoreCase("rfc822")) {
-			final InternetAddress mailAddress = (InternetAddress) address;
-			if (mailAddress.getPersonal() != null) {
-				return mailAddress.getPersonal();
-			} else {
-				return mailAddress.getAddress();
-			}
+	private String getMailAddresses(final Address[] addresses) {
+		final StringBuilder sb = new StringBuilder();
+		if (addresses == null || addresses.length == 0) {
+			sb.append("[empty]");
 		} else {
-			return "[unknown]";
+			boolean first = true;
+			for(final Address address: addresses) {
+				if (!first) {
+					sb.append(", ");
+				}
+				first = false;
+	
+				if (address.getType().equalsIgnoreCase("rfc822")) {
+					final InternetAddress mailAddress = (InternetAddress) address;
+					if (mailAddress.getPersonal() != null) {
+						sb.append(mailAddress.getPersonal());
+					} else {
+						sb.append(mailAddress.getAddress());
+					}
+				} else {
+					sb.append("[unknown]");
+				}
+			}
 		}
-
+		
+		return sb.toString();
 	}
 
-	private void loadBody() throws IOException, MessagingException {
+	private void refreshBody() throws MessagingException, IOException {
 		String html = toHtml(mimeMessage.getContent(), mimeMessage.getContentType(), false);
 		if (html.isEmpty()) {
 			html = toHtml(mimeMessage.getContent(), mimeMessage.getContentType(), true);
@@ -164,5 +167,9 @@ public class MessagePane<M extends SimpleMessage> extends TitledPane {
 
 	public void clear() {
 		bodyView.getEngine().loadContent("");
+	}
+
+	public M getMessage() {
+		return message;
 	}
 }

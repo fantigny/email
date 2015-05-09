@@ -2,7 +2,7 @@ package net.anfoya.movie.browser.model;
 
 import net.anfoya.tag.model.SimpleTag;
 
-
+@SuppressWarnings("serial")
 public class Tag extends SimpleTag {
 	public static final String TO_WATCH_NAME = "To watch";
 	public static final String FRENCH_NAME = "French";

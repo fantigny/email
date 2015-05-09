@@ -29,5 +29,5 @@ public interface MailService<S extends SimpleSection
 	public void archive(Set<H> threads) throws MailServiceException;
 	public void delete(Set<H> threads) throws MailServiceException;
 
-	public SimpleMessage getMessage(String id) throws MailServiceException;
+	public M getMessage(String id) throws MailServiceException;
 }
