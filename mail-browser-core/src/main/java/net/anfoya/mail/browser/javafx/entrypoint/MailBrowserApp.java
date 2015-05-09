@@ -23,11 +23,10 @@ import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.gmail.model.GmailTag;
 import net.anfoya.mail.gmail.model.GmailThread;
 import net.anfoya.mail.model.SimpleMessage;
-import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.MailException;
+import net.anfoya.mail.service.MailService;
 import net.anfoya.tag.javafx.scene.control.SectionListPane;
 import net.anfoya.tag.javafx.scene.control.dnd.DndFormat;
-import net.anfoya.tag.service.TagException;
 
 public class MailBrowserApp extends Application {
 //	private static final Logger LOGGER = LoggerFactory.getLogger(MailBrowserApp.class);
@@ -102,15 +101,15 @@ public class MailBrowserApp extends Application {
 			threadListPane.prefHeightProperty().bind(selectionPane.heightProperty());
 			threadListPane.addSelectionListener((ov, oldVal, newVal) -> {
 				if (!threadListPane.isRefreshing()) {
-					// update movie details when (a) movie(s) is/are selected
+					// update thread details when (a) thread(s) is/are selected
 					refreshThread();
 				}
 			});
 			threadListPane.addChangeListener(change -> {
-				// update movie count when a new movie list is loaded
+				// update thread count when a new thread list is loaded
 				updateThreadCount();
 				if (!threadListPane.isRefreshing()) {
-					// update movie details in case no movie is selected
+					// update thread details in case no thread is selected
 					refreshThread();
 				}
 			});
@@ -177,7 +176,7 @@ public class MailBrowserApp extends Application {
 
 	private void updateThreadCount() {
 		final int currentCount = threadListPane.getThreadCount();
-		Set<GmailTag> availableTags = threadListPane.getThreadTags();
+		final Set<GmailTag> availableTags = threadListPane.getThreadTags();
 		final String namePattern = "";
 		sectionListPane.updateCount(currentCount, availableTags, namePattern);
 	}

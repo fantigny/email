@@ -11,7 +11,6 @@
 		</encoder>
 	</appender>
 
-  <logger name="net.anfoya.mail.gmail" level="DEBUG"/>
   <!--
   <logger name="net.anfoya.mail.gmail" level="DEBUG"/>
   -->

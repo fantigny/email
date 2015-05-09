@@ -51,6 +51,7 @@ public class SimpleTag implements Serializable, Comparable<SimpleTag> {
 		return new SimpleTag(id, name);
 	}
 
+	//TODO should not need an id?
 	public String getId() {
 		return id;
 	}

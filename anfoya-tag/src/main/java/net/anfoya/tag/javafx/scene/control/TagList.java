@@ -20,6 +20,8 @@ import net.anfoya.tag.model.SimpleTag;
 import net.anfoya.tag.service.TagException;
 import net.anfoya.tag.service.TagService;
 
+//TODO use tag id instead of tag name
+
 public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListView<TagListItem<T>> {
 	private final TagService<S, T> tagService;
 
@@ -97,7 +99,7 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 		}
 
 		// build items map and restore selection
-		itemMap.clear();
+		final Map<String, TagListItem<T>> countedItemMap = this.itemMap;
 		final ObservableList<TagListItem<T>> items = FXCollections.observableArrayList();
 		for(final T tag: tags) {
 			final TagListItem<T> item = new TagListItem<T>(tag);
@@ -108,6 +110,10 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 				item.includedProperty().addListener(tagChangeListener);
 				item.excludedProperty().addListener(tagChangeListener);
 			}
+			if (countedItemMap.containsKey(tag.getName())) {
+				item.countProperty().set(countedItemMap.get(tag.getName()).countProperty().get());
+			}
+			
 			items.add(item);
 			itemMap.put(tag.getName(), item);
 		}

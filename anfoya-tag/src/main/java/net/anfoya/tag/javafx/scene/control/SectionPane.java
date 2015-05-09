@@ -78,7 +78,6 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 		}
 
 		final Runnable tagListTask = () -> {
-			System.out.println("updateCount");
 			tagList.updateCount(currentCount, availableTags, includes, excludes, namePattern);
 		};
 		if (isExpanded() || !lazyCount) {

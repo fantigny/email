@@ -26,8 +26,8 @@ import net.anfoya.tag.javafx.scene.control.dnd.SectionDropPane;
 import net.anfoya.tag.javafx.scene.control.dnd.TagDropPane;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
-import net.anfoya.tag.service.TagService;
 import net.anfoya.tag.service.TagException;
+import net.anfoya.tag.service.TagService;
 
 public class SectionListPane<S extends SimpleSection, T extends SimpleTag> extends BorderPane {
 	private final TagService<S, T> tagService;
