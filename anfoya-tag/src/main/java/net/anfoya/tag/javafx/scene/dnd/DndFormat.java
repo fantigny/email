@@ -1,4 +1,4 @@
-package net.anfoya.tag.javafx.scene.control.dnd;
+package net.anfoya.tag.javafx.scene.dnd;
 
 import javafx.scene.input.DataFormat;
 import net.anfoya.tag.model.SimpleSection;

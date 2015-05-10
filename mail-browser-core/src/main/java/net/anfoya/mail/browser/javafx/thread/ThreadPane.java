@@ -11,6 +11,7 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Accordion;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
@@ -20,7 +21,7 @@ import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
-import net.anfoya.tag.javafx.scene.control.SelectedTagsPane;
+import net.anfoya.tag.javafx.scene.section.SelectedTagsPane;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
 
@@ -28,9 +29,9 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 	private final MailService<? extends SimpleSection, T, H, M> mailService;
 
 	private final TextField subjectField;
-	private final Accordion messageAcc;	
+	private final Accordion messageAcc;
 	private final SelectedTagsPane<T> tagsPane;
-	
+
 	private EventHandler<ActionEvent> delTagHandler;
 
 	private Set<H> threads;
@@ -46,9 +47,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 		subjectField.setEditable(false);
 		setTop(subjectField);
 
-		messageAcc = new Accordion();
-
-		final StackPane stackPane = new StackPane(messageAcc);
+		final StackPane stackPane = new StackPane();
 		stackPane.setAlignment(Pos.BOTTOM_CENTER);
 		BorderPane.setMargin(stackPane, new Insets(5, 0, 5, 0));
 
@@ -74,6 +73,16 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 		setCenter(stackPane);
 
 
+		final ScrollPane messageScrollPane = new ScrollPane();
+		messageScrollPane.setFitToWidth(true);
+		messageScrollPane.getStyleClass().add("edge-to-edge");
+
+		messageAcc = new Accordion();
+		messageAcc.minHeightProperty().bind(messageScrollPane.heightProperty());
+		messageScrollPane.setContent(messageAcc);
+
+		stackPane.getChildren().add(messageScrollPane);
+
 		tagsPane = new SelectedTagsPane<T>();
 		setBottom(tagsPane);
 	}
@@ -92,7 +101,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 			messageAcc.getPanes().clear();
 			return;
 		}
-		
+
 		final H previous = thread;
 		thread = threads.iterator().next();
 		if (previous != null && previous.getId().equals(thread.getId())) {
@@ -124,7 +133,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 				i.remove();
 			}
 		}
-		
+
 		int index = 0;
 		final ObservableList<TitledPane> panes = messageAcc.getPanes();
 		for(final Iterator<String> i=new LinkedList<String>(thread.getMessageIds()).descendingIterator(); i.hasNext();) {
@@ -140,7 +149,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 			index++;
 		}
 
-		if (!messageAcc.getPanes().isEmpty()) {
+		if (!messageAcc.getPanes().isEmpty() && messageAcc.getExpandedPane() == null) {
 			messageAcc.setExpandedPane(messageAcc.getPanes().get(0));
 		}
 	}
@@ -156,7 +165,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 		if (!messageAcc.getPanes().isEmpty()) {
 			messageAcc.setExpandedPane(messageAcc.getPanes().get(0));
 		}
-		
+
 		try {
 			final T unread = mailService.findTag("UNREAD");
 			if (thread.getTagIds().contains(unread.getId())) {
@@ -166,7 +175,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 		} catch (final MailException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}		
+		}
 	}
 
 	public void setOnDelTag(final EventHandler<ActionEvent> handler) {
@@ -178,7 +187,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 			tagsPane.clear();
 			return;
 		}
-		
+
 		final Set<T> tags = new LinkedHashSet<T>();
 		for(final H t: threads) {
 			for(final String id: t.getTagIds()) {

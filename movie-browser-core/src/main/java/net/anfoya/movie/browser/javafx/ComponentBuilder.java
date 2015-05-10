@@ -23,7 +23,7 @@ import net.anfoya.movie.browser.service.MovieFileService;
 import net.anfoya.movie.browser.service.MovieService;
 import net.anfoya.movie.browser.service.MovieTagService;
 import net.anfoya.movie.browser.service.ProfileService;
-import net.anfoya.tag.javafx.scene.control.SectionListPane;
+import net.anfoya.tag.javafx.scene.section.SectionListPane;
 
 import org.jgroups.JChannel;
 import org.slf4j.Logger;

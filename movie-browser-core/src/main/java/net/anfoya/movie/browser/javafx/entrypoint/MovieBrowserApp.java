@@ -39,7 +39,7 @@ import net.anfoya.movie.browser.model.Profile;
 import net.anfoya.movie.browser.model.Section;
 import net.anfoya.movie.browser.model.Tag;
 import net.anfoya.movie.browser.service.MovieService;
-import net.anfoya.tag.javafx.scene.control.SectionListPane;
+import net.anfoya.tag.javafx.scene.section.SectionListPane;
 
 import org.slf4j.bridge.SLF4JBridgeHandler;
 

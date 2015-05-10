@@ -1,4 +1,4 @@
-package net.anfoya.tag.javafx.scene.control;
+package net.anfoya.tag.javafx.scene.tag;
 
 import java.sql.SQLException;
 import java.util.Collections;
@@ -113,7 +113,7 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 			if (countedItemMap.containsKey(tag.getName())) {
 				item.countProperty().set(countedItemMap.get(tag.getName()).countProperty().get());
 			}
-			
+
 			items.add(item);
 			itemMap.put(tag.getName(), item);
 		}
@@ -192,11 +192,11 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 		return itemMap.containsKey(tagName);
 	}
 
-	protected TagListItem<T> getSectionItem() {
+	public TagListItem<T> getSectionItem() {
 		return itemMap.get(section.getName());
 	}
 
-	protected boolean isStandAloneSectionTag() {
+	public boolean isStandAloneSectionTag() {
 		return getSectionItem() != null && getItems().size() == 1;
 	}
 

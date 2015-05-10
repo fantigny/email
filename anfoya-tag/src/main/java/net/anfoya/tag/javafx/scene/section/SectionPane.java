@@ -1,4 +1,4 @@
-package net.anfoya.tag.javafx.scene.control;
+package net.anfoya.tag.javafx.scene.section;
 
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
@@ -7,8 +7,15 @@ import javafx.concurrent.Task;
 import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.TitledPane;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.DataFormat;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.IncExcBox;
+import net.anfoya.tag.javafx.scene.dnd.DndFormat;
+import net.anfoya.tag.javafx.scene.tag.TagList;
+import net.anfoya.tag.javafx.scene.tag.TagListItem;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
 import net.anfoya.tag.service.TagException;
@@ -29,6 +36,7 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 	private Runnable lazyCountTask;
 
 	private boolean disableWhenZero;
+	private DataFormat extItemDataFormat;
 
 	@SuppressWarnings("unchecked")
 	public SectionPane(final TagService<S, T> tagService, final S section, final TagList<S, T> tagList) {
@@ -41,6 +49,21 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 		disableWhenZero = false;
 		lazyCount = true;
 		lazyCountTask = null;
+
+		setOnDragDetected(event -> {
+	        final ClipboardContent content = new ClipboardContent();
+	        content.put(DndFormat.SECTION_DATA_FORMAT, section);
+	        final Dragboard db = startDragAndDrop(TransferMode.ANY);
+	        db.setContent(content);
+		});
+		setOnDragOver(event -> {
+			if (!isExpanded()
+					&& (event.getDragboard().hasContent(extItemDataFormat)
+							|| event.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT))) {
+				setExpanded(true);
+				event.consume();
+			}
+		});
 
 		expandedProperty().addListener((ov, oldVal, newVal) -> {
 			if (newVal && lazyCount && lazyCountTask != null) {
@@ -164,5 +187,9 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 
 	public void setLazyCount(final boolean lazy) {
 		this.lazyCount = lazy;
+	}
+
+	public void setExtItemDataFormat(final DataFormat dataFormat) {
+		this.extItemDataFormat = dataFormat;
 	}
 }

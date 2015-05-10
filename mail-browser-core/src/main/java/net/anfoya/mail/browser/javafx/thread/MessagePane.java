@@ -45,7 +45,7 @@ public class MessagePane<M extends SimpleMessage> extends TitledPane {
 
 	private final WebView bodyView;
 	private final String messageId;
-	
+
 	private M message;
 	private MimeMessage mimeMessage;
 
@@ -109,7 +109,7 @@ public class MessagePane<M extends SimpleMessage> extends TitledPane {
 					sb.append(", ");
 				}
 				first = false;
-	
+
 				if (address.getType().equalsIgnoreCase("rfc822")) {
 					final InternetAddress mailAddress = (InternetAddress) address;
 					if (mailAddress.getPersonal() != null) {
@@ -122,7 +122,7 @@ public class MessagePane<M extends SimpleMessage> extends TitledPane {
 				}
 			}
 		}
-		
+
 		return sb.toString();
 	}
 

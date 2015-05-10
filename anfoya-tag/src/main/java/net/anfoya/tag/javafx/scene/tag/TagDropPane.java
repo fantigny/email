@@ -1,4 +1,4 @@
-package net.anfoya.tag.javafx.scene.control.dnd;
+package net.anfoya.tag.javafx.scene.tag;
 
 import java.util.Optional;
 
@@ -6,15 +6,14 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextInputDialog;
-import javafx.scene.input.TransferMode;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
+import net.anfoya.tag.javafx.scene.dnd.DndFormat;
+import net.anfoya.tag.javafx.scene.dnd.DropArea;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
-import net.anfoya.tag.service.TagService;
 import net.anfoya.tag.service.TagException;
+import net.anfoya.tag.service.TagService;
 
 public class TagDropPane<S extends SimpleSection, T extends SimpleTag> extends GridPane {
 	private final TagService<S, T> tagService;
@@ -29,30 +28,8 @@ public class TagDropPane<S extends SimpleSection, T extends SimpleTag> extends G
 
 		setMaxHeight(100);
 
-		final HBox removeBox = new HBox(0, new Label("remove"));
-		removeBox.setAlignment(Pos.CENTER);
-		removeBox.setStyle("-fx-background-color: #DDDDDD; -fx-border-color: black");
-		removeBox.setPrefWidth(200);
-		removeBox.setPrefHeight(50);
-		removeBox.setOnDragEntered(event -> {
-			if (event.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT)) {
-				removeBox.setStyle("-fx-background-color: #DDDDDD; -fx-border-color: red");
-				event.consume();
-			}
-		});
-		removeBox.setOnDragExited(event -> {
-			if (event.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT)) {
-				removeBox.setStyle("-fx-background-color: #DDDDDD; -fx-border-color: black");
-				event.consume();
-			}
-		});
-		removeBox.setOnDragOver(event -> {
-			if (event.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT)) {
-				event.acceptTransferModes(TransferMode.ANY);
-				event.consume();
-			}
-		});
-		removeBox.setOnDragDropped(event -> {
+		final DropArea removeArea = new DropArea("remove", DndFormat.TAG_DATA_FORMAT);
+		removeArea.setOnDragDropped(event -> {
 			if (event.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT)) {
 				@SuppressWarnings("unchecked")
 				final T tag = (T) event.getDragboard().getContent(DndFormat.TAG_DATA_FORMAT);
@@ -62,26 +39,8 @@ public class TagDropPane<S extends SimpleSection, T extends SimpleTag> extends G
 			}
 		});
 
-		final HBox renameBox = new HBox(0, new Label("rename"));
-		renameBox.setAlignment(Pos.CENTER);
-		renameBox.setStyle("-fx-background-color: #DDDDDD; -fx-border-color: black");
-		renameBox.setPrefWidth(200);
-		renameBox.setPrefHeight(50);
-		renameBox.setOnDragEntered(event -> {
-			renameBox.setStyle("-fx-background-color: #DDDDDD; -fx-border-color: red");
-			event.consume();
-		});
-		renameBox.setOnDragExited(event -> {
-			renameBox.setStyle("-fx-background-color: #DDDDDD; -fx-border-color: black");
-			event.consume();
-		});
-		renameBox.setOnDragOver(event -> {
-			if (event.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT)) {
-				event.acceptTransferModes(TransferMode.ANY);
-				event.consume();
-			}
-		});
-		renameBox.setOnDragDropped(event -> {
+		final DropArea renameArea = new DropArea("rename", DndFormat.TAG_DATA_FORMAT);
+		renameArea.setOnDragDropped(event -> {
 			if (event.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT)) {
 				@SuppressWarnings("unchecked")
 				final T tag = (T) event.getDragboard().getContent(DndFormat.TAG_DATA_FORMAT);
@@ -91,24 +50,10 @@ public class TagDropPane<S extends SimpleSection, T extends SimpleTag> extends G
 			}
 		});
 
-		addRow(0, renameBox, removeBox);
+		addRow(0, renameArea, removeArea);
 
-		final HBox newSectionBox = new HBox(0, new Label("new section"));
-		newSectionBox.setAlignment(Pos.CENTER);
-		newSectionBox.setStyle("-fx-background-color: #DDDDDD; -fx-border-color: black");
-		newSectionBox.setPrefWidth(200);
-		newSectionBox.setPrefHeight(50);
-		newSectionBox.setOnDragExited(event -> {
-			newSectionBox.setStyle("-fx-background-color: #DDDDDD; -fx-border-color: black");
-			event.consume();
-		});
-		newSectionBox.setOnDragOver(event -> {
-			if (event.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT)) {
-				event.acceptTransferModes(TransferMode.ANY);
-				event.consume();
-			}
-		});
-		newSectionBox.setOnDragDropped(event -> {
+		final DropArea newSectionArea = new DropArea("new section", DndFormat.TAG_DATA_FORMAT);
+		newSectionArea.setOnDragDropped(event -> {
 			if (event.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT)) {
 				@SuppressWarnings("unchecked")
 				final T tag = (T) event.getDragboard().getContent(DndFormat.TAG_DATA_FORMAT);
@@ -118,8 +63,8 @@ public class TagDropPane<S extends SimpleSection, T extends SimpleTag> extends G
 			}
 		});
 
-		setColumnSpan(newSectionBox, 2);
-		addRow(1, newSectionBox);
+		setColumnSpan(newSectionArea, 2);
+		addRow(1, newSectionArea);
 	}
 
 	private void newSection(final T tag) {

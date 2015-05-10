@@ -15,8 +15,8 @@ import net.anfoya.movie.browser.model.Movie;
 import net.anfoya.movie.browser.model.Section;
 import net.anfoya.movie.browser.model.Tag;
 import net.anfoya.movie.browser.service.MovieTagService;
-import net.anfoya.tag.javafx.scene.control.SectionPane;
-import net.anfoya.tag.javafx.scene.control.TagList;
+import net.anfoya.tag.javafx.scene.section.SectionPane;
+import net.anfoya.tag.javafx.scene.tag.TagList;
 
 import org.jgroups.JChannel;
 import org.junit.Assert;

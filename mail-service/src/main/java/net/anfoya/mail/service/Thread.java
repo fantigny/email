@@ -13,5 +13,5 @@ public interface Thread extends Serializable {
 	public String getSender();
 	public String getSubject();
 	public boolean isUnread();
-	public Date getReceived();
+	public Date getDate();
 }

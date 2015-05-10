@@ -1,4 +1,4 @@
-package net.anfoya.tag.javafx.scene.control;
+package net.anfoya.tag.javafx.scene.section;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -13,19 +13,16 @@ import javafx.scene.control.Accordion;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
-import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.util.Callback;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.Title;
-import net.anfoya.tag.javafx.scene.control.dnd.DndFormat;
-import net.anfoya.tag.javafx.scene.control.dnd.ExtItemDropPane;
-import net.anfoya.tag.javafx.scene.control.dnd.SectionDropPane;
-import net.anfoya.tag.javafx.scene.control.dnd.TagDropPane;
+import net.anfoya.tag.javafx.scene.dnd.DndFormat;
+import net.anfoya.tag.javafx.scene.dnd.ExtItemDropPane;
+import net.anfoya.tag.javafx.scene.tag.TagDropPane;
+import net.anfoya.tag.javafx.scene.tag.TagList;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
 import net.anfoya.tag.service.TagException;
@@ -154,20 +151,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 				final SectionPane<S, T> sectionPane = new SectionPane<S, T>(tagService, section, tagList);
 				sectionPane.setDisableWhenZero(sectionDisableWhenZero);
 				sectionPane.setLazyCount(lazyCount);
-				sectionPane.setOnDragDetected(event -> {
-			        final ClipboardContent content = new ClipboardContent();
-			        content.put(DndFormat.SECTION_DATA_FORMAT, section);
-			        final Dragboard db = sectionPane.startDragAndDrop(TransferMode.ANY);
-			        db.setContent(content);
-				});
-				sectionPane.setOnDragOver(event -> {
-					if (!sectionPane.isExpanded()
-							&& (event.getDragboard().hasContent(extItemDataFormat)
-									|| event.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT))) {
-						sectionPane.setExpanded(true);
-						event.consume();
-					}
-				});
+				sectionPane.setExtItemDataFormat(extItemDataFormat);
 				sectionPane.setOnDragDone(event -> {
 					refresh();
 					event.consume();

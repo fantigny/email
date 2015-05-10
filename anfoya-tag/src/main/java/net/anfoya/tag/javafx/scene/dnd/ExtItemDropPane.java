@@ -1,22 +1,19 @@
-package net.anfoya.tag.javafx.scene.control.dnd;
+package net.anfoya.tag.javafx.scene.dnd;
 
 import java.util.Optional;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
-import javafx.scene.input.TransferMode;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
-import net.anfoya.tag.service.TagService;
 import net.anfoya.tag.service.TagException;
+import net.anfoya.tag.service.TagService;
 
 public class ExtItemDropPane<T extends SimpleTag> extends GridPane {
 	private final TagService<? extends SimpleSection, T> tagService;
@@ -31,26 +28,8 @@ public class ExtItemDropPane<T extends SimpleTag> extends GridPane {
 
 		setMaxHeight(100);
 
-		final HBox newTagBox = new HBox(0, new Label("add new tag"));
-		newTagBox.setAlignment(Pos.CENTER);
-		newTagBox.setStyle("-fx-background-color: #DDDDDD; -fx-border-color: black");
-		newTagBox.setPrefWidth(400);
-		newTagBox.setPrefHeight(50);
-		newTagBox.setOnDragEntered(event -> {
-			newTagBox.setStyle("-fx-background-color: #DDDDDD; -fx-border-color: red");
-			event.consume();
-		});
-		newTagBox.setOnDragExited(event -> {
-			newTagBox.setStyle("-fx-background-color: #DDDDDD; -fx-border-color: black");
-			event.consume();
-		});
-		newTagBox.setOnDragOver(event -> {
-			if (event.getDragboard().hasContent(extItemDataFormat)) {
-				event.acceptTransferModes(TransferMode.ANY);
-				event.consume();
-			}
-		});
-		newTagBox.setOnDragDropped(event -> {
+		final DropArea newTagArea = new DropArea("add new tag", extItemDataFormat);
+		newTagArea.setOnDragDropped(event -> {
 			final Dragboard db = event.getDragboard();
 			if (db.hasContent(extItemDataFormat)) {
 				final T tag = addTag();
@@ -66,7 +45,7 @@ public class ExtItemDropPane<T extends SimpleTag> extends GridPane {
 			}
 		});
 
-		addRow(0, newTagBox);
+		addRow(0, newTagArea);
 	}
 
 	private T addTag() {

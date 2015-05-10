@@ -1,19 +1,18 @@
-package net.anfoya.tag.javafx.scene.control.dnd;
+package net.anfoya.tag.javafx.scene.section;
 
 import java.util.Optional;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextInputDialog;
-import javafx.scene.input.TransferMode;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
+import net.anfoya.tag.javafx.scene.dnd.DndFormat;
+import net.anfoya.tag.javafx.scene.dnd.DropArea;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
-import net.anfoya.tag.service.TagService;
 import net.anfoya.tag.service.TagException;
+import net.anfoya.tag.service.TagService;
 
 public class SectionDropPane<S extends SimpleSection> extends GridPane {
 
@@ -29,30 +28,8 @@ public class SectionDropPane<S extends SimpleSection> extends GridPane {
 
 		setMaxHeight(60);
 
-		final HBox removeBox = new HBox(0, new Label("remove"));
-		removeBox.setAlignment(Pos.CENTER);
-		removeBox.setStyle("-fx-background-color: #DDDDDD; -fx-border-color: black");
-		removeBox.setPrefWidth(200);
-		removeBox.setPrefHeight(50);
-		removeBox.setOnDragEntered(event -> {
-			if (event.getDragboard().hasContent(DndFormat.SECTION_DATA_FORMAT)) {
-				removeBox.setStyle("-fx-background-color: #DDDDDD; -fx-border-color: red");
-				event.consume();
-			}
-		});
-		removeBox.setOnDragExited(event -> {
-			if (event.getDragboard().hasContent(DndFormat.SECTION_DATA_FORMAT)) {
-				removeBox.setStyle("-fx-background-color: #DDDDDD; -fx-border-color: black");
-				event.consume();
-			}
-		});
-		removeBox.setOnDragOver(event -> {
-			if (event.getDragboard().hasContent(DndFormat.SECTION_DATA_FORMAT)) {
-				event.acceptTransferModes(TransferMode.ANY);
-				event.consume();
-			}
-		});
-		removeBox.setOnDragDropped(event -> {
+		final DropArea removeArea = new DropArea("remove", DndFormat.SECTION_DATA_FORMAT);
+		removeArea.setOnDragDropped(event -> {
 			if (event.getDragboard().hasContent(DndFormat.SECTION_DATA_FORMAT)) {
 				@SuppressWarnings("unchecked")
 				final S section = (S) event.getDragboard().getContent(DndFormat.SECTION_DATA_FORMAT);
@@ -62,26 +39,8 @@ public class SectionDropPane<S extends SimpleSection> extends GridPane {
 			}
 		});
 
-		final HBox renameBox = new HBox(0, new Label("rename"));
-		renameBox.setAlignment(Pos.CENTER);
-		renameBox.setStyle("-fx-background-color: #DDDDDD; -fx-border-color: black");
-		renameBox.setPrefWidth(200);
-		renameBox.setPrefHeight(50);
-		renameBox.setOnDragEntered(event -> {
-			renameBox.setStyle("-fx-background-color: #DDDDDD; -fx-border-color: red");
-			event.consume();
-		});
-		renameBox.setOnDragExited(event -> {
-			renameBox.setStyle("-fx-background-color: #DDDDDD; -fx-border-color: black");
-			event.consume();
-		});
-		renameBox.setOnDragOver(event -> {
-			if (event.getDragboard().hasContent(DndFormat.SECTION_DATA_FORMAT)) {
-				event.acceptTransferModes(TransferMode.ANY);
-				event.consume();
-			}
-		});
-		renameBox.setOnDragDropped(event -> {
+		final DropArea renameArea = new DropArea("rename", DndFormat.SECTION_DATA_FORMAT);
+		renameArea.setOnDragDropped(event -> {
 			if (event.getDragboard().hasContent(DndFormat.SECTION_DATA_FORMAT)) {
 				@SuppressWarnings("unchecked")
 				final S section = (S) event.getDragboard().getContent(DndFormat.SECTION_DATA_FORMAT);
@@ -91,7 +50,7 @@ public class SectionDropPane<S extends SimpleSection> extends GridPane {
 			}
 		});
 
-		addRow(0, renameBox, removeBox);
+		addRow(0, renameArea, removeArea);
 	}
 
 	private void rename(final S section) {

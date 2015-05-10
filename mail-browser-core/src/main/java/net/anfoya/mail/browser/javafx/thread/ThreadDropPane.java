@@ -5,26 +5,25 @@ import static net.anfoya.mail.browser.javafx.threadlist.ThreadListPane.DND_THREA
 import java.util.Set;
 
 import javafx.geometry.Pos;
-import javafx.scene.control.Label;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
-import javafx.scene.input.TransferMode;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 
 import javax.mail.internet.MimeMessage;
 
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailService;
+import net.anfoya.tag.javafx.scene.dnd.DropArea;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
 
 public class ThreadDropPane<H extends SimpleThread, M extends SimpleMessage> extends GridPane {
 	public static final DataFormat MESSAGE_DATA_FORMAT = new DataFormat(MimeMessage.class.getCanonicalName());
+	@SuppressWarnings("unused")
 	private final MailService<? extends SimpleSection, ? extends SimpleTag, H, M> mailService;
-	private final HBox newThreadBox;
-	private final HBox addThreadBox;
+	private final DropArea newThreadArea;
+	private final DropArea addThreadArea;
 
 	public ThreadDropPane(final MailService<? extends SimpleSection, ? extends SimpleTag, H, M> tagService) {
 		this.mailService = tagService;
@@ -36,30 +35,8 @@ public class ThreadDropPane<H extends SimpleThread, M extends SimpleMessage> ext
 
 		setMaxHeight(60);
 
-		addThreadBox = new HBox(0, new Label("add to thread"));
-		addThreadBox.setAlignment(Pos.CENTER);
-		addThreadBox.setStyle("-fx-background-color: #DDDDDD; -fx-border-color: black");
-		addThreadBox.prefWidthProperty().bind(widthProperty());
-		addThreadBox.setPrefHeight(50);
-		addThreadBox.setOnDragEntered(event -> {
-			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)) {
-				addThreadBox.setStyle("-fx-background-color: #DDDDDD; -fx-border-color: red");
-				event.consume();
-			}
-		});
-		addThreadBox.setOnDragExited(event -> {
-			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)) {
-				addThreadBox.setStyle("-fx-background-color: #DDDDDD; -fx-border-color: black");
-				event.consume();
-			}
-		});
-		addThreadBox.setOnDragOver(event -> {
-			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)) {
-				event.acceptTransferModes(TransferMode.ANY);
-				event.consume();
-			}
-		});
-		addThreadBox.setOnDragDropped(event -> {
+		addThreadArea = new DropArea("add to thread", DND_THREADS_DATA_FORMAT);
+		addThreadArea.setOnDragDropped(event -> {
 			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)) {
 				@SuppressWarnings("unchecked")
 				final Set<H> threads = (Set<H>) event.getDragboard().getContent(DND_THREADS_DATA_FORMAT);
@@ -69,30 +46,8 @@ public class ThreadDropPane<H extends SimpleThread, M extends SimpleMessage> ext
 			}
 		});
 
-		newThreadBox = new HBox(0, new Label("create new thread"));
-		newThreadBox.setAlignment(Pos.CENTER);
-		newThreadBox.setStyle("-fx-background-color: #DDDDDD; -fx-border-color: black");
-		newThreadBox.prefWidthProperty().bind(widthProperty());
-		newThreadBox.setPrefHeight(50);
-		newThreadBox.setOnDragEntered(event -> {
-			if (event.getDragboard().hasContent(MESSAGE_DATA_FORMAT)) {
-				newThreadBox.setStyle("-fx-background-color: #DDDDDD; -fx-border-color: red");
-				event.consume();
-			}
-		});
-		newThreadBox.setOnDragExited(event -> {
-			if (event.getDragboard().hasContent(MESSAGE_DATA_FORMAT)) {
-				newThreadBox.setStyle("-fx-background-color: #DDDDDD; -fx-border-color: black");
-				event.consume();
-			}
-		});
-		newThreadBox.setOnDragOver(event -> {
-			if (event.getDragboard().hasContent(MESSAGE_DATA_FORMAT)) {
-				event.acceptTransferModes(TransferMode.ANY);
-				event.consume();
-			}
-		});
-		newThreadBox.setOnDragDropped(event -> {
+		newThreadArea = new DropArea("create new thread", MESSAGE_DATA_FORMAT);
+		newThreadArea.setOnDragDropped(event -> {
 			if (event.getDragboard().hasContent(MESSAGE_DATA_FORMAT)) {
 				@SuppressWarnings("unchecked")
 				final M message = (M) event.getDragboard().getContent(MESSAGE_DATA_FORMAT);
@@ -115,18 +70,18 @@ public class ThreadDropPane<H extends SimpleThread, M extends SimpleMessage> ext
 	}
 
 	public void init(final Dragboard db) {
-		if (getChildren().contains(newThreadBox)) {
-			getChildren().remove(newThreadBox);
+		if (getChildren().contains(newThreadArea)) {
+			getChildren().remove(newThreadArea);
 		}
-		if (getChildren().contains(addThreadBox)) {
-			getChildren().remove(addThreadBox);
+		if (getChildren().contains(addThreadArea)) {
+			getChildren().remove(addThreadArea);
 		}
 
 		if (db.hasContent(MESSAGE_DATA_FORMAT)) {
-			addRow(0, newThreadBox);
+			addRow(0, newThreadArea);
 		}
 		if (db.hasContent(DND_THREADS_DATA_FORMAT)) {
-			addRow(0, addThreadBox);
+			addRow(0, addThreadArea);
 		}
 	}
 }

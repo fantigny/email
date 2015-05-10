@@ -11,7 +11,7 @@ public abstract class SimpleThread implements Thread {
 	protected static final String EMPTY = "[empty]";
 
 	public enum SortOrder {
-		DATE((s1, s2) -> s2.getReceived().compareTo(s1.getReceived())),
+		DATE((s1, s2) -> s2.getDate().compareTo(s1.getDate())),
 		SUBJECT((s1, s2) -> s1.getSubject().compareTo(s2.getSubject()));
 
 		private Comparator<SimpleThread> comparator;
@@ -30,7 +30,7 @@ public abstract class SimpleThread implements Thread {
 	private final Set<String> tagIds;
 	private final boolean unread;
 	private final String sender;
-	private final Date received;
+	private final Date date;
 
 	public SimpleThread(final String id
 			, final String subject
@@ -38,14 +38,14 @@ public abstract class SimpleThread implements Thread {
 			, final Set<String> tagIds
 			, final boolean unread
 			, final String sender
-			, final Date received) {
+			, final Date date) {
 		this.id = id;
 		this.subject = subject;
 		this.messageIds = messageIds;
 		this.tagIds = tagIds;
 		this.unread = unread;
 		this.sender = sender;
-		this.received = received;
+		this.date = date;
 	}
 
 	@Override
@@ -84,7 +84,7 @@ public abstract class SimpleThread implements Thread {
 	}
 
 	@Override
-	public Date getReceived() {
-		return received;
+	public Date getDate() {
+		return date;
 	}
 }

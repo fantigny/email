@@ -1,4 +1,4 @@
-package net.anfoya.tag.javafx.scene.control;
+package net.anfoya.tag.javafx.scene.tag;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;

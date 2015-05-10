@@ -28,8 +28,8 @@ import net.anfoya.mail.gmail.model.GmailThread;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
-import net.anfoya.tag.javafx.scene.control.SectionListPane;
-import net.anfoya.tag.javafx.scene.control.dnd.DndFormat;
+import net.anfoya.tag.javafx.scene.dnd.DndFormat;
+import net.anfoya.tag.javafx.scene.section.SectionListPane;
 
 public class MailBrowserApp extends Application {
 //	private static final Logger LOGGER = LoggerFactory.getLogger(MailBrowserApp.class);

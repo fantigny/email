@@ -1,5 +1,7 @@
 package net.anfoya.mail.gmail.model;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -21,7 +23,7 @@ public class GmailThread extends SimpleThread {
 			, getLabelIds(thread)
 			, getLabelIds(thread).contains(unreadTagId)
 			, findFrom(thread)
-			, findReceived(thread));
+			, findDate(thread));
 	}
 
 	public GmailThread(final String id, final String subject
@@ -39,12 +41,18 @@ public class GmailThread extends SimpleThread {
 		if (from.contains(" <")) {
 			from = from.substring(0, from.indexOf(" <"));
 		}
+		from = from.replaceAll("\"", "");
 		return from;
 	}
 
-	private static Date findReceived(final Thread thread) {
-		final String received = findHeader(thread, "Received");
-		return new Date();
+	@SuppressWarnings("deprecation")
+	private static Date findDate(final Thread thread) {
+		final String s = findHeader(thread, "Date");
+		try {
+			return new SimpleDateFormat().parse(s);
+		} catch (final ParseException e) {
+			return new Date(s);
+		}
 	}
 
 	private static Set<String> getMessageIds(final Thread thread) {
@@ -66,13 +74,21 @@ public class GmailThread extends SimpleThread {
 	}
 
 	private static String findHeader(final Thread thread, final String key) {
+		final Set<String> headers = findHeaders(thread, key);
+		if (headers.isEmpty()) {
+			headers.add(EMPTY);
+		}
+		return headers.iterator().next();
+	}
+
+	private static Set<String> findHeaders(final Thread thread, final String key) {
+		final Set<String> headers = new LinkedHashSet<String>();
 		for(final MessagePartHeader h:thread.getMessages().get(0).getPayload().getHeaders()) {
 			if (key.equals(h.getName())) {
-				final String subject = h.getValue();
-				return subject.isEmpty()? EMPTY: subject;
+				headers.add(h.getValue());
 			}
 		}
 
-		return EMPTY;
+		return headers;
 	}
 }

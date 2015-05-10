@@ -1,4 +1,4 @@
-package net.anfoya.tag.javafx.scene.control;
+package net.anfoya.tag.javafx.scene.tag;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -11,7 +11,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.util.Callback;
 import net.anfoya.javafx.scene.control.ExcludeBox;
-import net.anfoya.tag.javafx.scene.control.dnd.DndFormat;
+import net.anfoya.tag.javafx.scene.dnd.DndFormat;
 import net.anfoya.tag.model.SimpleTag;
 
 class TagListCell<T extends SimpleTag> extends CheckBoxListCell<TagListItem<T>> {
