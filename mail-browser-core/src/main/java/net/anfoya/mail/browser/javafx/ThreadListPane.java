@@ -91,7 +91,7 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 	        db.setContent(content);
 		});
 		threadList.setOnDragDone(event -> {
-			threadList.refresh();
+			threadList.load();
 			event.consume();
 		});
 		stackPane.getChildren().add(threadList);

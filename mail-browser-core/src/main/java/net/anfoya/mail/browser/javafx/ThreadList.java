@@ -70,7 +70,7 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 		load();
 	}
 
-	public void refreshWithTags2(final Set<T> tags) {
+	public void refreshWithTags(final Set<T> tags) {
 		this.tags = tags;
 		load();
 	}
@@ -82,7 +82,7 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 		load();
 	}
 
-	private void load() {
+	protected void load() {
 		final long id = this.taskId.incrementAndGet();
 		final Task<Set<H>> task = new Task<Set<H>>() {
 			@Override
@@ -104,7 +104,7 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 		ThreadPool.getInstance().submit(task);
 	}
 
-	public void refresh() {
+	private void refresh() {
 		// get previously selected indices
 		final List<String> previouslySelectedIds = new ArrayList<String>();
 		for(final H thread: getSelectedThreads()) {
