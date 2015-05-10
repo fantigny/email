@@ -32,7 +32,7 @@ public class LabelService {
 			} catch (final IOException e) {
 				throw new LabelException("getting labels", e);
 			}
-			LOGGER.debug("get labels: {}", idLabels.values());
+			LOGGER.debug("all labels: {}", idLabels.values());
 		}
 		return idLabels.values();
 	}
@@ -56,7 +56,7 @@ public class LabelService {
 			idLabels.put(label.getId(), label);
 			return label;
 		} catch (final IOException e) {
-			throw new LabelException("renaming label \"" + label.getName() + "\" to \"" + name + "\"", e);
+			throw new LabelException("renaming \"" + label.getName() + "\" to \"" + name + "\"", e);
 		}
 	}
 
@@ -71,7 +71,7 @@ public class LabelService {
 			idLabels.put(label.getId(), label);
 			return label;
 		} catch (final IOException e) {
-			throw new LabelException("adding " + name, e);
+			throw new LabelException("adding \"" + name + "\"", e);
 		}
 	}
 
@@ -80,7 +80,7 @@ public class LabelService {
 			gmail.users().labels().delete(user, label.getId());
 			idLabels.remove(label.getId());
 		} catch (final IOException e) {
-			throw new LabelException("removing " + label.getName(), e);
+			throw new LabelException("removing \"" + label.getName() + "\"", e);
 		}
 	}
 

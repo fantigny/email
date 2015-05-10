@@ -51,7 +51,6 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	private final HttpTransport httpTransport;
 	private final JsonFactory jsonFactory;
 
-	private Gmail gmail;
 	private LabelService labelService;
 	private MessageService messageService;
 	private ThreadService threadService;
@@ -63,6 +62,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 	@Override
 	public void login(final String id, final String pwd) throws GMailException {
+		Gmail gmail;
 		try {
 			final String path = this.getClass().getResource(CLIENT_SECRET_PATH).toURI().getPath();
 			final GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(jsonFactory, new FileReader(path));
@@ -261,13 +261,10 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public GmailTag moveToSection(final GmailTag tag, final GmailSection section) throws GMailException {
 		try {
-			Label label = labelService.get(tag.getId());
-			label.setName(section.getName() + "/" + tag.getName());
-			label.setMessageListVisibility("show");
-			label.setLabelListVisibility("labelShow");
-			label = gmail.users().labels().update(USER, label.getId(), label).execute();
-			return new GmailTag(label);
-		} catch (final IOException | LabelException e) {
+			final String name = section.getName() + "/" + tag.getName();
+			final Label label = labelService.get(tag.getId());
+			return new GmailTag(labelService.rename(label, name));
+		} catch (final LabelException e) {
 			throw new GMailException("moving " + tag.getName() + " to " + section.getName(), e);
 		}
 	}
@@ -442,9 +439,9 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public void remove(final GmailSection section) throws GMailException {
 		try {
-			gmail.users().labels().delete(USER, section.getId());
-		} catch (final IOException e) {
-			throw new GMailException("remove section " + section.getName(), e);
+			labelService.remove(labelService.get(section.getId()));
+		} catch (final LabelException e) {
+			throw new GMailException("remove section \"" + section.getName() + "\"", e);
 		}
 	}
 
