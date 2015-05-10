@@ -6,6 +6,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import javafx.beans.value.ChangeListener;
+import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Accordion;
@@ -19,6 +20,7 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.util.Callback;
+import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.Title;
 import net.anfoya.tag.javafx.scene.control.dnd.DndFormat;
 import net.anfoya.tag.javafx.scene.control.dnd.ExtItemDropPane;
@@ -26,7 +28,6 @@ import net.anfoya.tag.javafx.scene.control.dnd.SectionDropPane;
 import net.anfoya.tag.javafx.scene.control.dnd.TagDropPane;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
-import net.anfoya.tag.service.TagException;
 import net.anfoya.tag.service.TagService;
 
 public class SectionListPane<S extends SimpleSection, T extends SimpleTag> extends BorderPane {
@@ -62,7 +63,9 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 
 		tagPatternField = new TextField();
 		tagPatternField.setPromptText("search");
-		tagPatternField.textProperty().addListener((ChangeListener<String>) (ov, oldPattern, newPattern) -> refreshWithPattern());
+		tagPatternField.textProperty().addListener((ChangeListener<String>) (ov, oldPattern, newPattern) -> {
+			refreshWithPattern();
+		});
 		patternPane.setCenter(tagPatternField);
 		BorderPane.setMargin(tagPatternField, new Insets(0, 5, 0, 5));
 
@@ -127,14 +130,6 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 	}
 
 	public void refreshSections() {
-		try {
-			sections = tagService.getSections();
-		} catch (final TagException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return;
-		}
-
 		// delete sections
 		final Set<SimpleSection> existingSections = new LinkedHashSet<SimpleSection>();
 		for(final Iterator<TitledPane> i = sectionAcc.getPanes().iterator(); i.hasNext();) {
@@ -193,9 +188,24 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 	}
 
 	public void refresh() {
-		refreshSections();
-		refreshTags();
-		selectedPane.refresh(getAllSelectedTags());
+		final Task<Set<S>> task = new Task<Set<S>>() {
+			@Override
+			protected Set<S> call() throws Exception {
+				return tagService.getSections();
+			}
+		};
+		task.setOnSucceeded(event -> {
+			try {
+				sections = task.get();
+			} catch (final Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			refreshSections();
+			refreshTags();
+			selectedPane.refresh(getAllSelectedTags());
+		});
+		ThreadPool.getInstance().submit(task);
 	}
 
 	protected void refreshWithPattern() {

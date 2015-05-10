@@ -7,20 +7,14 @@ import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 import net.anfoya.java.io.JsonFile;
-import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.gmail.model.GmailTag;
 import net.anfoya.mail.gmail.model.GmailThread;
@@ -42,7 +36,6 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Label;
 import com.google.api.services.gmail.model.ListThreadsResponse;
-import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.ModifyThreadRequest;
 import com.google.api.services.gmail.model.Thread;
 
@@ -64,6 +57,8 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 
 	private Gmail gmail;
 	private LabelService labelService;
+	private MessageService messageService;
+	private ThreadService threadService;
 
 	public GmailImpl() {
 		httpTransport = new NetHttpTransport();
@@ -118,6 +113,8 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 		}
 		
 		labelService = new LabelService(gmail, USER);
+		messageService = new MessageService(gmail, USER);
+		threadService = new ThreadService(gmail, USER);
 	}
 
 	@Override
@@ -128,91 +125,51 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 
 	@Override
 	public Set<GmailThread> getThreads(final Set<GmailTag> availableTags, final Set<GmailTag> includes, final Set<GmailTag> excludes, final String pattern) throws GMailException {
-		final Set<GmailThread> threads = new LinkedHashSet<GmailThread>();
-		if (includes.isEmpty()) {
+		try {
+			final Set<GmailThread> threads = new LinkedHashSet<GmailThread>();
+			if (includes.isEmpty()) {
+				return threads;
+			}
+			final StringBuilder query = new StringBuilder("");
+			if (includes.size() > 0) {
+				final StringBuilder subQuery = new StringBuilder();
+				for(final GmailTag t: includes) {
+					if (subQuery.length() > 1) {
+						subQuery.append(" AND ");
+					}
+					subQuery.append("label:").append(t.getPath().replaceAll("/", "-").replaceAll(" ", "-"));
+				}
+				query.append("(").append(subQuery).append(")");
+			}
+			if (excludes.size() > 0) {
+				final StringBuilder subQuery = new StringBuilder();
+				for(final GmailTag t: excludes) {
+					if (subQuery.length() > 1) {
+						subQuery.append(" AND ");
+					}
+					subQuery.append("-label:").append(t.getPath().replaceAll("/", "-").replaceAll(" ", "-"));
+				}
+				if (query.length() > 0) {
+					query.append(" AND ");
+				}
+				query.append("(").append(subQuery).append(")");
+			}
+	
+			for(final Thread t: threadService.find(query.toString())) {
+				threads.add(new GmailThread(t));
+			}
+			
 			return threads;
+		} catch (final ThreadException e) {
+			throw new GMailException("login", e);
 		}
-		final StringBuilder query = new StringBuilder("");
-		if (includes.size() > 0) {
-			final StringBuilder subQuery = new StringBuilder();
-			for(final GmailTag t: includes) {
-				if (subQuery.length() > 1) {
-					subQuery.append(" AND ");
-				}
-				subQuery.append("label:").append(t.getPath().replaceAll("/", "-").replaceAll(" ", "-"));
-			}
-			query.append("(").append(subQuery).append(")");
-		}
-		if (excludes.size() > 0) {
-			final StringBuilder subQuery = new StringBuilder();
-			for(final GmailTag t: excludes) {
-				if (subQuery.length() > 1) {
-					subQuery.append(" AND ");
-				}
-				subQuery.append("-label:").append(t.getPath().replaceAll("/", "-").replaceAll(" ", "-"));
-			}
-			if (query.length() > 0) {
-				query.append(" AND ");
-			}
-			query.append("(").append(subQuery).append(")");
-		}
-
-		LOGGER.debug("get thread ids for tags({}) include({}) excludes({}) tagPattern(\"\") == query({})", availableTags, includes, excludes, pattern, query);
-		final Set<String> threadIds = new LinkedHashSet<String>();
-		try {
-			ListThreadsResponse threadResponse = gmail.users().threads().list(USER).setQ(query.toString()).execute();
-			while (threadResponse.getThreads() != null) {
-				for(final Thread t : threadResponse.getThreads()) {
-					threadIds.add(t.getId());
-				}
-				if (threadResponse.getNextPageToken() != null) {
-					final String pageToken = threadResponse.getNextPageToken();
-					LOGGER.debug("get thread ids for tags({}) include({}) excludes({}) tagPattern(\"\") == {}", availableTags, includes, excludes, pattern, query);
-					threadResponse = gmail.users().threads().list(USER).setQ(query.toString()).setPageToken(pageToken).execute();
-				} else {
-					break;
-				}
-			}
-		} catch (final IOException e) {
-			throw new GMailException("loading thread ids for: " + includes.toString(), e);
-		}
-
-		final Set<Future<GmailThread>> futures = new LinkedHashSet<Future<GmailThread>>();
-		try {
-			ListThreadsResponse threadResponse = gmail.users().threads().list(USER).setQ(query.toString()).execute();
-			while (threadResponse.getThreads() != null) {
-				for(final Thread t : threadResponse.getThreads()) {
-					final Callable<GmailThread> c = () -> getThread(t.getId());
-					futures.add(ThreadPool.getInstance().submit(c));
-				}
-				if (threadResponse.getNextPageToken() != null) {
-					final String pageToken = threadResponse.getNextPageToken();
-					threadResponse = gmail.users().threads().list(USER).setQ(query.toString()).setPageToken(pageToken).execute();
-				} else {
-					break;
-				}
-			}
-		} catch (final IOException e) {
-			throw new GMailException("loading threads for: " + includes.toString(), e);
-		}
-
-		try {
-			for(final Future<GmailThread> f: futures) {
-				threads.add(f.get());
-			}
-		} catch(final CancellationException | InterruptedException | ExecutionException e) {
-			throw new GMailException("loading threads for: " + includes.toString(), e);
-		}
-
-		return threads;
 	}
 
 	@Override
 	public GmailThread getThread(final String id) throws GMailException {
 		try {
-			LOGGER.debug("get thread for id: {}", id);
-			return new GmailThread(gmail.users().threads().get(USER, id).setFormat("metadata") .execute());
-		} catch (final IOException e) {
+			return new GmailThread(threadService.get(id));
+		} catch (final ThreadException e) {
 			throw new GMailException("loading thread " + id, e);
 		}
 	}
@@ -221,10 +178,8 @@ public class GmailImpl implements MailService<GmailSection, GmailTag, GmailThrea
 	public SimpleMessage getMessage(final String id) throws GMailException {
 		try {
 			LOGGER.debug("get message for id: {}", id);
-			final Message message = gmail.users().messages().get(USER, id).setFormat("raw").execute();
-			final byte[] emailBytes = Base64.getUrlDecoder().decode(message.getRaw());
-		    return new SimpleMessage(message.getId(), emailBytes);
-		} catch (final IOException e) {
+		    return new SimpleMessage(id, messageService.getRaw(id));
+		} catch (final MessageException e) {
 			throw new GMailException("loading message id: " + id, e);
 		}
 	}
