@@ -1,6 +1,6 @@
 package net.anfoya.mail.gmail.service;
 
-import net.anfoya.mail.gmail.GmailImpl;
+import net.anfoya.mail.gmail.GmailService;
 import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.gmail.model.GmailTag;
 import net.anfoya.mail.gmail.model.GmailThread;
@@ -16,14 +16,14 @@ public class GmailTest {
 
 	@Test
 	public void login() throws MailException {
-		final MailService<GmailSection, GmailTag, GmailThread, SimpleMessage> service = new GmailImpl();
+		final MailService<GmailSection, GmailTag, GmailThread, SimpleMessage> service = new GmailService();
 		service.login("", "");
 		service.logout();
 	}
 
 	@Test
 	public void getTags() throws MailException, TagException {
-		final MailService<GmailSection, GmailTag, GmailThread, SimpleMessage> service = new GmailImpl();
+		final MailService<GmailSection, GmailTag, GmailThread, SimpleMessage> service = new GmailService();
 		service.login("", "");
 		for(final SimpleTag t: service.getTags()) {
 			System.out.println(t);

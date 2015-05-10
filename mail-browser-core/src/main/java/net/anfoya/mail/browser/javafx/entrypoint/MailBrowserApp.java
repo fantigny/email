@@ -18,7 +18,7 @@ import javax.security.auth.login.LoginException;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.browser.javafx.ThreadListPane;
 import net.anfoya.mail.browser.javafx.ThreadPane;
-import net.anfoya.mail.gmail.GmailImpl;
+import net.anfoya.mail.gmail.GmailService;
 import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.gmail.model.GmailTag;
 import net.anfoya.mail.gmail.model.GmailThread;
@@ -44,7 +44,7 @@ public class MailBrowserApp extends Application {
 	public void start(final Stage primaryStage) throws Exception {
 		primaryStage.setOnCloseRequest(event -> ThreadPool.getInstance().shutdown());
 
-		mailService = new GmailImpl();
+		mailService = new GmailService();
 		ThreadPool.getInstance().submit(() -> {
 			try {
 				mailService.login(null, null);
@@ -149,7 +149,7 @@ public class MailBrowserApp extends Application {
 
 	private void addTag(final GmailTag tag, final Set<GmailThread> threads) {
 		try {
-			mailService.addForThread(tag, threads);
+			mailService.addForThreads(tag, threads);
 		} catch (final Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

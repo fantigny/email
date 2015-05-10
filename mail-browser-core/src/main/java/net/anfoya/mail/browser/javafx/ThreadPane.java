@@ -2,6 +2,7 @@ package net.anfoya.mail.browser.javafx;
 
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.Set;
 
 import javafx.collections.ObservableList;
@@ -126,13 +127,15 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 		
 		int index = 0;
 		final ObservableList<TitledPane> panes = messageAcc.getPanes();
-		for(final String id: thread.getMessageIds()) {
+		for(final Iterator<String> i=new LinkedList<String>(thread.getMessageIds()).descendingIterator(); i.hasNext();) {
+			final String id = i.next();
 			@SuppressWarnings("unchecked")
 			MessagePane<M> messagePane = index < panes.size()? (MessagePane<M>) messageAcc.getPanes().get(index): null;
 			if (messagePane == null || !id.equals(messagePane.getMessage().getId())) {
 				messagePane = new MessagePane<M>(id, mailService);
 				panes.add(index, messagePane);
 				messagePane.refresh();
+				index++;
 			}
 			index++;
 		}

@@ -105,7 +105,7 @@ public class ThreadListDropPane<H extends SimpleThread> extends GridPane {
 
 	private void delete(final Set<H> threads) {
 		try {
-			mailService.delete(threads);
+			mailService.trash(threads);
 		} catch (final MailException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
