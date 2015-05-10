@@ -71,7 +71,7 @@ public class ExtItemDropPane<T extends SimpleTag> extends GridPane {
 		}
 
 		try {
-			return tagService.createTag(name);
+			return tagService.addTag(name);
 		} catch (final TagException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

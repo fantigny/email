@@ -24,7 +24,7 @@ public final class ThreadPool {
 		delegateHigh = Executors.newCachedThreadPool();
 		delegateLow = Executors.newFixedThreadPool(5);
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-			shutdown();	
+			shutdown();
 		}));
 		LOGGER.info("started!");
 	}
@@ -37,8 +37,11 @@ public final class ThreadPool {
 	private void shutdown(final ExecutorService service) {
 		if (!service.isShutdown()) {
 			service.shutdown();
+			LOGGER.info("shutdown.");
+		} else if (!service.isTerminated()) {
+			service.shutdownNow();
+			LOGGER.info("shutdown now.");
 		}
-		LOGGER.info("stopped.");
 	}
 
 	public Future<?> submit(final Runnable runnable) {

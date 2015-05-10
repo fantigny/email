@@ -48,7 +48,7 @@ public class MailBrowserApp extends Application {
 	@Override
 	public void start(final Stage primaryStage) throws Exception {
 		primaryStage.setOnCloseRequest(event -> {
-			refreshTimer.cancel();
+//			refreshTimer.cancel();
 			ThreadPool.getInstance().shutdown();
 		});
 
@@ -85,7 +85,7 @@ public class MailBrowserApp extends Application {
 				refreshThreadList();
 			});
 			sectionListPane.setUpdateSectionCallback(v -> {
-				updateThreadCount();
+				refreshThreadList();
 				return null;
 			});
 			sectionListPane.setOnDragDropped(event -> {
@@ -157,7 +157,7 @@ public class MailBrowserApp extends Application {
 
 	private void addTag(final GmailTag tag, final Set<GmailThread> threads) {
 		try {
-			mailService.addForThreads(tag, threads);
+			mailService.addTagForThreads(tag, threads);
 		} catch (final Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -187,7 +187,7 @@ public class MailBrowserApp extends Application {
 		});
 		refreshTimer.setDelay(Duration.seconds(20));
 		refreshTimer.setPeriod(Duration.seconds(20));
-		refreshTimer.start();
+//		refreshTimer.start();
 
 	}
 

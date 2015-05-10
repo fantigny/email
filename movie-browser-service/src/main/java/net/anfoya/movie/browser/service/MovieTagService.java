@@ -239,7 +239,7 @@ public class MovieTagService implements TagService<Section, Tag> {
 	}
 
 	@Override
-	public Tag createTag(final String name) throws TagException {
+	public Tag addTag(final String name) throws TagException {
 		// TODO Auto-generated method stub
 		return null;
 	}

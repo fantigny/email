@@ -44,14 +44,7 @@ public class LabelService {
 
 	protected Label rename(Label label, final String name) throws LabelException {
 		try {
-			String newName = label.getName();
-			if (newName.contains("/")) {
-				newName = newName.substring(0, newName.lastIndexOf("/"));
-			} else {
-				newName = "";
-			}
-			newName += name;
-			label.setName(newName);
+			label.setName(name);
 			label = gmail.users().labels().update(user, label.getId(), label).execute();
 			idLabels.put(label.getId(), label);
 			return label;

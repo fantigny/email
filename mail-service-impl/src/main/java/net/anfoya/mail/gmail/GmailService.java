@@ -361,21 +361,25 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	@Override
-	public void addForThreads(final GmailTag tag, final Set<GmailThread> threads) throws GMailException {
+	public void addTagForThreads(final GmailTag tag, final Set<GmailThread> threads) throws GMailException {
 		for(final GmailThread t: threads) {
 			try {
-				threadService.addLabel(t.getId(), tag.getId());
-			} catch (final ThreadException e) {
+				final Thread thread = threadService.get(t.getId());
+				final Label label = labelService.get(tag.getId());
+				threadService.add(thread, label);
+			} catch (final ThreadException | LabelException e) {
 				throw new GMailException("adding tag", e);
 			}
 		}
 	}
 
 	@Override
-	public void removeForThread(final GmailTag tag, final GmailThread thread) throws GMailException {
+	public void removeTagForThread(final GmailTag tag, final GmailThread thread) throws GMailException {
 		try {
-			threadService.remLabel(thread.getId(), tag.getId());
-		} catch (final ThreadException e) {
+			final Thread t = threadService.get(thread.getId());
+			final Label l = labelService.get(tag.getId());
+			threadService.remove(t, l);
+		} catch (final ThreadException | LabelException e) {
 			throw new GMailException("adding tag", e);
 		}
 	}
@@ -395,7 +399,15 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		Label label;
 		try {
 			label = labelService.get(section.getId());
-			label = labelService.rename(label, name);
+			String newName = label.getName();
+			if (newName.contains("/")) {
+				newName = newName.substring(0, newName.lastIndexOf("/"));
+			} else {
+				newName = "";
+			}
+			newName += name;
+
+			label = labelService.rename(label, newName);
 		} catch (final LabelException e) {
 			throw new GMailException("rename section " + section.getName() + " to " + name, e);
 		}
@@ -412,7 +424,15 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public GmailTag rename(final GmailTag tag, final String name) throws GMailException {
 		try {
-			return new GmailTag(labelService.rename(labelService.get(tag.getId()), name));
+			final Label label = labelService.get(tag.getId());
+			String newName = label.getName();
+			if (newName.contains("/")) {
+				newName = newName.substring(0, newName.lastIndexOf("/"));
+			} else {
+				newName = "";
+			}
+			newName += name;
+			return new GmailTag(labelService.rename(label, newName));
 		} catch (final LabelException e) {
 			throw new GMailException("rename tag \"" + tag.getName() + "\" to \"" + name + "\"", e);
 		}
@@ -428,7 +448,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	@Override
-	public GmailTag createTag(final String name) throws GMailException {
+	public GmailTag addTag(final String name) throws GMailException {
 		try {
 			return new GmailTag(labelService.add(name));
 		} catch (final LabelException e) {
