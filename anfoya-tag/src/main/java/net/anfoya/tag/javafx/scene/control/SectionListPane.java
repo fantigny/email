@@ -28,6 +28,7 @@ import net.anfoya.tag.javafx.scene.control.dnd.SectionDropPane;
 import net.anfoya.tag.javafx.scene.control.dnd.TagDropPane;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
+import net.anfoya.tag.service.TagException;
 import net.anfoya.tag.service.TagService;
 
 public class SectionListPane<S extends SimpleSection, T extends SimpleTag> extends BorderPane {
@@ -187,7 +188,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		}
 	}
 
-	public void refresh() {
+	public void refreshAsync() {
 		final Task<Set<S>> task = new Task<Set<S>>() {
 			@Override
 			protected Set<S> call() throws Exception {
@@ -206,6 +207,18 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 			selectedPane.refresh(getAllSelectedTags());
 		});
 		ThreadPool.getInstance().submit(task);
+	}
+
+	public void refresh() {
+		try {
+			sections = tagService.getSections();
+		} catch (final TagException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		refreshSections();
+		refreshTags();
+		selectedPane.refresh(getAllSelectedTags());
 	}
 
 	protected void refreshWithPattern() {

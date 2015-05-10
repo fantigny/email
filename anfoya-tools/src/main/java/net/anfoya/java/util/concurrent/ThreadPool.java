@@ -23,11 +23,8 @@ public final class ThreadPool {
 	private ThreadPool() {
 		delegateHigh = Executors.newCachedThreadPool();
 		delegateLow = Executors.newFixedThreadPool(5);
-		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-			@Override
-			public void run() {
-				shutdown();
-			}
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			shutdown();	
 		}));
 		LOGGER.info("started!");
 	}

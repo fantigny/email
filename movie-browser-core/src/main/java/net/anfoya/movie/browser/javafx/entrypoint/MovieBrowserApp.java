@@ -11,13 +11,8 @@ import java.util.Set;
 
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.collections.ListChangeListener;
 import javafx.concurrent.Worker.State;
 import javafx.concurrent.WorkerStateEvent;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -27,10 +22,7 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
-import javafx.util.Callback;
 import javafx.util.Duration;
-import net.anfoya.cluster.Status;
 import net.anfoya.cluster.StatusManager;
 import net.anfoya.cluster.UpdateManager;
 import net.anfoya.java.net.PersistentCookieStore;
@@ -98,12 +90,9 @@ public class MovieBrowserApp extends Application {
 
 	@Override
     public void start(final Stage primaryStage) {
-		primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
-			@Override
-			public void handle(final WindowEvent event) {
-				ThreadPool.getInstance().shutdown();
-				statusMgr.shutdown();
-			}
+		primaryStage.setOnCloseRequest(event -> {
+			ThreadPool.getInstance().shutdown();
+			statusMgr.shutdown();
 		});
 
 		urlFilter.load();
@@ -133,19 +122,10 @@ public class MovieBrowserApp extends Application {
 			sectionListPane.prefHeightProperty().bind(selectionPane.heightProperty());
 			sectionListPane.setLazyCount(false);
 			sectionListPane.setSectionDisableWhenZero(true);
-			sectionListPane.setTagChangeListener(new ChangeListener<Boolean>() {
-				@Override
-				public void changed(final ObservableValue<? extends Boolean> ov, final Boolean oldVal, final Boolean newVal) {
-					// refresh movie list when a tag is (un)selected
-					refreshMovieList();
-				}
-			});
-			sectionListPane.setUpdateSectionCallback(new Callback<Void, Void>() {
-				@Override
-				public Void call(final Void v) {
-					updateMovieCount();
-					return null;
-				}
+			sectionListPane.setTagChangeListener((ov, oldVal, newVal) -> refreshMovieList());
+			sectionListPane.setUpdateSectionCallback(v -> {
+				updateMovieCount();
+				return null;
 			});
 			if (profile != Profile.RESTRICTED) {
 				selectionPane.getChildren().add(sectionListPane);
@@ -155,24 +135,18 @@ public class MovieBrowserApp extends Application {
 		/* movie list */ {
 			movieListPane.setPrefWidth(250);
 			movieListPane.prefHeightProperty().bind(selectionPane.heightProperty());
-			movieListPane.addSelectionListener(new ChangeListener<Movie>() {
-				@Override
-				public void changed(final ObservableValue<? extends Movie> ov, final Movie oldVal, final Movie newVal) {
-					if (!movieListPane.isRefreshing()) {
-						// update movie details when (a) movie(s) is/are selected
-						refreshMovie();
-					}
+			movieListPane.addSelectionListener((ov, oldVal, newVal) -> {
+				if (!movieListPane.isRefreshing()) {
+					// update movie details when (a) movie(s) is/are selected
+					refreshMovie();
 				}
 			});
-			movieListPane.addChangeListener(new ListChangeListener<Movie>() {
-				@Override
-				public void onChanged(final ListChangeListener.Change<? extends Movie> change) {
-					// update movie count when a new movie list is loaded
-					updateMovieCount();
-					if (!movieListPane.isRefreshing()) {
-						// update movie details in case no movie is selected
-						refreshMovie();
-					}
+			movieListPane.addChangeListener(change -> {
+				// update movie count when a new movie list is loaded
+				updateMovieCount();
+				if (!movieListPane.isRefreshing()) {
+					// update movie details in case no movie is selected
+					refreshMovie();
 				}
 			});
 
@@ -181,33 +155,19 @@ public class MovieBrowserApp extends Application {
 
 		/* movie panel */ {
 			moviePane.prefHeightProperty().bind(mainPane.heightProperty());
-			moviePane.setOnAddTag(new EventHandler<ActionEvent>() {
-				@Override
-				public void handle(final ActionEvent event) {
-					refreshSectionList();
-					refreshMovieList();
-				}
+			moviePane.setOnAddTag(event -> {
+				refreshSectionList();
+				refreshMovieList();
 			});
-			moviePane.setOnDelTag(new EventHandler<ActionEvent>() {
-				@Override
-				public void handle(final ActionEvent event) {
-					refreshSectionList();
-					refreshMovieList();
-				}
+			moviePane.setOnDelTag(event -> {
+				refreshSectionList();
+				refreshMovieList();
 			});
-			moviePane.setOnCreateTag(new EventHandler<ActionEvent>() {
-				@Override
-				public void handle(final ActionEvent event) {
-					refreshSectionList();
-					refreshMovieList();
-				}
+			moviePane.setOnCreateTag(event -> {
+				refreshSectionList();
+				refreshMovieList();
 			});
-			moviePane.setOnUpdateMovie(new EventHandler<ActionEvent>() {
-				@Override
-				public void handle(final ActionEvent event) {
-					refreshMovieList();
-				}
-			});
+			moviePane.setOnUpdateMovie(event -> refreshMovieList());
 
 			mainPane.setCenter(moviePane);
 		}
@@ -228,74 +188,37 @@ public class MovieBrowserApp extends Application {
 		}
 
 		fileConsoService.reset();
-		fileConsoService.setOnMovieUpdated(new Callback<Map<Movie, String>, Void>() {
-			@Override
-			public Void call(final Map<Movie, String> movieMap) {
-				Platform.runLater(new Runnable() {
-					@Override
-					public void run() {
-						consolidateFolders(movieMap);
-					}
-				});
-				return null;
-			}
+		fileConsoService.setOnMovieUpdated(movieMap -> {
+			Platform.runLater(() -> consolidateFolders(movieMap));
+			return null;
 		});
-		fileConsoService.setOnFailed(new EventHandler<WorkerStateEvent>() {
-			@Override
-			public void handle(final WorkerStateEvent event) {
-				displayConsolidationError(event);
-			}
-		});
+		fileConsoService.setOnFailed(event -> displayConsolidationError(event));
 
 		movieConsoService.reset();
-		movieConsoService.setOnToManyDelete(new Callback<Set<Movie>, Void>() {
-			@Override
-			public Void call(final Set<Movie> movies) {
-				Platform.runLater(new Runnable() {
-					@Override
-					public void run() {
-						confirmDeletion(movies);
-					}
-				});
-				return null;
-			}
+		movieConsoService.setOnToManyDelete(movies -> {
+			Platform.runLater(() -> confirmDeletion(movies));
+			return null;
 		});
-		movieConsoService.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
-			@Override
-			public void handle(final WorkerStateEvent event) {
-				if ((boolean) event.getSource().getValue()) {
-					refresh();
-				}
-				if (profile == Profile.ADMINISTRATOR) {
-					if (fileConsoService.getState() == State.READY) {
-						fileConsoService.start();
-					} else {
-						fileConsoService.restart();
-					}
+		movieConsoService.setOnSucceeded(event -> {
+			if ((boolean) event.getSource().getValue()) {
+				refresh();
+			}
+			if (profile == Profile.ADMINISTRATOR) {
+				if (fileConsoService.getState() == State.READY) {
+					fileConsoService.start();
+				} else {
+					fileConsoService.restart();
 				}
 			}
 		});
-		movieConsoService.setOnFailed(new EventHandler<WorkerStateEvent>() {
-			@Override
-			public void handle(final WorkerStateEvent event) {
-				displayConsolidationError(event);
-			}
-		});
+		movieConsoService.setOnFailed(event -> displayConsolidationError(event));
 		movieConsoService.setDelay(CONSOLIDATION_DELAY);
 		movieConsoService.setPeriod(CONSOLIDATION_PERIOD);
 		movieConsoService.start();
 
-		updateMgr.addOnUpdate(new Callback<Status, Void>() {
-			@Override
-			public Void call(final Status status) {
-				Platform.runLater(new Runnable() {
-					@Override
-					public void run() {
-						refresh();
-					}
-				});
-				return null;
-			}
+		updateMgr.addOnUpdate(status -> {
+			Platform.runLater(() -> refresh());
+			return null;
 		});
 	}
 
@@ -313,7 +236,7 @@ public class MovieBrowserApp extends Application {
 
 	private void refreshSectionList() {
 		// refresh tag list
-		sectionListPane.refresh();
+		sectionListPane.refreshAsync();
 		// refresh available tags in movie tag list
 		moviePane.refreshTags();
 	}

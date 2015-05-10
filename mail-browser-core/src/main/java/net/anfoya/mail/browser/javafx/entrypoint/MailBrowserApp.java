@@ -159,13 +159,13 @@ public class MailBrowserApp extends Application {
 	}
 
 	private void initData() {
-        sectionListPane.refresh();
+		sectionListPane.refresh();
 		sectionListPane.selectTag(GmailSection.GMAIL_SYSTEM, "INBOX");
 		sectionListPane.expand(GmailSection.GMAIL_SYSTEM);
 	}
 
 	private void refreshSectionList() {
-		sectionListPane.refresh();
+		sectionListPane.refreshAsync();
 		threadPane.refreshTags();
 	}
 
