@@ -56,12 +56,49 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 	        final Dragboard db = startDragAndDrop(TransferMode.ANY);
 	        db.setContent(content);
 		});
+		setOnDragEntered(event -> {
+			final Dragboard db = event.getDragboard();
+			if (db.hasContent(DndFormat.TAG_DATA_FORMAT)
+					&& !section.getId().equals(SimpleSection.NO_ID)) {
+				final T tag = (T) db.getContent(DndFormat.TAG_DATA_FORMAT);
+				if (!tagList.contains(tag.getName())) {
+					SectionPane.this.setOpacity(.5);
+					event.consume();
+				}
+			}
+		});
+		setOnDragExited(event -> {
+			if (event.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT)) {
+				SectionPane.this.setOpacity(1);
+				event.consume();
+			}
+		});
 		setOnDragOver(event -> {
-			if (!isExpanded()
-					&& (event.getDragboard().hasContent(extItemDataFormat)
-							|| event.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT))) {
+			final Dragboard db = event.getDragboard();
+			if (db.hasContent(extItemDataFormat) && !isExpanded()) {
 				setExpanded(true);
 				event.consume();
+			} else if (db.hasContent(DndFormat.TAG_DATA_FORMAT)
+					&& !section.getId().startsWith(SimpleSection.NO_ID)) { //TODO improve
+				final T tag = (T) db.getContent(DndFormat.TAG_DATA_FORMAT);
+				if (!tagList.contains(tag.getName())) {
+					event.acceptTransferModes(TransferMode.ANY);
+					event.consume();
+				}
+			}
+		});
+		setOnDragDropped(event -> {
+			final Dragboard db = event.getDragboard();
+			if (db.hasContent(DndFormat.TAG_DATA_FORMAT)) {
+				final T tag = (T) db.getContent(DndFormat.TAG_DATA_FORMAT);
+				try {
+					tagService.moveToSection(tag, section);
+					event.setDropCompleted(true);
+					event.consume();
+				} catch (final Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		});
 

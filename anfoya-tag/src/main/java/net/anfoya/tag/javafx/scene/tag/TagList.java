@@ -100,6 +100,7 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 
 		// build items map and restore selection
 		final Map<String, TagListItem<T>> countedItemMap = this.itemMap;
+		itemMap.clear();
 		final ObservableList<TagListItem<T>> items = FXCollections.observableArrayList();
 		for(final T tag: tags) {
 			final TagListItem<T> item = new TagListItem<T>(tag);

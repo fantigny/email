@@ -35,7 +35,7 @@ class ThreadListCell<H extends Thread> extends ListCell<H> {
         	if (thread.isUnread()) {
         		sender.setStyle("-fx-font-weight: bold");
         	} else {
-        		sender.setStyle("-fx-font-weight: regular");
+        		sender.setStyle("-fx-font-weight: normal");
         	}
 
         	setGraphic(grid);

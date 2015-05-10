@@ -17,13 +17,13 @@ public class LabelService {
 	private final Map<String, Label> idLabels = new ConcurrentHashMap<String, Label>();
 	private final Gmail gmail;
 	private final String user;
-	
+
 	public LabelService(final Gmail gmail, final String user) {
 		this.gmail = gmail;
 		this.user = user;
 	}
 
-	protected Collection<Label> getAll() throws LabelException {		
+	protected Collection<Label> getAll() throws LabelException {
 		if (idLabels.isEmpty()) {
 			try {
 				for(final Label l: gmail.users().labels().list(user).execute().getLabels()) {
@@ -53,20 +53,25 @@ public class LabelService {
 			newName += name;
 			label.setName(newName);
 			label = gmail.users().labels().update(user, label.getId(), label).execute();
-			idLabels.put(label.getId(), label);			
+			idLabels.put(label.getId(), label);
 			return label;
 		} catch (final IOException e) {
-			throw new LabelException("renaming " + label.getName() + " to " + name, e);
+			throw new LabelException("renaming label \"" + label.getName() + "\" to \"" + name + "\"", e);
 		}
 	}
 
-	protected Label add(Label label) throws LabelException {
+	protected Label add(final String name) throws LabelException {
 		try {
+			Label label = new Label();
+			label.setMessageListVisibility("show");
+			label.setLabelListVisibility("labelShow");
+			label.setType("user");
+			label.setName(name);
 			label = gmail.users().labels().create(user, label).execute();
 			idLabels.put(label.getId(), label);
 			return label;
 		} catch (final IOException e) {
-			throw new LabelException("adding " + label.getName(), e);
+			throw new LabelException("adding " + name, e);
 		}
 	}
 

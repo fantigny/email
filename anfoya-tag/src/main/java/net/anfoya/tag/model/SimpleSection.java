@@ -5,7 +5,8 @@ import java.io.Serializable;
 
 @SuppressWarnings("serial")
 public class SimpleSection implements Serializable, Comparable<SimpleSection> {
-	protected static final String NO_SECTION_NAME = "No section :-(";
+	public static final String NO_SECTION_NAME = "No section :-(";
+	public static final String NO_ID = "section-with-no-id-";
 
 	public static final SimpleSection NO_SECTION = new SimpleSection(NO_SECTION_NAME);
 	public static final SimpleSection TO_WATCH = new SimpleSection(SimpleTag.TO_WATCH_NAME);
@@ -15,7 +16,7 @@ public class SimpleSection implements Serializable, Comparable<SimpleSection> {
 	private final int hash;
 
 	public SimpleSection(final String name) {
-		this(name, name);
+		this(NO_ID + name, name);
 	}
 	public SimpleSection(final String id, final String name) {
 		this.id = id;

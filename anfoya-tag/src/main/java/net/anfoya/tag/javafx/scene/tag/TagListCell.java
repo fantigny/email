@@ -39,7 +39,7 @@ class TagListCell<T extends SimpleTag> extends CheckBoxListCell<TagListItem<T>> 
 
         setOnDragEntered(event -> {
 			if (getItem() != null && event.getDragboard().hasContent(extItemDataFormat)) {
-	            setOpacity(0.3);
+	            setOpacity(0.5);
         	}
         });
         setOnDragExited(event -> {

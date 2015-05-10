@@ -47,7 +47,10 @@ public class MailBrowserApp extends Application {
 
 	@Override
 	public void start(final Stage primaryStage) throws Exception {
-		primaryStage.setOnCloseRequest(event -> ThreadPool.getInstance().shutdown());
+		primaryStage.setOnCloseRequest(event -> {
+			refreshTimer.cancel();
+			ThreadPool.getInstance().shutdown();
+		});
 
 		mailService = new GmailService();
 		ThreadPool.getInstance().submit(() -> {

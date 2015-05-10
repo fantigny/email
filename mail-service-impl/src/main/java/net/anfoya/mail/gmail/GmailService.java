@@ -417,28 +417,25 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		try {
 			return new GmailTag(labelService.rename(labelService.get(tag.getId()), name));
 		} catch (final LabelException e) {
-			throw new GMailException("rename tag " + tag.getName(), e);
+			throw new GMailException("rename tag \"" + tag.getName() + "\" to \"" + name + "\"", e);
 		}
 	}
 
 	@Override
 	public GmailSection addSection(final String name) throws GMailException {
-
-		// TODO Auto-generated method stub
-		return null;
+		try {
+			return new GmailSection(labelService.add(name));
+		} catch (final LabelException e) {
+			throw new GMailException("adding section \"" + name + "\"", e);
+		}
 	}
 
 	@Override
 	public GmailTag createTag(final String name) throws GMailException {
 		try {
-			Label label = new Label();
-			label.setMessageListVisibility("show");
-			label.setLabelListVisibility("labelShow");
-			label.setName(name);
-			label = labelService.add(label);
-			return new GmailTag(label);
+			return new GmailTag(labelService.add(name));
 		} catch (final LabelException e) {
-			throw new GMailException("adding " + name, e);
+			throw new GMailException("adding tag \"" + name + "\"", e);
 		}
 	}
 
