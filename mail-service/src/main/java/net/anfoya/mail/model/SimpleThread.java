@@ -11,19 +11,8 @@ public abstract class SimpleThread implements Thread {
 	protected static final String EMPTY = "[empty]";
 
 	public enum SortOrder {
-		DATE(new Comparator<SimpleThread>() {
-			@Override
-			public int compare(final SimpleThread s1, final SimpleThread s2) {
-				return s2.getSentDate().compareTo(s1.getSentDate());
-			}
-		}),
-		SUBJECT(new Comparator<SimpleThread>() {
-			@Override
-			public int compare(final SimpleThread s1, final SimpleThread s2) {
-				//TODO: change to sender sort
-				return s1.getSubject().compareTo(s2.getSubject());
-			}
-		});
+		DATE((s1, s2) -> s2.getReceived().compareTo(s1.getReceived())),
+		SUBJECT((s1, s2) -> s1.getSubject().compareTo(s2.getSubject()));
 
 		private Comparator<SimpleThread> comparator;
 		private SortOrder(final Comparator<SimpleThread> comparator) {
@@ -41,7 +30,7 @@ public abstract class SimpleThread implements Thread {
 	private final Set<String> tagIds;
 	private final boolean unread;
 	private final String sender;
-	private final String snippet;
+	private final Date received;
 
 	public SimpleThread(final String id
 			, final String subject
@@ -49,20 +38,14 @@ public abstract class SimpleThread implements Thread {
 			, final Set<String> tagIds
 			, final boolean unread
 			, final String sender
-			, final String snipset) {
+			, final Date received) {
 		this.id = id;
 		this.subject = subject;
 		this.messageIds = messageIds;
 		this.tagIds = tagIds;
 		this.unread = unread;
 		this.sender = sender;
-		this.snippet = snipset;
-	}
-
-	@Override
-	public Date getSentDate() {
-		// TODO Auto-generated method stub
-		return new Date();
+		this.received = received;
 	}
 
 	@Override
@@ -101,7 +84,7 @@ public abstract class SimpleThread implements Thread {
 	}
 
 	@Override
-	public String getSnippet() {
-		return snippet;
+	public Date getReceived() {
+		return received;
 	}
 }
