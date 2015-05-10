@@ -1,4 +1,4 @@
-package net.anfoya.mail.browser.javafx;
+package net.anfoya.mail.browser.javafx.threadlist;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -22,7 +22,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import net.anfoya.javafx.scene.control.Title;
-import net.anfoya.mail.browser.javafx.dnd.ThreadListDropPane;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.model.SimpleThread.SortOrder;
@@ -40,23 +39,6 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 
 	public ThreadListPane(final MailService<S, T, H, ? extends SimpleMessage> mailService) {
 		this.mailService = mailService;
-		
-		final BorderPane patternPane = new BorderPane();
-		setTop(patternPane);
-
-		final Title title = new Title("Threads");
-		title.setPadding(new Insets(0, 10, 0, 5));
-		patternPane.setLeft(title);
-
-		namePatternField = new TextField();
-		namePatternField.setPromptText("search");
-		namePatternField.textProperty().addListener((ChangeListener<String>) (ov, oldPattern, newPattern) -> threadList.refreshWithPattern(newPattern));
-		patternPane.setCenter(namePatternField);
-		BorderPane.setMargin(namePatternField, new Insets(0, 5, 0, 5));
-
-		final Button delPatternButton = new Button("X");
-		delPatternButton.setOnAction(event -> namePatternField.textProperty().set(""));
-		patternPane.setRight(delPatternButton);
 
 		final StackPane stackPane = new StackPane();
 		stackPane.setAlignment(Pos.BOTTOM_CENTER);
@@ -113,6 +95,26 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		box.setAlignment(Pos.BASELINE_CENTER);
 		box.setSpacing(5);
 		setBottom(box);
+		final BorderPane patternPane = new BorderPane();
+		setTop(patternPane);
+
+		final Title title = new Title("Threads");
+		title.setPadding(new Insets(0, 10, 0, 5));
+		patternPane.setLeft(title);
+
+		namePatternField = new TextField();
+		namePatternField.setPromptText("search");
+		namePatternField.textProperty().addListener((ChangeListener<String>) (ov, oldPattern, newPattern) -> {
+			threadList.refreshWithPattern(newPattern);
+		});
+		patternPane.setCenter(namePatternField);
+		BorderPane.setMargin(namePatternField, new Insets(0, 5, 0, 5));
+
+		final Button delPatternButton = new Button("X");
+		delPatternButton.setOnAction(event -> {
+			namePatternField.textProperty().set("");
+		});
+		patternPane.setRight(delPatternButton);
 
 		setMargin(patternPane, new Insets(5));
 		setMargin(threadList, new Insets(0, 5, 0, 5));

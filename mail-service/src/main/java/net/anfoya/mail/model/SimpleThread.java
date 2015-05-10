@@ -1,12 +1,13 @@
 package net.anfoya.mail.model;
 
-import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.Set;
 
+import net.anfoya.mail.service.Thread;
+
 @SuppressWarnings("serial")
-public class SimpleThread implements Serializable {
+public abstract class SimpleThread implements Thread {
 	protected static final String EMPTY = "[empty]";
 
 	public enum SortOrder {
@@ -38,14 +39,27 @@ public class SimpleThread implements Serializable {
 	private final String subject;
 	private final Set<String> messageIds;
 	private final Set<String> tagIds;
+	private final boolean unread;
+	private final String sender;
+	private final String snippet;
 
-	public SimpleThread(final String id, final String subject, final Set<String> messageIds, final Set<String> tagIds) {
+	public SimpleThread(final String id
+			, final String subject
+			, final Set<String> messageIds
+			, final Set<String> tagIds
+			, final boolean unread
+			, final String sender
+			, final String snipset) {
 		this.id = id;
 		this.subject = subject;
 		this.messageIds = messageIds;
 		this.tagIds = tagIds;
+		this.unread = unread;
+		this.sender = sender;
+		this.snippet = snipset;
 	}
 
+	@Override
 	public Date getSentDate() {
 		// TODO Auto-generated method stub
 		return new Date();
@@ -56,19 +70,38 @@ public class SimpleThread implements Serializable {
 		return subject;
 	}
 
+	@Override
 	public String getId() {
 		return id;
 	}
 
+	@Override
 	public String getSubject() {
 		return subject;
 	}
 
+	@Override
 	public Set<String> getMessageIds() {
 		return messageIds;
 	}
 
+	@Override
 	public Set<String> getTagIds() {
 		return tagIds;
+	}
+
+	@Override
+	public boolean isUnread() {
+		return unread;
+	}
+
+	@Override
+	public String getSender() {
+		return sender;
+	}
+
+	@Override
+	public String getSnippet() {
+		return snippet;
 	}
 }

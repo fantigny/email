@@ -12,7 +12,24 @@ import com.google.api.services.gmail.model.Thread;
 @SuppressWarnings("serial")
 public class GmailThread extends SimpleThread {
 
-	private static String findSubject(final com.google.api.services.gmail.model.Thread thread) {
+	public GmailThread(final Thread thread, final String unreadTagId) {
+		this(
+			thread.getId()
+			, findSubject(thread)
+			, getMessageIds(thread)
+			, getLabelIds(thread)
+			, getLabelIds(thread).contains(unreadTagId)
+			, "[sender]"
+			, thread.getSnippet());
+	}
+
+	public GmailThread(final String id, final String subject
+			, final Set<String> messageIds, final Set<String> tagIds
+			, final boolean unread, final String sender, final String snipset) {
+		super(id, subject, messageIds, tagIds, unread, sender, snipset);
+	}
+
+	public static String findSubject(final Thread thread) {
 		for(final MessagePartHeader h:thread.getMessages().get(0).getPayload().getHeaders()) {
 			if ("Subject".equals(h.getName())) {
 				final String subject = h.getValue();
@@ -23,7 +40,7 @@ public class GmailThread extends SimpleThread {
 		return EMPTY;
 	}
 
-	private static Set<String> getMessageIds(final Thread thread) {
+	public static Set<String> getMessageIds(final Thread thread) {
 		final Set<String> messageIds = new LinkedHashSet<String>();
 		for(final Message m: thread.getMessages()) {
 			messageIds.add(m.getId());
@@ -32,16 +49,12 @@ public class GmailThread extends SimpleThread {
 		return messageIds;
 	}
 
-	private static Set<String> getLabelIds(final Thread thread) {
+	public static Set<String> getLabelIds(final Thread thread) {
 		final Set<String> labelIds = new LinkedHashSet<String>();
 		for(final Message m: thread.getMessages()) {
 			labelIds.addAll(m.getLabelIds());
 		}
 
 		return labelIds;
-	}
-
-	public GmailThread(final Thread thread) {
-		super(thread.getId(), findSubject(thread), getMessageIds(thread), getLabelIds(thread));
 	}
 }

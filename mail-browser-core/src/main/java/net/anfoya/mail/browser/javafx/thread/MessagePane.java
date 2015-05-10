@@ -1,4 +1,4 @@
-package net.anfoya.mail.browser.javafx;
+package net.anfoya.mail.browser.javafx.thread;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -26,7 +26,6 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.mail.browser.javafx.dnd.ThreadDropPane;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailService;

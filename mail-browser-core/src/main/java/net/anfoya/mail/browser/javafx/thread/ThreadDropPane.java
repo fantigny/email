@@ -1,6 +1,6 @@
-package net.anfoya.mail.browser.javafx.dnd;
+package net.anfoya.mail.browser.javafx.thread;
 
-import static net.anfoya.mail.browser.javafx.ThreadListPane.DND_THREADS_DATA_FORMAT;
+import static net.anfoya.mail.browser.javafx.threadlist.ThreadListPane.DND_THREADS_DATA_FORMAT;
 
 import java.util.Set;
 

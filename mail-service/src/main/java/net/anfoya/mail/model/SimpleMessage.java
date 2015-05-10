@@ -1,9 +1,10 @@
 package net.anfoya.mail.model;
 
-import java.io.Serializable;
+import net.anfoya.mail.service.Message;
+
 
 @SuppressWarnings("serial")
-public class SimpleMessage implements Serializable {
+public class SimpleMessage implements Message {
 
 	private final String id;
 	private final byte[] rfc822mimeRaw;
@@ -20,5 +21,4 @@ public class SimpleMessage implements Serializable {
 	public byte[] getRfc822mimeRaw() {
 		return rfc822mimeRaw;
 	}
-
 }

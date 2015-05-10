@@ -1,10 +1,12 @@
 package net.anfoya.mail.browser.javafx.entrypoint;
 
-import static net.anfoya.mail.browser.javafx.ThreadListPane.DND_THREADS_DATA_FORMAT;
+import static net.anfoya.mail.browser.javafx.threadlist.ThreadListPane.DND_THREADS_DATA_FORMAT;
 
 import java.util.Set;
 
 import javafx.application.Application;
+import javafx.concurrent.ScheduledService;
+import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -12,12 +14,13 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import javax.security.auth.login.LoginException;
 
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.mail.browser.javafx.ThreadListPane;
-import net.anfoya.mail.browser.javafx.ThreadPane;
+import net.anfoya.mail.browser.javafx.thread.ThreadPane;
+import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
 import net.anfoya.mail.gmail.GmailService;
 import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.gmail.model.GmailTag;
@@ -39,6 +42,8 @@ public class MailBrowserApp extends Application {
 	private MailService<GmailSection, GmailTag, GmailThread, SimpleMessage> mailService;
 	private ThreadListPane<GmailSection, GmailTag, GmailThread> threadListPane;
 	private ThreadPane<GmailTag, GmailThread, SimpleMessage> threadPane;
+
+	private ScheduledService<Void> refreshTimer;
 
 	@Override
 	public void start(final Stage primaryStage) throws Exception {
@@ -162,6 +167,25 @@ public class MailBrowserApp extends Application {
 		sectionListPane.refresh();
 		sectionListPane.selectTag(GmailSection.GMAIL_SYSTEM, "INBOX");
 		sectionListPane.expand(GmailSection.GMAIL_SYSTEM);
+
+		refreshTimer = new ScheduledService<Void>() {
+			@Override
+			protected Task<Void> createTask() {
+				return new Task<Void>() {
+					@Override
+					protected Void call() throws Exception {
+						return null;
+					}
+				};
+			}
+		};
+		refreshTimer.setOnSucceeded(event -> {
+			refreshThreadList();
+		});
+		refreshTimer.setDelay(Duration.seconds(20));
+		refreshTimer.setPeriod(Duration.seconds(20));
+		refreshTimer.start();
+
 	}
 
 	private void refreshSectionList() {

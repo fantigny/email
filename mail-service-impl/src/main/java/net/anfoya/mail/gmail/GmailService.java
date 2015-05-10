@@ -107,7 +107,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		} catch (final URISyntaxException | IOException e) {
 			throw new GMailException("login", e);
 		}
-		
+
 		labelService = new LabelService(gmail, USER);
 		messageService = new MessageService(gmail, USER);
 		threadService = new ThreadService(gmail, USER);
@@ -150,13 +150,14 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 				}
 				query.append("(").append(subQuery).append(")");
 			}
-	
+
+			final String unreadId = labelService.find("UNREAD").getId();
 			for(final Thread t: threadService.find(query.toString())) {
-				threads.add(new GmailThread(t));
+				threads.add(new GmailThread(t, unreadId));
 			}
-			
+
 			return threads;
-		} catch (final ThreadException e) {
+		} catch (final ThreadException | LabelException e) {
 			throw new GMailException("login", e);
 		}
 	}
@@ -164,8 +165,10 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public GmailThread getThread(final String id) throws GMailException {
 		try {
-			return new GmailThread(threadService.get(id));
-		} catch (final ThreadException e) {
+			final String unreadId = labelService.find("UNREAD").getId();
+			final Thread thread = threadService.get(id);
+			return new GmailThread(thread, unreadId);
+		} catch (final ThreadException | LabelException e) {
 			throw new GMailException("loading thread " + id, e);
 		}
 	}
@@ -203,12 +206,12 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 					i.remove();
 				}
 			}
-	
+
 			final Set<GmailSection> sections = new TreeSet<GmailSection>();
 			sections.add(GmailSection.GMAIL_SYSTEM);
 			sections.add(GmailSection.NO_SECTION);
 			sections.addAll(sectionTemp);
-	
+
 			LOGGER.debug("get sections: {}", sections);
 			return sections;
 		} catch (final LabelException e) {
@@ -275,7 +278,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			if (includes.isEmpty()) {
 				return 0;
 			}
-	
+
 			final StringBuilder query = new StringBuilder();
 			if (!excludes.isEmpty()) {
 				boolean first = true;
@@ -320,7 +323,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 					query.append(" OR ");
 				}
 				first = false;
-	
+
 				query.append("(");
 				if (!excludes.isEmpty()) {
 					boolean subFirst = true;
@@ -353,7 +356,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 				}
 				query.append(")");
 			}
-	
+
 			return threadService.count(query.toString());
 		} catch (final ThreadException e) {
 			throw new GMailException("counting threads for " + section.getPath(), e);
@@ -405,7 +408,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		for(final GmailTag t: tags) {
 			moveToSection(t, section);
 		}
-		
+
 		return section;
 	}
 

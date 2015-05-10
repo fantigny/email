@@ -1,4 +1,4 @@
-package net.anfoya.mail.browser.javafx;
+package net.anfoya.mail.browser.javafx.threadlist;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,8 +12,10 @@ import java.util.function.Predicate;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
+import javafx.util.Callback;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
@@ -52,6 +54,12 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 		this.namePattern = "";
 
 		getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+		setCellFactory(new Callback<ListView<H>, ListCell<H>>() {
+			@Override
+			public ListCell<H> call(final ListView<H> param) {
+				return new ThreadListCell<H>();
+			}
+		});
 	}
 
 	public void refreshWithPattern(final String pattern) {

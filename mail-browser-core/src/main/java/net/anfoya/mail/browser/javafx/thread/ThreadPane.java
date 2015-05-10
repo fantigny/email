@@ -1,4 +1,4 @@
-package net.anfoya.mail.browser.javafx;
+package net.anfoya.mail.browser.javafx.thread;
 
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -15,7 +15,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
-import net.anfoya.mail.browser.javafx.dnd.ThreadDropPane;
+import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailException;
