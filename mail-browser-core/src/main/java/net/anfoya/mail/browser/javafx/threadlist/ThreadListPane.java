@@ -49,22 +49,22 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		final ThreadListDropPane<H> threadListDropPane = new ThreadListDropPane<H>(mailService);
 		threadListDropPane.prefWidthProperty().bind(stackPane.widthProperty());
 
-		stackPane.setOnDragEntered(event -> {
+		setCenter(stackPane);
+
+		threadList = new ThreadList<S, T, H>(mailService);
+		threadList.setOnDragEntered(event -> {
 			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)
 					&& !stackPane.getChildren().contains(threadListDropPane)) {
 				stackPane.getChildren().add(threadListDropPane);
 			}
 
 		});
-		stackPane.setOnDragExited(event -> {
+		threadList.setOnDragExited(event -> {
 			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)
 					&& stackPane.getChildren().contains(threadListDropPane)) {
 				stackPane.getChildren().remove(threadListDropPane);
 			}
 		});
-		setCenter(stackPane);
-
-		threadList = new ThreadList<S, T, H>(mailService);
 		threadList.setOnDragDetected(event -> {
 			final Set<H> threads = getSelectedThreads();
 			if (threads.size() == 0) {
@@ -84,6 +84,9 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 				@SuppressWarnings("unchecked")
 				final T tag = (T) db.getContent(DndFormat.TAG_DATA_FORMAT);
 				addTag(tag, threads);
+				event.consume();
+			} else if (db.hasContent(ThreadListPane.DND_THREADS_DATA_FORMAT)) {
+				threadList.load();
 				event.consume();
 			}
 		});

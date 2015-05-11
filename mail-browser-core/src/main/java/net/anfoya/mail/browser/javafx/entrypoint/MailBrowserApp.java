@@ -146,9 +146,12 @@ public class MailBrowserApp extends Application {
 
 	private void initData() {
 		sectionListPane.refresh();
-//		sectionListPane.selectTag(GmailSection.GMAIL_SYSTEM, "INBOX");
-		sectionListPane.selectTag("Bank", "HK HSBC");
-		sectionListPane.expand(GmailSection.GMAIL_SYSTEM);
+
+		sectionListPane.selectTag(GmailSection.GMAIL_SYSTEM.getName(), "INBOX");
+		sectionListPane.expand(GmailSection.GMAIL_SYSTEM.getName());
+
+//		sectionListPane.selectTag("Bank", "HK HSBC");
+//		sectionListPane.expand("Bank");
 
 		refreshTimer = new ScheduledService<Long>() {
 			@Override

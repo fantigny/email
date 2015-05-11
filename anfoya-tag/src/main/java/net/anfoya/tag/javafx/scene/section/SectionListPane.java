@@ -246,12 +246,13 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		updateSectionCallback = callback;
 	}
 
-	public void expand(final SimpleSection section) {
+	public void expand(final String sectionName) {
 		for(final TitledPane titledPane: sectionAcc.getPanes()) {
 			@SuppressWarnings("unchecked")
 			final TagList<S, T> tagList = (TagList<S, T>) titledPane.getContent();
-			if (tagList.getSection().equals(section)) {
+			if (tagList.getSection().getName().equals(sectionName)) {
 				titledPane.expandedProperty().set(true);
+				break;
 			}
 		}
 	}
