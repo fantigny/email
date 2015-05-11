@@ -9,72 +9,76 @@ import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Region;
-import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import netscape.javascript.JSException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public final class WebViewFitContent extends Region {
-	private final WebView webview;
-	private final WebEngine webEngine;
+	private static final Logger LOGGER = LoggerFactory.getLogger(WebViewFitContent.class);
+
+	private final WebView delegate;
+
+	private double pageScrollMax;
 
 	public WebViewFitContent() {
-		webview = new WebView();
-		webEngine = webview.getEngine();
+		delegate = new WebView();
 
 		widthProperty().addListener((ov, oldVal, newVal) -> {
-			webview.setPrefWidth((Double) newVal);
+			LOGGER.debug("widthProperty() change");
+			delegate.setPrefWidth((Double) newVal);
 			adjustHeight();
 		});
-		webEngine.getLoadWorker().stateProperty().addListener((ov, oldVal, newVal) -> {
-			adjustHeight();
-		});
-		webview.getChildrenUnmodifiable().addListener(new ListChangeListener<Node>() {
+		delegate.getChildrenUnmodifiable().addListener(new ListChangeListener<Node>() {
 			@Override
 			public void onChanged(final Change<? extends Node> change) {
-				final Set<Node> scrolls = webview.lookupAll(".scroll-bar");
+				final Set<Node> scrolls = delegate.lookupAll(".scroll-bar");
 				for (final Node n : scrolls) {
-					n.setVisible(false);
+					LOGGER.debug("{}", n);
+					if (n.isVisible()) {
+						LOGGER.debug("getChildrenUnmodifiable() change");
+						adjustHeight();
+					}
 				}
 			}
 		});
 
-		getChildren().add(webview);
+		getChildren().add(delegate);
 	}
 
 	public void loadContent(final String html) {
-		webEngine.loadContent(html);
+		delegate.getEngine().loadContent(html);
 	}
 
 	public void load(final String location) {
-		webEngine.load(location);
+		delegate.getEngine().load(location);
 	}
 
 	@Override
 	protected void layoutChildren() {
 		final double w = getWidth();
 		final double h = getHeight();
-		layoutInArea(webview, 0, 0, w, h, 0, HPos.CENTER, VPos.CENTER);
+		layoutInArea(delegate, 0, 0, w, h, 0, HPos.CENTER, VPos.CENTER);
 	}
 
 	private void adjustHeight() {
+		if (getParent() == null) {
+			return;
+		}
 		try {
-			final Object result = webEngine.executeScript("Math.max("
-					+ "document.body.scrollHeight"
-					+ ", document.body.offsetHeight"
-					+ ", document.documentElement.clientHeight"
-					+ ", document.documentElement.scrollHeight"
-					+ ", document.documentElement.offsetHeight )");
-			if (result instanceof Integer) {
-				webview.setMinHeight(20.0 + (Integer) result);
-				webview.getPrefHeight();
-			}
+			pageScrollMax = (int) delegate.getEngine().executeScript("document.body.scrollHeight");
+			delegate.setPrefHeight(pageScrollMax);
+//			webview.getPrefHeight();
+
+			LOGGER.debug("{}", pageScrollMax);
 		} catch (final JSException e) {
 			e.printStackTrace();
 		}
 	}
 
 	public void setContextMenuEnabled(final boolean enable) {
-		webview.setContextMenuEnabled(enable);
+		delegate.setContextMenuEnabled(enable);
 	}
 
 	public void clear() {
@@ -84,8 +88,9 @@ public final class WebViewFitContent extends Region {
 	public void setParentScrollPane(final ScrollPane parentScrollPane) {
 		parentScrollPane.setEventDispatcher((event, tail) -> {
 	    	if (event.getEventType() == ScrollEvent.SCROLL) {
+	    		final ScrollEvent scrollEvent = (ScrollEvent) event;
 	    		final double current = parentScrollPane.getVvalue();
-	    		final double offset = ((ScrollEvent)event).getDeltaY() < 0? .1: -.1;
+	    		final double offset = scrollEvent.getDeltaY() / pageScrollMax * -1;
 		    	parentScrollPane.setVvalue(current + offset);
 	    		event.consume();
 	    		return null;
