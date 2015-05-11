@@ -4,6 +4,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +13,32 @@ import org.slf4j.LoggerFactory;
 public final class ThreadPool {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadPool.class);
 
+	private static class NamedThreadFactory implements ThreadFactory {
+	    private static final AtomicInteger poolNumber = new AtomicInteger(1);
+	    private final ThreadGroup group;
+	    private final AtomicInteger threadNumber = new AtomicInteger(1);
+	    private final String namePrefix;
+	    private final int priority;
+
+	    protected NamedThreadFactory(final String name, final int priority) {
+	        final SecurityManager s = System.getSecurityManager();
+	        group = s != null? s.getThreadGroup(): Thread.currentThread().getThreadGroup();
+	        namePrefix = "pool-" +
+	                      poolNumber.getAndIncrement() +
+	                     "-thread-" + name + "-";
+	        this.priority = priority;
+	    }
+
+	    @Override
+		public Thread newThread(final Runnable r) {
+	        final Thread t = new Thread(group, r,
+	                              namePrefix + threadNumber.getAndIncrement(),
+	                              0);
+            t.setDaemon(true);
+            t.setPriority(priority);
+	        return t;
+	    }
+	}
 	// singleton
 	private final static ThreadPool THREAD_POOL = new ThreadPool();
 	public static ThreadPool getInstance() {
@@ -20,11 +48,12 @@ public final class ThreadPool {
 	private final ExecutorService delegateHigh;
 	private final ExecutorService delegateLow;
 
+
 	private ThreadPool() {
-		delegateHigh = Executors.newCachedThreadPool();
-		delegateLow = Executors.newFixedThreadPool(5);
+		delegateHigh = Executors.newCachedThreadPool(new NamedThreadFactory("high", Thread.NORM_PRIORITY));
+		delegateLow = Executors.newFixedThreadPool(20, new NamedThreadFactory("low", Thread.MIN_PRIORITY));
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-			shutdown();	
+			shutdown();
 		}));
 		LOGGER.info("started!");
 	}
