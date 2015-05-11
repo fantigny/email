@@ -1,6 +1,7 @@
 package net.anfoya.java.util.concurrent;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -51,7 +52,8 @@ public final class ThreadPool {
 
 	private ThreadPool() {
 		delegateHigh = Executors.newCachedThreadPool(new NamedThreadFactory("high", Thread.NORM_PRIORITY));
-		delegateLow = Executors.newFixedThreadPool(20, new NamedThreadFactory("low", Thread.MIN_PRIORITY));
+		delegateLow = Executors.newCachedThreadPool(new NamedThreadFactory("low", Thread.MIN_PRIORITY));
+//		delegateLow = Executors.newFixedThreadPool(20, new NamedThreadFactory("low", Thread.MIN_PRIORITY));
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			shutdown();
 		}));
@@ -87,5 +89,9 @@ public final class ThreadPool {
 
 	public <T> Future<T> submitLow(final Callable<T> callable) {
 		return delegateLow.submit(callable);
+	}
+
+	public Executor getExecutor() {
+		return delegateLow;
 	}
 }

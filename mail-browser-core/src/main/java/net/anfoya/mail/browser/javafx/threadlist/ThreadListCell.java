@@ -3,6 +3,7 @@ package net.anfoya.mail.browser.javafx.threadlist;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.layout.GridPane;
+import javafx.scene.text.Font;
 import net.anfoya.mail.service.Thread;
 
 class ThreadListCell<H extends Thread> extends ListCell<H> {
@@ -14,7 +15,9 @@ class ThreadListCell<H extends Thread> extends ListCell<H> {
 		super();
 
 		sender = new Label();
+		sender.setFont(new Font(14));
 		subject = new Label();
+		subject.setFont(new Font(11));
 
 		grid = new GridPane();
 		grid.addRow(0, sender);

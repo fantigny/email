@@ -5,15 +5,18 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Properties;
+import java.util.Set;
 
+import javafx.collections.ListChangeListener;
 import javafx.concurrent.Task;
 import javafx.geometry.Insets;
+import javafx.scene.Node;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TitledPane;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.web.WebView;
 
 import javax.mail.Address;
 import javax.mail.BodyPart;
@@ -26,6 +29,7 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.javafx.scene.web.WebViewFitContent;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailService;
@@ -43,21 +47,35 @@ public class MessagePane<M extends SimpleMessage> extends TitledPane {
 
 	private final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService;
 
-	private final WebView bodyView;
+	private final WebViewFitContent bodyView;
 	private final String messageId;
 
 	private M message;
 	private MimeMessage mimeMessage;
 
-	public MessagePane(final String messageId, final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService) {
+	public MessagePane(final String messageId, final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService
+			, final ScrollPane parentScrollPane) {
 		super("loading...", new BorderPane());
+		setExpanded(false);
+
 		this.mailService = mailService;
 		this.messageId = messageId;
 
 		final BorderPane mainPane = (BorderPane) getContent();
 		mainPane.setPadding(new Insets(0));
 
-		bodyView = new WebView();
+		bodyView = new WebViewFitContent(parentScrollPane);
+		bodyView.getChildrenUnmodifiable().addListener(
+				new ListChangeListener<Node>() {
+					@Override
+					public void onChanged(final Change<? extends Node> change) {
+						final Set<Node> deadSeaScrolls = bodyView.lookupAll(".scroll-bar");
+						for (final Node scroll : deadSeaScrolls) {
+							scroll.setVisible(false);
+						}
+					}
+				});
+		bodyView.setContextMenuEnabled(false);
 		mainPane.setCenter(bodyView);
 
 		setOnDragDetected(event -> {
@@ -132,7 +150,7 @@ public class MessagePane<M extends SimpleMessage> extends TitledPane {
 			html = toHtml(mimeMessage.getContent(), mimeMessage.getContentType(), true);
 			html = "<html><body><pre>" + html + "</pre></body></html>";
 		}
-		bodyView.getEngine().loadContent(html);
+		bodyView.loadContent(html);
 	}
 
 	private String toHtml(final Object mimeContent, final String mimeType, final boolean allowText) throws MessagingException, IOException {
@@ -165,7 +183,7 @@ public class MessagePane<M extends SimpleMessage> extends TitledPane {
 	}
 
 	public void clear() {
-		bodyView.getEngine().loadContent("");
+		bodyView.clear();
 	}
 
 	public M getMessage() {

@@ -223,12 +223,13 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		}
 	}
 
-	public void selectTag(final SimpleSection section, final String tagName) {
+	public void selectTag(final String sectionName, final String tagName) {
 		for(final TitledPane sectionPane: sectionAcc.getPanes()) {
 			@SuppressWarnings("unchecked")
 			final TagList<S, T> tagList = (TagList<S, T>) sectionPane.getContent();
-			if (tagList.getSection().equals(section)) {
+			if (tagList.getSection().getName().equals(sectionName)) {
 				tagList.setTagSelected(tagName, true);
+				sectionPane.setExpanded(true);
 				break;
 			}
 		}

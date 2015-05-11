@@ -10,12 +10,13 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Accordion;
+import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
@@ -29,14 +30,15 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 	private final MailService<? extends SimpleSection, T, H, M> mailService;
 
 	private final TextField subjectField;
-	private final Accordion messageAcc;
+	private final VBox messagesBox;
 	private final SelectedTagsPane<T> tagsPane;
 
 	private EventHandler<ActionEvent> delTagHandler;
 
 	private Set<H> threads;
-
 	private H thread;
+
+	private final ScrollPane messageScrollPane;
 
 	public ThreadPane(final MailService<? extends SimpleSection, T, H, M> mailService) {
 		this.mailService = mailService;
@@ -73,13 +75,13 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 		setCenter(stackPane);
 
 
-		final ScrollPane messageScrollPane = new ScrollPane();
+		messageScrollPane = new ScrollPane();
 		messageScrollPane.setFitToWidth(true);
 		messageScrollPane.getStyleClass().add("edge-to-edge");
 
-		messageAcc = new Accordion();
-		messageAcc.minHeightProperty().bind(messageScrollPane.heightProperty());
-		messageScrollPane.setContent(messageAcc);
+		messagesBox = new VBox();
+		messagesBox.minHeightProperty().bind(messageScrollPane.heightProperty());
+		messageScrollPane.setContent(messagesBox);
 
 		stackPane.getChildren().add(messageScrollPane);
 
@@ -98,7 +100,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 	private void refreshThread() {
 		if (threads.size() != 1) {
 			thread = null;
-			messageAcc.getPanes().clear();
+			messagesBox.getChildren().clear();
 			return;
 		}
 
@@ -126,7 +128,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 	}
 
 	private void refreshCurrentThread() {
-		for (final Iterator<TitledPane> i = messageAcc.getPanes().iterator(); i.hasNext();) {
+		for (final Iterator<Node> i = messagesBox.getChildren().iterator(); i.hasNext();) {
 			@SuppressWarnings("unchecked")
 			final MessagePane<M> messagePane = (MessagePane<M>) i.next();
 			if (!thread.getMessageIds().contains(messagePane.getMessage().getId())) {
@@ -135,35 +137,37 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 		}
 
 		int index = 0;
-		final ObservableList<TitledPane> panes = messageAcc.getPanes();
+		boolean expanded = false;
+		final ObservableList<Node> panes = messagesBox.getChildren();
 		for(final Iterator<String> i=new LinkedList<String>(thread.getMessageIds()).descendingIterator(); i.hasNext();) {
 			final String id = i.next();
 			@SuppressWarnings("unchecked")
-			MessagePane<M> messagePane = index < panes.size()? (MessagePane<M>) messageAcc.getPanes().get(index): null;
+			MessagePane<M> messagePane = index < panes.size()? (MessagePane<M>) messagesBox.getChildren().get(index): null;
 			if (messagePane == null || !id.equals(messagePane.getMessage().getId())) {
-				messagePane = new MessagePane<M>(id, mailService);
+				messagePane = new MessagePane<M>(id, mailService, messageScrollPane);
 				panes.add(index, messagePane);
 				messagePane.refresh();
 				index++;
 			}
 			index++;
+			expanded = expanded || messagePane.isExpanded();
 		}
 
-		if (!messageAcc.getPanes().isEmpty() && messageAcc.getExpandedPane() == null) {
-			messageAcc.setExpandedPane(messageAcc.getPanes().get(0));
+		if (!messagesBox.getChildren().isEmpty() && !expanded) {
+			((TitledPane)messagesBox.getChildren().get(0)).setExpanded(true);
 		}
 	}
 
 	private void loadThread() {
-		messageAcc.getPanes().clear();
+		messagesBox.getChildren().clear();
 		for(final String id: thread.getMessageIds()) {
-			final MessagePane<M> pane = new MessagePane<M>(id, mailService);
-			messageAcc.getPanes().add(0, pane);
+			final MessagePane<M> pane = new MessagePane<M>(id, mailService, messageScrollPane);
+			messagesBox.getChildren().add(0, pane);
 			pane.refresh();
 		}
 
-		if (!messageAcc.getPanes().isEmpty()) {
-			messageAcc.setExpandedPane(messageAcc.getPanes().get(0));
+		if (!messagesBox.getChildren().isEmpty()) {
+			((TitledPane)messagesBox.getChildren().get(0)).setExpanded(true);
 		}
 
 		try {

@@ -29,8 +29,11 @@ import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.tag.javafx.scene.section.SectionListPane;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class MailBrowserApp extends Application {
-//	private static final Logger LOGGER = LoggerFactory.getLogger(MailBrowserApp.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(MailBrowserApp.class);
 
 	public static void main(final String[] args) {
 		launch(args);
@@ -41,12 +44,12 @@ public class MailBrowserApp extends Application {
 	private ThreadListPane<GmailSection, GmailTag, GmailThread> threadListPane;
 	private ThreadPane<GmailTag, GmailThread, SimpleMessage> threadPane;
 
-	private ScheduledService<Void> refreshTimer;
+	private ScheduledService<Long> refreshTimer;
 
 	@Override
 	public void start(final Stage primaryStage) throws Exception {
 		primaryStage.setOnCloseRequest(event -> {
-//			refreshTimer.cancel();
+			refreshTimer.cancel();
 			ThreadPool.getInstance().shutdown();
 		});
 
@@ -143,26 +146,30 @@ public class MailBrowserApp extends Application {
 
 	private void initData() {
 		sectionListPane.refresh();
-		sectionListPane.selectTag(GmailSection.GMAIL_SYSTEM, "INBOX");
+//		sectionListPane.selectTag(GmailSection.GMAIL_SYSTEM, "INBOX");
+		sectionListPane.selectTag("Bank", "HK HSBC");
 		sectionListPane.expand(GmailSection.GMAIL_SYSTEM);
 
-		refreshTimer = new ScheduledService<Void>() {
+		refreshTimer = new ScheduledService<Long>() {
 			@Override
-			protected Task<Void> createTask() {
-				return new Task<Void>() {
+			protected Task<Long> createTask() {
+				return new Task<Long>() {
 					@Override
-					protected Void call() throws Exception {
-						return null;
+					protected Long call() throws Exception {
+						LOGGER.info("refresh started...");
+						return System.currentTimeMillis();
 					}
 				};
 			}
 		};
 		refreshTimer.setOnSucceeded(event -> {
 			refreshThreadList();
+			LOGGER.info("refresh finished! ({}ms)", System.currentTimeMillis() - (Long) event.getSource().getValue());
 		});
 		refreshTimer.setDelay(Duration.seconds(20));
 		refreshTimer.setPeriod(Duration.seconds(20));
-//		refreshTimer.start();
+		refreshTimer.setExecutor(ThreadPool.getInstance().getExecutor());
+		refreshTimer.start();
 
 	}
 
