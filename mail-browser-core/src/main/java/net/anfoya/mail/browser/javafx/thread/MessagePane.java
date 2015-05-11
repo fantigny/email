@@ -53,18 +53,18 @@ public class MessagePane<M extends SimpleMessage> extends TitledPane {
 	private M message;
 	private MimeMessage mimeMessage;
 
-	public MessagePane(final String messageId, final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService
-			, final ScrollPane parentScrollPane) {
-		super("loading...", new BorderPane());
+	public MessagePane(final String messageId, final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService) {
+		setText("loading...");
 		setExpanded(false);
 
 		this.mailService = mailService;
 		this.messageId = messageId;
 
-		final BorderPane mainPane = (BorderPane) getContent();
+		final BorderPane mainPane = new BorderPane();
 		mainPane.setPadding(new Insets(0));
+		setContent(mainPane);
 
-		bodyView = new WebViewFitContent(parentScrollPane);
+		bodyView = new WebViewFitContent();
 		bodyView.getChildrenUnmodifiable().addListener(
 				new ListChangeListener<Node>() {
 					@Override
@@ -188,5 +188,9 @@ public class MessagePane<M extends SimpleMessage> extends TitledPane {
 
 	public M getMessage() {
 		return message;
+	}
+
+	public void setParentScrollPane(final ScrollPane scrollPane) {
+		bodyView.setParentScrollPane(scrollPane);
 	}
 }

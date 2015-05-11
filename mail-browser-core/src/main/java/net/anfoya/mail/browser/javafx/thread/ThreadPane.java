@@ -38,7 +38,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 	private Set<H> threads;
 	private H thread;
 
-	private final ScrollPane messageScrollPane;
+	private final ScrollPane scrollPane;
 
 	public ThreadPane(final MailService<? extends SimpleSection, T, H, M> mailService) {
 		this.mailService = mailService;
@@ -75,15 +75,15 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 		setCenter(stackPane);
 
 
-		messageScrollPane = new ScrollPane();
-		messageScrollPane.setFitToWidth(true);
-		messageScrollPane.getStyleClass().add("edge-to-edge");
+		scrollPane = new ScrollPane();
+		scrollPane.setFitToWidth(true);
+		scrollPane.getStyleClass().add("edge-to-edge");
 
 		messagesBox = new VBox();
-		messagesBox.minHeightProperty().bind(messageScrollPane.heightProperty());
-		messageScrollPane.setContent(messagesBox);
+		messagesBox.minHeightProperty().bind(scrollPane.heightProperty());
+		scrollPane.setContent(messagesBox);
 
-		stackPane.getChildren().add(messageScrollPane);
+		stackPane.getChildren().add(scrollPane);
 
 		tagsPane = new SelectedTagsPane<T>();
 		setBottom(tagsPane);
@@ -142,9 +142,10 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 		for(final Iterator<String> i=new LinkedList<String>(thread.getMessageIds()).descendingIterator(); i.hasNext();) {
 			final String id = i.next();
 			@SuppressWarnings("unchecked")
+			final
 			MessagePane<M> messagePane = index < panes.size()? (MessagePane<M>) messagesBox.getChildren().get(index): null;
 			if (messagePane == null || !id.equals(messagePane.getMessage().getId())) {
-				messagePane = new MessagePane<M>(id, mailService, messageScrollPane);
+				messagePane.setParentScrollPane(scrollPane);
 				panes.add(index, messagePane);
 				messagePane.refresh();
 				index++;
@@ -161,9 +162,10 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 	private void loadThread() {
 		messagesBox.getChildren().clear();
 		for(final String id: thread.getMessageIds()) {
-			final MessagePane<M> pane = new MessagePane<M>(id, mailService, messageScrollPane);
-			messagesBox.getChildren().add(0, pane);
-			pane.refresh();
+			final MessagePane<M> messagePane = new MessagePane<M>(id, mailService);
+			messagePane.setParentScrollPane(scrollPane);
+			messagePane.refresh();
+			messagesBox.getChildren().add(0, messagePane);
 		}
 
 		if (!messagesBox.getChildren().isEmpty()) {

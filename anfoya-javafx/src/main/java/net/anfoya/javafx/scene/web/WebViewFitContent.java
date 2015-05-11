@@ -17,7 +17,7 @@ public final class WebViewFitContent extends Region {
 	private final WebView webview;
 	private final WebEngine webEngine;
 
-	public WebViewFitContent(final ScrollPane parentScrollPane) {
+	public WebViewFitContent() {
 		webview = new WebView();
 		webEngine = webview.getEngine();
 
@@ -36,16 +36,6 @@ public final class WebViewFitContent extends Region {
 					n.setVisible(false);
 				}
 			}
-		});
-		parentScrollPane.setEventDispatcher((event, tail) -> {
-	    	if (event.getEventType() == ScrollEvent.SCROLL) {
-	    		final double current = parentScrollPane.getVvalue();
-	    		final double offset = ((ScrollEvent)event).getDeltaY() > 0? .1: -.1;
-		    	parentScrollPane.setVvalue(current + offset);
-	    		event.consume();
-	    		return null;
-	    	}
-			return tail.dispatchEvent(event);
 		});
 
 		getChildren().add(webview);
@@ -89,5 +79,18 @@ public final class WebViewFitContent extends Region {
 
 	public void clear() {
 		loadContent("");
+	}
+
+	public void setParentScrollPane(final ScrollPane parentScrollPane) {
+		parentScrollPane.setEventDispatcher((event, tail) -> {
+	    	if (event.getEventType() == ScrollEvent.SCROLL) {
+	    		final double current = parentScrollPane.getVvalue();
+	    		final double offset = ((ScrollEvent)event).getDeltaY() < 0? .1: -.1;
+		    	parentScrollPane.setVvalue(current + offset);
+	    		event.consume();
+	    		return null;
+	    	}
+			return tail.dispatchEvent(event);
+		});
 	}
 }
