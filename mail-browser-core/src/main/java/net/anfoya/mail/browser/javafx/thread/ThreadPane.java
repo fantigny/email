@@ -142,9 +142,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 			final String id = i.next();
 			@SuppressWarnings("unchecked")
 			MessagePane<M> messagePane = index < panes.size()? (MessagePane<M>) messagesBox.getChildren().get(index): null;
-			final M message = messagePane.getMessage();
-			final String messageId = message.getId();
-			if (messagePane == null || !id.equals(messageId)) {
+			if (messagePane == null || !id.equals(messagePane.getMessageId())) {
 				messagePane = new MessagePane<M>(id, mailService);
 				messagePane.setParentScrollPane(scrollPane);
 				panes.add(index, messagePane);

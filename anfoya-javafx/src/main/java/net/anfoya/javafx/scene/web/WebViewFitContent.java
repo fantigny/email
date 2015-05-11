@@ -3,6 +3,7 @@ package net.anfoya.javafx.scene.web;
 import java.util.Set;
 
 import javafx.collections.ListChangeListener;
+import javafx.event.EventDispatcher;
 import javafx.geometry.HPos;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
@@ -89,8 +90,10 @@ public final class WebViewFitContent extends Region {
 	}
 
 	public void setParentScrollPane(final ScrollPane parentScrollPane) {
-		parentScrollPane.setEventDispatcher((event, tail) -> {
+		final EventDispatcher eventDispatcher = getEventDispatcher();
+		setEventDispatcher((event, tail) -> {
 	    	if (event.getEventType() == ScrollEvent.SCROLL) {
+	    		//TODO debug when scrolling on first and last webview
 	    		final ScrollEvent scrollEvent = (ScrollEvent) event;
 	    		final double current = parentScrollPane.getVvalue();
 	    		final double offset = scrollEvent.getDeltaY() / scrollHeight * -1;
@@ -98,7 +101,7 @@ public final class WebViewFitContent extends Region {
 	    		event.consume();
 	    		return null;
 	    	}
-			return tail.dispatchEvent(event);
+			return eventDispatcher.dispatchEvent(event, tail);
 		});
 	}
 }

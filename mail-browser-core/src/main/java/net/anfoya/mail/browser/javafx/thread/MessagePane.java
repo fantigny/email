@@ -194,10 +194,6 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 		}
 	}
 
-	public M getMessage() {
-		return message;
-	}
-
 	public void setParentScrollPane(final ScrollPane scrollPane) {
 		bodyView.setParentScrollPane(scrollPane);
 	}
