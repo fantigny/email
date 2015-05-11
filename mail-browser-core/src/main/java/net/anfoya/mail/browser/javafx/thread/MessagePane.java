@@ -5,18 +5,18 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Properties;
-import java.util.Set;
 
-import javafx.collections.ListChangeListener;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.concurrent.Task;
-import javafx.geometry.Insets;
-import javafx.scene.Node;
+import javafx.geometry.Pos;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TitledPane;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 
 import javax.mail.Address;
 import javax.mail.BodyPart;
@@ -41,12 +41,14 @@ import org.slf4j.LoggerFactory;
 
 import com.sun.mail.util.BASE64DecoderStream;
 
-public class MessagePane<M extends SimpleMessage> extends TitledPane {
+public class MessagePane<M extends SimpleMessage> extends VBox {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessagePane.class);
 	private static final Session SESSION = Session.getDefaultInstance(new Properties(), null);
 
 	private final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService;
 
+	private final BooleanProperty expanded;
+	private final Text titleText;
 	private final WebViewFitContent bodyView;
 	private final String messageId;
 
@@ -54,29 +56,33 @@ public class MessagePane<M extends SimpleMessage> extends TitledPane {
 	private MimeMessage mimeMessage;
 
 	public MessagePane(final String messageId, final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService) {
-		setText("loading...");
-		setExpanded(false);
+//		setPadding(new Insets(0));
 
 		this.mailService = mailService;
 		this.messageId = messageId;
 
-		final BorderPane mainPane = new BorderPane();
-		mainPane.setPadding(new Insets(0));
-		setContent(mainPane);
-
 		bodyView = new WebViewFitContent();
-		bodyView.getChildrenUnmodifiable().addListener(
-				new ListChangeListener<Node>() {
-					@Override
-					public void onChanged(final Change<? extends Node> change) {
-						final Set<Node> deadSeaScrolls = bodyView.lookupAll(".scroll-bar");
-						for (final Node scroll : deadSeaScrolls) {
-							scroll.setVisible(false);
-						}
-					}
-				});
 		bodyView.setContextMenuEnabled(false);
-		mainPane.setCenter(bodyView);
+
+		expanded = new SimpleBooleanProperty(false);
+		expanded.addListener((ov, oldVal, newVal) -> {
+			if (newVal && !getChildren().contains(bodyView)) {
+				getChildren().add(bodyView);
+			} else if (!newVal && getChildren().contains(bodyView)) {
+				getChildren().remove(bodyView);
+			}
+		});
+
+		final HBox titlePane = new HBox();
+		titlePane.setAlignment(Pos.CENTER_LEFT);
+		titlePane.setMinHeight(30);
+		titlePane.setOnMouseClicked(event -> {
+			expanded.set(!expanded.get());
+		});
+		getChildren().add(titlePane);
+
+		titleText = new Text("loading...");
+		titlePane.getChildren().add(titleText);
 
 		setOnDragDetected(event -> {
 	        final ClipboardContent content = new ClipboardContent();
@@ -113,7 +119,7 @@ public class MessagePane<M extends SimpleMessage> extends TitledPane {
 		title.append(mimeMessage.getSentDate());
 		title.append(" from ").append(getMailAddresses(mimeMessage.getFrom()));
 		title.append(" to ").append(getMailAddresses(mimeMessage.getRecipients(Message.RecipientType.TO)));;
-		setText(title.toString());
+		titleText.setText(title.toString());
 	}
 
 	private String getMailAddresses(final Address[] addresses) {
@@ -192,5 +198,17 @@ public class MessagePane<M extends SimpleMessage> extends TitledPane {
 
 	public void setParentScrollPane(final ScrollPane scrollPane) {
 		bodyView.setParentScrollPane(scrollPane);
+	}
+
+	public boolean isExpanded() {
+		return expanded.get();
+	}
+
+	public void setExpanded(final boolean expanded) {
+		this.expanded.set(expanded);
+	}
+
+	public BooleanProperty expandedProperty() {
+		return expanded;
 	}
 }

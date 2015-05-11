@@ -13,7 +13,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
-import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -137,7 +136,6 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 		}
 
 		int index = 0;
-		boolean expanded = false;
 		final ObservableList<Node> panes = messagesBox.getChildren();
 		for(final Iterator<String> i=new LinkedList<String>(thread.getMessageIds()).descendingIterator(); i.hasNext();) {
 			final String id = i.next();
@@ -151,25 +149,21 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 				index++;
 			}
 			index++;
-			expanded = expanded || messagePane.isExpanded();
-		}
-
-		if (!messagesBox.getChildren().isEmpty() && !expanded) {
-			((TitledPane)messagesBox.getChildren().get(0)).setExpanded(true);
 		}
 	}
 
 	private void loadThread() {
 		messagesBox.getChildren().clear();
+		MessagePane<M> messagePane = null;
 		for(final String id: thread.getMessageIds()) {
-			final MessagePane<M> messagePane = new MessagePane<M>(id, mailService);
+			messagePane = new MessagePane<M>(id, mailService);
 			messagePane.setParentScrollPane(scrollPane);
 			messagePane.refresh();
 			messagesBox.getChildren().add(0, messagePane);
 		}
 
-		if (!messagesBox.getChildren().isEmpty()) {
-			((TitledPane)messagesBox.getChildren().get(0)).setExpanded(true);
+		if (messagePane != null) {
+			messagePane.setExpanded(true);
 		}
 
 		try {

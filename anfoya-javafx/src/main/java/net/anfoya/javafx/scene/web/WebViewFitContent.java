@@ -65,7 +65,7 @@ public final class WebViewFitContent extends Region {
 					+ ", document.documentElement.scrollHeight"
 					+ ", document.documentElement.offsetHeight )");
 			if (result instanceof Integer) {
-				webview.setMinHeight(Math.max(getMinHeight(), 20.0 + (Integer) result));
+				webview.setMinHeight(20.0 + (Integer) result);
 				webview.getPrefHeight();
 			}
 		} catch (final JSException e) {
