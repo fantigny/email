@@ -87,4 +87,15 @@ public abstract class SimpleThread implements Thread {
 	public Date getDate() {
 		return date;
 	}
+
+    @Override
+	public boolean equals(final Object other) {
+        if (other == null) {
+			return false;
+		}
+        if (!this.getClass().equals(other.getClass())) {
+			return false;
+		}
+        return ((SimpleThread) other).id.equals(id);
+    }
 }

@@ -105,7 +105,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 
 		final H previous = thread;
 		thread = threads.iterator().next();
-		if (previous != null && previous.getId().equals(thread.getId())) {
+		if (thread.equals(previous)) {
 			refreshCurrentThread();
 		} else {
 			loadThread();
@@ -127,10 +127,11 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 	}
 
 	private void refreshCurrentThread() {
+		final Set<String> messageIds = thread.getMessageIds();
 		for (final Iterator<Node> i = messagesBox.getChildren().iterator(); i.hasNext();) {
 			@SuppressWarnings("unchecked")
-			final MessagePane<M> messagePane = (MessagePane<M>) i.next();
-			if (!thread.getMessageIds().contains(messagePane.getMessage().getId())) {
+			final String id = ((MessagePane<M>) i.next()).getMessageId();
+			if (!messageIds.contains(id)) {
 				i.remove();
 			}
 		}
@@ -140,13 +141,14 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 		for(final Iterator<String> i=new LinkedList<String>(thread.getMessageIds()).descendingIterator(); i.hasNext();) {
 			final String id = i.next();
 			@SuppressWarnings("unchecked")
-			final
 			MessagePane<M> messagePane = index < panes.size()? (MessagePane<M>) messagesBox.getChildren().get(index): null;
-			if (messagePane == null || !id.equals(messagePane.getMessage().getId())) {
+			final M message = messagePane.getMessage();
+			final String messageId = message.getId();
+			if (messagePane == null || !id.equals(messageId)) {
+				messagePane = new MessagePane<M>(id, mailService);
 				messagePane.setParentScrollPane(scrollPane);
 				panes.add(index, messagePane);
-				messagePane.refresh();
-				index++;
+				messagePane.load();
 			}
 			index++;
 		}
@@ -158,12 +160,8 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 		for(final String id: thread.getMessageIds()) {
 			messagePane = new MessagePane<M>(id, mailService);
 			messagePane.setParentScrollPane(scrollPane);
-			messagePane.refresh();
+			messagePane.load();
 			messagesBox.getChildren().add(0, messagePane);
-		}
-
-		if (messagePane != null) {
-			messagePane.setExpanded(true);
 		}
 
 		try {
@@ -175,6 +173,10 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 		} catch (final MailException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}
+
+		if (messagePane != null) {
+			messagePane.setExpanded(true);
 		}
 	}
 

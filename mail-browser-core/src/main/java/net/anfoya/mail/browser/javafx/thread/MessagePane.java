@@ -54,22 +54,30 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 
 	private M message;
 	private MimeMessage mimeMessage;
+	private double height;
 
 	public MessagePane(final String messageId, final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService) {
-//		setPadding(new Insets(0));
-
 		this.mailService = mailService;
 		this.messageId = messageId;
 
 		bodyView = new WebViewFitContent();
 		bodyView.setContextMenuEnabled(false);
 
-		expanded = new SimpleBooleanProperty(false);
+		expanded = new SimpleBooleanProperty(true);
 		expanded.addListener((ov, oldVal, newVal) -> {
-			if (newVal && !getChildren().contains(bodyView)) {
-				getChildren().add(bodyView);
-			} else if (!newVal && getChildren().contains(bodyView)) {
-				getChildren().remove(bodyView);
+			if (!newVal) {
+				LOGGER.debug("removing web view");
+				bodyView.setMinHeight(0);
+				bodyView.setMaxHeight(0);
+				autosize();
+			} else {
+				LOGGER.debug("adding web view");
+				if (height == 0) {
+					height = getPrefHeight();
+				}
+				bodyView.setMinHeight(height);
+				bodyView.setMaxHeight(height);
+				autosize();
 			}
 		});
 
@@ -79,11 +87,11 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 		titlePane.setOnMouseClicked(event -> {
 			expanded.set(!expanded.get());
 		});
-		getChildren().add(titlePane);
 
 		titleText = new Text("loading...");
 		titlePane.getChildren().add(titleText);
 
+		getChildren().addAll(titlePane, bodyView);
 		setOnDragDetected(event -> {
 	        final ClipboardContent content = new ClipboardContent();
 	        content.put(ThreadDropPane.MESSAGE_DATA_FORMAT, message);
@@ -92,9 +100,7 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 		});
 	}
 
-	public void refresh() {
-		clear();
-
+	public void load() {
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
@@ -188,10 +194,6 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 		}
 	}
 
-	public void clear() {
-		bodyView.clear();
-	}
-
 	public M getMessage() {
 		return message;
 	}
@@ -210,5 +212,9 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 
 	public BooleanProperty expandedProperty() {
 		return expanded;
+	}
+
+	public String getMessageId() {
+		return messageId;
 	}
 }

@@ -1,4 +1,4 @@
-package net.anfoya.tag.javafx.scene.dnd;
+package net.anfoya.javafx.scene.dnd;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;

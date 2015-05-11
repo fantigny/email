@@ -11,10 +11,10 @@ import javafx.scene.layout.GridPane;
 
 import javax.mail.internet.MimeMessage;
 
+import net.anfoya.javafx.scene.dnd.DropArea;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailService;
-import net.anfoya.tag.javafx.scene.dnd.DropArea;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
 

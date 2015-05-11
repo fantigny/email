@@ -156,7 +156,7 @@ public class MailBrowserApp extends Application {
 				return new Task<Long>() {
 					@Override
 					protected Long call() throws Exception {
-						LOGGER.info("refresh started...");
+						LOGGER.debug("refresh started...");
 						return System.currentTimeMillis();
 					}
 				};
@@ -164,7 +164,7 @@ public class MailBrowserApp extends Application {
 		};
 		refreshTimer.setOnSucceeded(event -> {
 			refreshThreadList();
-			LOGGER.info("refresh finished! ({}ms)", System.currentTimeMillis() - (Long) event.getSource().getValue());
+			LOGGER.debug("refresh finished! ({}ms)", System.currentTimeMillis() - (Long) event.getSource().getValue());
 		});
 		refreshTimer.setDelay(Duration.seconds(20));
 		refreshTimer.setPeriod(Duration.seconds(20));

@@ -20,7 +20,7 @@ public final class WebViewFitContent extends Region {
 
 	private final WebView delegate;
 
-	private double pageScrollMax;
+	private double scrollHeight;
 
 	public WebViewFitContent() {
 		delegate = new WebView();
@@ -67,11 +67,14 @@ public final class WebViewFitContent extends Region {
 			return;
 		}
 		try {
-			pageScrollMax = (int) delegate.getEngine().executeScript("document.body.scrollHeight");
-			delegate.setPrefHeight(pageScrollMax);
-//			webview.getPrefHeight();
+			final double scrollHeight = (int) delegate.getEngine().executeScript("document.body.scrollHeight");
+			if (scrollHeight != 0) {
+				this.scrollHeight = scrollHeight;
+				delegate.setPrefHeight(scrollHeight);
+				delegate.getPrefHeight();
 
-			LOGGER.debug("{}", pageScrollMax);
+				LOGGER.debug("{}", scrollHeight);
+			}
 		} catch (final JSException e) {
 			e.printStackTrace();
 		}
@@ -90,7 +93,7 @@ public final class WebViewFitContent extends Region {
 	    	if (event.getEventType() == ScrollEvent.SCROLL) {
 	    		final ScrollEvent scrollEvent = (ScrollEvent) event;
 	    		final double current = parentScrollPane.getVvalue();
-	    		final double offset = scrollEvent.getDeltaY() / pageScrollMax * -1;
+	    		final double offset = scrollEvent.getDeltaY() / scrollHeight * -1;
 		    	parentScrollPane.setVvalue(current + offset);
 	    		event.consume();
 	    		return null;
