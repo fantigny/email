@@ -6,6 +6,7 @@ import java.util.Set;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -21,12 +22,14 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.Title;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.model.SimpleThread.SortOrder;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
+import net.anfoya.tag.javafx.scene.dnd.DndFormat;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
 
@@ -73,8 +76,16 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 	        db.setContent(content);
 		});
 		threadList.setOnDragDone(event -> {
-			threadList.load();
-			event.consume();
+			final Dragboard db = event.getDragboard();
+			if (db.hasContent(ThreadListPane.DND_THREADS_DATA_FORMAT)
+					&& db.hasContent(DndFormat.TAG_DATA_FORMAT)) {
+				@SuppressWarnings("unchecked")
+				final Set<H> threads = (Set<H>) db.getContent(DND_THREADS_DATA_FORMAT);
+				@SuppressWarnings("unchecked")
+				final T tag = (T) db.getContent(DndFormat.TAG_DATA_FORMAT);
+				addTag(tag, threads);
+				event.consume();
+			}
 		});
 		stackPane.getChildren().add(threadList);
 
@@ -119,6 +130,26 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		setMargin(patternPane, new Insets(5));
 		setMargin(threadList, new Insets(0, 5, 0, 5));
 		setMargin(box, new Insets(5));
+	}
+
+	private void addTag(final T tag, final Set<H> threads) {
+		final Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				mailService.addTagForThreads(tag, threads);
+				return null;
+			}
+		};
+		task.setOnSucceeded(event -> {
+			try {
+				task.get();
+			} catch (final Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			threadList.load();
+		});
+		ThreadPool.getInstance().submit(task);
 	}
 
 	public String getNamePattern() {

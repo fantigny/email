@@ -45,6 +45,9 @@ public class LabelService {
 	protected Label rename(Label label, final String name) throws LabelException {
 		try {
 			label.setName(name);
+			label.setMessageListVisibility("show");
+			label.setLabelListVisibility("labelShow");
+			label.setType("user");
 			label = gmail.users().labels().update(user, label.getId(), label).execute();
 			idLabels.put(label.getId(), label);
 			return label;

@@ -10,7 +10,6 @@ import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
-import javafx.scene.input.Dragboard;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
@@ -28,7 +27,6 @@ import net.anfoya.mail.gmail.model.GmailThread;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
-import net.anfoya.tag.javafx.scene.dnd.DndFormat;
 import net.anfoya.tag.javafx.scene.section.SectionListPane;
 
 public class MailBrowserApp extends Application {
@@ -88,18 +86,6 @@ public class MailBrowserApp extends Application {
 				refreshThreadList();
 				return null;
 			});
-			sectionListPane.setOnDragDropped(event -> {
-				final Dragboard db = event.getDragboard();
-				if (db.hasContent(ThreadListPane.DND_THREADS_DATA_FORMAT)
-						&& db.hasContent(DndFormat.TAG_DATA_FORMAT)) {
-					@SuppressWarnings("unchecked")
-					final Set<GmailThread> threads = (Set<GmailThread>) db.getContent(DND_THREADS_DATA_FORMAT);
-					final GmailTag tag = (GmailTag) db.getContent(DndFormat.TAG_DATA_FORMAT);
-					addTag(tag, threads);
-					event.setDropCompleted(true);
-					event.consume();
-				}
-			});
 			selectionPane.getChildren().add(sectionListPane);
 		}
 
@@ -153,17 +139,6 @@ public class MailBrowserApp extends Application {
 		primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("Mail.png")));
         primaryStage.setScene(scene);
         primaryStage.show();
-	}
-
-	private void addTag(final GmailTag tag, final Set<GmailThread> threads) {
-		try {
-			mailService.addTagForThreads(tag, threads);
-		} catch (final Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		refreshSectionList();
-		refreshThreadList();
 	}
 
 	private void initData() {

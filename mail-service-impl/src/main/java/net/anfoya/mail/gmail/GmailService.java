@@ -479,7 +479,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		try {
 			threadService.archive(threads);
 		} catch (final ThreadException e) {
-			throw new GMailException("trashing threads " + threads, e);
+			throw new GMailException("archiving threads " + threads, e);
 		}
 	}
 
