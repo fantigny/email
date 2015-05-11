@@ -32,7 +32,7 @@ public class LabelService {
 			} catch (final IOException e) {
 				throw new LabelException("getting labels", e);
 			}
-			LOGGER.debug("get labels: {}", idLabels.values());
+			LOGGER.debug("all labels: {}", idLabels.values());
 		}
 		return idLabels.values();
 	}
@@ -44,19 +44,15 @@ public class LabelService {
 
 	protected Label rename(Label label, final String name) throws LabelException {
 		try {
-			String newName = label.getName();
-			if (newName.contains("/")) {
-				newName = newName.substring(0, newName.lastIndexOf("/"));
-			} else {
-				newName = "";
-			}
-			newName += name;
-			label.setName(newName);
+			label.setName(name);
+			label.setMessageListVisibility("show");
+			label.setLabelListVisibility("labelShow");
+			label.setType("user");
 			label = gmail.users().labels().update(user, label.getId(), label).execute();
 			idLabels.put(label.getId(), label);
 			return label;
 		} catch (final IOException e) {
-			throw new LabelException("renaming label \"" + label.getName() + "\" to \"" + name + "\"", e);
+			throw new LabelException("renaming \"" + label.getName() + "\" to \"" + name + "\"", e);
 		}
 	}
 
@@ -71,7 +67,7 @@ public class LabelService {
 			idLabels.put(label.getId(), label);
 			return label;
 		} catch (final IOException e) {
-			throw new LabelException("adding " + name, e);
+			throw new LabelException("adding \"" + name + "\"", e);
 		}
 	}
 
@@ -80,7 +76,7 @@ public class LabelService {
 			gmail.users().labels().delete(user, label.getId());
 			idLabels.remove(label.getId());
 		} catch (final IOException e) {
-			throw new LabelException("removing " + label.getName(), e);
+			throw new LabelException("removing \"" + label.getName() + "\"", e);
 		}
 	}
 

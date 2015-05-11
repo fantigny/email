@@ -169,7 +169,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 		try {
 			final T unread = mailService.findTag("UNREAD");
 			if (thread.getTagIds().contains(unread.getId())) {
-				mailService.removeForThread(unread, thread);
+				mailService.removeTagForThread(unread, thread);
 				delTagHandler.handle(null);
 			}
 		} catch (final MailException e) {
@@ -200,7 +200,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 			}
 			tagsPane.setDelTagCallBack(tag -> {
 				try {
-					mailService.removeForThread(tag, t);
+					mailService.removeTagForThread(tag, t);
 				} catch (final MailException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

@@ -66,8 +66,11 @@ public final class ThreadPool {
 	private void shutdown(final ExecutorService service) {
 		if (!service.isShutdown()) {
 			service.shutdown();
+			LOGGER.info("shutdown.");
+		} else if (!service.isTerminated()) {
+			service.shutdownNow();
+			LOGGER.info("shutdown now.");
 		}
-		LOGGER.info("stopped.");
 	}
 
 	public Future<?> submit(final Runnable runnable) {

@@ -61,6 +61,8 @@ class TagListCell<T extends SimpleTag> extends CheckBoxListCell<TagListItem<T>> 
 				content.put(extItemDataFormat, db.getContent(extItemDataFormat));
 				content.put(DndFormat.TAG_DATA_FORMAT, getItem().getTag());
 				db.setContent(content);
+				event.setDropCompleted(true);
+				event.consume();
 			}
 		});
 	}

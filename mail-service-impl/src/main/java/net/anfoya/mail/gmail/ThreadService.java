@@ -16,6 +16,7 @@ import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.gmail.model.GmailThread;
 
 import com.google.api.services.gmail.Gmail;
+import com.google.api.services.gmail.model.Label;
 import com.google.api.services.gmail.model.ListThreadsResponse;
 import com.google.api.services.gmail.model.ModifyThreadRequest;
 import com.google.api.services.gmail.model.Thread;
@@ -24,12 +25,12 @@ public class ThreadService {
 	private final Map<String, Thread> idThreads = new ConcurrentHashMap<String, Thread>();
 	private final Gmail gmail;
 	private final String user;
-	
+
 	public ThreadService(final Gmail gmail, final String user) {
 		this.gmail = gmail;
 		this.user = user;
 	}
-	
+
 	public Thread get(final String id) throws ThreadException {
 		try {
 			final Thread thread = idThreads.get(id);
@@ -104,7 +105,7 @@ public class ThreadService {
 		try {
 			int count = 0;
 			ListThreadsResponse response = gmail.users().threads().list(user).setQ(query.toString()).execute();
-			while (response.getThreads() != null) {
+			while(response.getThreads() != null) {
 				count += response.getThreads().size();
 				if (response.getNextPageToken() != null) {
 					final String pageToken = response.getNextPageToken();
@@ -119,23 +120,27 @@ public class ThreadService {
 		}
 	}
 
-	public void addLabel(final String threadId, final String labelId) throws ThreadException {
+	public void add(final Thread thread, final Label label) throws ThreadException {
 		try {
 			@SuppressWarnings("serial")
-			final ModifyThreadRequest request = new ModifyThreadRequest().setAddLabelIds(new ArrayList<String>() {{ add(labelId); }});
-			gmail.users().threads().modify(user, threadId, request).execute();
+			final ModifyThreadRequest request = new ModifyThreadRequest().setAddLabelIds(new ArrayList<String>() {{
+				add(label.getId());
+			}});
+			gmail.users().threads().modify(user, thread.getId(), request).execute();
 		} catch (final IOException e) {
-			throw new ThreadException("adding label id: " + labelId + " to thread id: " + threadId, e);
+			throw new ThreadException("adding label \"" + label.getName() + "\" to thread id: " + thread, e);
 		}
 	}
 
-	public void remLabel(final String threadId, final String labelId) throws ThreadException {
+	public void remove(final Thread thread, final Label label) throws ThreadException {
 		try {
 			@SuppressWarnings("serial")
-			final ModifyThreadRequest request = new ModifyThreadRequest().setRemoveLabelIds(new ArrayList<String>() {{ add(labelId); }});
-			gmail.users().threads().modify(user, threadId, request).execute();
+			final ModifyThreadRequest request = new ModifyThreadRequest().setRemoveLabelIds(new ArrayList<String>() {{
+				add(label.getId());
+			}});
+			gmail.users().threads().modify(user, thread.getId(), request).execute();
 		} catch (final IOException e) {
-			throw new ThreadException("removing label id: " + labelId + " to thread id: " + threadId, e);
+			throw new ThreadException("removing label \"" + label.getName() + "\" to thread id: " + thread, e);
 		}
 	}
 

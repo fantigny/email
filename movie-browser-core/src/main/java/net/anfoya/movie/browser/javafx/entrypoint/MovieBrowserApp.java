@@ -122,7 +122,9 @@ public class MovieBrowserApp extends Application {
 			sectionListPane.prefHeightProperty().bind(selectionPane.heightProperty());
 			sectionListPane.setLazyCount(false);
 			sectionListPane.setSectionDisableWhenZero(true);
-			sectionListPane.setTagChangeListener((ov, oldVal, newVal) -> refreshMovieList());
+			sectionListPane.setTagChangeListener((ov, oldVal, newVal) -> {
+				refreshMovieList();
+			});
 			sectionListPane.setUpdateSectionCallback(v -> {
 				updateMovieCount();
 				return null;
