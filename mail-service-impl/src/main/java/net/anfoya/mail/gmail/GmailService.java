@@ -8,13 +8,12 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
 import net.anfoya.java.io.JsonFile;
-import net.anfoya.mail.gmail.GmailMessage;
+import net.anfoya.mail.gmail.model.GmailMessage;
 import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.gmail.model.GmailTag;
 import net.anfoya.mail.gmail.model.GmailThread;
@@ -184,32 +183,26 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public Set<GmailSection> getSections() throws GMailException {
 		try {
-			final Set<GmailSection> sectionTemp = new TreeSet<GmailSection>();
 			final Collection<Label> labels = labelService.getAll();
-			for(final Label l: labels) {
-				final GmailSection section = new GmailSection(l);
+			final Set<GmailSection> sectionTmp = new TreeSet<GmailSection>();
+			for(final Label label: labels) {
+				final GmailSection section = new GmailSection(label);
 				if (!section.isHidden()) {
-					sectionTemp.add(section);
-				}
-			}
-			for(final Iterator<GmailSection> i=sectionTemp.iterator(); i.hasNext();) {
-				final String s = i.next().getName() + "/";
-				boolean section = false;
-				for(final Label l: labels) {
-					if (l.getName().contains(s)) {
-						section = true;
-						break;
+					final String sectionName = section.getName() + "/";
+					for(final Label l: labels) {
+						if (l.getName().contains(sectionName)) {
+							sectionTmp.add(section);
+							break;
+						}
 					}
-				}
-				if (!section) {
-					i.remove();
 				}
 			}
 
-			final Set<GmailSection> sections = new TreeSet<GmailSection>();
-			sections.add(GmailSection.GMAIL_SYSTEM);
-			sections.add(GmailSection.NO_SECTION);
-			sections.addAll(sectionTemp);
+			final Set<GmailSection> sections = new LinkedHashSet<GmailSection>();
+			sections.add(GmailSection.SYSTEM);
+			sections.add(GmailSection.TO_HIDE);
+			sections.add(GmailSection.TO_SORT);
+			sections.addAll(sectionTmp);
 
 			LOGGER.debug("get sections: {}", sections);
 			return sections;
@@ -219,29 +212,62 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	@Override
-	public GmailTag getTag(final String id) throws GMailException {
-		try {
-			return new GmailTag(labelService.get(id));
-		} catch (final LabelException e) {
-			throw new GMailException("getting tag " + id, e);
-		}
-	}
-
-	@Override
 	public Set<GmailTag> getTags(final GmailSection section, final String tagPattern) throws GMailException {
 		try {
 			final Set<GmailTag> tags = new TreeSet<GmailTag>();
 			final String pattern = tagPattern.trim().toLowerCase();
 			final Collection<Label> labels = labelService.getAll();
-			for(final Label l:labels) {
-				final GmailTag tag = new GmailTag(l);
-				if (!tag.isHidden()
-						&& (section == null
-								|| section.equals(GmailSection.GMAIL_SYSTEM) && l.getType().equals("system")
-								|| section.getId().equals(GmailSection.NO_SECTION.getId()) && !l.getName().contains("/") && !l.getType().equals("system")
-								|| l.getName().startsWith(section.getName()+"/") && !l.getName().substring(section.getName().length()+1, l.getName().length()).contains("/"))
-						&& tag.getName().toLowerCase().contains(pattern)) {
-					tags.add(tag);
+			if (section.equals(GmailSection.SYSTEM)) {
+				for(final Label l:labels) {
+					if (!GmailTag.isHidden(l) && GmailTag.isSystem(l)) {
+						tags.add(new GmailTag(l));
+					}
+				}
+			} else if (section.equals(GmailSection.TO_HIDE)) {
+				for(final Label label:labels) {
+					final String name = label.getName();
+					if (!GmailTag.isHidden(label) && !GmailTag.isSystem(label) && !name.contains("/")) {
+						for(final Label l: labels) {
+							final String n = l.getName();
+							if (!n.equals(name)
+									&& n.contains(name + "/")
+									&& name.indexOf("/") == name.lastIndexOf("/")) {
+								tags.add(new GmailTag(label));
+								break;
+							}
+						}
+					}
+				}
+			} else if (section.equals(GmailSection.TO_SORT)) {
+				for(final Label label:labels) {
+					final String name = label.getName();
+					if (!GmailTag.isHidden(label) && !GmailTag.isSystem(label) && !name.contains("/")) {
+						boolean isToSort = true;
+						for(final Label l: labels) {
+							final String n = l.getName();
+							if (!n.equals(name)
+									&& n.contains(name + "/")
+									&& name.indexOf("/") == name.lastIndexOf("/")) {
+								isToSort = false;
+								break;
+							}
+						}
+						if (isToSort) {
+							tags.add(new GmailTag(label));
+						}
+					}
+				}
+			} else {
+				for(final Label label:labels) {
+					final String name = label.getName();
+					if (!GmailTag.isHidden(label) && !GmailTag.isSystem(label)) {
+						final String tagName = GmailTag.getName(label);
+						if (tagName.toLowerCase().contains(pattern)
+								&& name.startsWith(section.getName() + "/")
+								&& name.indexOf("/") == name.lastIndexOf("/")) {
+							tags.add(new GmailTag(label));
+						}
+					}
 				}
 			}
 
@@ -255,6 +281,15 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public Set<GmailTag> getTags() throws GMailException {
 		return getTags(null, "");
+	}
+
+	@Override
+	public GmailTag getTag(final String id) throws GMailException {
+		try {
+			return new GmailTag(labelService.get(id));
+		} catch (final LabelException e) {
+			throw new GMailException("getting tag " + id, e);
+		}
 	}
 
 	@Override

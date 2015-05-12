@@ -5,7 +5,7 @@ import java.io.Serializable;
 
 @SuppressWarnings("serial")
 public class SimpleSection implements Serializable, Comparable<SimpleSection> {
-	public static final String NO_SECTION_NAME = "No section :-(";
+	public static final String NO_SECTION_NAME = "[to sort]";
 	public static final String NO_ID = "section-with-no-id-";
 
 	public static final SimpleSection NO_SECTION = new SimpleSection(NO_SECTION_NAME);

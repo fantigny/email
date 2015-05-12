@@ -1,6 +1,7 @@
 package net.anfoya.mail.gmail;
 
 import net.anfoya.mail.gmail.GmailService;
+import net.anfoya.mail.gmail.model.GmailMessage;
 import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.gmail.model.GmailTag;
 import net.anfoya.mail.gmail.model.GmailThread;

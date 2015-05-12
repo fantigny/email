@@ -6,9 +6,9 @@ import com.google.api.services.gmail.model.Label;
 
 @SuppressWarnings("serial")
 public class GmailSection extends SimpleSection {
-	public static final GmailSection NO_SECTION = new GmailSection(SimpleSection.NO_SECTION_NAME);
-	public static final GmailSection GMAIL_SYSTEM = new GmailSection("GMail");
-	public static final GmailSection GMAIL_CATEGORY = new GmailSection("Category");
+	public static final GmailSection TO_SORT = new GmailSection(SimpleSection.NO_SECTION_NAME);
+	public static final GmailSection SYSTEM = new GmailSection("GMail");
+	public static final GmailSection TO_HIDE = new GmailSection("[to hide]");
 
 	private final String string;
 	private final boolean hidden;

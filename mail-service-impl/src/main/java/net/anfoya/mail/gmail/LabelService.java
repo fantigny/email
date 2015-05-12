@@ -80,7 +80,7 @@ public class LabelService {
 		}
 	}
 
-	public Label find(final String name) throws LabelException {
+	protected Label find(final String name) throws LabelException {
 		for(final Label l: getAll()) {
 			if (l.getName().equalsIgnoreCase(name)) {
 				return l;
@@ -88,5 +88,4 @@ public class LabelService {
 		}
 		return null;
 	}
-
 }

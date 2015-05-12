@@ -109,6 +109,9 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 				return null;
 			}
 		};
+		task.setOnFailed(event -> {
+			LOGGER.error("loading message id {}", messageId, event.getSource().getException());
+		});
 		task.setOnSucceeded(event -> {
 			try {
 				refreshTitle();

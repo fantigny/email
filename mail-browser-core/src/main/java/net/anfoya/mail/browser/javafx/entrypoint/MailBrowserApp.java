@@ -20,8 +20,8 @@ import javax.security.auth.login.LoginException;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
 import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
-import net.anfoya.mail.gmail.GmailMessage;
 import net.anfoya.mail.gmail.GmailService;
+import net.anfoya.mail.gmail.model.GmailMessage;
 import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.gmail.model.GmailTag;
 import net.anfoya.mail.gmail.model.GmailThread;
@@ -147,8 +147,8 @@ public class MailBrowserApp extends Application {
 	private void initData() {
 		sectionListPane.refresh();
 
-		sectionListPane.selectTag(GmailSection.GMAIL_SYSTEM.getName(), "INBOX");
-		sectionListPane.expand(GmailSection.GMAIL_SYSTEM.getName());
+		sectionListPane.selectTag(GmailSection.SYSTEM.getName(), "INBOX");
+		sectionListPane.expand(GmailSection.SYSTEM.getName());
 
 //		sectionListPane.selectTag("Bank", "HK HSBC");
 //		sectionListPane.expand("Bank");
@@ -166,10 +166,9 @@ public class MailBrowserApp extends Application {
 		};
 		refreshTimer.setOnSucceeded(event -> {
 			if ((boolean) event.getSource().getValue()) {
-				final long start = System.currentTimeMillis();
-				LOGGER.info("refresh started...");
-				sectionListPane.refresh();
-				LOGGER.info("refresh finished ({}ms)", System.currentTimeMillis() - start);
+				LOGGER.info("update detected");
+				refreshSectionList();
+				refreshThreadList();
 			}
 		});
 		refreshTimer.setDelay(Duration.seconds(3));

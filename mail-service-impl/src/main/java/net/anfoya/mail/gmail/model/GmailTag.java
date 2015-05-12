@@ -9,7 +9,15 @@ public class GmailTag extends SimpleTag {
 	private final String path;
 	private final boolean hidden;
 
-	private static String getTagName(final Label label) {
+	public static boolean isHidden(final Label label) {
+		return "labelHide".equals(label.getLabelListVisibility());
+	}
+
+	public static boolean isSystem(final Label label) {
+		return "system".equals(label.getType());
+	}
+
+	public static String getName(final Label label) {
 		String name = label.getName();
 		if (name.contains("/") && name.length() > 1) {
 			name = name.substring(name.lastIndexOf("/") + 1);
@@ -18,10 +26,10 @@ public class GmailTag extends SimpleTag {
 	}
 
 	public GmailTag(final Label label) {
-		super(label.getId(), getTagName(label));
+		super(label.getId(), getName(label));
 
 		this.path = label.getName();
-		this.hidden = "labelHide".equals(label.getLabelListVisibility());
+		this.hidden = isHidden(label);
 	}
 
 	public boolean isHidden() {

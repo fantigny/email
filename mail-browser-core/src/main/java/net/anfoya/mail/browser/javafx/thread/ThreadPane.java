@@ -179,7 +179,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 	}
 
 	public void refreshTags() {
-		if (threads.size() == 0) {
+		if (threads == null || threads.size() == 0) {
 			tagsPane.clear();
 			return;
 		}
