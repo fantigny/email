@@ -24,6 +24,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.Title;
+import net.anfoya.mail.browser.javafx.NewMail;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.model.SimpleThread.SortOrder;
@@ -124,9 +125,9 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		patternPane.setCenter(namePatternField);
 		BorderPane.setMargin(namePatternField, new Insets(0, 5, 0, 5));
 
-		final Button delPatternButton = new Button("X");
+		final Button delPatternButton = new Button("+");
 		delPatternButton.setOnAction(event -> {
-			namePatternField.textProperty().set("");
+			new NewMail();
 		});
 		patternPane.setRight(delPatternButton);
 

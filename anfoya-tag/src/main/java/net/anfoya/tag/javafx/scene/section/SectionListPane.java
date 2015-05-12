@@ -10,7 +10,6 @@ import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Accordion;
-import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.input.DataFormat;
@@ -67,9 +66,11 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		patternPane.setCenter(tagPatternField);
 		BorderPane.setMargin(tagPatternField, new Insets(0, 5, 0, 5));
 
+		/* TODO: text field with stacked pane for reset button
 		final Button delPatternButton = new Button("X");
 		delPatternButton.setOnAction(event -> tagPatternField.textProperty().set(""));
 		patternPane.setRight(delPatternButton);
+		*/
 
 		sectionAcc = new Accordion();
 		final StackPane stackPane = new StackPane(sectionAcc);

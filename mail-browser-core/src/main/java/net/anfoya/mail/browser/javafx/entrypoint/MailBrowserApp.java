@@ -8,7 +8,10 @@ import javafx.application.Application;
 import javafx.concurrent.ScheduledService;
 import javafx.concurrent.Task;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ToolBar;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -18,6 +21,7 @@ import javafx.util.Duration;
 import javax.security.auth.login.LoginException;
 
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.mail.browser.javafx.NewMail;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
 import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
 import net.anfoya.mail.gmail.GmailService;
@@ -71,13 +75,13 @@ public class MailBrowserApp extends Application {
 		final BorderPane mainPane = new BorderPane();
 		mainPane.setPadding(new Insets(5));
 
-		final Scene scene = new Scene(mainPane, 1524, 390);
+		final Scene scene = new Scene(mainPane, 1400, 700);
 		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/excludebox.css").toExternalForm());
 
 		final HBox selectionPane = new HBox();
 		mainPane.setLeft(selectionPane);
 
-		/* tag list */ {
+		/* section+tag list */ {
 			sectionListPane = new SectionListPane<GmailSection, GmailTag>(mailService, DND_THREADS_DATA_FORMAT);
 			sectionListPane.setPrefWidth(250);
 			sectionListPane.prefHeightProperty().bind(selectionPane.heightProperty());
@@ -110,12 +114,30 @@ public class MailBrowserApp extends Application {
 					refreshThread();
 				}
 			});
-
 			selectionPane.getChildren().add(threadListPane);
 		}
 
-		/* movie panel */ {
+		final HBox centerPane = new HBox(0);
+		mainPane.setCenter(centerPane);
+
+		/* tool bar */ {
+			final Button newButton = new Button("n");
+			newButton.setOnAction(event -> {
+				new NewMail();
+			});
+			final Button refreshButton = new Button("r");
+			refreshButton.setOnAction(event -> {
+				refreshSectionList();
+				refreshThreadList();
+			});
+			final ToolBar toolBar = new ToolBar(newButton, refreshButton);
+			toolBar.setOrientation(Orientation.VERTICAL);
+//			centerPane.getChildren().add(toolBar);
+		}
+
+		/* thread panel */ {
 			threadPane = new ThreadPane<GmailTag, GmailThread, GmailMessage>(mailService);
+			threadPane.prefWidthProperty().bind(centerPane.widthProperty());
 			threadPane.setOnDelTag(event -> {
 				refreshSectionList();
 				refreshThreadList();
@@ -135,7 +157,7 @@ public class MailBrowserApp extends Application {
 				}
 			});
 			*/
-			mainPane.setCenter(threadPane);
+			centerPane.getChildren().add(threadPane);
 		}
 
 		primaryStage.setTitle("FisherMail / Agaar / Agamar / Agaram");

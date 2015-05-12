@@ -52,8 +52,8 @@ public final class ThreadPool {
 
 	private ThreadPool() {
 		delegateHigh = Executors.newCachedThreadPool(new NamedThreadFactory("high", Thread.NORM_PRIORITY));
-		delegateLow = Executors.newCachedThreadPool(new NamedThreadFactory("low", Thread.MIN_PRIORITY));
-//		delegateLow = Executors.newFixedThreadPool(20, new NamedThreadFactory("low", Thread.MIN_PRIORITY));
+//		delegateLow = Executors.newCachedThreadPool(new NamedThreadFactory("low", Thread.MIN_PRIORITY));
+		delegateLow = Executors.newFixedThreadPool(10, new NamedThreadFactory("low", Thread.MIN_PRIORITY));
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			shutdown();
 		}));
@@ -68,10 +68,10 @@ public final class ThreadPool {
 	private void shutdown(final ExecutorService service) {
 		if (!service.isShutdown()) {
 			service.shutdown();
-			LOGGER.info("shutdown.");
+			LOGGER.info("shutdown {}", service);
 		} else if (!service.isTerminated()) {
 			service.shutdownNow();
-			LOGGER.info("shutdown now.");
+			LOGGER.info("shutdown now {}", service);
 		}
 	}
 
