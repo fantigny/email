@@ -133,8 +133,7 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 		Arrays.fill(indices, -1);
 		int listIndex = 0, arrayIndex = 0;
 		for(final H thread: obsThreads) {
-			if (previouslySelectedIds.contains(thread.getId())
-					&& !thread.isUnread()) {
+			if (!thread.isUnread() && previouslySelectedIds.contains(thread.getId())) {
 				indices[arrayIndex] = listIndex;
 				arrayIndex++;
 			}

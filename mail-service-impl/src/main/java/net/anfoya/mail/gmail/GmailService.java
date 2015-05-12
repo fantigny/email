@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -314,7 +315,6 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	public int getCountForSection(final GmailSection section
 			, final Set<GmailTag> includes, final Set<GmailTag> excludes
 			, final String namePattern, final String tagPattern) throws GMailException {
-
 		try {
 			final StringBuilder query = new StringBuilder();
 			boolean first = true;
@@ -365,25 +365,29 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 	@Override
 	public void addTagForThreads(final GmailTag tag, final Set<GmailThread> threads) throws GMailException {
-		for(final GmailThread t: threads) {
-			try {
-				final Thread thread = threadService.get(t.getId());
-				final Label label = labelService.get(tag.getId());
-				threadService.add(thread, label);
-			} catch (final ThreadException | LabelException e) {
-				throw new GMailException("adding tag", e);
+		try {
+			final Set<String> labelIds = new HashSet<String>();
+			labelIds.add(tag.getId());
+			final Set<String> threadIds = new HashSet<String>();
+			for(final GmailThread t: threads) {
+				threadIds.add(t.getId());
 			}
+			threadService.updateLabels(threadIds, labelIds, true);
+		} catch (final ThreadException e) {
+			throw new GMailException("adding tag " + tag.getName(), e);
 		}
 	}
 
 	@Override
 	public void removeTagForThread(final GmailTag tag, final GmailThread thread) throws GMailException {
 		try {
-			final Thread t = threadService.get(thread.getId());
-			final Label l = labelService.get(tag.getId());
-			threadService.remove(t, l);
-		} catch (final ThreadException | LabelException e) {
-			throw new GMailException("adding tag", e);
+			final Set<String> labelIds = new HashSet<String>();
+			labelIds.add(tag.getId());
+			final Set<String> threadIds = new HashSet<String>();
+			threadIds.add(thread.getId());
+			threadService.updateLabels(threadIds, labelIds, false);
+		} catch (final ThreadException e) {
+			throw new GMailException("removing tag " + tag.getName(), e);
 		}
 	}
 
@@ -480,7 +484,13 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public void archive(final Set<GmailThread> threads) throws GMailException {
 		try {
-			threadService.archive(threads);
+			final Set<String> threadIds = new HashSet<String>();
+			for(final String id: threadIds) {
+				threadIds.add(id);
+			}
+			final Set<String> labelIds = new HashSet<String>();
+			labelIds.add("INBOX");
+			threadService.updateLabels(threadIds, labelIds, false);
 		} catch (final ThreadException e) {
 			throw new GMailException("archiving threads " + threads, e);
 		}
