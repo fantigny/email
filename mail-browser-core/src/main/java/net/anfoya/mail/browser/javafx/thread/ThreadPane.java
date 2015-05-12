@@ -158,8 +158,8 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 		for(final String id: thread.getMessageIds()) {
 			messagePane = new MessagePane<M>(id, mailService);
 			messagePane.setParentScrollPane(scrollPane);
-			messagePane.load();
 			messagesBox.getChildren().add(0, messagePane);
+			messagePane.load();
 		}
 
 		try {
@@ -171,10 +171,6 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 		} catch (final MailException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-
-		if (messagePane != null) {
-			messagePane.setExpanded(true);
 		}
 	}
 
