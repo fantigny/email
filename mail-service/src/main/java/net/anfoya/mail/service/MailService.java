@@ -13,6 +13,7 @@ public interface MailService<S extends SimpleSection
 
 	public void login(String id, String pwd) throws MailException;
 	public void logout();
+	public boolean hasUpdate() throws MailException;
 
 	public T getTag(String id) throws MailException;
 	public T findTag(String name) throws MailException;

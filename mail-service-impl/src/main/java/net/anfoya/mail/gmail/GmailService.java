@@ -55,6 +55,8 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	private MessageService messageService;
 	private ThreadService threadService;
 
+	private HistoryService historyService;
+
 	public GmailService() {
 		httpTransport = new NetHttpTransport();
 		jsonFactory = new JacksonFactory();
@@ -108,6 +110,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			throw new GMailException("login", e);
 		}
 
+		historyService = new HistoryService(gmail, USER);
 		labelService = new LabelService(gmail, USER);
 		messageService = new MessageService(gmail, USER);
 		threadService = new ThreadService(gmail, USER);
@@ -489,6 +492,15 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			threadService.trash(threads);
 		} catch (final ThreadException e) {
 			throw new GMailException("trashing threads " + threads, e);
+		}
+	}
+
+	@Override
+	public boolean hasUpdate() throws GMailException {
+		try {
+			return historyService.hasUpdate();
+		} catch (final HistoryException e) {
+			throw new GMailException("checking for updates", e);
 		}
 	}
 }

@@ -44,7 +44,7 @@ public class MailBrowserApp extends Application {
 	private ThreadListPane<GmailSection, GmailTag, GmailThread> threadListPane;
 	private ThreadPane<GmailTag, GmailThread, SimpleMessage> threadPane;
 
-	private ScheduledService<Long> refreshTimer;
+	private ScheduledService<Boolean> refreshTimer;
 
 	@Override
 	public void start(final Stage primaryStage) throws Exception {
@@ -153,27 +153,29 @@ public class MailBrowserApp extends Application {
 //		sectionListPane.selectTag("Bank", "HK HSBC");
 //		sectionListPane.expand("Bank");
 
-		refreshTimer = new ScheduledService<Long>() {
+		refreshTimer = new ScheduledService<Boolean>() {
 			@Override
-			protected Task<Long> createTask() {
-				return new Task<Long>() {
+			protected Task<Boolean> createTask() {
+				return new Task<Boolean>() {
 					@Override
-					protected Long call() throws Exception {
-						LOGGER.debug("refresh started...");
-						return System.currentTimeMillis();
+					protected Boolean call() throws Exception {
+						return mailService.hasUpdate();
 					}
 				};
 			}
 		};
 		refreshTimer.setOnSucceeded(event -> {
-			refreshThreadList();
-			LOGGER.debug("refresh finished! ({}ms)", System.currentTimeMillis() - (Long) event.getSource().getValue());
+			if ((boolean) event.getSource().getValue()) {
+				final long start = System.currentTimeMillis();
+				LOGGER.info("refresh started...");
+				sectionListPane.refresh();
+				LOGGER.info("refresh finished ({}ms)", System.currentTimeMillis() - start);
+			}
 		});
-		refreshTimer.setDelay(Duration.seconds(20));
-		refreshTimer.setPeriod(Duration.seconds(20));
+		refreshTimer.setDelay(Duration.seconds(3));
+		refreshTimer.setPeriod(Duration.seconds(3));
 		refreshTimer.setExecutor(ThreadPool.getInstance().getExecutor());
 		refreshTimer.start();
-
 	}
 
 	private void refreshSectionList() {
