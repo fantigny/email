@@ -20,11 +20,11 @@ import javax.security.auth.login.LoginException;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
 import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
+import net.anfoya.mail.gmail.GmailMessage;
 import net.anfoya.mail.gmail.GmailService;
 import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.gmail.model.GmailTag;
 import net.anfoya.mail.gmail.model.GmailThread;
-import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.tag.javafx.scene.section.SectionListPane;
@@ -40,9 +40,9 @@ public class MailBrowserApp extends Application {
 	}
 
 	private SectionListPane<GmailSection, GmailTag> sectionListPane;
-	private MailService<GmailSection, GmailTag, GmailThread, SimpleMessage> mailService;
+	private MailService<GmailSection, GmailTag, GmailThread, GmailMessage> mailService;
 	private ThreadListPane<GmailSection, GmailTag, GmailThread> threadListPane;
-	private ThreadPane<GmailTag, GmailThread, SimpleMessage> threadPane;
+	private ThreadPane<GmailTag, GmailThread, GmailMessage> threadPane;
 
 	private ScheduledService<Boolean> refreshTimer;
 
@@ -71,7 +71,7 @@ public class MailBrowserApp extends Application {
 		final BorderPane mainPane = new BorderPane();
 		mainPane.setPadding(new Insets(5));
 
-		final Scene scene = new Scene(mainPane, 1524, 780);
+		final Scene scene = new Scene(mainPane, 1524, 390);
 		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/excludebox.css").toExternalForm());
 
 		final HBox selectionPane = new HBox();
@@ -115,7 +115,7 @@ public class MailBrowserApp extends Application {
 		}
 
 		/* movie panel */ {
-			threadPane = new ThreadPane<GmailTag, GmailThread, SimpleMessage>(mailService);
+			threadPane = new ThreadPane<GmailTag, GmailThread, GmailMessage>(mailService);
 			threadPane.setOnDelTag(event -> {
 				refreshSectionList();
 				refreshThreadList();

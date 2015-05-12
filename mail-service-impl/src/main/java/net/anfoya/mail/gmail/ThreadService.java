@@ -26,8 +26,6 @@ import com.google.api.services.gmail.model.Thread;
 public class ThreadService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadService.class);
 
-	private enum DataType { minimal, metadata };
-
 	private final Gmail gmail;
 	private final String user;
 
@@ -40,66 +38,9 @@ public class ThreadService {
 		idThreads = new ConcurrentHashMap<String, Thread>();
 	}
 
-	public Thread get(final String id) throws ThreadException {
-		final long start = System.currentTimeMillis();
-		try {
-			final Thread cached = idThreads.get(id);
-			final Thread thread = get(id, DataType.minimal);
-			if (cached == null || cached.getHistoryId().equals(thread.getHistoryId())) {
-				idThreads.put(id, get(id, DataType.metadata));
-			}
-			return idThreads.get(id);
-		} catch (final IOException e) {
-			throw new ThreadException("loading thread for id " + id, e);
-		} finally {
-			LOGGER.debug("get thread for id {} ({}ms)", id, System.currentTimeMillis()-start);
-		}
-	}
-
-	private Thread get(final String id, final DataType dataType) throws IOException {
-		final long start = System.currentTimeMillis();
-		try {
-			return gmail.users().threads().get(user, id).setFormat(dataType.toString()).execute();
-		} finally {
-			LOGGER.debug("get<{}> thread for id {} ({}ms)", dataType, id, System.currentTimeMillis()-start);
-		}
-	}
-
-	private Set<Thread> get(final Set<String> ids, final DataType dataType) throws ThreadException {
-		final long start = System.currentTimeMillis();
-		try {
-			final Set<Thread> threads = new LinkedHashSet<Thread>();
-			final CountDownLatch latch = new CountDownLatch(ids.size());
-			final BatchRequest batchRequest = gmail.batch();
-			final JsonBatchCallback<Thread> callback = new JsonBatchCallback<Thread>() {
-				@Override
-				public void onSuccess(final Thread t, final HttpHeaders responseHeaders) throws IOException {
-					threads.add(t);
-					idThreads.put(t.getId(), t);
-					latch.countDown();
-				}
-				@Override
-				public void onFailure(final GoogleJsonError e, final HttpHeaders responseHeaders) throws IOException {
-					LOGGER.error("get<{}> thread {} {}", dataType, e.getMessage());
-					latch.countDown();
-				}
-			};
-			for(final String id: ids) {
-				gmail.users().threads().get(user, id).setFormat(dataType.toString()).queue(batchRequest, callback);
-			}
-			batchRequest.execute();
-			latch.await();
-			return threads;
-		} catch (IOException | InterruptedException e) {
-			throw new ThreadException("get<" + dataType.toString() + "> threads for ids " + ids, e);
-		} finally {
-			LOGGER.debug("get<{}> thread for ids {} ({}ms)", dataType, ids, System.currentTimeMillis()-start);
-		}
-	}
-
 	public Set<Thread> find(final String query) throws ThreadException {
 		if (query.isEmpty()) {
-			throw new ThreadException("query must not be empty");
+			throw new ThreadException("empty query not allowed");
 		}
 
 		final long start = System.currentTimeMillis();
@@ -124,7 +65,7 @@ public class ThreadService {
 				}
 			}
 			if (!toLoadIds.isEmpty()) {
-				get(toLoadIds, DataType.metadata);
+				load(toLoadIds);
 			}
 			final Set<Thread> threads = new LinkedHashSet<Thread>();
 			for(final String id: ids) {
@@ -132,7 +73,7 @@ public class ThreadService {
 			}
 			return threads;
 		} catch (final IOException e) {
-			throw new ThreadException("loading threads for query " + query, e);
+			throw new ThreadException("getting threads for query " + query, e);
 		} finally {
 			LOGGER.debug("get threads for query {} ({}=ms)", query, System.currentTimeMillis()-start);
 		}
@@ -140,7 +81,7 @@ public class ThreadService {
 
 	public int count(final String query) throws ThreadException {
 		if (query.isEmpty()) {
-			throw new ThreadException("query must not be empty");
+			throw new ThreadException("empty query not allowed");
 		}
 		final long start = System.currentTimeMillis();
 		try {
@@ -163,32 +104,38 @@ public class ThreadService {
 		}
 	}
 
-	public void updateLabels(final Set<String> threadIds, final Set<String> labelIds, final boolean add) throws ThreadException {
+	public void update(final Set<String> threadIds, final Set<String> labelIds, final boolean add) throws ThreadException {
 		final long start = System.currentTimeMillis();
 		try {
 			final CountDownLatch latch = new CountDownLatch(threadIds.size());
-			final BatchRequest batchRequest = gmail.batch();
+			final BatchRequest batch = gmail.batch();
 			final JsonBatchCallback<Thread> callback = new JsonBatchCallback<Thread>() {
 				@Override
 				public void onSuccess(final Thread t, final HttpHeaders responseHeaders) throws IOException {
+					idThreads.remove(t.getId());
 					latch.countDown();
 				}
 				@Override
 				public void onFailure(final GoogleJsonError e, final HttpHeaders responseHeaders) throws IOException {
-					LOGGER.error("update<{}> labels {} to threads {}\n{}", add? "add": "del", labelIds, threadIds, e.getMessage());
+					LOGGER.error("update<{}> labels {} for threads {}\n{}", add? "add": "del", labelIds, threadIds, e.getMessage());
 					latch.countDown();
 				}
 			};
-			final ModifyThreadRequest request = new ModifyThreadRequest().setAddLabelIds(new ArrayList<String>(labelIds));
-			for(final String id: threadIds) {
-				gmail.users().threads().modify(user, id, request).queue(batchRequest, callback);
+			final ModifyThreadRequest request;
+			if (add) {
+				request = new ModifyThreadRequest().setAddLabelIds(new ArrayList<String>(labelIds));
+			} else {
+				request = new ModifyThreadRequest().setRemoveLabelIds(new ArrayList<String>(labelIds));
 			}
-			batchRequest.execute();
+			for(final String id: threadIds) {
+				gmail.users().threads().modify(user, id, request).queue(batch, callback);
+			}
+			batch.execute();
 			latch.await();
 		} catch (final IOException | InterruptedException e) {
-			throw new ThreadException("update<{" + (add? "add": "del") + "}> labels " + labelIds + " to threads " + threadIds, e);
+			throw new ThreadException("update<{" + (add? "add": "del") + "}> labels " + labelIds + " for threads " + threadIds, e);
 		} finally {
-			LOGGER.debug("update<{}> labels {} to threads {} ({}ms)", add? "add": "del", labelIds, threadIds, System.currentTimeMillis()-start);
+			LOGGER.debug("update<{}> labels {} for threads {} ({}ms)", add? "add": "del", labelIds, threadIds, System.currentTimeMillis()-start);
 		}
 	}
 
@@ -212,6 +159,37 @@ public class ThreadService {
 			} catch (final IOException e) {
 				throw new ThreadException("trashing thread id " + t.getId(), e);
 			}
+		}
+	}
+
+	private void load(final Set<String> ids) throws ThreadException {
+		final long start = System.currentTimeMillis();
+		try{
+			final Set<Thread> threads = new LinkedHashSet<Thread>();
+			final CountDownLatch latch = new CountDownLatch(ids.size());
+			final BatchRequest batch = gmail.batch();
+			final JsonBatchCallback<Thread> callback = new JsonBatchCallback<Thread>() {
+				@Override
+				public void onSuccess(final Thread t, final HttpHeaders responseHeaders) throws IOException {
+					threads.add(t);
+					idThreads.put(t.getId(), t);
+					latch.countDown();
+				}
+				@Override
+				public void onFailure(final GoogleJsonError e, final HttpHeaders responseHeaders) throws IOException {
+					LOGGER.error("loading thread", e.getMessage());
+					latch.countDown();
+				}
+			};
+			for(final String id: ids) {
+				gmail.users().threads().get(user, id).setFormat("metadata").queue(batch, callback);
+			}
+			batch.execute();
+			latch.await();
+		} catch (IOException | InterruptedException e) {
+			throw new ThreadException("loading for ids " + ids, e);
+		} finally {
+			LOGGER.debug("load for ids {} ({}ms)", ids, System.currentTimeMillis()-start);
 		}
 	}
 }

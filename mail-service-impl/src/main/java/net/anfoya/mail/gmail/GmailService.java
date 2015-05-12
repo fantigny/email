@@ -14,10 +14,10 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import net.anfoya.java.io.JsonFile;
+import net.anfoya.mail.gmail.GmailMessage;
 import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.gmail.model.GmailTag;
 import net.anfoya.mail.gmail.model.GmailThread;
-import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.service.MailService;
 
 import org.slf4j.Logger;
@@ -36,7 +36,7 @@ import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Label;
 import com.google.api.services.gmail.model.Thread;
 
-public class GmailService implements MailService<GmailSection, GmailTag, GmailThread, SimpleMessage> {
+public class GmailService implements MailService<GmailSection, GmailTag, GmailThread, GmailMessage> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GmailService.class);
 
 	// Check https://developers.google.com/gmail/api/auth/scopes for all
@@ -64,7 +64,11 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	@Override
-	public void login(final String id, final String pwd) throws GMailException {
+	public void login(final String id, final String pwd) throws net.anfoya.mail.service.MailException {
+		login();
+	}
+
+	protected Gmail login() throws GMailException {
 		Gmail gmail;
 		try {
 			final String path = this.getClass().getResource(CLIENT_SECRET_PATH).toURI().getPath();
@@ -115,6 +119,8 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		labelService = new LabelService(gmail, USER);
 		messageService = new MessageService(gmail, USER);
 		threadService = new ThreadService(gmail, USER);
+
+		return gmail;
 	}
 
 	@Override
@@ -167,20 +173,9 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	@Override
-	public GmailThread getThread(final String id) throws GMailException {
+	public GmailMessage getMessage(final String id) throws GMailException {
 		try {
-			final String unreadId = labelService.find("UNREAD").getId();
-			final Thread thread = threadService.get(id);
-			return new GmailThread(thread, unreadId);
-		} catch (final ThreadException | LabelException e) {
-			throw new GMailException("loading thread " + id, e);
-		}
-	}
-
-	@Override
-	public SimpleMessage getMessage(final String id) throws GMailException {
-		try {
-		    return new SimpleMessage(id, messageService.getRaw(id));
+		    return new GmailMessage(id, messageService.getRaw(id));
 		} catch (final MessageException e) {
 			throw new GMailException("loading message id: " + id, e);
 		}
@@ -372,7 +367,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			for(final GmailThread t: threads) {
 				threadIds.add(t.getId());
 			}
-			threadService.updateLabels(threadIds, labelIds, true);
+			threadService.update(threadIds, labelIds, true);
 		} catch (final ThreadException e) {
 			throw new GMailException("adding tag " + tag.getName(), e);
 		}
@@ -385,7 +380,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			labelIds.add(tag.getId());
 			final Set<String> threadIds = new HashSet<String>();
 			threadIds.add(thread.getId());
-			threadService.updateLabels(threadIds, labelIds, false);
+			threadService.update(threadIds, labelIds, false);
 		} catch (final ThreadException e) {
 			throw new GMailException("removing tag " + tag.getName(), e);
 		}
@@ -490,7 +485,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			}
 			final Set<String> labelIds = new HashSet<String>();
 			labelIds.add("INBOX");
-			threadService.updateLabels(threadIds, labelIds, false);
+			threadService.update(threadIds, labelIds, false);
 		} catch (final ThreadException e) {
 			throw new GMailException("archiving threads " + threads, e);
 		}

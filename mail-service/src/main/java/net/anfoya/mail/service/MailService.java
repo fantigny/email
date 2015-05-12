@@ -20,7 +20,6 @@ public interface MailService<S extends SimpleSection
 	public void addTagForThreads(T tag, Set<H> threads) throws MailException;
 	public void removeTagForThread(T tag, H thread) throws MailException;
 
-	public H getThread(String id) throws MailException;
 	public Set<H> getThreads(Set<T> availableTags, Set<T> includes, Set<T> excludes, String pattern) throws MailException;
 	public void archive(Set<H> threads) throws MailException;
 	public void trash(Set<H> threads) throws MailException;
