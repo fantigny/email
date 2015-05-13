@@ -8,8 +8,11 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
 import javax.mail.Session;
+import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
 
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Draft;
@@ -40,7 +43,11 @@ public class MessageService {
 	public Draft createDraft() throws MessageException {
 		try {
 			final MimeMessage mimeMessage = new MimeMessage(Session.getInstance(new Properties()));
-			mimeMessage.setContent("<html></html>", "text/html");
+		    final MimeBodyPart mbp1 = new MimeBodyPart();
+		    mbp1.setText("<html></html>");
+		     final Multipart mp = new MimeMultipart();
+		      mp.addBodyPart(mbp1);
+		 		    mimeMessage.setContent(mp);
 			final ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			mimeMessage.writeTo(baos);
 		    final Message message = new Message();
