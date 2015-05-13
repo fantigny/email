@@ -131,7 +131,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	@Override
-	public Set<GmailThread> getThreads(final Set<GmailTag> availableTags, final Set<GmailTag> includes, final Set<GmailTag> excludes, final String pattern) throws GMailException {
+	public Set<GmailThread> getThreads(final Set<GmailTag> includes, final Set<GmailTag> excludes, final String pattern) throws GMailException {
 		try {
 			final Set<GmailThread> threads = new LinkedHashSet<GmailThread>();
 			if (includes.isEmpty()) {

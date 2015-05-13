@@ -163,8 +163,8 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		return namePatternField.getText();
 	}
 
-	public void refreshWithTags(final Set<T> tags, final Set<T> includes, final Set<T> excludes) {
-		threadList.refresh(tags, includes, excludes);
+	public void refreshWithTags(final Set<T> includes, final Set<T> excludes) {
+		threadList.refresh(includes, excludes);
 	}
 
 	public int getThreadCount() {

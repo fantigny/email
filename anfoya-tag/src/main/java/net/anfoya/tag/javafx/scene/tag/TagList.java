@@ -65,7 +65,7 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 		return Collections.unmodifiableSet(tags);
 	}
 
-	public Set<T> getSelectedTags() {
+	public Set<T> getIncludedTags() {
 		final Set<T> tags = new LinkedHashSet<T>();
 		for(final TagListItem<T> item: getItems()) {
 			if (item.includedProperty().get()) {

@@ -148,6 +148,15 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 				final TagList<S, T> tagList = new TagList<S, T>(tagService, section);
 				tagList.setTagChangeListener(tagChangeListener);
 				tagList.setExtItemDataFormat(extItemDataFormat);
+				tagList.getFocusModel().focusedItemProperty().addListener((ov, oldVal, newVal) -> {
+					if (newVal != null) {
+						if (tagList.getIncludedTags().isEmpty()
+								&& tagList.getExcludedTags().isEmpty()
+								&& tagList.getFocusedTag() != null) {
+							tagChangeListener.changed(null, null, null);
+						}
+					}
+				});
 
 				final SectionPane<S, T> sectionPane = new SectionPane<S, T>(tagService, section, tagList);
 				sectionPane.setDisableWhenZero(sectionDisableWhenZero);
@@ -292,7 +301,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		for(final TitledPane titledPane: sectionAcc.getPanes()) {
 			@SuppressWarnings("unchecked")
 			final TagList<S, T> tagList = (TagList<S, T>) titledPane.getContent();
-			tags.addAll(tagList.getSelectedTags());
+			tags.addAll(tagList.getIncludedTags());
 		}
 
 		return Collections.unmodifiableSet(tags);
@@ -326,5 +335,19 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 
 	public S getSectionAt(final double x, final double y) {
 		return null;
+	}
+
+	public T getFocusedItem() {
+		T tag = null;
+		for(final TitledPane sectionPane: sectionAcc.getPanes()) {
+			@SuppressWarnings("unchecked")
+			final TagList<S, T> tagList = (TagList<S, T>) sectionPane.getContent();
+			tag = tagList.getFocusedTag();
+			if (sectionPane.isExpanded() && tag != null) {
+				break;
+			}
+		}
+
+		return tag;
 	}
 }

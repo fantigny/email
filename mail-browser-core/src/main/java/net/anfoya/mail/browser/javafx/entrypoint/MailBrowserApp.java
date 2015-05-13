@@ -2,6 +2,7 @@ package net.anfoya.mail.browser.javafx.entrypoint;
 
 import static net.anfoya.mail.browser.javafx.threadlist.ThreadListPane.DND_THREADS_DATA_FORMAT;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import javafx.application.Application;
@@ -227,6 +228,15 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 	}
 
 	private void refreshThreadList() {
-		threadListPane.refreshWithTags(sectionListPane.getAllTags(), sectionListPane.getIncludedTags(), sectionListPane.getExcludedTags());
+		Set<T> included = sectionListPane.getIncludedTags();
+		final Set<T> excluded = sectionListPane.getExcludedTags();
+		if (included.isEmpty() && excluded.isEmpty()) {
+			final T tag = sectionListPane.getFocusedItem();
+			if (tag != null) {
+				included = new HashSet<T>();
+				included.add(tag);
+			}
+		}
+		threadListPane.refreshWithTags(included, excluded);
 	}
 }

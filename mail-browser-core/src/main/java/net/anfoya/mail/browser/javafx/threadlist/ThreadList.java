@@ -32,7 +32,6 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 	private boolean refreshing;
 	private Set<H> threads;
 
-	private Set<T> tags;
 	private Set<T> includes;
 	private Set<T> excludes;
 	private SortOrder sortOrder;
@@ -47,7 +46,6 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 		this.refreshing = false;
 		this.threads = new LinkedHashSet<H>();
 
-		this.tags = new LinkedHashSet<T>();
 		this.includes = new LinkedHashSet<T>();
 		this.excludes = new LinkedHashSet<T>();
 		this.sortOrder = SortOrder.DATE;
@@ -69,7 +67,7 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 		if (namePattern.contains(previousPattern)) {
 			refresh();
 		} else {
-			refresh(tags, includes, excludes);
+			refresh(includes, excludes);
 		}
 	}
 
@@ -78,13 +76,7 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 		load();
 	}
 
-	public void refreshWithTags(final Set<T> tags) {
-		this.tags = tags;
-		load();
-	}
-
-	public void refresh(final Set<T> tags, final Set<T> includes, final Set<T> excludes) {
-		this.tags = tags;
+	public void refresh(final Set<T> includes, final Set<T> excludes) {
 		this.includes = includes;
 		this.excludes = excludes;
 		load();
@@ -95,7 +87,7 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 		final Task<Set<H>> task = new Task<Set<H>>() {
 			@Override
 			protected Set<H> call() throws Exception {
-				return mailService.getThreads(tags, includes, excludes, namePattern);
+				return mailService.getThreads(includes, excludes, namePattern);
 			}
 		};
 		task.setOnFailed(event -> {
