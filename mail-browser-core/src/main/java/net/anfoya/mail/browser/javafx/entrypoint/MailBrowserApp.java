@@ -222,8 +222,13 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 
 	private void updateThreadCount() {
 		final int currentCount = threadListPane.getThreadCount();
-		final Set<T> availableTags = threadListPane.getThreadTags();
-		final String namePattern = "";
+		final Set<T> availableTags;
+		if (sectionListPane.getAllSelectedTags().isEmpty()) {
+			availableTags = new HashSet<T>();
+		} else {
+			availableTags = threadListPane.getThreadsTags();
+		}
+		final String namePattern = threadListPane.getNamePattern();
 		sectionListPane.updateCount(currentCount, availableTags, namePattern);
 	}
 

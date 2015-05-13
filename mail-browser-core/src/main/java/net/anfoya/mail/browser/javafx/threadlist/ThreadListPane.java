@@ -195,7 +195,7 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		threadList.getItems().addListener(listener);
 	}
 
-	public Set<T> getThreadTags() {
+	public Set<T> getThreadsTags() {
 		try {
 			final Set<T> tags = new LinkedHashSet<T>();
 			for(final H t: getItems()) {

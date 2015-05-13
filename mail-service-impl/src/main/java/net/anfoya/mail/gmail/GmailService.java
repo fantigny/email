@@ -5,11 +5,13 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -35,6 +37,7 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Draft;
 import com.google.api.services.gmail.model.Label;
+import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.Thread;
 
 public class GmailService implements MailService<GmailSection, GmailTag, GmailThread, GmailMessage> {
@@ -164,6 +167,19 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 			final String unreadId = labelService.find("UNREAD").getId();
 			for(final Thread t: threadService.find(query.toString())) {
+				// clean labels
+				for(final Message m: t.getMessages()) {
+					if (m.getLabelIds() != null) {
+						final List<String> cleaned = new ArrayList<String>();
+						for(final String id: m.getLabelIds()) {
+							final Label l = labelService.get(id);
+							if (l!= null && !GmailTag.isHidden(l)) {
+								cleaned.add(id);
+							}
+						}
+						m.setLabelIds(cleaned);
+					}
+				}
 				threads.add(new GmailThread(t, unreadId));
 			}
 

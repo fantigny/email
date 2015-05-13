@@ -84,11 +84,6 @@ public class SectionDropPane<S extends SimpleSection> extends GridPane {
 	}
 
 	private void remove(final S section) {
-		final Alert alertDialog = new Alert(AlertType.ERROR);
-		alertDialog.setTitle("Remove section");
-		alertDialog.setHeaderText("To be implemented");
-		alertDialog.setContentText("");
-		alertDialog.showAndWait();
 		try {
 			tagService.remove(section);
 		} catch (final Exception e) {
