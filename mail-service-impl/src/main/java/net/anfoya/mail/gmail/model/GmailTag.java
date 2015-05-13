@@ -10,7 +10,8 @@ public class GmailTag extends SimpleTag {
 	private final boolean hidden;
 
 	public static boolean isHidden(final Label label) {
-		return "labelHide".equals(label.getLabelListVisibility());
+		return "labelHide".equals(label.getLabelListVisibility())
+				|| label.getName().startsWith("CATEGORY_");
 	}
 
 	public static boolean isSystem(final Label label) {

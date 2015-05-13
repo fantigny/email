@@ -232,6 +232,8 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			if (section.equals(GmailSection.SYSTEM)) {
 				for(final Label l:labels) {
 					if (!GmailTag.isHidden(l) && GmailTag.isSystem(l)) {
+						final String name = l.getName();
+						l.setName(name.charAt(0) + name.substring(1).toLowerCase());
 						tags.add(new GmailTag(l));
 					}
 				}
