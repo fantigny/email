@@ -33,6 +33,7 @@ import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.web.WebViewFitContent;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
+import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
@@ -104,7 +105,10 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 	public void load() {
 		final Task<String> task = new Task<String>() {
 			@Override
-			protected String call() throws Exception {
+			protected String call() throws InterruptedException, MessagingException, MailException, IOException {
+				if (Thread.currentThread().isInterrupted()) {
+					throw new InterruptedException();
+				}
 				message = mailService.getMessage(messageId);
 			    mimeMessage = new MimeMessage(SESSION, new ByteArrayInputStream(message.getRfc822mimeRaw()));
 			    return buildHtml(mimeMessage.getContent(), mimeMessage.getContentType(), false);

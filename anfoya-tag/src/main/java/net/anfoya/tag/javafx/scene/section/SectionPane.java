@@ -103,8 +103,8 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 		});
 
 		expandedProperty().addListener((ov, oldVal, newVal) -> {
-			if (newVal && lazyCount && lazyCountTask != null) {
-				ThreadPool.getInstance().submitHigh(lazyCountTask);
+			if (newVal && lazyCountTask != null) {
+				ThreadPool.getInstance().submitLow(lazyCountTask);
 				lazyCountTask = null;
 			}
 		});
@@ -115,7 +115,10 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 			final long taskId = this.taskId.incrementAndGet();
 			final Task<Integer> sectionTask = new Task<Integer>() {
 				@Override
-				protected Integer call() throws TagException {
+				protected Integer call() throws TagException, InterruptedException {
+					if (Thread.currentThread().isInterrupted()) {
+						throw new InterruptedException();
+					}
 					return tagService.getCountForSection(tagList.getSection(), includes, excludes, namePattern, tagPattern);
 				}
 			};
@@ -136,12 +139,15 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 		}
 
 		final Runnable tagListTask = () -> {
+			if (Thread.currentThread().isInterrupted()) {
+				return;
+			}
 			tagList.updateCount(currentCount, availableTags, includes, excludes, namePattern);
 		};
-		if (isExpanded() || !lazyCount) {
-			tagListTask.run();
-		} else {
+		if (lazyCount && !isExpanded()) {
 			lazyCountTask = tagListTask;
+		} else {
+			tagListTask.run();
 		}
 	}
 

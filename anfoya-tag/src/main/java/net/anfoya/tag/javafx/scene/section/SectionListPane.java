@@ -24,6 +24,7 @@ import net.anfoya.tag.javafx.scene.tag.TagDropPane;
 import net.anfoya.tag.javafx.scene.tag.TagList;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
+import net.anfoya.tag.service.TagException;
 import net.anfoya.tag.service.TagService;
 
 public class SectionListPane<S extends SimpleSection, T extends SimpleTag> extends BorderPane {
@@ -146,15 +147,6 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 				final TagList<S, T> tagList = new TagList<S, T>(tagService, section);
 				tagList.setTagChangeListener(tagChangeListener);
 				tagList.setExtItemDataFormat(extItemDataFormat);
-				tagList.getFocusModel().focusedItemProperty().addListener((ov, oldVal, newVal) -> {
-					if (newVal != null) {
-						if (tagList.getIncludedTags().isEmpty()
-								&& tagList.getExcludedTags().isEmpty()
-								&& tagList.getSelectedTag() != null) {
-							tagChangeListener.changed(null, null, null);
-						}
-					}
-				});
 
 				final SectionPane<S, T> sectionPane = new SectionPane<S, T>(tagService, section, tagList);
 				sectionPane.setDisableWhenZero(sectionDisableWhenZero);
@@ -187,7 +179,10 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 	public void refreshAsync(final Callback<Void, Void> callback) {
 		final Task<Set<S>> task = new Task<Set<S>>() {
 			@Override
-			protected Set<S> call() throws Exception {
+			protected Set<S> call() throws InterruptedException, TagException {
+				if (Thread.currentThread().isInterrupted()) {
+					throw new InterruptedException();
+				}
 				return tagService.getSections();
 			}
 		};
@@ -248,15 +243,36 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		updateSectionCallback = callback;
 	}
 
+	private static class CountSet {
+		protected static final CountSet i = new CountSet();
+		protected Set<? extends SimpleTag> availableTags;
+		protected Set<? extends SimpleTag> includes;
+		protected Set<? extends SimpleTag> excludes;
+		protected String namePattern;
+		protected String tagPattern;
+	}
+	
 	public void updateCount(final int currentCount, final Set<T> availableTags, final String namePattern) {
 		final Set<T> includes = getIncludedTags();
 		final Set<T> excludes = getExcludedTags();
 		final String tagPattern = tagPatternField.getText();
-		for(final TitledPane titledPane: sectionAcc.getPanes()) {
-			@SuppressWarnings("unchecked")
-			final SectionPane<S, T> sectionPane = (SectionPane<S, T>) titledPane;
-			sectionPane.updateCountAsync(currentCount, availableTags, includes, excludes, namePattern, tagPattern);
+		
+		if (!includes.equals(CountSet.i.includes)
+				|| !excludes.equals(CountSet.i.excludes)
+				|| !namePattern.equals(CountSet.i.namePattern)
+				|| !tagPattern.equals(CountSet.i.tagPattern)) {
+			for(final TitledPane titledPane: sectionAcc.getPanes()) {
+				@SuppressWarnings("unchecked")
+				final SectionPane<S, T> sectionPane = (SectionPane<S, T>) titledPane;
+				sectionPane.updateCountAsync(currentCount, availableTags, includes, excludes, namePattern, tagPattern);
+			}
 		}
+
+		CountSet.i.availableTags = availableTags;
+		CountSet.i.includes = includes;
+		CountSet.i.excludes = excludes;
+		CountSet.i.namePattern = namePattern;
+		CountSet.i.tagPattern = tagPattern;
 	}
 
 	public Set<T> getAllTags() {
@@ -283,13 +299,6 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 			@SuppressWarnings("unchecked")
 			final TagList<S, T> tagList = (TagList<S, T>) titledPane.getContent();
 			tags.addAll(tagList.getIncludedTags());
-		}
-
-		if (tags.isEmpty() && getExcludedTags().isEmpty()) {
-			final T tag = getSelectedTag();
-			if (tag != null) {
-				tags.add(tag);
-			}
 		}
 
 		return Collections.unmodifiableSet(tags);
@@ -330,9 +339,11 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		for(final TitledPane sectionPane: sectionAcc.getPanes()) {
 			@SuppressWarnings("unchecked")
 			final TagList<S, T> tagList = (TagList<S, T>) sectionPane.getContent();
-			tag = tagList.getSelectedTag();
-			if (sectionPane.isExpanded() && tag != null) {
-				break;
+			if (sectionPane.isExpanded()) {
+				tag = tagList.getSelectedTag();
+				if (tag != null) {
+					break;
+				}
 			}
 		}
 

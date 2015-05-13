@@ -12,6 +12,7 @@
 	</appender>
 
 
+  <logger name="net.anfoya.mail.gmail.ThreadService" level="DEBUG"/>
   
   <!--
   <logger name="net.anfoya.mail.gmail.ThreadService" level="DEBUG"/>

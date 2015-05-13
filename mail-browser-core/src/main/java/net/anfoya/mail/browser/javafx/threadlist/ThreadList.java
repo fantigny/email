@@ -12,10 +12,8 @@ import java.util.function.Predicate;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
-import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
-import javafx.util.Callback;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
@@ -52,12 +50,7 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 		this.namePattern = "";
 
 		getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-		setCellFactory(new Callback<ListView<H>, ListCell<H>>() {
-			@Override
-			public ListCell<H> call(final ListView<H> param) {
-				return new ThreadListCell<H>();
-			}
-		});
+		setCellFactory(param -> new ThreadListCell<H>());
 	}
 
 	public void refreshWithPattern(final String pattern) {
@@ -86,7 +79,10 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 		final long id = this.taskId.incrementAndGet();
 		final Task<Set<H>> task = new Task<Set<H>>() {
 			@Override
-			protected Set<H> call() throws Exception {
+			protected Set<H> call() throws InterruptedException, MailException {
+				if (Thread.currentThread().isInterrupted()) {
+					throw new InterruptedException();
+				}
 				return mailService.getThreads(includes, excludes, namePattern);
 			}
 		};

@@ -124,7 +124,11 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 					updateCountAsync(item, includes, excludes, namePattern);
 				}
 			} else {
-				item.countProperty().set(0);
+				if (includes.isEmpty() && excludes.isEmpty()) {
+					updateCountAsync(item, includes, excludes, namePattern);
+				} else {
+					item.countProperty().set(0);
+				}
 			}
 		}
 		forceRepaint();
@@ -133,7 +137,10 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 	protected void updateCountAsync(final TagListItem<T> item, final Set<T> includes, final Set<T> excludes, final String nameFilter) {
 		final Task<Integer> task = new Task<Integer>() {
 			@Override
-			public Integer call() throws SQLException, TagException {
+			public Integer call() throws SQLException, TagException, InterruptedException {
+				if (Thread.currentThread().isInterrupted()) {
+					throw new InterruptedException();
+				}
 				final T tag = item.getTag();
 				final int excludeFactor = excludes.contains(tag)? -1: 1;
 				@SuppressWarnings("serial")
@@ -155,6 +162,11 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 	}
 
 	public void setTagChangeListener(final ChangeListener<Boolean> listener) {
+		getSelectionModel().selectedItemProperty().addListener((ov, oldVal, newVal) -> {
+			if (newVal != null) {
+				listener.changed(null, null, null);
+			}
+		});
 		tagChangeListener = listener;
 	}
 
@@ -173,11 +185,11 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 	public void setTagSelected(final String tagName, final boolean selected) {
 		if (itemMap.containsKey(tagName)) {
 			getSelectionModel().select(itemMap.get(tagName));
-//			final TagListItem<T> item = itemMap.get(tagName);
-//			item.includedProperty().set(selected);
-//			if (!selected) {
-//				item.excludedProperty().set(false);
-//			}
+			final TagListItem<T> item = itemMap.get(tagName);
+			item.includedProperty().set(selected);
+			if (!selected) {
+				item.excludedProperty().set(false);
+			}
 		}
 	}
 
