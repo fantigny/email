@@ -10,6 +10,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.concurrent.Task;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
@@ -57,6 +58,7 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 	private M message;
 	private MimeMessage mimeMessage;
 	private double height;
+	private boolean collapsible;
 
 	public MessagePane(final String messageId, final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService) {
 		this.mailService = mailService;
@@ -67,23 +69,26 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 
 		expanded = new SimpleBooleanProperty(true);
 		expanded.addListener((ov, oldVal, newVal) -> {
-			if (!newVal) {
-				LOGGER.debug("hiding web view");
-				bodyView.setMinHeight(0);
-				bodyView.setMaxHeight(0);
-				autosize();
-			} else {
-				LOGGER.debug("showing web view");
-				if (height == 0) {
-					height = getPrefHeight();
+			if (collapsible) {
+				if (!newVal) {
+					LOGGER.debug("hiding web view");
+					bodyView.setMinHeight(0);
+					bodyView.setMaxHeight(0);
+					autosize();
+				} else {
+					LOGGER.debug("showing web view");
+					if (height == 0) {
+						height = getPrefHeight();
+					}
+					bodyView.setMinHeight(height);
+					bodyView.setMaxHeight(height);
+					autosize();
 				}
-				bodyView.setMinHeight(height);
-				bodyView.setMaxHeight(height);
-				autosize();
 			}
 		});
 
 		final HBox titlePane = new HBox();
+		titlePane.setPadding(new Insets(5));
 		titlePane.setAlignment(Pos.CENTER_LEFT);
 		titlePane.setMinHeight(30);
 		titlePane.setOnMouseClicked(event -> {
@@ -221,5 +226,13 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 
 	public String getMessageId() {
 		return messageId;
+	}
+
+	public void setCollapsible(final boolean collapsible) {
+		this.collapsible = collapsible;
+	}
+
+	public boolean isCollapsble() {
+		return collapsible;
 	}
 }

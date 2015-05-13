@@ -169,6 +169,12 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 			}
 			index++;
 		}
+		if (panes.size() == 1) {
+			@SuppressWarnings("unchecked")
+			final
+			MessagePane<M> messagePane = (MessagePane<M>) panes.get(0);
+			messagePane.setCollapsible(false);
+		}
 	}
 
 	private void loadThread() {
