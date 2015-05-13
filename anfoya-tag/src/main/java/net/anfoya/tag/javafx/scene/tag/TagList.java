@@ -78,7 +78,7 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 		return Collections.unmodifiableSet(tags);
 	}
 
-	public void refresh(final Set<T> selectedTags, final String tagPattern) {
+	public void refresh(final Set<T> includes, final Set<T> excludes, final String tagPattern) {
 		// get all tags
 		Set<T> tags;
 		try {
@@ -88,6 +88,9 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 			e.printStackTrace();
 			return;
 		}
+		
+		// get selected index
+		final int selectedIndex = getSelectionModel().getSelectedIndex();
 
 		// build items map and restore selection
 		final Map<String, TagListItem<T>> countedItemMap = this.itemMap;
@@ -95,8 +98,10 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 		final ObservableList<TagListItem<T>> items = FXCollections.observableArrayList();
 		for(final T tag: tags) {
 			final TagListItem<T> item = new TagListItem<T>(tag);
-			if (selectedTags.contains(tag)) {
+			if (includes.contains(tag)) {
 				item.includedProperty().set(true);
+			} else if (excludes.contains(tag)) {
+				item.excludedProperty().set(true);
 			}
 			if (tagChangeListener != null) {
 				item.includedProperty().addListener(tagChangeListener);
@@ -111,7 +116,12 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 		}
 
 		// display
-		setItems(items);
+		getItems().setAll(items);
+
+		// restore selection
+		if (selectedIndex != -1) {
+			getSelectionModel().selectIndices(selectedIndex);
+		}
 	}
 
 	public void updateCount(final int currentCount, final Set<T> availableTags, final Set<T> includes, final Set<T> excludes, final String namePattern) {

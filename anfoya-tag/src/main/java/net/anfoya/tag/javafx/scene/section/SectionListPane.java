@@ -164,11 +164,12 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 
 	private void refreshTags() {
 		final String tagPattern = tagPatternField.getText();
-		final Set<T> tags = getIncludedTags();
+		final Set<T> includes = getIncludedTags();
+		final Set<T> excludes = getExcludedTags();
 		for(final TitledPane pane: sectionAcc.getPanes()) {
 			@SuppressWarnings("unchecked")
 			final SectionPane<S, T> sectionPane = (SectionPane<S, T>) pane;
-			sectionPane.refresh(tags, tagPattern);
+			sectionPane.refresh(includes, excludes, tagPattern);
 		}
 	}
 

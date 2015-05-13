@@ -50,12 +50,12 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 	private ThreadListPane<S, T, H, M> threadListPane;
 	private ThreadPane<T, H, M> threadPane;
 
-	private ScheduledService<Boolean> refreshTimer;
+	private ScheduledService<Boolean> refreshService;
 
 	@Override
 	public void start(final Stage primaryStage) throws Exception {
 		primaryStage.setOnCloseRequest(event -> {
-			refreshTimer.cancel();
+			refreshService.cancel();
 			ThreadPool.getInstance().shutdown();
 		});
 
@@ -181,7 +181,7 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 			return null;
 		});
 
-		refreshTimer = new ScheduledService<Boolean>() {
+		refreshService = new ScheduledService<Boolean>() {
 			@Override
 			protected Task<Boolean> createTask() {
 				return new Task<Boolean>() {
@@ -192,26 +192,24 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 				};
 			}
 		};
-		refreshTimer.setOnFailed(event -> {
+		refreshService.setOnFailed(event -> {
 			// TODO Auto-generated catch block
 			event.getSource().getException().printStackTrace(System.out);
 		});
-		refreshTimer.setOnSucceeded(event -> {
-			if (refreshTimer.getValue()) {
+		refreshService.setOnSucceeded(event -> {
+			if (refreshService.getValue()) {
 				LOGGER.info("update detected");
-				refreshSectionList();
 				refreshThreadList();
 			}
 		});
-		refreshTimer.setDelay(Duration.seconds(60));
-		refreshTimer.setPeriod(Duration.seconds(60));
-		refreshTimer.setExecutor(ThreadPool.getInstance().getExecutor());
-		refreshTimer.start();
+		refreshService.setDelay(Duration.seconds(60));
+		refreshService.setPeriod(Duration.seconds(60));
+		refreshService.setExecutor(ThreadPool.getInstance().getExecutor());
+		refreshService.start();
 	}
 
 	private void refreshSectionList() {
 		sectionListPane.refreshAsync();
-		threadPane.refreshTags();
 	}
 
 	private void refreshThread() {

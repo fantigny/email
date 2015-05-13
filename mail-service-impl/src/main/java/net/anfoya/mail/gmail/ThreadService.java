@@ -26,6 +26,8 @@ import com.google.api.services.gmail.model.Thread;
 public class ThreadService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadService.class);
 
+	private static final long MAX_RESULS = 50;
+
 	private final Gmail gmail;
 	private final String user;
 
@@ -47,7 +49,7 @@ public class ThreadService {
 		final Set<String> ids = new LinkedHashSet<String>();
 		final Set<String> toLoadIds = new LinkedHashSet<String>();
 		try {
-			ListThreadsResponse threadResponse = gmail.users().threads().list(user).setQ(query.toString()).execute();
+			ListThreadsResponse threadResponse = gmail.users().threads().list(user).setQ(query.toString()).setMaxResults(MAX_RESULS).execute();
 			while (threadResponse.getThreads() != null) {
 				for(final Thread t : threadResponse.getThreads()) {
 					final String id = t.getId();
@@ -59,14 +61,12 @@ public class ThreadService {
 				}
 				if (threadResponse.getNextPageToken() != null) {
 					final String pageToken = threadResponse.getNextPageToken();
-					threadResponse = gmail.users().threads().list(user).setQ(query.toString()).setPageToken(pageToken).execute();
+					threadResponse = gmail.users().threads().list(user).setQ(query.toString()).setPageToken(pageToken).setMaxResults(MAX_RESULS).execute();
 				} else {
 					break;
 				}
 			}
-			if (!toLoadIds.isEmpty()) {
-				load(toLoadIds);
-			}
+			load(toLoadIds);
 			final Set<Thread> threads = new LinkedHashSet<Thread>();
 			for(final String id: ids) {
 				threads.add(idThreads.get(id));
@@ -163,6 +163,9 @@ public class ThreadService {
 	}
 
 	private void load(final Set<String> ids) throws ThreadException {
+		if (ids.isEmpty()) {
+			return;
+		}
 		final long start = System.currentTimeMillis();
 		try{
 			final Set<Thread> threads = new LinkedHashSet<Thread>();
