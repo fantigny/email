@@ -24,7 +24,6 @@ import net.anfoya.tag.javafx.scene.tag.TagDropPane;
 import net.anfoya.tag.javafx.scene.tag.TagList;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
-import net.anfoya.tag.service.TagException;
 import net.anfoya.tag.service.TagService;
 
 public class SectionListPane<S extends SimpleSection, T extends SimpleTag> extends BorderPane {
@@ -37,7 +36,6 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 
 	private Set<S> sections;
 	private ChangeListener<Boolean> tagChangeListener;
-
 	private Callback<Void, Void> updateSectionCallback;
 
 	private boolean lazyCount = true;
@@ -128,7 +126,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		BorderPane.setMargin(selectedPane, new Insets(5));
 	}
 
-	public void refreshSections() {
+	private void refreshSections() {
 		// delete sections
 		final Set<SimpleSection> existingSections = new LinkedHashSet<SimpleSection>();
 		for(final Iterator<TitledPane> i = sectionAcc.getPanes().iterator(); i.hasNext();) {
@@ -152,7 +150,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 					if (newVal != null) {
 						if (tagList.getIncludedTags().isEmpty()
 								&& tagList.getExcludedTags().isEmpty()
-								&& tagList.getFocusedTag() != null) {
+								&& tagList.getSelectedTag() != null) {
 							tagChangeListener.changed(null, null, null);
 						}
 					}
@@ -163,7 +161,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 				sectionPane.setLazyCount(lazyCount);
 				sectionPane.setExtItemDataFormat(extItemDataFormat);
 				sectionPane.setOnDragDone(event -> {
-					refresh();
+					refreshAsync();
 					event.consume();
 				});
 				sectionAcc.getPanes().add(index, sectionPane);
@@ -172,7 +170,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		}
 	}
 
-	public void refreshTags() {
+	private void refreshTags() {
 		final String tagPattern = tagPatternField.getText();
 		final Set<T> tags = getIncludedTags();
 		for(final TitledPane pane: sectionAcc.getPanes()) {
@@ -182,7 +180,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		}
 	}
 
-	public void refreshAsync() {
+	public void refreshAsync(final boolean... async) {
 		final Task<Set<S>> task = new Task<Set<S>>() {
 			@Override
 			protected Set<S> call() throws Exception {
@@ -190,33 +188,28 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 			}
 		};
 		task.setOnSucceeded(event -> {
-			try {
-				sections = task.getValue();
-			} catch (final Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			sections = task.getValue();
+			if (async.length == 1 && !async[0]) {
+				try {
+					sections = task.get();
+				} catch (final Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 			refreshSections();
 			refreshTags();
 			selectedPane.refresh(getAllSelectedTags());
 		});
+		task.setOnFailed(event -> {
+			// TODO Auto-generated catch block
+			event.getSource().getException().printStackTrace(System.out);
+		});
 		ThreadPool.getInstance().submitHigh(task);
 	}
 
-	public void refresh() {
-		try {
-			sections = tagService.getSections();
-		} catch (final TagException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		refreshSections();
-		refreshTags();
-		selectedPane.refresh(getAllSelectedTags());
-	}
-
 	protected void refreshWithPattern() {
-		refresh();
+		refreshAsync();
 		if (!lazyCount) {
 			tagChangeListener.changed(null, null, null);
 		}
@@ -304,6 +297,13 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 			tags.addAll(tagList.getIncludedTags());
 		}
 
+		if (tags.isEmpty() && getExcludedTags().isEmpty()) {
+			final T tag = getSelectedTag();
+			if (tag != null) {
+				tags.add(tag);
+			}
+		}
+
 		return Collections.unmodifiableSet(tags);
 	}
 
@@ -337,12 +337,12 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		return null;
 	}
 
-	public T getFocusedItem() {
+	public T getSelectedTag() {
 		T tag = null;
 		for(final TitledPane sectionPane: sectionAcc.getPanes()) {
 			@SuppressWarnings("unchecked")
 			final TagList<S, T> tagList = (TagList<S, T>) sectionPane.getContent();
-			tag = tagList.getFocusedTag();
+			tag = tagList.getSelectedTag();
 			if (sectionPane.isExpanded() && tag != null) {
 				break;
 			}

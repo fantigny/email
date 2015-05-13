@@ -169,16 +169,14 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			for(final Thread t: threadService.find(query.toString())) {
 				// clean labels
 				for(final Message m: t.getMessages()) {
-					if (m.getLabelIds() != null) {
-						final List<String> cleaned = new ArrayList<String>();
-						for(final String id: m.getLabelIds()) {
-							final Label l = labelService.get(id);
-							if (l!= null && !GmailTag.isHidden(l)) {
-								cleaned.add(id);
-							}
+					final List<String> cleaned = new ArrayList<String>();
+					for(final String id: m.getLabelIds()) {
+						final Label l = labelService.get(id);
+						if (l!= null && !GmailTag.isHidden(l)) {
+							cleaned.add(id);
 						}
-						m.setLabelIds(cleaned);
 					}
+					m.setLabelIds(cleaned);
 				}
 				threads.add(new GmailThread(t, unreadId));
 			}
@@ -376,9 +374,14 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			, final Set<GmailTag> includes, final Set<GmailTag> excludes
 			, final String namePattern, final String tagPattern) throws GMailException {
 		try {
+			final Set<GmailTag> tags = getTags(section, tagPattern);
+			if (tags.isEmpty()) {
+				return 0;
+			}
+			
 			final StringBuilder query = new StringBuilder();
 			boolean first = true;
-			for (final GmailTag t: getTags(section, tagPattern)) {
+			for (final GmailTag t: tags) {
 				if (!first) {
 					query.append(" OR ");
 				}

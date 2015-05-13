@@ -44,21 +44,18 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 	private H thread;
 
 	private final ScrollPane scrollPane;
-	private final EventHandler<ScrollEvent> webScrollHandler = new EventHandler<ScrollEvent>() {
-		@Override
-		public void handle(final ScrollEvent event) {
-			final double current = scrollPane.getVvalue();
-			final double maxPx = messagesBox.getHeight();
-			final double offset = event.getDeltaY() / maxPx * -1;
-			scrollPane.setVvalue(current + offset);
-			event.consume();
+	private final EventHandler<ScrollEvent> webScrollHandler = event -> {
+		final double current = scrollPane.getVvalue();
+		final double maxPx = messagesBox.getHeight();
+		final double offset = event.getDeltaY() / maxPx * -1;
+		scrollPane.setVvalue(current + offset);
+		event.consume();
 
-			LOGGER.debug("[max {}, delta {}], [max {}, delta {}]"
-					, maxPx
-					, event.getDeltaY()
-					, scrollPane.getVmax()
-					, offset);
-		};
+		LOGGER.debug("[max {}, delta {}], [max {}, delta {}]"
+				, maxPx
+				, event.getDeltaY()
+				, scrollPane.getVmax()
+				, offset);
 	};
 
 	public ThreadPane(final MailService<? extends SimpleSection, T, H, M> mailService) {
@@ -98,7 +95,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 
 		scrollPane = new ScrollPane();
 		scrollPane.setFitToWidth(true);
-		scrollPane.getStyleClass().add("edge-to-edge");
+//		scrollPane.getStyleClass().add("edge-to-edge");
 
 		messagesBox = new VBox();
 		messagesBox.minHeightProperty().bind(scrollPane.heightProperty());

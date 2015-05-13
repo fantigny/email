@@ -2,7 +2,6 @@ package net.anfoya.mail.browser.javafx.entrypoint;
 
 import static net.anfoya.mail.browser.javafx.threadlist.ThreadListPane.DND_THREADS_DATA_FORMAT;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import javafx.application.Application;
@@ -174,8 +173,7 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 	}
 
 	private void initData() {
-		sectionListPane.refresh();
-
+		sectionListPane.refreshAsync(false);
 		sectionListPane.selectTag(GmailSection.SYSTEM.getName(), "Inbox");
 		sectionListPane.expand(GmailSection.SYSTEM.getName());
 
@@ -204,8 +202,8 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 				refreshThreadList();
 			}
 		});
-		refreshTimer.setDelay(Duration.seconds(3));
-		refreshTimer.setPeriod(Duration.seconds(3));
+		refreshTimer.setDelay(Duration.seconds(60));
+		refreshTimer.setPeriod(Duration.seconds(60));
 		refreshTimer.setExecutor(ThreadPool.getInstance().getExecutor());
 		refreshTimer.start();
 	}
@@ -222,26 +220,14 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 
 	private void updateThreadCount() {
 		final int currentCount = threadListPane.getThreadCount();
-		final Set<T> availableTags;
-		if (sectionListPane.getAllSelectedTags().isEmpty()) {
-			availableTags = new HashSet<T>();
-		} else {
-			availableTags = threadListPane.getThreadsTags();
-		}
+		final Set<T> availableTags = threadListPane.getThreadsTags();
 		final String namePattern = threadListPane.getNamePattern();
 		sectionListPane.updateCount(currentCount, availableTags, namePattern);
 	}
 
 	private void refreshThreadList() {
-		Set<T> included = sectionListPane.getIncludedTags();
+		final Set<T> included = sectionListPane.getIncludedTags();
 		final Set<T> excluded = sectionListPane.getExcludedTags();
-		if (included.isEmpty() && excluded.isEmpty()) {
-			final T tag = sectionListPane.getFocusedItem();
-			if (tag != null) {
-				included = new HashSet<T>();
-				included.add(tag);
-			}
-		}
 		threadListPane.refreshWithTags(included, excluded);
 	}
 }

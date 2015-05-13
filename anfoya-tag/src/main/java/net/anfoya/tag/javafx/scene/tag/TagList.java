@@ -3,6 +3,7 @@ package net.anfoya.tag.javafx.scene.tag;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -45,15 +46,6 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 			tag = getSelectionModel().getSelectedItem().getTag();
 		}
 		return tag;
-	}
-
-	public T getFocusedTag() {
-		final TagListItem<T> item = getFocusModel().getFocusedItem();
-		if (item == null) {
-			return null;
-		}
-
-		return item.getTag();
 	}
 
 	public Set<T> getTags() {
@@ -123,7 +115,7 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 		setItems(items);
 	}
 
-	public void updateCount(final int currentCount, final Set<T> availableTags, final Set<T> includes, final Set<T> excludes, final String namePattern) {
+	public void updateCount(final int currentCount, final Set<T> availableTags, Set<T> includes, final Set<T> excludes, final String namePattern) {
 		for(final TagListItem<T> item: getItems()) {
 			if (availableTags.contains(item.getTag()) || item.excludedProperty().get()) {
 				if (item.includedProperty().get()) {
