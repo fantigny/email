@@ -175,7 +175,7 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 	private void initData() {
 		sectionListPane.refresh();
 
-		sectionListPane.selectTag(GmailSection.SYSTEM.getName(), "INBOX");
+		sectionListPane.selectTag(GmailSection.SYSTEM.getName(), "Inbox");
 		sectionListPane.expand(GmailSection.SYSTEM.getName());
 
 //		sectionListPane.selectTag("Bank", "HK HSBC");

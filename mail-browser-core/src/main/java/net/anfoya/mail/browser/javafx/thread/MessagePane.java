@@ -9,10 +9,11 @@ import java.util.Properties;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.concurrent.Task;
+import javafx.event.EventHandler;
 import javafx.geometry.Pos;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -198,8 +199,8 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 		}
 	}
 
-	public void setParentScrollPane(final ScrollPane scrollPane) {
-		bodyView.setParentScrollPane(scrollPane);
+	public void setScrollHandler(final EventHandler<ScrollEvent> handler) {
+		bodyView.setScrollHandler(handler);
 	}
 
 	public boolean isExpanded() {

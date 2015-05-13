@@ -13,6 +13,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -25,7 +26,12 @@ import net.anfoya.tag.javafx.scene.section.SelectedTagsPane;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage> extends BorderPane {
+	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadPane.class);
+
 	private final MailService<? extends SimpleSection, T, H, M> mailService;
 
 	private final TextField subjectField;
@@ -38,6 +44,22 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 	private H thread;
 
 	private final ScrollPane scrollPane;
+	private final EventHandler<ScrollEvent> webScrollHandler = new EventHandler<ScrollEvent>() {
+		@Override
+		public void handle(final ScrollEvent event) {
+			final double current = scrollPane.getVvalue();
+			final double maxPx = messagesBox.getHeight();
+			final double offset = event.getDeltaY() / maxPx * -1;
+			scrollPane.setVvalue(current + offset);
+			event.consume();
+
+			LOGGER.debug("[max {}, delta {}], [max {}, delta {}]"
+					, maxPx
+					, event.getDeltaY()
+					, scrollPane.getVmax()
+					, offset);
+		};
+	};
 
 	public ThreadPane(final MailService<? extends SimpleSection, T, H, M> mailService) {
 		this.mailService = mailService;
@@ -144,7 +166,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 			MessagePane<M> messagePane = index < panes.size()? (MessagePane<M>) messagesBox.getChildren().get(index): null;
 			if (messagePane == null || !id.equals(messagePane.getMessageId())) {
 				messagePane = new MessagePane<M>(id, mailService);
-				messagePane.setParentScrollPane(scrollPane);
+				messagePane.setScrollHandler(webScrollHandler);
 				panes.add(index, messagePane);
 				messagePane.load();
 			}
@@ -157,7 +179,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 		MessagePane<M> messagePane = null;
 		for(final String id: thread.getMessageIds()) {
 			messagePane = new MessagePane<M>(id, mailService);
-			messagePane.setParentScrollPane(scrollPane);
+			messagePane.setScrollHandler(webScrollHandler);
 			messagesBox.getChildren().add(0, messagePane);
 			messagePane.load();
 		}

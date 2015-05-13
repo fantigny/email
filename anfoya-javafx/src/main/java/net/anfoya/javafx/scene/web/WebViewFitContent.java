@@ -4,10 +4,12 @@ import java.util.Set;
 
 import javafx.collections.ListChangeListener;
 import javafx.event.EventDispatcher;
+import javafx.event.EventHandler;
 import javafx.geometry.HPos;
+import javafx.geometry.Orientation;
 import javafx.geometry.VPos;
 import javafx.scene.Node;
-import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollBar;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Region;
 import javafx.scene.web.WebView;
@@ -21,8 +23,6 @@ public final class WebViewFitContent extends Region {
 
 	private final WebView delegate;
 
-	private double scrollHeight;
-
 	public WebViewFitContent() {
 		delegate = new WebView();
 
@@ -35,9 +35,10 @@ public final class WebViewFitContent extends Region {
 			@Override
 			public void onChanged(final Change<? extends Node> change) {
 				final Set<Node> scrolls = delegate.lookupAll(".scroll-bar");
-				for (final Node n : scrolls) {
-					LOGGER.debug("{}", n);
-					if (n.isVisible()) {
+				for (final Node node : scrolls) {
+					final ScrollBar scrollBar = (ScrollBar) node;
+					if (scrollBar.isVisible() && scrollBar.getOrientation() == Orientation.VERTICAL) {
+						node.setVisible(false);
 						LOGGER.debug("getChildrenUnmodifiable() change");
 						adjustHeight();
 					}
@@ -64,17 +65,13 @@ public final class WebViewFitContent extends Region {
 	}
 
 	private void adjustHeight() {
-		if (getParent() == null) {
-			return;
-		}
 		try {
-			final double scrollHeight = (int) delegate.getEngine().executeScript("document.body.scrollHeight");
-			if (scrollHeight != 0) {
-				this.scrollHeight = scrollHeight;
-				delegate.setPrefHeight(scrollHeight);
+			final int height = getVscrollMax();
+			if (height != 0) {
+				delegate.setPrefHeight(height);
 				delegate.getPrefHeight();
 
-				LOGGER.debug("{}", scrollHeight);
+				LOGGER.debug("{}", height);
 			}
 		} catch (final JSException e) {
 			e.printStackTrace();
@@ -89,19 +86,18 @@ public final class WebViewFitContent extends Region {
 		loadContent("");
 	}
 
-	public void setParentScrollPane(final ScrollPane parentScrollPane) {
+	public void setScrollHandler(final EventHandler<ScrollEvent> handler) {
 		final EventDispatcher eventDispatcher = getEventDispatcher();
 		setEventDispatcher((event, tail) -> {
 	    	if (event.getEventType() == ScrollEvent.SCROLL) {
-	    		//TODO debug when scrolling on first and last webview
-	    		final ScrollEvent scrollEvent = (ScrollEvent) event;
-	    		final double current = parentScrollPane.getVvalue();
-	    		final double offset = scrollEvent.getDeltaY() / scrollHeight * -1;
-		    	parentScrollPane.setVvalue(current + offset);
-	    		event.consume();
+	    		handler.handle((ScrollEvent) event);
 	    		return null;
 	    	}
 			return eventDispatcher.dispatchEvent(event, tail);
 		});
+	}
+
+	public int getVscrollMax() {
+		return (int) delegate.getEngine().executeScript("document.body.scrollHeight - document.body.scrollTop");
 	}
 }
