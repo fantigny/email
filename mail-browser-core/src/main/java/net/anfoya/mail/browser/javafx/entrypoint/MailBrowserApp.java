@@ -21,32 +21,33 @@ import javafx.util.Duration;
 import javax.security.auth.login.LoginException;
 
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.mail.browser.javafx.NewMail;
+import net.anfoya.mail.browser.javafx.MailComposer;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
 import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
 import net.anfoya.mail.gmail.GmailService;
-import net.anfoya.mail.gmail.model.GmailMessage;
 import net.anfoya.mail.gmail.model.GmailSection;
-import net.anfoya.mail.gmail.model.GmailTag;
-import net.anfoya.mail.gmail.model.GmailThread;
+import net.anfoya.mail.model.SimpleMessage;
+import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.tag.javafx.scene.section.SectionListPane;
+import net.anfoya.tag.model.SimpleSection;
+import net.anfoya.tag.model.SimpleTag;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MailBrowserApp extends Application {
+public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage> extends Application{
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailBrowserApp.class);
 
 	public static void main(final String[] args) {
 		launch(args);
 	}
 
-	private SectionListPane<GmailSection, GmailTag> sectionListPane;
-	private MailService<GmailSection, GmailTag, GmailThread, GmailMessage> mailService;
-	private ThreadListPane<GmailSection, GmailTag, GmailThread> threadListPane;
-	private ThreadPane<GmailTag, GmailThread, GmailMessage> threadPane;
+	private SectionListPane<S, T> sectionListPane;
+	private MailService<S, T, H, M> mailService;
+	private ThreadListPane<S, T, H, M> threadListPane;
+	private ThreadPane<T, H, M> threadPane;
 
 	private ScheduledService<Boolean> refreshTimer;
 
@@ -57,7 +58,7 @@ public class MailBrowserApp extends Application {
 			ThreadPool.getInstance().shutdown();
 		});
 
-		mailService = new GmailService();
+		mailService = (MailService<S, T, H, M>) new GmailService();
 		ThreadPool.getInstance().submit(() -> {
 			try {
 				mailService.login(null, null);
@@ -82,7 +83,7 @@ public class MailBrowserApp extends Application {
 		mainPane.setLeft(selectionPane);
 
 		/* section+tag list */ {
-			sectionListPane = new SectionListPane<GmailSection, GmailTag>(mailService, DND_THREADS_DATA_FORMAT);
+			sectionListPane = new SectionListPane<S, T>(mailService, DND_THREADS_DATA_FORMAT);
 			sectionListPane.setPrefWidth(250);
 			sectionListPane.prefHeightProperty().bind(selectionPane.heightProperty());
 			sectionListPane.setSectionDisableWhenZero(false);
@@ -97,7 +98,7 @@ public class MailBrowserApp extends Application {
 		}
 
 		/* thread list */ {
-			threadListPane = new ThreadListPane<GmailSection, GmailTag, GmailThread>(mailService);
+			threadListPane = new ThreadListPane<S, T, H, M>(mailService);
 			threadListPane.setPrefWidth(250);
 			threadListPane.prefHeightProperty().bind(selectionPane.heightProperty());
 			threadListPane.addSelectionListener((ov, oldVal, newVal) -> {
@@ -123,7 +124,12 @@ public class MailBrowserApp extends Application {
 		/* tool bar */ {
 			final Button newButton = new Button("n");
 			newButton.setOnAction(event -> {
-				new NewMail();
+				try {
+					new MailComposer<M>(mailService);
+				} catch (final Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			});
 			final Button refreshButton = new Button("r");
 			refreshButton.setOnAction(event -> {
@@ -136,7 +142,7 @@ public class MailBrowserApp extends Application {
 		}
 
 		/* thread panel */ {
-			threadPane = new ThreadPane<GmailTag, GmailThread, GmailMessage>(mailService);
+			threadPane = new ThreadPane<T, H, M>(mailService);
 			threadPane.prefWidthProperty().bind(centerPane.widthProperty());
 			threadPane.setOnDelTag(event -> {
 				refreshSectionList();
@@ -205,13 +211,13 @@ public class MailBrowserApp extends Application {
 	}
 
 	private void refreshThread() {
-		final Set<GmailThread> selectedThreads = threadListPane.getSelectedThreads();
+		final Set<H> selectedThreads = threadListPane.getSelectedThreads();
 		threadPane.refresh(selectedThreads);
 	}
 
 	private void updateThreadCount() {
 		final int currentCount = threadListPane.getThreadCount();
-		final Set<GmailTag> availableTags = threadListPane.getThreadTags();
+		final Set<T> availableTags = threadListPane.getThreadTags();
 		final String namePattern = "";
 		sectionListPane.updateCount(currentCount, availableTags, namePattern);
 	}

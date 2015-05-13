@@ -24,7 +24,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.Title;
-import net.anfoya.mail.browser.javafx.NewMail;
+import net.anfoya.mail.browser.javafx.MailComposer;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.model.SimpleThread.SortOrder;
@@ -34,14 +34,14 @@ import net.anfoya.tag.javafx.scene.dnd.DndFormat;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
 
-public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H extends SimpleThread> extends BorderPane {
+public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage> extends BorderPane {
 	public static final DataFormat DND_THREADS_DATA_FORMAT = new DataFormat("Set<" + SimpleThread.class.getName() + ">");
 
-	private final MailService<S, T, H, ? extends SimpleMessage> mailService;
+	private final MailService<S, T, H, M> mailService;
 	private final ThreadList<S, T, H> threadList;
 	private final TextField namePatternField;
 
-	public ThreadListPane(final MailService<S, T, H, ? extends SimpleMessage> mailService) {
+	public ThreadListPane(final MailService<S, T, H, M> mailService) {
 		this.mailService = mailService;
 
 		final StackPane stackPane = new StackPane();
@@ -127,7 +127,12 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 
 		final Button delPatternButton = new Button("+");
 		delPatternButton.setOnAction(event -> {
-			new NewMail();
+			try {
+				new MailComposer<M>(mailService);
+			} catch (final Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		});
 		patternPane.setRight(delPatternButton);
 

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -32,6 +33,7 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.gmail.Gmail;
+import com.google.api.services.gmail.model.Draft;
 import com.google.api.services.gmail.model.Label;
 import com.google.api.services.gmail.model.Thread;
 
@@ -177,6 +179,16 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		    return new GmailMessage(id, messageService.getRaw(id));
 		} catch (final MessageException e) {
 			throw new GMailException("loading message id: " + id, e);
+		}
+	}
+
+	@Override
+	public GmailMessage createDraft() throws GMailException {
+		try {
+			final Draft draft = messageService.createDraft();
+			return new GmailMessage(draft.getId(), Base64.getUrlDecoder().decode(draft.getMessage().getRaw()));
+		} catch (final MessageException e) {
+			throw new GMailException("creating draft", e);
 		}
 	}
 

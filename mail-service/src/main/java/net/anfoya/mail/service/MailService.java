@@ -2,14 +2,16 @@ package net.anfoya.mail.service;
 
 import java.util.Set;
 
+import net.anfoya.mail.model.SimpleMessage;
+import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
 import net.anfoya.tag.service.TagService;
 
 public interface MailService<S extends SimpleSection
 		, T extends SimpleTag
-		, H extends Thread
-		, M extends Message> extends TagService<S, T> {
+		, H extends SimpleThread
+		, M extends SimpleMessage> extends TagService<S, T> {
 
 	public void login(String id, String pwd) throws MailException;
 	public void logout();
@@ -25,4 +27,5 @@ public interface MailService<S extends SimpleSection
 	public void trash(Set<H> threads) throws MailException;
 
 	public M getMessage(String id) throws MailException;
+	public M createDraft() throws MailException;
 }
