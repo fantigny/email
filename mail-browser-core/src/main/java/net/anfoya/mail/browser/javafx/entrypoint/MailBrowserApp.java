@@ -173,12 +173,12 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 	}
 
 	private void initData() {
-		sectionListPane.refreshAsync(false);
-		sectionListPane.selectTag(GmailSection.SYSTEM.getName(), "Inbox");
-		sectionListPane.expand(GmailSection.SYSTEM.getName());
-
-//		sectionListPane.selectTag("Bank", "HK HSBC");
-//		sectionListPane.expand("Bank");
+		sectionListPane.refreshAsync(param -> {
+			sectionListPane.selectTag(GmailSection.SYSTEM.getName(), "Inbox");
+			threadListPane.refreshWithTags(sectionListPane.getIncludedTags(), sectionListPane.getExcludedTags());
+//			sectionListPane.selectTag("Bank", "HK HSBC");
+			return null;
+		});
 
 		refreshTimer = new ScheduledService<Boolean>() {
 			@Override

@@ -180,7 +180,11 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		}
 	}
 
-	public void refreshAsync(final boolean... async) {
+	public void refreshAsync() {
+		refreshAsync(null);
+	}
+	
+	public void refreshAsync(final Callback<Void, Void> callback) {
 		final Task<Set<S>> task = new Task<Set<S>>() {
 			@Override
 			protected Set<S> call() throws Exception {
@@ -189,17 +193,12 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		};
 		task.setOnSucceeded(event -> {
 			sections = task.getValue();
-			if (async.length == 1 && !async[0]) {
-				try {
-					sections = task.get();
-				} catch (final Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
 			refreshSections();
 			refreshTags();
 			selectedPane.refresh(getAllSelectedTags());
+			if (callback != null) {
+				callback.call(null);
+			}
 		});
 		task.setOnFailed(event -> {
 			// TODO Auto-generated catch block
@@ -247,17 +246,6 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 
 	public void setUpdateSectionCallback(final Callback<Void, Void> callback) {
 		updateSectionCallback = callback;
-	}
-
-	public void expand(final String sectionName) {
-		for(final TitledPane titledPane: sectionAcc.getPanes()) {
-			@SuppressWarnings("unchecked")
-			final TagList<S, T> tagList = (TagList<S, T>) titledPane.getContent();
-			if (tagList.getSection().getName().equals(sectionName)) {
-				titledPane.expandedProperty().set(true);
-				break;
-			}
-		}
 	}
 
 	public void updateCount(final int currentCount, final Set<T> availableTags, final String namePattern) {

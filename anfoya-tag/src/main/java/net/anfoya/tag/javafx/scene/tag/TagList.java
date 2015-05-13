@@ -3,7 +3,6 @@ package net.anfoya.tag.javafx.scene.tag;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -115,7 +114,7 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 		setItems(items);
 	}
 
-	public void updateCount(final int currentCount, final Set<T> availableTags, Set<T> includes, final Set<T> excludes, final String namePattern) {
+	public void updateCount(final int currentCount, final Set<T> availableTags, final Set<T> includes, final Set<T> excludes, final String namePattern) {
 		for(final TagListItem<T> item: getItems()) {
 			if (availableTags.contains(item.getTag()) || item.excludedProperty().get()) {
 				if (item.includedProperty().get()) {
@@ -173,11 +172,12 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 
 	public void setTagSelected(final String tagName, final boolean selected) {
 		if (itemMap.containsKey(tagName)) {
-			final TagListItem<T> item = itemMap.get(tagName);
-			item.includedProperty().set(selected);
-			if (!selected) {
-				item.excludedProperty().set(false);
-			}
+			getSelectionModel().select(itemMap.get(tagName));
+//			final TagListItem<T> item = itemMap.get(tagName);
+//			item.includedProperty().set(selected);
+//			if (!selected) {
+//				item.excludedProperty().set(false);
+//			}
 		}
 	}
 
