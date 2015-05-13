@@ -59,7 +59,7 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 		});
 
 		mailService = (MailService<S, T, H, M>) new GmailService();
-		ThreadPool.getInstance().submit(() -> {
+		ThreadPool.getInstance().submitHigh(() -> {
 			try {
 				mailService.login(null, null);
 			} catch (final MailException e) {
@@ -192,8 +192,12 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 				};
 			}
 		};
+		refreshTimer.setOnFailed(event -> {
+			// TODO Auto-generated catch block
+			event.getSource().getException().printStackTrace(System.out);
+		});
 		refreshTimer.setOnSucceeded(event -> {
-			if ((boolean) event.getSource().getValue()) {
+			if (refreshTimer.getValue()) {
 				LOGGER.info("update detected");
 				refreshSectionList();
 				refreshThreadList();

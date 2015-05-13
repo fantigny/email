@@ -160,7 +160,7 @@ public class ComboField<T> extends ComboBox<T> {
 		final long delayedActionTime = System.nanoTime();
 		this.delayedActionTime.set(delayedActionTime);
 		LOGGER.debug("delayed field action   {}", delayedActionTime);
-		ThreadPool.getInstance().submit(new Runnable() {
+		ThreadPool.getInstance().submitHigh(new Runnable() {
 			@Override
 			public void run() {
 				try { Thread.sleep(500); }

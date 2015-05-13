@@ -98,18 +98,17 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 				return mailService.getThreads(tags, includes, excludes, namePattern);
 			}
 		};
+		task.setOnFailed(event -> {
+			// TODO Auto-generated catch block
+			event.getSource().getException().printStackTrace(System.out);
+		});
 		task.setOnSucceeded(event -> {
-			try {
-				threads = task.get();
-				if (id == taskId.get()) {
-					refresh();
-				}
-			} catch (final Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			threads = task.getValue();
+			if (id == taskId.get()) {
+				refresh();
 			}
 		});
-		ThreadPool.getInstance().submit(task);
+		ThreadPool.getInstance().submitHigh(task);
 	}
 
 	private void refresh() {

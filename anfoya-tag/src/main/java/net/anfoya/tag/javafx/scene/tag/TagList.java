@@ -152,8 +152,12 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 				return excludeFactor * tagService.getCountForTags(fakeIncludes, fakeExcludes, nameFilter);
 			}
 		};
+		task.setOnFailed(event -> {
+			// TODO Auto-generated catch block
+			event.getSource().getException().printStackTrace(System.out);
+		});
 		task.setOnSucceeded(event -> {
-			item.countProperty().set((int) event.getSource().getValue());
+			item.countProperty().set(task.getValue());
 			forceRepaint();
 		});
 		ThreadPool.getInstance().submitLow(task);

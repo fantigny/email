@@ -78,7 +78,7 @@ public class LocalCache<K, V> {
 
 	private void clean() {
 		if (map.size() > limit) {
-			ThreadPool.getInstance().submit(new Runnable() {
+			ThreadPool.getInstance().submitHigh(new Runnable() {
 				@Override
 				public void run() {
 					if (!cleaning.getAndSet(true)) {

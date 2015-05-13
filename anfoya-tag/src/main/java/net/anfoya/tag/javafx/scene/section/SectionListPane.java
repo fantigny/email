@@ -182,7 +182,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		};
 		task.setOnSucceeded(event -> {
 			try {
-				sections = task.get();
+				sections = task.getValue();
 			} catch (final Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -191,7 +191,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 			refreshTags();
 			selectedPane.refresh(getAllSelectedTags());
 		});
-		ThreadPool.getInstance().submit(task);
+		ThreadPool.getInstance().submitHigh(task);
 	}
 
 	public void refresh() {

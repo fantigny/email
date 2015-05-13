@@ -81,7 +81,7 @@ public class ThreadService {
 
 	public int count(final String query) throws ThreadException {
 		if (query.isEmpty()) {
-			throw new ThreadException("empty query not allowed");
+			throw new ThreadException("empty query forbidden");
 		}
 		final long start = System.currentTimeMillis();
 		try {

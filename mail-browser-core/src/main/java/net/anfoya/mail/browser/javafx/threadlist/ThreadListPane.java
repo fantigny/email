@@ -149,16 +149,14 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 				return null;
 			}
 		};
+		task.setOnFailed(event -> {
+			// TODO Auto-generated catch block
+			event.getSource().getException().printStackTrace(System.out);
+		});
 		task.setOnSucceeded(event -> {
-			try {
-				task.get();
-			} catch (final Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 			threadList.load();
 		});
-		ThreadPool.getInstance().submit(task);
+		ThreadPool.getInstance().submitHigh(task);
 	}
 
 	public String getNamePattern() {

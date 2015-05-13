@@ -8,6 +8,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javafx.concurrent.Task;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,23 +77,40 @@ public final class ThreadPool {
 		}
 	}
 
-	public Future<?> submit(final Runnable runnable) {
-		return delegateHigh.submit(runnable);
+	public Future<?> submitHigh(final Runnable runnable) {
+		return submit(delegateHigh, runnable);
 	}
 
-	public <T> Future<T> submit(final Callable<T> callable) {
-		return delegateHigh.submit(callable);
+	public <T> Future<T> submitHigh(final Callable<T> callable) {
+		return submit(delegateHigh, callable);
 	}
 
 	public Future<?> submitLow(final Runnable runnable) {
-		return delegateLow.submit(runnable);
+		return submit(delegateLow, runnable);
 	}
 
 	public <T> Future<T> submitLow(final Callable<T> callable) {
-		return delegateLow.submit(callable);
+		return submit(delegateLow, callable);
 	}
 
 	public Executor getExecutor() {
 		return delegateLow;
+	}
+
+	private Future<?> submit(final ExecutorService delegate, final Runnable runnable) {
+		return delegate.submit(runnable);
+	}
+
+	public <T> Future<T> submit(final ExecutorService delegate, final Callable<T> callable) {
+		if (callable instanceof Task) {
+			@SuppressWarnings("unchecked")
+			final Task<T> task = (Task<T>) callable;
+			if (task.getOnSucceeded() == null) {
+				task.setOnSucceeded(event -> {
+					LOGGER.error("running task", event.getSource().getException());
+				});
+			}
+		}
+		return delegate.submit(callable);
 	}
 }

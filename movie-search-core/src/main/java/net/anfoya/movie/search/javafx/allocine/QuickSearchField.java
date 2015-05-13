@@ -115,7 +115,7 @@ public class QuickSearchField extends ComboField<MovieVo> {
 
 		final long requestTime = System.nanoTime();
 		this.requestTime.set(requestTime);
-		ThreadPool.getInstance().submit(new Runnable() {
+		ThreadPool.getInstance().submitHigh(new Runnable() {
 			@Override
 			public void run() {
 				try {

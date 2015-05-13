@@ -66,12 +66,12 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 		expanded = new SimpleBooleanProperty(true);
 		expanded.addListener((ov, oldVal, newVal) -> {
 			if (!newVal) {
-				LOGGER.debug("removing web view");
+				LOGGER.debug("hiding web view");
 				bodyView.setMinHeight(0);
 				bodyView.setMaxHeight(0);
 				autosize();
 			} else {
-				LOGGER.debug("adding web view");
+				LOGGER.debug("showing web view");
 				if (height == 0) {
 					height = getPrefHeight();
 				}
@@ -101,34 +101,44 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 	}
 
 	public void load() {
-		final Task<Void> task = new Task<Void>() {
+		final Task<String> task = new Task<String>() {
 			@Override
-			protected Void call() throws Exception {
+			protected String call() throws Exception {
 				message = mailService.getMessage(messageId);
 			    mimeMessage = new MimeMessage(SESSION, new ByteArrayInputStream(message.getRfc822mimeRaw()));
-				return null;
+			    return buildHtml(mimeMessage.getContent(), mimeMessage.getContentType(), false);
 			}
 		};
 		task.setOnFailed(event -> {
 			LOGGER.error("loading message id {}", messageId, event.getSource().getException());
 		});
 		task.setOnSucceeded(event -> {
-			try {
-				refreshTitle();
-				refreshBody();
-			} catch (final Exception e) {
-				LOGGER.error("loading message id: " + messageId, e);
-			}
+			refreshTitle();
+			bodyView.loadContent(task.getValue());
 		});
-		ThreadPool.getInstance().submit(task);
+		ThreadPool.getInstance().submitHigh(task);
 	}
 
-	private void refreshTitle() throws MessagingException {
-		final StringBuilder title = new StringBuilder();
-		title.append(mimeMessage.getSentDate());
-		title.append(" from ").append(getMailAddresses(mimeMessage.getFrom()));
-		title.append(" to ").append(getMailAddresses(mimeMessage.getRecipients(Message.RecipientType.TO)));;
-		titleText.setText(title.toString());
+	protected String buildHtml(final Object content, final String contentType, final boolean b) throws MessagingException, IOException {
+		String html = toHtml(mimeMessage.getContent(), mimeMessage.getContentType(), false);
+		if (html.isEmpty()) {
+			html = toHtml(mimeMessage.getContent(), mimeMessage.getContentType(), true);
+			html = "<html><body><pre>" + html + "</pre></body></html>";
+		}
+		return html;
+	}
+
+	private void refreshTitle() {
+		try {
+			final StringBuilder title = new StringBuilder();
+			title.append(mimeMessage.getSentDate());
+			title.append(" from ").append(getMailAddresses(mimeMessage.getFrom()));
+			title.append(" to ").append(getMailAddresses(mimeMessage.getRecipients(Message.RecipientType.TO)));;
+			titleText.setText(title.toString());
+		} catch (final MessagingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	private String getMailAddresses(final Address[] addresses) {
@@ -157,15 +167,6 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 		}
 
 		return sb.toString();
-	}
-
-	private void refreshBody() throws MessagingException, IOException {
-		String html = toHtml(mimeMessage.getContent(), mimeMessage.getContentType(), false);
-		if (html.isEmpty()) {
-			html = toHtml(mimeMessage.getContent(), mimeMessage.getContentType(), true);
-			html = "<html><body><pre>" + html + "</pre></body></html>";
-		}
-		bodyView.loadContent(html);
 	}
 
 	private String toHtml(final Object mimeContent, final String mimeType, final boolean allowText) throws MessagingException, IOException {
