@@ -23,7 +23,7 @@ import net.anfoya.mail.service.MailService;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
 
-public class MailComposer<M extends SimpleMessage> extends Stage {
+public class MessageComposer<M extends SimpleMessage> extends Stage {
 
 	private final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService;
 	private final M draft;
@@ -38,13 +38,13 @@ public class MailComposer<M extends SimpleMessage> extends Stage {
 	private BorderPane mainPane;
 	private Label toLabel;
 
-	public MailComposer(
+	public MessageComposer(
 			final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService)
 			throws MailException {
 		this(mailService, mailService.createDraft());
 	}
 
-	public MailComposer(
+	public MessageComposer(
 			final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService,
 			final M draft) {
 		super(StageStyle.UNIFIED);
@@ -119,10 +119,10 @@ public class MailComposer<M extends SimpleMessage> extends Stage {
 
 	private void toFullHeader() {
 		headerPane.getChildren().clear();
-		headerPane.addRow(0, new Label("from"), fromCombo);
-		headerPane.addRow(1, toLabel, toField);
-		headerPane.addRow(2, new Label("cc"), ccField);
-		headerPane.addRow(3, new Label("bcc"), bccField);
-		headerPane.addRow(4, new Label("subject"), subjectField);
+//		headerPane.addRow(0, new Label("from"), fromCombo);
+		headerPane.addRow(0, toLabel, toField);
+		headerPane.addRow(1, new Label("cc"), ccField);
+		headerPane.addRow(2, new Label("bcc"), bccField);
+		headerPane.addRow(3, new Label("subject"), subjectField);
 	}
 }

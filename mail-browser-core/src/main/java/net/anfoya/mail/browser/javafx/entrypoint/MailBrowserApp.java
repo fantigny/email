@@ -22,7 +22,7 @@ import javafx.util.Duration;
 import javax.security.auth.login.LoginException;
 
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.mail.browser.javafx.MailComposer;
+import net.anfoya.mail.browser.javafx.MessageComposer;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
 import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
 import net.anfoya.mail.gmail.GmailService;
@@ -76,14 +76,16 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 
 	private void initGui(final Stage primaryStage) throws MailException, LoginException {
 		final SplitPane splitPane = new SplitPane();
+		splitPane.setStyle("-fx-background-color: transparent; -fx-border-color: transparent");
+
 		final Scene scene = new Scene(splitPane, 1400, 700);
 		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/excludebox.css").toExternalForm());
 
 		/* section+tag list */ {
 			sectionListPane = new SectionListPane<S, T>(mailService, DND_THREADS_DATA_FORMAT);
-			sectionListPane.prefHeightProperty().bind(sectionListPane.heightProperty());
+			sectionListPane.setPadding(new Insets(5, 0, 5, 5));
 			sectionListPane.setMinWidth(150);
-			sectionListPane.setPadding(new Insets(0));
+			sectionListPane.prefHeightProperty().bind(sectionListPane.heightProperty());
 			sectionListPane.setSectionDisableWhenZero(false);
 			sectionListPane.setLazyCount(true);
 			sectionListPane.setTagChangeListener((ov, oldVal, newVal) -> {
@@ -124,7 +126,7 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 			final Button newButton = new Button("n");
 			newButton.setOnAction(event -> {
 				try {
-					new MailComposer<M>(mailService);
+					new MessageComposer<M>(mailService);
 				} catch (final Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -142,6 +144,7 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 
 		/* thread panel */ {
 			threadPane = new ThreadPane<T, H, M>(mailService);
+			threadPane.setPadding(new Insets(5, 3, 5, 0));
 			threadPane.setOnDelTag(event -> {
 				refreshSectionList();
 				refreshThreadList();

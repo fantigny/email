@@ -14,6 +14,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.input.DataFormat;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.util.Callback;
 import net.anfoya.java.util.concurrent.ThreadPool;
@@ -58,20 +59,16 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		this.tagService = tagService;
 		this.extItemDataFormat = extItemDataFormat;
 
-		final BorderPane patternPane = new BorderPane();
-		setTop(patternPane);
-
-		final Title title = new Title("Label");
-		title.setPadding(new Insets(0, 5, 0, 5));
-		patternPane.setLeft(title);
-
 		tagPatternField = new TextField();
+		tagPatternField.prefWidthProperty().bind(widthProperty());
 		tagPatternField.setPromptText("search");
 		tagPatternField.textProperty().addListener((ChangeListener<String>) (ov, oldPattern, newPattern) -> {
 			refreshWithPattern();
 		});
-		patternPane.setCenter(tagPatternField);
-		BorderPane.setMargin(tagPatternField, new Insets(0, 5, 0, 5));
+
+		final HBox patternBox = new HBox(5, new Title("Label"), tagPatternField);
+		patternBox.setPadding(new Insets(0 , 5, 0, 5));
+		setTop(patternBox);
 
 		/* TODO: text field with stacked pane for reset button
 		final Button delPatternButton = new Button("X");
@@ -82,6 +79,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		sectionAcc = new Accordion();
 		final StackPane stackPane = new StackPane(sectionAcc);
 		stackPane.setAlignment(Pos.BOTTOM_CENTER);
+		stackPane.setPadding(new Insets(5, 0, 5, 0));
 
 		final ExtItemDropPane<T> extItemDropPane = new ExtItemDropPane<T>(tagService, extItemDataFormat);
 		extItemDropPane.prefWidthProperty().bind(stackPane.widthProperty());
@@ -129,10 +127,6 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 			return null;
 		});
 		setBottom(selectedPane);
-
-		BorderPane.setMargin(patternPane, new Insets(5));
-		BorderPane.setMargin(stackPane, new Insets(0, 5, 0, 5));
-		BorderPane.setMargin(selectedPane, new Insets(5));
 	}
 
 	private void refreshSections() {

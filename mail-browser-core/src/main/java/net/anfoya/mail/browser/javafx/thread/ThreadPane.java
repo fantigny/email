@@ -15,6 +15,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
@@ -61,15 +62,16 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 	public ThreadPane(final MailService<? extends SimpleSection, T, H, M> mailService) {
 		this.mailService = mailService;
 
-		setPadding(new Insets(5));
-
 		subjectField = new TextField("select a thread");
+		subjectField.prefWidthProperty().bind(widthProperty());
 		subjectField.setEditable(false);
-		setTop(subjectField);
+		final HBox subjectBox = new HBox(subjectField);
+		subjectBox.setPadding(new Insets(0, 5, 0, 5));
+		setTop(subjectBox);
 
 		final StackPane stackPane = new StackPane();
 		stackPane.setAlignment(Pos.BOTTOM_CENTER);
-		BorderPane.setMargin(stackPane, new Insets(5, 0, 5, 0));
+		stackPane.setPadding(new Insets(5, 0, 5, 0));
 
 		final ThreadDropPane<H, M> threadDropPane = new ThreadDropPane<H, M>(mailService);
 		threadDropPane.prefWidthProperty().bind(stackPane.widthProperty());
@@ -91,7 +93,6 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 			//TODO
 		});
 		setCenter(stackPane);
-
 
 		scrollPane = new ScrollPane();
 		scrollPane.setFitToWidth(true);
