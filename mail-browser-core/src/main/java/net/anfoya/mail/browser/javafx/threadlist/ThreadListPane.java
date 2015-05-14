@@ -46,26 +46,12 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 
 		final StackPane stackPane = new StackPane();
 		stackPane.setAlignment(Pos.BOTTOM_CENTER);
+		setCenter(stackPane);
 
 		final ThreadListDropPane<H> threadListDropPane = new ThreadListDropPane<H>(mailService);
 		threadListDropPane.prefWidthProperty().bind(stackPane.widthProperty());
 
-		setCenter(stackPane);
-
 		threadList = new ThreadList<S, T, H>(mailService);
-		threadList.setOnDragEntered(event -> {
-			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)
-					&& !stackPane.getChildren().contains(threadListDropPane)) {
-				stackPane.getChildren().add(threadListDropPane);
-			}
-
-		});
-		threadList.setOnDragExited(event -> {
-			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)
-					&& stackPane.getChildren().contains(threadListDropPane)) {
-				stackPane.getChildren().remove(threadListDropPane);
-			}
-		});
 		threadList.setOnDragDetected(event -> {
 			final Set<H> threads = getSelectedThreads();
 			if (threads.size() == 0) {
@@ -92,6 +78,22 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 			}
 		});
 		stackPane.getChildren().add(threadList);
+
+		stackPane.setOnDragEntered(event -> {
+			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)
+					&& !stackPane.getChildren().contains(threadListDropPane)) {
+				stackPane.getChildren().add(threadListDropPane);
+				System.out.println("setOnDragEntered");
+			}
+
+		});
+		stackPane.setOnDragExited(event -> {
+			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)
+					&& stackPane.getChildren().contains(threadListDropPane)) {
+				stackPane.getChildren().remove(threadListDropPane);
+				System.out.println("setOnDragExited");
+			}
+		});
 
 		final ToggleGroup toggleGroup = new ToggleGroup();
 
@@ -209,5 +211,9 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 			e.printStackTrace();
 			return null;
 		}
+	}
+
+	public void addTagChangeListener(final ChangeListener<String> listener) {
+		namePatternField.textProperty().addListener(listener);
 	}
 }

@@ -39,11 +39,19 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 	private ChangeListener<Boolean> tagChangeListener;
 	private Callback<Void, Void> updateSectionCallback;
 
-	private boolean lazyCount = true;
-	private boolean sectionDisableWhenZero = true;
+	private boolean lazyCount;
+	private boolean sectionDisableWhenZero;
+	private Set<T> availableTags;
+	private Set<T> excludedTags;
+	private Set<T> includedTags;
+	private int currentCount;
+	private String namePattern;
+	private String tagPattern;
 
 	public SectionListPane(final TagService<S, T> tagService) {
 		this(tagService, null);
+		lazyCount = true;
+		sectionDisableWhenZero = true;
 	}
 
 	public SectionListPane(final TagService<S, T> tagService, final DataFormat extItemDataFormat) {
@@ -173,6 +181,22 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		}
 	}
 
+	public void refreshWithTags(final Set<T> availableTags, final int currentCount) {
+		this.availableTags = availableTags;
+		this.currentCount = currentCount;
+		if (getIncludedTags().equals(includedTags)
+				&& getExcludedTags().equals(excludedTags)) {
+			return;
+		}
+		
+		updateCount();
+	}
+
+	public void refreshWithNamePattern(final String namePattern) {
+		this.namePattern = namePattern;
+		updateCount();
+	}
+	
 	public void refreshAsync() {
 		refreshAsync(null);
 	}
@@ -244,36 +268,15 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		updateSectionCallback = callback;
 	}
 
-	private static class CountSet {
-		protected static final CountSet i = new CountSet();
-		protected Set<? extends SimpleTag> availableTags;
-		protected Set<? extends SimpleTag> includes;
-		protected Set<? extends SimpleTag> excludes;
-		protected String namePattern;
-		protected String tagPattern;
-	}
-	
-	public void updateCount(final int currentCount, final Set<T> availableTags, final String namePattern) {
-		final Set<T> includes = getIncludedTags();
-		final Set<T> excludes = getExcludedTags();
-		final String tagPattern = tagPatternField.getText();
-		
-		if (!includes.equals(CountSet.i.includes)
-				|| !excludes.equals(CountSet.i.excludes)
-				|| !namePattern.equals(CountSet.i.namePattern)
-				|| !tagPattern.equals(CountSet.i.tagPattern)) {
-			for(final TitledPane titledPane: sectionAcc.getPanes()) {
-				@SuppressWarnings("unchecked")
-				final SectionPane<S, T> sectionPane = (SectionPane<S, T>) titledPane;
-				sectionPane.updateCountAsync(currentCount, availableTags, includes, excludes, namePattern, tagPattern);
-			}
+	public void updateCount() {
+		includedTags = getIncludedTags();
+		excludedTags = getExcludedTags();
+		tagPattern = tagPatternField.getText();		
+		for(final TitledPane titledPane: sectionAcc.getPanes()) {
+			@SuppressWarnings("unchecked")
+			final SectionPane<S, T> sectionPane = (SectionPane<S, T>) titledPane;
+			sectionPane.updateCountAsync(currentCount, availableTags, includedTags, excludedTags, namePattern, tagPattern);
 		}
-
-		CountSet.i.availableTags = availableTags;
-		CountSet.i.includes = includes;
-		CountSet.i.excludes = excludes;
-		CountSet.i.namePattern = namePattern;
-		CountSet.i.tagPattern = tagPattern;
 	}
 
 	public Set<T> getAllTags() {

@@ -107,6 +107,9 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 				ThreadPool.getInstance().submitLow(lazyCountTask);
 				lazyCountTask = null;
 			}
+			if (!newVal) {
+				tagList.getSelectionModel().clearSelection();
+			}
 		});
 	}
 
@@ -144,10 +147,11 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 			}
 			tagList.updateCount(currentCount, availableTags, includes, excludes, namePattern);
 		};
-		if (lazyCount && !isExpanded()) {
-			lazyCountTask = tagListTask;
-		} else {
+		if (!lazyCount || isExpanded()) {
+			lazyCountTask = null;
 			tagListTask.run();
+		} else {
+			lazyCountTask = tagListTask;
 		}
 	}
 

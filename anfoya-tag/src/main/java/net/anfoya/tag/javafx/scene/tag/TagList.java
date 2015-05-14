@@ -14,6 +14,7 @@ import javafx.concurrent.Task;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.input.DataFormat;
+import javafx.util.Callback;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
@@ -31,12 +32,20 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 	private ChangeListener<Boolean> tagChangeListener;
 	private DataFormat extItemDataFormat;
 
+	private Set<T> includes;
+	private Set<T> excludes;
+	private String tagPattern;
+	private final Callback<Void, Void> dropCallback = param -> {
+		refresh(includes, excludes, tagPattern);
+		return null;
+	};
+
 	public TagList(final TagService<S, T> tagService, final S section) {
 		this.tagService = tagService;
 		this.section = section;
 
 		getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-		setCellFactory(list -> new TagListCell<T>(extItemDataFormat));
+		setCellFactory(list -> new TagListCell<T>(extItemDataFormat, dropCallback));
 	}
 
 	public T getSelectedTag() {
@@ -79,6 +88,10 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 	}
 
 	public void refresh(final Set<T> includes, final Set<T> excludes, final String tagPattern) {
+		this.includes = includes;
+		this.excludes = excludes;
+		this.tagPattern = tagPattern;
+		
 		// get all tags
 		Set<T> tags;
 		try {
@@ -93,7 +106,7 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 		final int selectedIndex = getSelectionModel().getSelectedIndex();
 
 		// build items map and restore selection
-		final Map<String, TagListItem<T>> countedItemMap = this.itemMap;
+		final Map<String, TagListItem<T>> countedItemMap = new HashMap<String, TagListItem<T>>(itemMap);
 		itemMap.clear();
 		final ObservableList<TagListItem<T>> items = FXCollections.observableArrayList();
 		for(final T tag: tags) {
@@ -141,7 +154,6 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 				}
 			}
 		}
-		forceRepaint();
 	}
 
 	protected void updateCountAsync(final TagListItem<T> item, final Set<T> includes, final Set<T> excludes, final String nameFilter) {
@@ -166,7 +178,6 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 		});
 		task.setOnSucceeded(event -> {
 			item.countProperty().set(task.getValue());
-			forceRepaint();
 		});
 		ThreadPool.getInstance().submitLow(task);
 	}
@@ -178,18 +189,6 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 			}
 		});
 		tagChangeListener = listener;
-	}
-
-	// TODO: find a proper way
-	private void forceRepaint() {
-		setCellFactory(param -> new TagListCell<T>(extItemDataFormat));
-
-//		setCellFactory(new Callback<ListView<TagListItem<T>>, ListCell<TagListItem<T>>>() {
-//			@Override
-//			public ListCell<TagListItem<T>> call(final ListView<TagListItem<T>> param) {
-//				return new TagListCell<T>();
-//			}
-//		});
 	}
 
 	public void setTagSelected(final String tagName, final boolean selected) {

@@ -1,7 +1,5 @@
 package net.anfoya.tag.javafx.scene.tag;
 
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.scene.control.cell.CheckBoxListCell;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
@@ -17,15 +15,10 @@ import net.anfoya.tag.model.SimpleTag;
 class TagListCell<T extends SimpleTag> extends CheckBoxListCell<TagListItem<T>> {
 	public TagListCell() {
 		super();
-		setSelectedStateCallback(new Callback<TagListItem<T>, ObservableValue<Boolean>>() {
-			@Override
-			public ObservableValue<Boolean> call(final TagListItem<T> item) {
-				return item.includedProperty();
-			}
-		});
+		setSelectedStateCallback(item -> item.includedProperty());
 	}
 
-	public TagListCell(final DataFormat extItemDataFormat) {
+	public TagListCell(final DataFormat extItemDataFormat, final Callback<Void, Void> dropCallback) {
 		this();
 
 		setOnDragDetected(event -> {
@@ -36,7 +29,6 @@ class TagListCell<T extends SimpleTag> extends CheckBoxListCell<TagListItem<T>> 
 		        db.setContent(content);
 			}
 		});
-
         setOnDragEntered(event -> {
 			if (getItem() != null && event.getDragboard().hasContent(extItemDataFormat)) {
 	            setOpacity(0.5);
@@ -61,6 +53,7 @@ class TagListCell<T extends SimpleTag> extends CheckBoxListCell<TagListItem<T>> 
 				content.put(extItemDataFormat, db.getContent(extItemDataFormat));
 				content.put(DndFormat.TAG_DATA_FORMAT, getItem().getTag());
 				db.setContent(content);
+				dropCallback.call(null);
 				event.setDropCompleted(true);
 				event.consume();
 			}
@@ -76,19 +69,16 @@ class TagListCell<T extends SimpleTag> extends CheckBoxListCell<TagListItem<T>> 
         } else {
 	        final ExcludeBox excludeBox = new ExcludeBox();
 	        excludeBox.setExcluded(item.excludedProperty().get());
-	        excludeBox.excludedProperty().addListener(new ChangeListener<Boolean>() {
-	        	@Override
-	        	public void changed(final ObservableValue<? extends Boolean> ov, final Boolean oldVal, final Boolean newVal) {
-	        		item.excludedProperty().set(newVal);
-	        	}
-			});
-
+	        excludeBox.excludedProperty().addListener((ov, oldVal, newVal) -> item.excludedProperty().set(newVal));
+	        
         	final BorderPane pane = new BorderPane();
         	pane.setCenter(getGraphic());
         	pane.setRight(excludeBox);
 
+	        item.textProperty().addListener((ov, oldVal, newVal) -> updateItem(item, empty));
+
         	setGraphic(pane);
-        	//setDisable(item.disableProperty().get());
+        	//TODO: setDisable(item.disableProperty().get());
 	        setTextFill(isDisabled()? Color.GRAY: Color.BLACK);
         }
 	}

@@ -88,6 +88,7 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 			sectionListPane.setPrefWidth(250);
 			sectionListPane.prefHeightProperty().bind(selectionPane.heightProperty());
 			sectionListPane.setSectionDisableWhenZero(false);
+			sectionListPane.setLazyCount(true);
 			sectionListPane.setTagChangeListener((ov, oldVal, newVal) -> {
 				refreshThreadList();
 			});
@@ -109,12 +110,15 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 				}
 			});
 			threadListPane.addChangeListener(change -> {
-				// update thread count when a new thread list is loaded
-				updateThreadCount();
+				// refresh tags when a new list of threads is loaded
+				sectionListPane.refreshWithTags(threadListPane.getThreadsTags(), threadListPane.getThreadCount());
 				if (!threadListPane.isRefreshing()) {
 					// update thread details in case no thread is selected
 					refreshThread();
 				}
+			});
+			threadListPane.addTagChangeListener((ov, oldVal, newVal) -> {
+				sectionListPane.refreshWithNamePattern(newVal);
 			});
 			selectionPane.getChildren().add(threadListPane);
 		}
@@ -215,13 +219,6 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 	private void refreshThread() {
 		final Set<H> selectedThreads = threadListPane.getSelectedThreads();
 		threadPane.refresh(selectedThreads);
-	}
-
-	private void updateThreadCount() {
-		final int currentCount = threadListPane.getThreadCount();
-		final Set<T> availableTags = threadListPane.getThreadsTags();
-		final String namePattern = threadListPane.getNamePattern();
-		sectionListPane.updateCount(currentCount, availableTags, namePattern);
 	}
 
 	private void refreshThreadList() {
