@@ -17,6 +17,7 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
 import javax.security.auth.login.LoginException;
@@ -54,6 +55,7 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 
 	@Override
 	public void start(final Stage primaryStage) throws Exception {
+		primaryStage.initStyle(StageStyle.UNIFIED);
 		primaryStage.setOnCloseRequest(event -> {
 			refreshService.cancel();
 			ThreadPool.getInstance().shutdown();

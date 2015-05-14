@@ -115,8 +115,8 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		final BorderPane patternPane = new BorderPane();
 		setTop(patternPane);
 
-		final Title title = new Title("Threads");
-		title.setPadding(new Insets(0, 10, 0, 5));
+		final Title title = new Title("Thread");
+		title.setPadding(new Insets(0, 5, 0, 0));
 		patternPane.setLeft(title);
 
 		namePatternField = new TextField();

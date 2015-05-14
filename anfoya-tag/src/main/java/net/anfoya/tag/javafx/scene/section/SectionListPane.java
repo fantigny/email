@@ -61,8 +61,8 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		final BorderPane patternPane = new BorderPane();
 		setTop(patternPane);
 
-		final Title title = new Title("Tags");
-		title.setPadding(new Insets(0, 10, 0, 5));
+		final Title title = new Title("Label");
+		title.setPadding(new Insets(0, 5, 0, 5));
 		patternPane.setLeft(title);
 
 		tagPatternField = new TextField();
@@ -188,7 +188,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 				&& getExcludedTags().equals(excludedTags)) {
 			return;
 		}
-		
+
 		updateCount();
 	}
 
@@ -196,11 +196,11 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		this.namePattern = namePattern;
 		updateCount();
 	}
-	
+
 	public void refreshAsync() {
 		refreshAsync(null);
 	}
-	
+
 	public void refreshAsync(final Callback<Void, Void> callback) {
 		final Task<Set<S>> task = new Task<Set<S>>() {
 			@Override
@@ -271,7 +271,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 	public void updateCount() {
 		includedTags = getIncludedTags();
 		excludedTags = getExcludedTags();
-		tagPattern = tagPatternField.getText();		
+		tagPattern = tagPatternField.getText();
 		for(final TitledPane titledPane: sectionAcc.getPanes()) {
 			@SuppressWarnings("unchecked")
 			final SectionPane<S, T> sectionPane = (SectionPane<S, T>) titledPane;
