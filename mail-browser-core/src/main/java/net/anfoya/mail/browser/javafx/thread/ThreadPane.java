@@ -36,8 +36,8 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 	private final MailService<? extends SimpleSection, T, H, M> mailService;
 
 	private final TextField subjectField;
-	private final VBox messagesBox;
 	private final SelectedTagsPane<T> tagsPane;
+	private final VBox messagesBox;
 
 	private EventHandler<ActionEvent> delTagHandler;
 
@@ -58,6 +58,8 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 				, scrollPane.getVmax()
 				, offset);
 	};
+
+	private final ObservableList<Node> msgPanes;
 
 	public ThreadPane(final MailService<? extends SimpleSection, T, H, M> mailService) {
 		this.mailService = mailService;
@@ -101,6 +103,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 		messagesBox = new VBox();
 		messagesBox.minHeightProperty().bind(scrollPane.heightProperty());
 		scrollPane.setContent(messagesBox);
+		msgPanes = messagesBox.getChildren();
 
 		stackPane.getChildren().add(scrollPane);
 
@@ -119,13 +122,13 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 	private void refreshThread() {
 		if (threads.size() != 1) {
 			thread = null;
-			messagesBox.getChildren().clear();
+			msgPanes.clear();
 			return;
 		}
 
-		final H previous = thread;
+		final H loadedThread = thread;
 		thread = threads.iterator().next();
-		if (thread.equals(previous)) {
+		if (thread.equals(loadedThread)) {
 			refreshCurrentThread();
 		} else {
 			loadThread();
@@ -148,7 +151,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 
 	private void refreshCurrentThread() {
 		final Set<String> messageIds = thread.getMessageIds();
-		for (final Iterator<Node> i = messagesBox.getChildren().iterator(); i.hasNext();) {
+		for (final Iterator<Node> i = msgPanes.iterator(); i.hasNext();) {
 			@SuppressWarnings("unchecked")
 			final String id = ((MessagePane<M>) i.next()).getMessageId();
 			if (!messageIds.contains(id)) {
@@ -157,35 +160,33 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 		}
 
 		int index = 0;
-		final ObservableList<Node> panes = messagesBox.getChildren();
 		for(final Iterator<String> i=new LinkedList<String>(thread.getMessageIds()).descendingIterator(); i.hasNext();) {
 			final String id = i.next();
 			@SuppressWarnings("unchecked")
-			MessagePane<M> messagePane = index < panes.size()? (MessagePane<M>) messagesBox.getChildren().get(index): null;
+			MessagePane<M> messagePane = index < msgPanes.size()? (MessagePane<M>) msgPanes.get(index): null;
 			if (messagePane == null || !id.equals(messagePane.getMessageId())) {
 				messagePane = new MessagePane<M>(id, mailService);
 				messagePane.setScrollHandler(webScrollHandler);
-				panes.add(index, messagePane);
+				msgPanes.add(index, messagePane);
 				messagePane.load();
 			}
 			index++;
 		}
-		if (panes.size() == 1) {
-			@SuppressWarnings("unchecked")
-			final
-			MessagePane<M> messagePane = (MessagePane<M>) panes.get(0);
-			messagePane.setCollapsible(false);
-		}
 	}
 
 	private void loadThread() {
-		messagesBox.getChildren().clear();
-		MessagePane<M> messagePane = null;
+		scrollPane.setVvalue(0);
+		msgPanes.clear();
 		for(final String id: thread.getMessageIds()) {
-			messagePane = new MessagePane<M>(id, mailService);
+			final MessagePane<M> messagePane = new MessagePane<M>(id, mailService);
 			messagePane.setScrollHandler(webScrollHandler);
-			messagesBox.getChildren().add(0, messagePane);
 			messagePane.load();
+
+			msgPanes.add(0, messagePane);
+			if (msgPanes.size() == 1) {
+				// last item is not collapsible
+				messagePane.setCollapsible(false);
+			}
 		}
 
 		try {

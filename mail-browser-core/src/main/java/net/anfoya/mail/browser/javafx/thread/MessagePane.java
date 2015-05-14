@@ -51,18 +51,19 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 	private final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService;
 
 	private final BooleanProperty expanded;
+	private boolean collapsible;
+
 	private final Text titleText;
 	private final WebViewFitContent bodyView;
-	private final String messageId;
 
+	private final String messageId;
 	private M message;
 	private MimeMessage mimeMessage;
-	private double height;
-	private boolean collapsible;
 
 	public MessagePane(final String messageId, final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService) {
 		this.mailService = mailService;
 		this.messageId = messageId;
+		this.collapsible = true;
 
 		bodyView = new WebViewFitContent();
 		bodyView.setContextMenuEnabled(false);
@@ -70,20 +71,10 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 		expanded = new SimpleBooleanProperty(true);
 		expanded.addListener((ov, oldVal, newVal) -> {
 			if (collapsible) {
-				if (!newVal) {
-					LOGGER.debug("hiding web view");
-					bodyView.setMinHeight(0);
-					bodyView.setMaxHeight(0);
-					autosize();
-				} else {
-					LOGGER.debug("showing web view");
-					if (height == 0) {
-						height = getPrefHeight();
-					}
-					bodyView.setMinHeight(height);
-					bodyView.setMaxHeight(height);
-					autosize();
-				}
+				final double height = newVal? bodyView.getPrefHeight(): 0;
+				bodyView.setMinHeight(height);
+				bodyView.setMaxHeight(height);
+				autosize();
 			}
 		});
 
