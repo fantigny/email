@@ -130,6 +130,7 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 		// display
 		refreshing = !previouslySelectedIds.isEmpty() && indices.length > 0 && indices[0] != -1;
 		getItems().setAll(threads);
+		getSelectionModel().clearSelection();
 		refreshing = false;
 
 		// restore selection
@@ -161,8 +162,8 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 
 	public Set<H> getSelectedThreads() {
 		final List<H> selectedThreads = getSelectionModel().getSelectedItems();
-		if (!selectedThreads.isEmpty() && selectedThreads.iterator().next() == null) {
-			return Collections.unmodifiableSet(new LinkedHashSet<H>());
+		if (selectedThreads.size() == 1 && selectedThreads.get(0) == null) {
+			selectedThreads.remove(0);
 		}
 		return Collections.unmodifiableSet(new LinkedHashSet<H>(selectedThreads));
 	}

@@ -12,10 +12,9 @@ import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.ToolBar;
 import javafx.scene.image.Image;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
@@ -76,19 +75,15 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 	}
 
 	private void initGui(final Stage primaryStage) throws MailException, LoginException {
-		final BorderPane mainPane = new BorderPane();
-		mainPane.setPadding(new Insets(5));
-
-		final Scene scene = new Scene(mainPane, 1400, 700);
+		final SplitPane splitPane = new SplitPane();
+		final Scene scene = new Scene(splitPane, 1400, 700);
 		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/excludebox.css").toExternalForm());
-
-		final HBox selectionPane = new HBox();
-		mainPane.setLeft(selectionPane);
 
 		/* section+tag list */ {
 			sectionListPane = new SectionListPane<S, T>(mailService, DND_THREADS_DATA_FORMAT);
-			sectionListPane.setPrefWidth(250);
-			sectionListPane.prefHeightProperty().bind(selectionPane.heightProperty());
+			sectionListPane.prefHeightProperty().bind(sectionListPane.heightProperty());
+			sectionListPane.setMinWidth(150);
+			sectionListPane.setPadding(new Insets(0));
 			sectionListPane.setSectionDisableWhenZero(false);
 			sectionListPane.setLazyCount(true);
 			sectionListPane.setTagChangeListener((ov, oldVal, newVal) -> {
@@ -98,13 +93,13 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 				refreshThreadList();
 				return null;
 			});
-			selectionPane.getChildren().add(sectionListPane);
+			splitPane.getItems().add(sectionListPane);
 		}
 
 		/* thread list */ {
 			threadListPane = new ThreadListPane<S, T, H, M>(mailService);
-			threadListPane.setPrefWidth(250);
-			threadListPane.prefHeightProperty().bind(selectionPane.heightProperty());
+			threadListPane.setMinWidth(250);
+			threadListPane.prefHeightProperty().bind(splitPane.heightProperty());
 			threadListPane.addSelectionListener((ov, oldVal, newVal) -> {
 				if (!threadListPane.isRefreshing()) {
 					// update thread details when (a) thread(s) is/are selected
@@ -122,11 +117,8 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 			threadListPane.addTagChangeListener((ov, oldVal, newVal) -> {
 				sectionListPane.refreshWithNamePattern(newVal);
 			});
-			selectionPane.getChildren().add(threadListPane);
+			splitPane.getItems().add(threadListPane);
 		}
-
-		final HBox centerPane = new HBox(0);
-		mainPane.setCenter(centerPane);
 
 		/* tool bar */ {
 			final Button newButton = new Button("n");
@@ -150,7 +142,6 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 
 		/* thread panel */ {
 			threadPane = new ThreadPane<T, H, M>(mailService);
-			threadPane.prefWidthProperty().bind(centerPane.widthProperty());
 			threadPane.setOnDelTag(event -> {
 				refreshSectionList();
 				refreshThreadList();
@@ -170,8 +161,11 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 				}
 			});
 			*/
-			centerPane.getChildren().add(threadPane);
+			splitPane.getItems().add(threadPane);
 		}
+
+		splitPane.setDividerPosition(0, .15);
+		splitPane.setDividerPosition(1, .35);
 
 		primaryStage.setTitle("FisherMail / Agaar / Agamar / Agaram");
 		primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("Mail.png")));
