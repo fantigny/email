@@ -7,6 +7,8 @@ import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -41,6 +43,10 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 	private final ThreadList<S, T, H> threadList;
 	private final TextField namePatternField;
 
+	private EventHandler<ActionEvent> updateThreadHandler;
+
+	private ThreadListDropPane<H> threadListDropPane;
+
 	public ThreadListPane(final MailService<S, T, H, M> mailService) {
 		this.mailService = mailService;
 
@@ -48,7 +54,7 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		stackPane.setAlignment(Pos.BOTTOM_CENTER);
 		setCenter(stackPane);
 
-		final ThreadListDropPane<H> threadListDropPane = new ThreadListDropPane<H>(mailService);
+		threadListDropPane = new ThreadListDropPane<H>(mailService);
 		threadListDropPane.prefWidthProperty().bind(stackPane.widthProperty());
 
 		threadList = new ThreadList<S, T, H>(mailService);
@@ -148,6 +154,7 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 			@Override
 			protected Void call() throws Exception {
 				mailService.addTagForThreads(tag, threads);
+				updateThreadHandler.handle(null);
 				return null;
 			}
 		};
@@ -213,7 +220,12 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		}
 	}
 
-	public void addTagChangeListener(final ChangeListener<String> listener) {
+	public void addPatternListener(final ChangeListener<String> listener) {
 		namePatternField.textProperty().addListener(listener);
+	}
+
+	public void setOnUpdateThread(final EventHandler<ActionEvent> handler) {
+		updateThreadHandler = handler;
+		threadListDropPane.setOnUpdate(handler);
 	}
 }

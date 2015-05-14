@@ -1,10 +1,10 @@
 package net.anfoya.mail.browser.javafx.threadlist;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
@@ -100,11 +100,8 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 	}
 
 	private void refresh() {
-		// get previously selected indices
-		final List<String> previouslySelectedIds = new ArrayList<String>();
-		for(final H thread: getSelectedThreads()) {
-			previouslySelectedIds.add(thread.getId());
-		}
+		// get previously selected threads
+		final Set<H> selectedThreads = new HashSet<H>(getSelectedThreads());
 
 		// get list
 		ObservableList<H> obsThreads = FXCollections.observableArrayList(threads);
@@ -116,11 +113,11 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 		Collections.sort(obsThreads, sortOrder.getComparator());
 
 		// find selected indices in new list
-		final int[] indices = new int[previouslySelectedIds.size()];
+		final int[] indices = new int[selectedThreads.size()];
 		Arrays.fill(indices, -1);
 		int listIndex = 0, arrayIndex = 0;
 		for(final H thread: obsThreads) {
-			if (!thread.isUnread() && previouslySelectedIds.contains(thread.getId())) {
+			if (!thread.isUnread() && selectedThreads.contains(thread)) {
 				indices[arrayIndex] = listIndex;
 				arrayIndex++;
 			}
@@ -128,9 +125,9 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 		}
 
 		// display
-		refreshing = !previouslySelectedIds.isEmpty() && indices.length > 0 && indices[0] != -1;
-		getItems().setAll(threads);
+		refreshing = !selectedThreads.isEmpty() && indices.length > 0 && indices[0] != -1;
 		getSelectionModel().clearSelection();
+		getItems().setAll(threads);
 		refreshing = false;
 
 		// restore selection
@@ -161,10 +158,13 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 	}
 
 	public Set<H> getSelectedThreads() {
-		final List<H> selectedThreads = getSelectionModel().getSelectedItems();
-		if (selectedThreads.size() == 1 && selectedThreads.get(0) == null) {
-			selectedThreads.remove(0);
+		final Set<H> selectedThreads = new LinkedHashSet<H>(getSelectionModel().getSelectedItems());
+		if (selectedThreads.size() == 1) {
+			final Iterator<H> i = selectedThreads.iterator();
+			if (i.next() == null) {
+				i.remove();
+			}
 		}
-		return Collections.unmodifiableSet(new LinkedHashSet<H>(selectedThreads));
+		return Collections.unmodifiableSet(selectedThreads);
 	}
 }

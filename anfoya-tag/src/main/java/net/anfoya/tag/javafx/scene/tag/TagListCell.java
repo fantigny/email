@@ -7,7 +7,6 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
-import javafx.util.Callback;
 import net.anfoya.javafx.scene.control.ExcludeBox;
 import net.anfoya.tag.javafx.scene.dnd.DndFormat;
 import net.anfoya.tag.model.SimpleTag;
@@ -18,7 +17,7 @@ class TagListCell<T extends SimpleTag> extends CheckBoxListCell<TagListItem<T>> 
 		setSelectedStateCallback(item -> item.includedProperty());
 	}
 
-	public TagListCell(final DataFormat extItemDataFormat, final Callback<Void, Void> dropCallback) {
+	public TagListCell(final DataFormat extItemDataFormat) {
 		this();
 
 		setOnDragDetected(event -> {
@@ -53,7 +52,6 @@ class TagListCell<T extends SimpleTag> extends CheckBoxListCell<TagListItem<T>> 
 				content.put(extItemDataFormat, db.getContent(extItemDataFormat));
 				content.put(DndFormat.TAG_DATA_FORMAT, getItem().getTag());
 				db.setContent(content);
-				dropCallback.call(null);
 				event.setDropCompleted(true);
 				event.consume();
 			}
@@ -70,7 +68,7 @@ class TagListCell<T extends SimpleTag> extends CheckBoxListCell<TagListItem<T>> 
 	        final ExcludeBox excludeBox = new ExcludeBox();
 	        excludeBox.setExcluded(item.excludedProperty().get());
 	        excludeBox.excludedProperty().addListener((ov, oldVal, newVal) -> item.excludedProperty().set(newVal));
-	        
+
         	final BorderPane pane = new BorderPane();
         	pane.setCenter(getGraphic());
         	pane.setRight(excludeBox);

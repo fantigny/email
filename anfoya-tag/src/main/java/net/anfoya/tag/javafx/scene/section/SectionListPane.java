@@ -1,12 +1,15 @@
 package net.anfoya.tag.javafx.scene.section;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 import javafx.beans.value.ChangeListener;
 import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Accordion;
@@ -37,8 +40,8 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 	private final SelectedTagsPane<T> selectedPane;
 
 	private Set<S> sections;
-	private ChangeListener<Boolean> tagChangeListener;
-	private Callback<Void, Void> updateSectionCallback;
+	private EventHandler<ActionEvent> tagSelectedHandler;
+	private EventHandler<ActionEvent> updateSectionHandler;
 
 	private boolean lazyCount;
 	private boolean sectionDisableWhenZero;
@@ -117,7 +120,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 			}
 		});
 		stackPane.setOnDragDone(event -> {
-			updateSectionCallback.call(null);
+			updateSectionHandler.handle(null);
 		});
 		setCenter(stackPane);
 
@@ -147,7 +150,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		for(final S section: sections) {
 			if (!existingSections.contains(section)) {
 				final TagList<S, T> tagList = new TagList<S, T>(tagService, section);
-				tagList.setTagChangeListener(tagChangeListener);
+				tagList.setOnSelectTag(tagSelectedHandler);
 				tagList.setExtItemDataFormat(extItemDataFormat);
 
 				final SectionPane<S, T> sectionPane = new SectionPane<S, T>(tagService, section, tagList);
@@ -175,7 +178,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		}
 	}
 
-	public void refreshWithTags(final Set<T> availableTags, final int currentCount) {
+	public void refreshWithTags(final Set<T> availableTags, final int currentCount, final boolean lazy) {
 		this.availableTags = availableTags;
 		this.currentCount = currentCount;
 		if (getIncludedTags().equals(includedTags)
@@ -186,7 +189,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		updateCount();
 	}
 
-	public void refreshWithNamePattern(final String namePattern) {
+	public void refreshWithPattern(final String namePattern) {
 		this.namePattern = namePattern;
 		updateCount();
 	}
@@ -224,7 +227,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 	protected void refreshWithPattern() {
 		refreshAsync();
 		if (!lazyCount) {
-			tagChangeListener.changed(null, null, null);
+			tagSelectedHandler.handle(null);
 		}
 	}
 
@@ -251,15 +254,12 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		}
 	}
 
-	public void setTagChangeListener(final ChangeListener<Boolean> listener) {
-		tagChangeListener = (ov, oldVal, newVal) -> {
-			listener.changed(ov, oldVal, newVal);
-			selectedPane.refresh(getAllSelectedTags());
-		};
+	public void setOnSelectTag(final EventHandler<ActionEvent> handler) {
+		tagSelectedHandler = handler;
 	}
 
-	public void setUpdateSectionCallback(final Callback<Void, Void> callback) {
-		updateSectionCallback = callback;
+	public void setOnUpdateSection(final EventHandler<ActionEvent> handler) {
+		updateSectionHandler = handler;
 	}
 
 	public void updateCount() {
@@ -291,7 +291,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		return tags;
 	}
 
-	public Set<T> getIncludedTags() {
+	private Set<T> getIncludedTags() {
 		final Set<T> tags = new LinkedHashSet<T>();
 		for(final TitledPane titledPane: sectionAcc.getPanes()) {
 			@SuppressWarnings("unchecked")
@@ -332,7 +332,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		return null;
 	}
 
-	public T getSelectedTag() {
+	private T getSelectedTag() {
 		T tag = null;
 		for(final TitledPane sectionPane: sectionAcc.getPanes()) {
 			@SuppressWarnings("unchecked")
@@ -346,5 +346,34 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		}
 
 		return tag;
+	}
+
+	public boolean isCheckMode() {
+		for(final TitledPane titledPane: sectionAcc.getPanes()) {
+			@SuppressWarnings("unchecked")
+			final TagList<S, T> tagList = (TagList<S, T>) titledPane.getContent();
+			if (tagList.hasCheckedTag()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public Set<T> getIncludedTagsNew() {
+		Set<T> included;
+		if (isCheckMode()) {
+			included = getIncludedTags();
+		} else {
+			included = new HashSet<T>();
+			final T tag = getSelectedTag();
+			if (tag != null) {
+				included.add(tag);
+			}
+		}
+		return included;
+	}
+
+	public Set<T> getExcludedTagsNew() {
+		return getExcludedTags();
 	}
 }

@@ -25,6 +25,7 @@ public abstract class SimpleThread implements Thread {
 	}
 
 	private final String id;
+	private final int hash;
 	private final String subject;
 	private final Set<String> messageIds;
 	private final Set<String> tagIds;
@@ -40,6 +41,7 @@ public abstract class SimpleThread implements Thread {
 			, final String sender
 			, final Date date) {
 		this.id = id;
+		this.hash = id.hashCode();
 		this.subject = subject;
 		this.messageIds = messageIds;
 		this.tagIds = tagIds;
@@ -88,12 +90,17 @@ public abstract class SimpleThread implements Thread {
 		return date;
 	}
 
+	@Override
+	public int hashCode() {
+		return hash;
+	}
+
     @Override
 	public boolean equals(final Object other) {
         if (other == null) {
 			return false;
 		}
-        if (!this.getClass().equals(other.getClass())) {
+        if (!(other instanceof SimpleThread)) {
 			return false;
 		}
         return ((SimpleThread) other).id.equals(id);

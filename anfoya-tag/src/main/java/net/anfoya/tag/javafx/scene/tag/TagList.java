@@ -7,14 +7,14 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.input.DataFormat;
-import javafx.util.Callback;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
@@ -29,31 +29,20 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 	private final S section;
 	private final Map<String, TagListItem<T>> itemMap = new HashMap<String, TagListItem<T>>();
 
-	private ChangeListener<Boolean> tagChangeListener;
+	private EventHandler<ActionEvent> selectTagHandler;
 	private DataFormat extItemDataFormat;
-
-	private Set<T> includes;
-	private Set<T> excludes;
-	private String tagPattern;
-	private final Callback<Void, Void> dropCallback = param -> {
-		refresh(includes, excludes, tagPattern);
-		return null;
-	};
 
 	public TagList(final TagService<S, T> tagService, final S section) {
 		this.tagService = tagService;
 		this.section = section;
 
 		getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-		setCellFactory(list -> new TagListCell<T>(extItemDataFormat, dropCallback));
+		setCellFactory(list -> new TagListCell<T>(extItemDataFormat));
 	}
 
 	public T getSelectedTag() {
-		T tag = null;
-		if (!getSelectionModel().isEmpty()) {
-			tag = getSelectionModel().getSelectedItem().getTag();
-		}
-		return tag;
+		final TagListItem<T> item = getSelectionModel().getSelectedItem();
+		return item == null? null: item.getTag();
 	}
 
 	public Set<T> getTags() {
@@ -88,10 +77,6 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 	}
 
 	public void refresh(final Set<T> includes, final Set<T> excludes, final String tagPattern) {
-		this.includes = includes;
-		this.excludes = excludes;
-		this.tagPattern = tagPattern;
-		
 		// get all tags
 		Set<T> tags;
 		try {
@@ -101,7 +86,7 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 			e.printStackTrace();
 			return;
 		}
-		
+
 		// get selected index
 		final int selectedIndex = getSelectionModel().getSelectedIndex();
 
@@ -116,9 +101,9 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 			} else if (excludes.contains(tag)) {
 				item.excludedProperty().set(true);
 			}
-			if (tagChangeListener != null) {
-				item.includedProperty().addListener(tagChangeListener);
-				item.excludedProperty().addListener(tagChangeListener);
+			if (selectTagHandler != null) {
+				item.includedProperty().addListener((ov,o,n) -> selectTagHandler.handle(null));
+				item.excludedProperty().addListener((ov,o,n) -> selectTagHandler.handle(null));
 			}
 			if (countedItemMap.containsKey(tag.getName())) {
 				item.countProperty().set(countedItemMap.get(tag.getName()).countProperty().get());
@@ -182,13 +167,9 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 		ThreadPool.getInstance().submitLow(task);
 	}
 
-	public void setTagChangeListener(final ChangeListener<Boolean> listener) {
-		getSelectionModel().selectedItemProperty().addListener((ov, oldVal, newVal) -> {
-			if (newVal != null) {
-				listener.changed(null, null, null);
-			}
-		});
-		tagChangeListener = listener;
+	public void setOnSelectTag(final EventHandler<ActionEvent> handler) {
+		getSelectionModel().selectedItemProperty().addListener((ov, oldVal, newVal) -> handler.handle(null));
+		selectTagHandler = handler;
 	}
 
 	public void setTagSelected(final String tagName, final boolean selected) {
@@ -220,5 +201,14 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 
 	public void setExtItemDataFormat(final DataFormat dataFormat) {
 		this.extItemDataFormat = dataFormat;
+	}
+
+	public boolean hasCheckedTag() {
+		for(final TagListItem<T> item: getItems()) {
+			if (item.includedProperty().get() || item.excludedProperty().get()) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

@@ -201,7 +201,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 		}
 	}
 
-	public void setOnDelTag(final EventHandler<ActionEvent> handler) {
+	public void setOnUpdateThread(final EventHandler<ActionEvent> handler) {
 		this.delTagHandler = handler;
 	}
 

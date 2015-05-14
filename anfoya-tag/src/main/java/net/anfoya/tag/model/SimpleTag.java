@@ -10,7 +10,7 @@ public class SimpleTag implements Serializable, Comparable<SimpleTag> {
 
 	private final String id;
 	private final String name;
-	private final int hashCode;
+	private final int hash;
 
 	public SimpleTag() {
 		this("n/d", "n/d");
@@ -18,7 +18,7 @@ public class SimpleTag implements Serializable, Comparable<SimpleTag> {
 	public SimpleTag(final String id, final String name) {
 		this.id = id;
 		this.name = name;
-		this.hashCode = id.hashCode();
+		this.hash = id.hashCode();
 	}
 
     @Override
@@ -28,7 +28,7 @@ public class SimpleTag implements Serializable, Comparable<SimpleTag> {
 
 	@Override
 	public int hashCode() {
-	    return hashCode;
+	    return hash;
 	}
 
     @Override

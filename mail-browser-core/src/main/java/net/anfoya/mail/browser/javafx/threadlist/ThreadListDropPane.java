@@ -4,6 +4,8 @@ import static net.anfoya.mail.browser.javafx.threadlist.ThreadListPane.DND_THREA
 
 import java.util.Set;
 
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.layout.GridPane;
 import net.anfoya.javafx.scene.dnd.DropArea;
@@ -16,6 +18,7 @@ import net.anfoya.tag.model.SimpleTag;
 
 public class ThreadListDropPane<H extends SimpleThread> extends GridPane {
 	private final MailService<? extends SimpleSection, ? extends SimpleTag, H, ? extends SimpleMessage> mailService;
+	private EventHandler<ActionEvent> onUpdateHandler;
 
 	public ThreadListDropPane(final MailService<? extends SimpleSection, ? extends SimpleTag, H, ? extends SimpleMessage> tagService) {
 		this.mailService = tagService;
@@ -55,6 +58,7 @@ public class ThreadListDropPane<H extends SimpleThread> extends GridPane {
 	private void archive(final Set<H> threads) {
 		try {
 			mailService.archive(threads);
+			onUpdateHandler.handle(null);
 		} catch (final MailException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -64,9 +68,14 @@ public class ThreadListDropPane<H extends SimpleThread> extends GridPane {
 	private void delete(final Set<H> threads) {
 		try {
 			mailService.trash(threads);
+			onUpdateHandler.handle(null);
 		} catch (final MailException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+
+	public void setOnUpdate(final EventHandler<ActionEvent> handler) {
+		this.onUpdateHandler = handler;
 	}
 }
