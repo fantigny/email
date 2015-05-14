@@ -45,19 +45,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 	private H thread;
 
 	private final ScrollPane scrollPane;
-	private final EventHandler<ScrollEvent> webScrollHandler = event -> {
-		final double current = scrollPane.getVvalue();
-		final double maxPx = messagesBox.getHeight();
-		final double offset = event.getDeltaY() / maxPx * -1;
-		scrollPane.setVvalue(current + offset);
-		event.consume();
-
-		LOGGER.debug("[max {}, delta {}], [max {}, delta {}]"
-				, maxPx
-				, event.getDeltaY()
-				, scrollPane.getVmax()
-				, offset);
-	};
+	private final EventHandler<ScrollEvent> webScrollHandler;
 
 	private final ObservableList<Node> msgPanes;
 
@@ -104,6 +92,20 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 		messagesBox.minHeightProperty().bind(scrollPane.heightProperty());
 		scrollPane.setContent(messagesBox);
 		msgPanes = messagesBox.getChildren();
+
+		webScrollHandler = event -> {
+			final double current = scrollPane.getVvalue();
+			final double maxPx = messagesBox.getHeight();
+			final double offset = event.getDeltaY() / maxPx * -1;
+			scrollPane.setVvalue(current + offset);
+			event.consume();
+
+			LOGGER.debug("[max {}, delta {}], [max {}, delta {}]"
+					, maxPx
+					, event.getDeltaY()
+					, scrollPane.getVmax()
+					, offset);
+		};
 
 		stackPane.getChildren().add(scrollPane);
 

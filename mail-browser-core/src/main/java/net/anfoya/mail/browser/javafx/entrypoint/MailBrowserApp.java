@@ -55,7 +55,9 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 			ThreadPool.getInstance().shutdown();
 		});
 
-		mailService = (MailService<S, T, H, M>) new GmailService();
+		@SuppressWarnings("unchecked")
+		final MailService<S, T, H, M> mailService = (MailService<S, T, H, M>) new GmailService();
+		this.mailService = mailService;
 		ThreadPool.getInstance().submitHigh(() -> {
 			try {
 				mailService.login(null, null);
