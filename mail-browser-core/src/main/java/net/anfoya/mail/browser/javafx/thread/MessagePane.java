@@ -47,6 +47,8 @@ import com.sun.mail.util.BASE64DecoderStream;
 public class MessagePane<M extends SimpleMessage> extends VBox {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessagePane.class);
 	private static final Session SESSION = Session.getDefaultInstance(new Properties(), null);
+	private static final String EMPTY = "[empty]";
+	private static final String UNKNOWN = "[unknown]";
 
 	private final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService;
 
@@ -124,6 +126,9 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 		String html = toHtml(mimeMessage.getContent(), mimeMessage.getContentType(), false);
 		if (html.isEmpty()) {
 			html = toHtml(mimeMessage.getContent(), mimeMessage.getContentType(), true);
+			if (html.isEmpty()) {
+				html = EMPTY;
+			}
 			html = "<html><body><pre>" + html + "</pre></body></html>";
 		}
 		return html;
@@ -145,7 +150,7 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 	private String getMailAddresses(final Address[] addresses) {
 		final StringBuilder sb = new StringBuilder();
 		if (addresses == null || addresses.length == 0) {
-			sb.append("[empty]");
+			sb.append(EMPTY);
 		} else {
 			boolean first = true;
 			for(final Address address: addresses) {
@@ -162,7 +167,7 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 						sb.append(mailAddress.getAddress());
 					}
 				} else {
-					sb.append("[unknown]");
+					sb.append(UNKNOWN);
 				}
 			}
 		}
