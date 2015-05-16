@@ -51,6 +51,8 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 	private int currentCount;
 	private String namePattern;
 	private String tagPattern;
+	private Task<Set<S>> refreshTask;
+	private int refreshTaskId;
 
 	public SectionListPane(final TagService<S, T> tagService) {
 		this(tagService, null);
@@ -66,7 +68,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		tagPatternField.prefWidthProperty().bind(widthProperty());
 		tagPatternField.setPromptText("search");
 		tagPatternField.textProperty().addListener((ChangeListener<String>) (ov, oldPattern, newPattern) -> {
-			refreshWithPattern();
+			refreshWithTagPattern();
 		});
 
 		final HBox patternBox = new HBox(5, new Title("Label"), tagPatternField);
@@ -198,18 +200,24 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		refreshAsync(null);
 	}
 
-	public void refreshAsync(final Callback<Void, Void> callback) {
-		final Task<Set<S>> task = new Task<Set<S>>() {
+	public synchronized void refreshAsync(final Callback<Void, Void> callback) {
+		final long taskId = ++refreshTaskId;
+		if (refreshTask != null && refreshTask.isRunning()) {
+			refreshTask.cancel();
+		}
+
+		refreshTask = new Task<Set<S>>() {
 			@Override
 			protected Set<S> call() throws InterruptedException, TagException {
-				if (Thread.currentThread().isInterrupted()) {
-					throw new InterruptedException();
-				}
 				return tagService.getSections();
 			}
 		};
-		task.setOnSucceeded(event -> {
-			sections = task.getValue();
+		refreshTask.setOnSucceeded(event -> {
+			if (taskId != refreshTaskId) {
+				return;
+			}
+
+			sections = refreshTask.getValue();
 			refreshSections();
 			refreshTags();
 			selectedPane.refresh(getAllSelectedTags());
@@ -217,14 +225,14 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 				callback.call(null);
 			}
 		});
-		task.setOnFailed(event -> {
+		refreshTask.setOnFailed(event -> {
 			// TODO Auto-generated catch block
 			event.getSource().getException().printStackTrace(System.out);
 		});
-		ThreadPool.getInstance().submitHigh(task);
+		ThreadPool.getInstance().submitHigh(refreshTask);
 	}
 
-	protected void refreshWithPattern() {
+	protected void refreshWithTagPattern() {
 		refreshAsync();
 		if (!lazyCount) {
 			tagSelectedHandler.handle(null);
@@ -349,14 +357,16 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 	}
 
 	public boolean isCheckMode() {
+		boolean checkMode = false;
 		for(final TitledPane titledPane: sectionAcc.getPanes()) {
 			@SuppressWarnings("unchecked")
 			final TagList<S, T> tagList = (TagList<S, T>) titledPane.getContent();
-			if (tagList.hasCheckedTag()) {
-				return true;
+			checkMode = tagList.hasCheckedTag();
+			if (checkMode) {
+				break;
 			}
 		}
-		return false;
+		return checkMode;
 	}
 
 	public Set<T> getIncludedTagsNew() {

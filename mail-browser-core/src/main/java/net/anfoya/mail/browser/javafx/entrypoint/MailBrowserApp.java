@@ -128,7 +128,6 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 	private void initData() {
 		sectionListPane.refreshAsync(v -> {
 			sectionListPane.selectTag(GmailSection.SYSTEM.getName(), "Inbox");
-			threadListPane.refreshWithTags(sectionListPane.getIncludedTagsNew(), sectionListPane.getExcludedTagsNew());
 //			sectionListPane.selectTag("Bank", "HK HSBC");
 			return null;
 		});
@@ -167,13 +166,12 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 	boolean refreshAfterThreadUpdate = true;
 	boolean refreshAfterThreadListLoad = true;
 
+	boolean refreshAfterRemoteUpdate = true;
 
 	boolean refreshAfterPatternUpdate = false;
 
-
 	boolean refreshAfterUpdateTag = false;
 
-	boolean refreshAfterRemoteUpdate = false;
 
 	private void refreshAfterRemoteUpdate() {
 		if (!refreshAfterRemoteUpdate) {
@@ -181,7 +179,7 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 		}
 		LOGGER.debug("refreshAfterRemoteUpdate");
 
-		// TODO Auto-generated method stub
+		sectionListPane.refreshAsync();
 	}
 
 	private void refreshAfterSectionUpdate() {

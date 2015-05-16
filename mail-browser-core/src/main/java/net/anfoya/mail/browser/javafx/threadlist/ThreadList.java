@@ -10,7 +10,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
@@ -40,6 +39,7 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 
 	//TODO enhance
 	private final Predicate<H> nameFilter = thread -> thread.getSubject().toLowerCase().contains(namePattern);
+	private EventHandler<ActionEvent> loadHandler;
 
 	public ThreadList(final MailService<S, T, H, ? extends SimpleMessage> mailService) {
 		this.mailService = mailService;
@@ -137,6 +137,8 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 			getSelectionModel().selectIndices(indices[0], indices);
 		}
 		refreshing = false;
+
+		loadHandler.handle(null);
 	}
 
 	public Set<T> getThreadsTags() {
@@ -176,11 +178,6 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 	}
 
 	public void setOnLoadThreads(final EventHandler<ActionEvent> handler) {
-		getItems().addListener(new ListChangeListener<H>() {
-			@Override
-			public void onChanged(final Change<? extends H> c) {
-				handler.handle(null);
-			}
-		});
+		this.loadHandler = handler;
 	}
 }
