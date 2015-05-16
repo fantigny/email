@@ -1,4 +1,4 @@
-package net.anfoya.mail.gmail;
+package net.anfoya.mail.gmail.service;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -24,7 +24,7 @@ public class LabelService {
 		this.user = user;
 	}
 
-	protected Collection<Label> getAll() throws LabelException {
+	public Collection<Label> getAll() throws LabelException {
 		if (idLabels.isEmpty()) {
 			try {
 				for(final Label l: gmail.users().labels().list(user).execute().getLabels()) {
@@ -38,12 +38,12 @@ public class LabelService {
 		return idLabels.values();
 	}
 
-	protected Label get(final String id) throws LabelException {
+	public Label get(final String id) throws LabelException {
 		getAll();
 		return idLabels.get(id);
 	}
 
-	protected Label rename(Label label, final String name) throws LabelException {
+	public Label rename(Label label, final String name) throws LabelException {
 		try {
 			label.setName(name);
 			label.setMessageListVisibility("show");
@@ -57,7 +57,7 @@ public class LabelService {
 		}
 	}
 
-	protected Label add(final String name) throws LabelException {
+	public Label add(final String name) throws LabelException {
 		try {
 			Label label = new Label();
 			label.setMessageListVisibility("show");
@@ -72,7 +72,7 @@ public class LabelService {
 		}
 	}
 
-	protected void remove(final Label label) throws LabelException {
+	public void remove(final Label label) throws LabelException {
 		try {
 			gmail.users().labels().delete(user, label.getId());
 			idLabels.remove(label.getId());
@@ -81,7 +81,7 @@ public class LabelService {
 		}
 	}
 
-	protected Label find(final String name) throws LabelException {
+	public Label find(final String name) throws LabelException {
 		for(final Label l: getAll()) {
 			if (l.getName().equalsIgnoreCase(name)) {
 				return l;

@@ -1,4 +1,4 @@
-package net.anfoya.mail.gmail;
+package net.anfoya.mail.gmail.service;
 
 @SuppressWarnings("serial")
 public class MessageException extends Exception {

@@ -20,6 +20,14 @@ import net.anfoya.mail.gmail.model.GmailMessage;
 import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.gmail.model.GmailTag;
 import net.anfoya.mail.gmail.model.GmailThread;
+import net.anfoya.mail.gmail.service.HistoryException;
+import net.anfoya.mail.gmail.service.HistoryService;
+import net.anfoya.mail.gmail.service.LabelException;
+import net.anfoya.mail.gmail.service.LabelService;
+import net.anfoya.mail.gmail.service.MessageException;
+import net.anfoya.mail.gmail.service.MessageService;
+import net.anfoya.mail.gmail.service.ThreadException;
+import net.anfoya.mail.gmail.service.ThreadService;
 import net.anfoya.mail.service.MailService;
 
 import org.slf4j.Logger;

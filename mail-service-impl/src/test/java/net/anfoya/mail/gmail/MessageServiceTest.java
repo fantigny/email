@@ -1,5 +1,9 @@
 package net.anfoya.mail.gmail;
 
+import net.anfoya.mail.gmail.service.MessageException;
+import net.anfoya.mail.gmail.service.MessageService;
+import net.anfoya.mail.gmail.service.ThreadException;
+import net.anfoya.mail.gmail.service.ThreadService;
 import net.anfoya.mail.service.MailException;
 
 import org.junit.Assert;

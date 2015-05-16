@@ -1,4 +1,4 @@
-package net.anfoya.mail.gmail;
+package net.anfoya.mail.gmail.service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
