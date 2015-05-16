@@ -4,7 +4,6 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import javafx.beans.value.ChangeListener;
-import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
@@ -188,20 +187,16 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		return threadList.getSelectedThreads();
 	}
 
-	public boolean isRefreshing() {
-		return threadList.isRefreshing();
-	}
-
 	public ObservableList<H> getItems() {
 		return threadList.getItems();
 	}
 
-	public void addSelectionListener(final ChangeListener<H> listener) {
-		threadList.getSelectionModel().selectedItemProperty().addListener(listener);
+	public void setOnSelectThread(final EventHandler<ActionEvent> handler) {
+		threadList.setOnSelectThreads(handler);
 	}
 
-	public void addChangeListener(final ListChangeListener<H> listener) {
-		threadList.getItems().addListener(listener);
+	public void setOnLoadThreadList(final EventHandler<ActionEvent> handler) {
+		threadList.setOnLoadThreads(handler);
 	}
 
 	public Set<T> getThreadsTags() {
@@ -220,8 +215,10 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		}
 	}
 
-	public void addPatternListener(final ChangeListener<String> listener) {
-		namePatternField.textProperty().addListener(listener);
+	public void setOnUpdatePattern(final EventHandler<ActionEvent> handler) {
+		namePatternField.textProperty().addListener((ov, oldVal, newVal) -> {
+			handler.handle(null);
+		});
 	}
 
 	public void setOnUpdateThread(final EventHandler<ActionEvent> handler) {

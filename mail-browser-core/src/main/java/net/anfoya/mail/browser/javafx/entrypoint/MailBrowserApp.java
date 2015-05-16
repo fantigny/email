@@ -94,9 +94,9 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 			threadListPane = new ThreadListPane<S, T, H, M>(mailService);
 			threadListPane.setMinWidth(250);
 			threadListPane.prefHeightProperty().bind(splitPane.heightProperty());
-			threadListPane.addSelectionListener((ov, oldVal, newVal) -> refreshAfterThreadSelected());
-			threadListPane.addChangeListener(change -> refreshAfterThreadListLoad());
-			threadListPane.addPatternListener((ov, oldVal, newVal) -> refreshAfterPatternUpdate(newVal));
+			threadListPane.setOnSelectThread(event -> refreshAfterThreadSelected());
+			threadListPane.setOnLoadThreadList(event -> refreshAfterThreadListLoad());
+			threadListPane.setOnUpdatePattern(event -> refreshAfterPatternUpdate());
 			threadListPane.setOnUpdateThread(event -> refreshAfterThreadUpdate());
 			splitPane.getItems().add(threadListPane);
 		}
@@ -165,9 +165,7 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 
 	boolean refreshAfterSectionUpdate = true;
 	boolean refreshAfterThreadUpdate = true;
-
-
-	boolean refreshAfterThreadListLoad = false;
+	boolean refreshAfterThreadListLoad = true;
 
 
 	boolean refreshAfterPatternUpdate = false;
@@ -181,14 +179,16 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 		if (!refreshAfterRemoteUpdate) {
 			return;
 		}
-		// TODO Auto-generated method stub
+		LOGGER.debug("refreshAfterRemoteUpdate");
 
+		// TODO Auto-generated method stub
 	}
 
 	private void refreshAfterSectionUpdate() {
 		if (!refreshAfterSectionUpdate) {
 			return;
 		}
+		LOGGER.debug("refreshAfterSectionUpdate");
 
 		threadListPane.refreshWithTags(sectionListPane.getIncludedTagsNew(), sectionListPane.getExcludedTagsNew());
 	}
@@ -197,49 +197,51 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 		if (!refreshAfterThreadSelected) {
 			return;
 		}
+		LOGGER.debug("refreshAfterThreadSelected");
 
-		if (!threadListPane.isRefreshing()) {
-			// update thread details when (a) thread(s) is/are selected
-			threadPane.refresh(threadListPane.getSelectedThreads());
-		}
-	}
-
-	private void refreshAfterTagSelected() {
-		if (!refreshAfterTagSelected) {
-			return;
-		}
-
-		threadListPane.refreshWithTags(sectionListPane.getIncludedTagsNew(), sectionListPane.getExcludedTagsNew());
+		// update thread details when (a) thread(s) is/are selected
+		threadPane.refresh(threadListPane.getSelectedThreads());
 	}
 
 	private void refreshAfterThreadListLoad() {
 		if (!refreshAfterThreadListLoad) {
 			return;
 		}
+		LOGGER.debug("refreshAfterThreadListLoad");
 
 		// refresh tags when a new list of threads is loaded
 		sectionListPane.refreshWithTags(
 				threadListPane.getThreadsTags()
 				, threadListPane.getThreadCount()
 				, true);
-		if (!threadListPane.isRefreshing()) {
-			// update thread details in case no thread is selected
-			threadPane.refresh(threadListPane.getSelectedThreads());
-		}
+
+		// update thread details in case no thread is selected
+		threadPane.refresh(threadListPane.getSelectedThreads());
 	}
 
-	private void refreshAfterPatternUpdate(final String pattern) {
+	private void refreshAfterTagSelected() {
+		if (!refreshAfterTagSelected) {
+			return;
+		}
+		LOGGER.debug("refreshAfterTagSelected");
+
+		threadListPane.refreshWithTags(sectionListPane.getIncludedTagsNew(), sectionListPane.getExcludedTagsNew());
+	}
+
+	private void refreshAfterPatternUpdate() {
 		if (!refreshAfterPatternUpdate) {
 			return;
 		}
+		LOGGER.debug("refreshAfterPatternUpdate");
 
-		sectionListPane.refreshWithPattern(pattern);
+		sectionListPane.refreshWithPattern(threadListPane.getNamePattern());
 	}
 
 	private void refreshAfterThreadUpdate() {
 		if (!refreshAfterThreadUpdate) {
 			return;
 		}
+		LOGGER.debug("refreshAfterThreadUpdate");
 
 		sectionListPane.refreshAsync();
 		threadListPane.refreshWithTags(sectionListPane.getIncludedTagsNew(), sectionListPane.getExcludedTagsNew());

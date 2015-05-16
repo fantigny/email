@@ -10,8 +10,11 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import net.anfoya.java.util.concurrent.ThreadPool;
@@ -125,15 +128,15 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 		}
 
 		// display
-		refreshing = !selectedThreads.isEmpty() && indices.length > 0 && indices[0] != -1;
-		getSelectionModel().clearSelection();
+		refreshing = true;
 		getItems().setAll(threads);
-		refreshing = false;
 
 		// restore selection
-		if (indices.length > 0 && indices[0] != -1) {
+		getSelectionModel().clearSelection();
+		if (indices.length > 0) {
 			getSelectionModel().selectIndices(indices[0], indices);
 		}
+		refreshing = false;
 	}
 
 	public Set<T> getThreadsTags() {
@@ -153,10 +156,6 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 		return Collections.unmodifiableSet(tags);
 	}
 
-	public boolean isRefreshing() {
-		return refreshing;
-	}
-
 	public Set<H> getSelectedThreads() {
 		final Set<H> selectedThreads = new LinkedHashSet<H>(getSelectionModel().getSelectedItems());
 		if (selectedThreads.size() == 1) {
@@ -166,5 +165,22 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 			}
 		}
 		return Collections.unmodifiableSet(selectedThreads);
+	}
+
+	public void setOnSelectThreads(final EventHandler<ActionEvent> handler) {
+		getSelectionModel().selectedItemProperty().addListener((ov, newVal, oldVal) -> {
+			if (!refreshing) {
+				handler.handle(null);
+			}
+		});
+	}
+
+	public void setOnLoadThreads(final EventHandler<ActionEvent> handler) {
+		getItems().addListener(new ListChangeListener<H>() {
+			@Override
+			public void onChanged(final Change<? extends H> c) {
+				handler.handle(null);
+			}
+		});
 	}
 }
