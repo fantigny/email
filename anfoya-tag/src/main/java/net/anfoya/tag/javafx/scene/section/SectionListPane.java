@@ -30,6 +30,7 @@ import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
 import net.anfoya.tag.service.TagException;
 import net.anfoya.tag.service.TagService;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class SectionListPane<S extends SimpleSection, T extends SimpleTag> extends BorderPane {
 	private final TagService<S, T> tagService;
@@ -40,7 +41,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 	private final SelectedTagsPane<T> selectedPane;
 
 	private Set<S> sections;
-	private EventHandler<ActionEvent> tagSelectedHandler;
+	private EventHandler<ActionEvent> selectTagHandler;
 	private EventHandler<ActionEvent> updateSectionHandler;
 
 	private boolean lazyCount;
@@ -107,6 +108,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 					&& !stackPane.getChildren().contains(extItemDropPane)) {
 				stackPane.getChildren().add(extItemDropPane);
 			}
+			event.consume();
 		});
 		stackPane.setOnDragExited(event -> {
 			if (event.getDragboard().hasContent(DndFormat.SECTION_DATA_FORMAT)
@@ -120,9 +122,13 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 					&& stackPane.getChildren().contains(extItemDropPane)) {
 				stackPane.getChildren().remove(extItemDropPane);
 			}
+			event.consume();
 		});
 		stackPane.setOnDragDone(event -> {
-			updateSectionHandler.handle(null);
+			if (event.isDropCompleted()) {
+				updateSectionHandler.handle(null);
+			}
+			event.consume();
 		});
 		setCenter(stackPane);
 
@@ -151,16 +157,15 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		int index = 0;
 		for(final S section: sections) {
 			if (!existingSections.contains(section)) {
-				final TagList<S, T> tagList = new TagList<S, T>(tagService, section);
-				tagList.setOnSelectTag(tagSelectedHandler);
-				tagList.setExtItemDataFormat(extItemDataFormat);
-
-				final SectionPane<S, T> sectionPane = new SectionPane<S, T>(tagService, section, tagList);
+				final SectionPane<S, T> sectionPane = new SectionPane<S, T>(tagService, section);
 				sectionPane.setDisableWhenZero(sectionDisableWhenZero);
 				sectionPane.setLazyCount(lazyCount);
+				sectionPane.setOnSelectTag(selectTagHandler);
 				sectionPane.setExtItemDataFormat(extItemDataFormat);
 				sectionPane.setOnDragDone(event -> {
-					refreshAsync();
+					if (event.isDropCompleted()) {
+						refreshAsync();
+					}
 					event.consume();
 				});
 				sectionAcc.getPanes().add(index, sectionPane);
@@ -233,8 +238,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 	}
 
 	protected void refreshWithTagPattern() {
-		refreshAsync();
-		tagSelectedHandler.handle(null);
+		throw new NotImplementedException();
 	}
 
 	public void unselectTag(final String tagName) {
@@ -261,7 +265,8 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 	}
 
 	public void setOnSelectTag(final EventHandler<ActionEvent> handler) {
-		tagSelectedHandler = handler;
+		selectTagHandler = handler;
+
 	}
 
 	public void setOnUpdateSection(final EventHandler<ActionEvent> handler) {
@@ -295,6 +300,20 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		tags.addAll(getIncludedTags());
 		tags.addAll(getExcludedTags());
 		return tags;
+	}
+
+	public Set<T> getIncludedOrSelectedTags() {
+		Set<T> included;
+		if (isCheckMode()) {
+			included = getIncludedTags();
+		} else {
+			included = new HashSet<T>();
+			final T tag = getSelectedTag();
+			if (tag != null) {
+				included.add(tag);
+			}
+		}
+		return included;
 	}
 
 	private Set<T> getIncludedTags() {
@@ -365,23 +384,5 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 			}
 		}
 		return checkMode;
-	}
-
-	public Set<T> getIncludedTagsNew() {
-		Set<T> included;
-		if (isCheckMode()) {
-			included = getIncludedTags();
-		} else {
-			included = new HashSet<T>();
-			final T tag = getSelectedTag();
-			if (tag != null) {
-				included.add(tag);
-			}
-		}
-		return included;
-	}
-
-	public Set<T> getExcludedTagsNew() {
-		return getExcludedTags();
 	}
 }

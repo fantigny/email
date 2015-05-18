@@ -6,7 +6,9 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -21,16 +23,28 @@ import net.anfoya.tag.model.SimpleTag;
 import net.anfoya.tag.service.TagException;
 import net.anfoya.tag.service.TagService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 //TODO use tag id instead of tag name
 
 public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListView<TagListItem<T>> {
+	private static final Logger LOGGER = LoggerFactory.getLogger(TagList.class);
+
 	private final TagService<S, T> tagService;
 
 	private final S section;
 	private final Map<String, TagListItem<T>> itemMap = new HashMap<String, TagListItem<T>>();
 
-	private EventHandler<ActionEvent> selectTagHandler;
+	private ChangeListener<? super Boolean> incExcListener;
+	private ChangeListener<? super TagListItem<T>> selectListener;
 	private DataFormat extItemDataFormat;
+
+	private final AtomicBoolean refreshing = new AtomicBoolean(false);
+
+	private Task<Integer> countTask;
+
+	private int countTaskId;
 
 	public TagList(final TagService<S, T> tagService, final S section) {
 		this.tagService = tagService;
@@ -91,6 +105,7 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 		final int selectedIndex = getSelectionModel().getSelectedIndex();
 
 		// build items map and restore selection
+		refreshing.set(true);
 		final Map<String, TagListItem<T>> countedItemMap = new HashMap<String, TagListItem<T>>(itemMap);
 		itemMap.clear();
 		final ObservableList<TagListItem<T>> items = FXCollections.observableArrayList();
@@ -101,9 +116,9 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 			} else if (excludes.contains(tag)) {
 				item.excludedProperty().set(true);
 			}
-			if (selectTagHandler != null) {
-				item.includedProperty().addListener((ov,o,n) -> selectTagHandler.handle(null));
-				item.excludedProperty().addListener((ov,o,n) -> selectTagHandler.handle(null));
+			if (incExcListener != null) {
+				item.includedProperty().addListener(incExcListener);
+				item.excludedProperty().addListener(incExcListener);
 			}
 			if (countedItemMap.containsKey(tag.getName())) {
 				item.countProperty().set(countedItemMap.get(tag.getName()).countProperty().get());
@@ -120,6 +135,8 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 		if (selectedIndex != -1) {
 			getSelectionModel().selectIndices(selectedIndex);
 		}
+		refreshing.set(false);
+
 	}
 
 	public void updateCount(final int currentCount, final Set<T> availableTags, final Set<T> includes, final Set<T> excludes, final String namePattern) {
@@ -141,13 +158,14 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 		}
 	}
 
-	protected void updateCountAsync(final TagListItem<T> item, final Set<T> includes, final Set<T> excludes, final String nameFilter) {
-		final Task<Integer> task = new Task<Integer>() {
+	protected synchronized void updateCountAsync(final TagListItem<T> item, final Set<T> includes, final Set<T> excludes, final String nameFilter) {
+		final long taskId = ++countTaskId;
+		if (countTask != null && countTask.isRunning()) {
+			countTask.cancel();
+		}
+		countTask = new Task<Integer>() {
 			@Override
 			public Integer call() throws SQLException, TagException, InterruptedException {
-				if (Thread.currentThread().isInterrupted()) {
-					throw new InterruptedException();
-				}
 				final T tag = item.getTag();
 				final int excludeFactor = excludes.contains(tag)? -1: 1;
 				@SuppressWarnings("serial")
@@ -157,19 +175,41 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 				return excludeFactor * tagService.getCountForTags(fakeIncludes, fakeExcludes, nameFilter);
 			}
 		};
-		task.setOnFailed(event -> {
+		countTask.setOnFailed(event -> {
 			// TODO Auto-generated catch block
 			event.getSource().getException().printStackTrace(System.out);
 		});
-		task.setOnSucceeded(event -> {
-			item.countProperty().set(task.getValue());
+		countTask.setOnSucceeded(event -> {
+			if (taskId != countTaskId) {
+				return;
+			}
+			item.countProperty().set(countTask.getValue());
 		});
-		ThreadPool.getInstance().submitLow(task);
+		ThreadPool.getInstance().submitLow(countTask);
+	}
+
+	public void setOnIncExcTag(final EventHandler<ActionEvent> handler) {
+		incExcListener = (ov, oldVal, newVal) -> {
+			if (refreshing.get()) {
+				return;
+			}
+			handler.handle(null);
+		};
+		for(final TagListItem<T> item: itemMap.values()) {
+			item.includedProperty().addListener(incExcListener);
+			item.excludedProperty().addListener(incExcListener);
+		}
 	}
 
 	public void setOnSelectTag(final EventHandler<ActionEvent> handler) {
-		getSelectionModel().selectedItemProperty().addListener((ov, oldVal, newVal) -> handler.handle(null));
-		selectTagHandler = handler;
+		getSelectionModel().selectedItemProperty().addListener((ov, oldVal, newVal) -> {
+			if (refreshing.get()) {
+				return;
+			}
+			if (!hasCheckedTag()) {
+				handler.handle(null);
+			}
+		});
 	}
 
 	public void setTagSelected(final String tagName, final boolean selected) {

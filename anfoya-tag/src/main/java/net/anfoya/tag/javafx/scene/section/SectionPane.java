@@ -45,11 +45,14 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 	private Timeline expandDelay;
 
 	@SuppressWarnings("unchecked")
-	public SectionPane(final TagService<S, T> tagService, final S section, final TagList<S, T> tagList) {
-		super("", tagList);
+	public SectionPane(final TagService<S, T> tagService, final S section) {
 		this.tagService = tagService;
-		this.tagList = (TagList<S, T>) getContent();
 		this.sectionItem = new TagListItem<SimpleTag>(new SimpleTag(section.getId(), section.getName()));
+
+		tagList = new TagList<S, T>(tagService, section);
+		tagList.setExtItemDataFormat(extItemDataFormat);
+		setContent(tagList);
+
 		isTag = false;
 		initialized = false;
 		disableWhenZero = false;
@@ -252,5 +255,14 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 
 	public void setExtItemDataFormat(final DataFormat dataFormat) {
 		this.extItemDataFormat = dataFormat;
+	}
+
+	public void setOnSelectTag(final EventHandler<ActionEvent> handler) {
+		tagList.setOnIncExcTag(handler);
+		tagList.setOnSelectTag(event -> {
+			if (isExpanded()) {
+				handler.handle(event);
+			}
+		});
 	}
 }

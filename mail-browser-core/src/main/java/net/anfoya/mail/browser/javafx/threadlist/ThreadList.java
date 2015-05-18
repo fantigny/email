@@ -3,7 +3,6 @@ package net.anfoya.mail.browser.javafx.threadlist;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
@@ -25,7 +24,12 @@ import net.anfoya.mail.service.MailService;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends SimpleThread> extends ListView<H> {
+	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadList.class);
+
 	private final MailService<S, T, H, ? extends SimpleMessage> mailService;
 	private final AtomicLong taskId = new AtomicLong();
 
@@ -159,14 +163,14 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 	}
 
 	public Set<H> getSelectedThreads() {
-		final Set<H> selectedThreads = new LinkedHashSet<H>(getSelectionModel().getSelectedItems());
-		if (selectedThreads.size() == 1) {
-			final Iterator<H> i = selectedThreads.iterator();
-			if (i.next() == null) {
-				i.remove();
-			}
+		final ObservableList<H> selectedList = getSelectionModel().getSelectedItems();
+		Set<H> selectedSet;
+		if (selectedList.isEmpty()) {
+			selectedSet = new HashSet<H>();
+		} else {
+			selectedSet = Collections.unmodifiableSet(new LinkedHashSet<H>(selectedList));
 		}
-		return Collections.unmodifiableSet(selectedThreads);
+		return Collections.unmodifiableSet(selectedSet);
 	}
 
 	public void setOnSelectThreads(final EventHandler<ActionEvent> handler) {

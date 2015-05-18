@@ -73,10 +73,11 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 
 	private void initGui(final Stage primaryStage) throws MailException, LoginException {
 		final SplitPane splitPane = new SplitPane();
-		splitPane.setStyle("-fx-background-color: transparent; -fx-border-color: transparent");
+		splitPane.getStyleClass().add("background");
 
 		final Scene scene = new Scene(splitPane, 1400, 700);
 		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/excludebox.css").toExternalForm());
+		scene.getStylesheets().add(getClass().getResource("MailBrowserApp.css").toExternalForm());
 
 		/* section+tag list */ {
 			sectionListPane = new SectionListPane<S, T>(mailService, DND_THREADS_DATA_FORMAT);
@@ -188,7 +189,7 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 		}
 		LOGGER.debug("refreshAfterSectionUpdate");
 
-		threadListPane.refreshWithTags(sectionListPane.getIncludedTagsNew(), sectionListPane.getExcludedTagsNew());
+		threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
 	}
 
 	private void refreshAfterThreadSelected() {
@@ -223,7 +224,7 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 		}
 		LOGGER.debug("refreshAfterTagSelected");
 
-		threadListPane.refreshWithTags(sectionListPane.getIncludedTagsNew(), sectionListPane.getExcludedTagsNew());
+		threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
 	}
 
 	private void refreshAfterPatternUpdate() {
@@ -242,6 +243,6 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 		LOGGER.debug("refreshAfterThreadUpdate");
 
 		sectionListPane.refreshAsync();
-		threadListPane.refreshWithTags(sectionListPane.getIncludedTagsNew(), sectionListPane.getExcludedTagsNew());
+		threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
 	}
 }
