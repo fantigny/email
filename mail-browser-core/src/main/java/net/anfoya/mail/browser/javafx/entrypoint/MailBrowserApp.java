@@ -170,9 +170,6 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 
 	boolean refreshAfterPatternUpdate = false;
 
-	boolean refreshAfterUpdateTag = false;
-
-
 	private void refreshAfterRemoteUpdate() {
 		if (!refreshAfterRemoteUpdate) {
 			return;
@@ -188,7 +185,7 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 		}
 		LOGGER.debug("refreshAfterSectionUpdate");
 
-		threadListPane.refreshWithTags(sectionListPane.getIncludedTagsNew(), sectionListPane.getExcludedTagsNew());
+		sectionListPane.refreshAsync();
 	}
 
 	private void refreshAfterThreadSelected() {

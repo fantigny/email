@@ -159,10 +159,6 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 				sectionPane.setDisableWhenZero(sectionDisableWhenZero);
 				sectionPane.setLazyCount(lazyCount);
 				sectionPane.setExtItemDataFormat(extItemDataFormat);
-				sectionPane.setOnDragDone(event -> {
-					refreshAsync();
-					event.consume();
-				});
 				sectionAcc.getPanes().add(index, sectionPane);
 			}
 			index++;
