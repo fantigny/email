@@ -155,8 +155,8 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 				refreshAfterRemoteUpdate();
 			}
 		});
-		refreshService.setDelay(Duration.seconds(60));
-		refreshService.setPeriod(Duration.seconds(60));
+		refreshService.setDelay(Duration.seconds(10));
+		refreshService.setPeriod(Duration.seconds(5));
 		refreshService.setExecutor(ThreadPool.getInstance().getExecutor());
 		refreshService.start();
 	}

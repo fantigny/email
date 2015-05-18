@@ -232,8 +232,8 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 		return section;
 	}
 
-	public boolean contains(final String tagName) {
-		return itemMap.containsKey(tagName);
+	public boolean contains(final T tag) {
+		return itemMap.containsKey(tag.getName());
 	}
 
 	public TagListItem<T> getSectionItem() {

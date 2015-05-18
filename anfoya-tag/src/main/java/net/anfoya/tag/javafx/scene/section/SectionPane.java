@@ -50,6 +50,8 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 	private Timeline expandDelay;
 	private EventHandler<ActionEvent> selectHandler;
 
+	private EventHandler<ActionEvent> updateHandler;
+
 	@SuppressWarnings("unchecked")
 	public SectionPane(final TagService<S, T> tagService, final S section) {
 		this.tagService = tagService;
@@ -78,10 +80,14 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 					expandDelay = expandAfterDelay();
 					event.consume();
 				}
-			} else if (db.hasContent(DndFormat.TAG_DATA_FORMAT)
+			}
+		});
+		setOnDragOver(event -> {
+			final Dragboard db = event.getDragboard();
+			if (db.hasContent(DndFormat.TAG_DATA_FORMAT)
 					&& !section.getId().startsWith(SimpleSection.NO_ID)) { //TODO improve
 				final T tag = (T) db.getContent(DndFormat.TAG_DATA_FORMAT);
-				if (!tagList.contains(tag.getName())) {
+				if (!tagList.contains(tag)) {
 					SectionPane.this.setOpacity(.5);
 					event.acceptTransferModes(TransferMode.ANY);
 					event.consume();
@@ -112,6 +118,9 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 					e.printStackTrace();
 				}
 			}
+		});
+		setOnDragDone(event -> {
+			updateHandler.handle(null);
 		});
 
 		setExpanded(false);
@@ -271,5 +280,9 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 				handler.handle(event);
 			}
 		});
+	}
+
+	public void setOnUpdateSection(final EventHandler<ActionEvent> handler) {
+		updateHandler = handler;
 	}
 }

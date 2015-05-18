@@ -31,17 +31,15 @@ class TagListCell<T extends SimpleTag> extends CheckBoxListCell<TagListItem<T>> 
 		        content.put(DndFormat.TAG_DATA_FORMAT, getItem().getTag());
 		        final Dragboard db = startDragAndDrop(TransferMode.ANY);
 		        db.setContent(content);
+		        event.consume();
 			}
 		});
-
 		setOnDragOver(event -> {
 			if (getItem() != null && event.getDragboard().hasContent(dataFormat)) {
 				event.acceptTransferModes(TransferMode.ANY);
 				event.consume();
 			}
 		});
-
-
         setOnDragEntered(event -> {
         	LOGGER.debug("{}", dataFormat);
 			if (getItem() != null && event.getDragboard().hasContent(dataFormat)) {

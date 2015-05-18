@@ -512,7 +512,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			final Label label = labelService.get(tag.getId());
 			String newName = label.getName();
 			if (newName.contains("/")) {
-				newName = newName.substring(0, newName.lastIndexOf("/"));
+				newName = newName.substring(0, newName.lastIndexOf("/") + 1);
 			} else {
 				newName = "";
 			}

@@ -127,8 +127,8 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		stackPane.setOnDragDone(event -> {
 			if (event.isDropCompleted()) {
 				updateSectionHandler.handle(null);
+				event.consume();
 			}
-			event.consume();
 		});
 		setCenter(stackPane);
 
@@ -161,14 +161,8 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 				sectionPane.setDisableWhenZero(sectionDisableWhenZero);
 				sectionPane.setLazyCount(lazyCount);
 				sectionPane.setOnSelectTag(selectTagHandler);
+				sectionPane.setOnUpdateSection(updateSectionHandler);
 				sectionPane.setExtItemDataFormat(extItemDataFormat);
-				//TODO check if needed
-				sectionPane.setOnDragDone(event -> {
-					if (event.isDropCompleted()) {
-						updateSectionHandler.handle(null);
-						event.consume();
-					}
-				});
 				sectionAcc.getPanes().add(index, sectionPane);
 			}
 			index++;
@@ -230,10 +224,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		for(final TitledPane sectionPane: sectionAcc.getPanes()) {
 			@SuppressWarnings("unchecked")
 			final TagList<S, T> tagList = (TagList<S, T>) sectionPane.getContent();
-			if (tagList.contains(tagName)) {
-				tagList.setTagSelected(tagName, false);
-				break;
-			}
+			tagList.setTagSelected(tagName, false);
 		}
 	}
 
