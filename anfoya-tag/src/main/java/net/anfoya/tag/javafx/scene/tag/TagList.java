@@ -37,7 +37,6 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 	private final Map<String, TagListItem<T>> itemMap = new HashMap<String, TagListItem<T>>();
 
 	private ChangeListener<? super Boolean> incExcListener;
-	private ChangeListener<? super TagListItem<T>> selectListener;
 	private DataFormat extItemDataFormat;
 
 	private final AtomicBoolean refreshing = new AtomicBoolean(false);

@@ -57,13 +57,14 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 
 	public SectionListPane(final TagService<S, T> tagService) {
 		this(tagService, null);
-		lazyCount = true;
-		sectionDisableWhenZero = true;
 	}
 
 	public SectionListPane(final TagService<S, T> tagService, final DataFormat extItemDataFormat) {
 		this.tagService = tagService;
 		this.extItemDataFormat = extItemDataFormat;
+
+		lazyCount = true;
+		sectionDisableWhenZero = true;
 
 		tagPatternField = new TextField();
 		tagPatternField.prefWidthProperty().bind(widthProperty());
