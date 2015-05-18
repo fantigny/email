@@ -119,25 +119,25 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 		// sort
 		Collections.sort(obsThreads, sortOrder.getComparator());
 
-		// find selected indices in new list
-		final int[] indices = new int[selectedThreads.size()];
-		Arrays.fill(indices, -1);
-		int listIndex = 0, arrayIndex = 0;
-		for(final H thread: obsThreads) {
-			if (!thread.isUnread() && selectedThreads.contains(thread)) {
-				indices[arrayIndex] = listIndex;
-				arrayIndex++;
-			}
-			listIndex++;
-		}
-
 		// display
 		refreshing = true;
 		getItems().setAll(threads);
 
 		// restore selection
 		getSelectionModel().clearSelection();
-		if (indices.length > 0) {
+		if (!getItems().isEmpty()) {
+			LOGGER.debug("selected threads", threads);
+			final int[] indices = new int[selectedThreads.size()];
+			Arrays.fill(indices, -1);
+			int itemIndex = 0, arrayIndex = 0;
+			for(final H t: getItems()) {
+				if (selectedThreads.contains(t) && !t.isUnread()) {
+					indices[arrayIndex] = itemIndex;
+					arrayIndex++;
+				}
+				itemIndex++;
+			}
+
 			getSelectionModel().selectIndices(indices[0], indices);
 		}
 		refreshing = false;
