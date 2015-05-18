@@ -164,7 +164,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 				sectionPane.setExtItemDataFormat(extItemDataFormat);
 				sectionPane.setOnDragDone(event -> {
 					if (event.isDropCompleted()) {
-						refreshAsync();
+						updateSectionHandler.handle(null);
 					}
 					event.consume();
 				});
@@ -266,7 +266,6 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 
 	public void setOnSelectTag(final EventHandler<ActionEvent> handler) {
 		selectTagHandler = handler;
-
 	}
 
 	public void setOnUpdateSection(final EventHandler<ActionEvent> handler) {

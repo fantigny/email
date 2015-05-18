@@ -153,7 +153,6 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 			@Override
 			protected Void call() throws Exception {
 				mailService.addTagForThreads(tag, threads);
-				updateThreadHandler.handle(null);
 				return null;
 			}
 		};
@@ -162,7 +161,7 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 			event.getSource().getException().printStackTrace(System.out);
 		});
 		task.setOnSucceeded(event -> {
-			threadList.load();
+			updateThreadHandler.handle(null);
 		});
 		ThreadPool.getInstance().submitHigh(task);
 	}

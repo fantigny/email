@@ -13,6 +13,7 @@ import javafx.scene.control.ToolBar;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.util.Callback;
 import javafx.util.Duration;
 
 import javax.security.auth.login.LoginException;
@@ -171,9 +172,6 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 
 	boolean refreshAfterPatternUpdate = false;
 
-	boolean refreshAfterUpdateTag = false;
-
-
 	private void refreshAfterRemoteUpdate() {
 		if (!refreshAfterRemoteUpdate) {
 			return;
@@ -189,7 +187,13 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 		}
 		LOGGER.debug("refreshAfterSectionUpdate");
 
-		threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
+		sectionListPane.refreshAsync(new Callback<Void, Void>() {
+			@Override
+			public Void call(final Void v) {
+				threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
+				return null;
+			}
+		});
 	}
 
 	private void refreshAfterThreadSelected() {
