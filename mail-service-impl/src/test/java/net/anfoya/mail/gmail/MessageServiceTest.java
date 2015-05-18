@@ -35,6 +35,6 @@ public class MessageServiceTest {
 		Assert.assertNotNull(draft);
 
 		//cleanup
-		service.deleteDraft(draft.getId());
+		service.removeDraft(draft.getId());
 	}
 }

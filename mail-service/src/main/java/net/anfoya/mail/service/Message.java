@@ -6,4 +6,5 @@ public interface Message extends Serializable {
 
 	public String getId();
 	public byte[] getRfc822mimeRaw();
+	public boolean isDraft();
 }

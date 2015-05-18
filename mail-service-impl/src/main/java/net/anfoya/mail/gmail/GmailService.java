@@ -29,6 +29,7 @@ import net.anfoya.mail.gmail.service.MessageException;
 import net.anfoya.mail.gmail.service.MessageService;
 import net.anfoya.mail.gmail.service.ThreadException;
 import net.anfoya.mail.gmail.service.ThreadService;
+import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 
 import org.slf4j.Logger;
@@ -205,7 +206,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public GmailMessage getMessage(final String id) throws GMailException {
 		try {
-		    return new GmailMessage(id, messageService.getRaw(id));
+		    return new GmailMessage(id, messageService.getRaw(id), false);
 		} catch (final MessageException e) {
 			throw new GMailException("loading message id: " + id, e);
 		}
@@ -215,7 +216,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	public GmailMessage createDraft() throws GMailException {
 		try {
 			final Draft draft = messageService.createDraft();
-			return new GmailMessage(draft.getId(), Base64.getUrlDecoder().decode(draft.getMessage().getRaw()));
+			return new GmailMessage(draft.getId(), Base64.getUrlDecoder().decode(draft.getMessage().getRaw()), true);
 		} catch (final MessageException e) {
 			throw new GMailException("creating draft", e);
 		}
@@ -589,6 +590,19 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			return historyService.hasUpdate();
 		} catch (final HistoryException e) {
 			throw new GMailException("checking for updates", e);
+		}
+	}
+
+	@Override
+	public void remove(final GmailMessage message) throws MailException {
+		try {
+			if (message.isDraft()) {
+				messageService.removeDraft(message.getId());
+			} else {
+				messageService.removeMessage(message.getId());
+			}
+		} catch (final MessageException e) {
+			throw new GMailException("removing message " + message.getId(), e);
 		}
 	}
 }

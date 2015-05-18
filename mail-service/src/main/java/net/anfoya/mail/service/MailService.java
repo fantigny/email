@@ -27,5 +27,8 @@ public interface MailService<S extends SimpleSection
 	public void trash(Set<H> threads) throws MailException;
 
 	public M getMessage(String id) throws MailException;
+
 	public M createDraft() throws MailException;
+	public void remove(M message) throws MailException;
+
 }

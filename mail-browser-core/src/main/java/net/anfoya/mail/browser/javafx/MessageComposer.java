@@ -100,6 +100,12 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 
 		final Button discardButton = new Button("discard");
 		discardButton.setOnAction(event -> {
+			try {
+				mailService.remove(draft);
+			} catch (final Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			close();
 		});
 
