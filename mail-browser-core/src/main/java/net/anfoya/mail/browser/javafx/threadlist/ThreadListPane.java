@@ -126,9 +126,6 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 
 		namePatternField = new TextField();
 		namePatternField.setPromptText("search");
-		namePatternField.textProperty().addListener((ChangeListener<String>) (ov, oldPattern, newPattern) -> {
-			threadList.refreshWithPattern(newPattern);
-		});
 		patternPane.setCenter(namePatternField);
 		BorderPane.setMargin(namePatternField, new Insets(0, 5, 0, 5));
 

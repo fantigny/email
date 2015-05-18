@@ -11,13 +11,18 @@ import net.anfoya.javafx.scene.control.ExcludeBox;
 import net.anfoya.tag.javafx.scene.dnd.DndFormat;
 import net.anfoya.tag.model.SimpleTag;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 class TagListCell<T extends SimpleTag> extends CheckBoxListCell<TagListItem<T>> {
+	private static final Logger LOGGER = LoggerFactory.getLogger(TagListCell.class);
+
 	public TagListCell() {
 		super();
 		setSelectedStateCallback(item -> item.includedProperty());
 	}
 
-	public TagListCell(final DataFormat extItemDataFormat) {
+	public TagListCell(final DataFormat dataFormat) {
 		this();
 
 		setOnDragDetected(event -> {
@@ -28,28 +33,34 @@ class TagListCell<T extends SimpleTag> extends CheckBoxListCell<TagListItem<T>> 
 		        db.setContent(content);
 			}
 		});
-        setOnDragEntered(event -> {
-			if (getItem() != null && event.getDragboard().hasContent(extItemDataFormat)) {
-	            setOpacity(0.5);
-        	}
-        });
-        setOnDragExited(event -> {
-			if (getItem() != null && event.getDragboard().hasContent(extItemDataFormat)) {
-	            setOpacity(1);
-	            event.consume();
-        	}
-        });
+
 		setOnDragOver(event -> {
-			if (getItem() != null && event.getDragboard().hasContent(extItemDataFormat)) {
+			if (getItem() != null && event.getDragboard().hasContent(dataFormat)) {
 				event.acceptTransferModes(TransferMode.ANY);
 				event.consume();
 			}
 		});
+
+
+        setOnDragEntered(event -> {
+        	LOGGER.debug("{}", dataFormat);
+			if (getItem() != null && event.getDragboard().hasContent(dataFormat)) {
+				event.acceptTransferModes(TransferMode.ANY);
+	            setOpacity(0.5);
+	            event.consume();
+        	}
+        });
+        setOnDragExited(event -> {
+			if (getItem() != null && event.getDragboard().hasContent(dataFormat)) {
+	            setOpacity(1);
+	            event.consume();
+        	}
+        });
 		setOnDragDropped(event -> {
 			final Dragboard db = event.getDragboard();
-			if (getItem() != null && db.hasContent(extItemDataFormat)) {
+			if (getItem() != null && db.hasContent(dataFormat)) {
 				final ClipboardContent content = new ClipboardContent();
-				content.put(extItemDataFormat, db.getContent(extItemDataFormat));
+				content.put(dataFormat, db.getContent(dataFormat));
 				content.put(DndFormat.TAG_DATA_FORMAT, getItem().getTag());
 				db.setContent(content);
 				event.setDropCompleted(true);

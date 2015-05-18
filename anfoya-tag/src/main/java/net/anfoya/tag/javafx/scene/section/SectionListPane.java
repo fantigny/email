@@ -44,16 +44,17 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 	private EventHandler<ActionEvent> selectTagHandler;
 	private EventHandler<ActionEvent> updateSectionHandler;
 
-	private boolean lazyCount;
 	private boolean sectionDisableWhenZero;
-	private Set<T> availableTags;
-	private Set<T> excludedTags;
-	private Set<T> includedTags;
-	private int currentCount;
-	private String namePattern;
+
+	private boolean lazyCount;
+	private String previousItemPattern;
+	private Set<T> previousIncludes;
+
 	private String tagPattern;
+
 	private Task<Set<S>> refreshTask;
 	private int refreshTaskId;
+	private Set<T> previousExcludes;
 
 	public SectionListPane(final TagService<S, T> tagService) {
 		this(tagService, null);
@@ -109,7 +110,6 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 					&& !stackPane.getChildren().contains(extItemDropPane)) {
 				stackPane.getChildren().add(extItemDropPane);
 			}
-			event.consume();
 		});
 		stackPane.setOnDragExited(event -> {
 			if (event.getDragboard().hasContent(DndFormat.SECTION_DATA_FORMAT)
@@ -123,7 +123,6 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 					&& stackPane.getChildren().contains(extItemDropPane)) {
 				stackPane.getChildren().remove(extItemDropPane);
 			}
-			event.consume();
 		});
 		stackPane.setOnDragDone(event -> {
 			if (event.isDropCompleted()) {
@@ -163,11 +162,12 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 				sectionPane.setLazyCount(lazyCount);
 				sectionPane.setOnSelectTag(selectTagHandler);
 				sectionPane.setExtItemDataFormat(extItemDataFormat);
+				//TODO check if needed
 				sectionPane.setOnDragDone(event -> {
 					if (event.isDropCompleted()) {
 						updateSectionHandler.handle(null);
+						event.consume();
 					}
-					event.consume();
 				});
 				sectionAcc.getPanes().add(index, sectionPane);
 			}
@@ -184,22 +184,6 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 			final SectionPane<S, T> sectionPane = (SectionPane<S, T>) pane;
 			sectionPane.refresh(includes, excludes, tagPattern);
 		}
-	}
-
-	public void refreshWithTags(final Set<T> availableTags, final int currentCount, final boolean lazy) {
-		this.availableTags = availableTags;
-		this.currentCount = currentCount;
-		if (getIncludedTags().equals(includedTags)
-				&& getExcludedTags().equals(excludedTags)) {
-			return;
-		}
-
-		updateCount();
-	}
-
-	public void refreshWithPattern(final String namePattern) {
-		this.namePattern = namePattern;
-		updateCount();
 	}
 
 	public void refreshAsync() {
@@ -263,24 +247,45 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 				break;
 			}
 		}
+		selectedPane.refresh(getAllSelectedTags());
 	}
 
 	public void setOnSelectTag(final EventHandler<ActionEvent> handler) {
-		selectTagHandler = handler;
+		selectTagHandler = event -> {
+			selectedPane.refresh(getAllSelectedTags());
+			handler.handle(event);
+		};
 	}
 
 	public void setOnUpdateSection(final EventHandler<ActionEvent> handler) {
 		updateSectionHandler = handler;
 	}
 
-	public void updateCount() {
-		includedTags = getIncludedTags();
-		excludedTags = getExcludedTags();
+	public void updateItemCount(final Set<T> availableTags, final int currentCount, final String itemPattern, final boolean lazy) {
+		if (isCheckMode()) {
+			updateItemCount(currentCount, availableTags, getIncludedTags(), getExcludedTags(), itemPattern);
+		} else if (!lazy) {
+			updateItemCount(currentCount, availableTags, getIncludedTags(), getExcludedTags(), itemPattern);
+		} else {
+			final Set<T> includes = getIncludedTags();
+			final Set<T> excludes = getExcludedTags();
+
+			if (!itemPattern.equals(previousItemPattern)
+					|| !includes.equals(previousIncludes)
+					|| !excludes.equals(previousExcludes)) {
+				updateItemCount(currentCount, availableTags, includes, excludes, itemPattern);
+			}
+			this.previousIncludes = includes;
+			this.previousExcludes = excludes;
+		}
+	}
+
+	private void updateItemCount(final int currentCount, final Set<T> availableTags, final Set<T> includes, final Set<T> excludes, final String namePattern) {
 		tagPattern = tagPatternField.getText();
 		for(final TitledPane titledPane: sectionAcc.getPanes()) {
 			@SuppressWarnings("unchecked")
 			final SectionPane<S, T> sectionPane = (SectionPane<S, T>) titledPane;
-			sectionPane.updateCountAsync(currentCount, availableTags, includedTags, excludedTags, namePattern, tagPattern);
+			sectionPane.updateCountAsync(currentCount, availableTags, includes, excludes, namePattern, tagPattern);
 		}
 	}
 
@@ -373,7 +378,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		return tag;
 	}
 
-	public boolean isCheckMode() {
+	private boolean isCheckMode() {
 		boolean checkMode = false;
 		for(final TitledPane titledPane: sectionAcc.getPanes()) {
 			@SuppressWarnings("unchecked")

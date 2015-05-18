@@ -178,7 +178,11 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 		}
 		LOGGER.debug("refreshAfterRemoteUpdate");
 
-		sectionListPane.refreshAsync();
+		sectionListPane.refreshAsync(v -> {
+			sectionListPane.updateItemCount(threadListPane.getThreadsTags(), threadListPane.getThreadCount(), threadListPane.getNamePattern(), false);
+			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
+			return null;
+		});
 	}
 
 	private void refreshAfterSectionUpdate() {
@@ -212,14 +216,8 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 		}
 		LOGGER.debug("refreshAfterThreadListLoad");
 
-		// refresh tags when a new list of threads is loaded
-		sectionListPane.refreshWithTags(
-				threadListPane.getThreadsTags()
-				, threadListPane.getThreadCount()
-				, true);
-
-		// update thread details in case no thread is selected
 		threadPane.refresh(threadListPane.getSelectedThreads());
+		sectionListPane.updateItemCount(threadListPane.getThreadsTags(), threadListPane.getThreadCount(), threadListPane.getNamePattern(), true);
 	}
 
 	private void refreshAfterTagSelected() {
@@ -237,7 +235,8 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 		}
 		LOGGER.debug("refreshAfterPatternUpdate");
 
-		sectionListPane.refreshWithPattern(threadListPane.getNamePattern());
+		sectionListPane.updateItemCount(threadListPane.getThreadsTags(), threadListPane.getThreadCount(), threadListPane.getNamePattern(), false);
+		threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
 	}
 
 	private void refreshAfterThreadUpdate() {
@@ -246,7 +245,9 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 		}
 		LOGGER.debug("refreshAfterThreadUpdate");
 
-		sectionListPane.refreshAsync();
-		threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
+		sectionListPane.refreshAsync(event -> {
+			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
+			return null;
+		});
 	}
 }

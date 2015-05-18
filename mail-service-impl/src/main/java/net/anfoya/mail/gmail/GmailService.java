@@ -175,21 +175,29 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			final String unreadId = labelService.find("UNREAD").getId();
 			for(final Thread t: threadService.find(query.toString())) {
 				// clean labels
-				for(final Message m: t.getMessages()) {
-					final List<String> cleaned = new ArrayList<String>();
-					for(final String id: m.getLabelIds()) {
-						final Label l = labelService.get(id);
-						if (l!= null && !GmailTag.isHidden(l)) {
-							cleaned.add(id);
+				if (t.getMessages() == null) {
+					LOGGER.error("no message for thread {}", t.toPrettyString());
+				} else {
+					for(final Message m: t.getMessages()) {
+						final List<String> cleaned = new ArrayList<String>();
+						if (m.getLabelIds() == null) {
+							LOGGER.error("no label for message {}", m.toPrettyString());
+						} else {
+							for(final String id: m.getLabelIds()) {
+								final Label l = labelService.get(id);
+								if (l!= null && !GmailTag.isHidden(l)) {
+									cleaned.add(id);
+								}
+							}
 						}
+						m.setLabelIds(cleaned);
 					}
-					m.setLabelIds(cleaned);
 				}
 				threads.add(new GmailThread(t, unreadId));
 			}
 
 			return threads;
-		} catch (final ThreadException | LabelException e) {
+		} catch (final ThreadException | LabelException | IOException e) {
 			throw new GMailException("login", e);
 		}
 	}

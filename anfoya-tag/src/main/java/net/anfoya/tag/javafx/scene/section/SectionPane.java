@@ -56,7 +56,6 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 		this.sectionItem = new TagListItem<SimpleTag>(new SimpleTag(section.getId(), section.getName()));
 
 		tagList = new TagList<S, T>(tagService, section);
-		tagList.setExtItemDataFormat(extItemDataFormat);
 		setContent(tagList);
 
 		isTag = false;
@@ -77,8 +76,8 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 				if (!isExpanded()) {
 					event.acceptTransferModes(TransferMode.ANY);
 					expandDelay = expandAfterDelay();
+					event.consume();
 				}
-				event.consume();
 			} else if (db.hasContent(DndFormat.TAG_DATA_FORMAT)
 					&& !section.getId().startsWith(SimpleSection.NO_ID)) { //TODO improve
 				final T tag = (T) db.getContent(DndFormat.TAG_DATA_FORMAT);
@@ -175,9 +174,6 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 		}
 
 		final Runnable tagListTask = () -> {
-			if (Thread.currentThread().isInterrupted()) {
-				return;
-			}
 			tagList.updateCount(currentCount, availableTags, includes, excludes, namePattern);
 		};
 		if (!lazyCount || isExpanded()) {
@@ -263,7 +259,8 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 	}
 
 	public void setExtItemDataFormat(final DataFormat dataFormat) {
-		this.extItemDataFormat = dataFormat;
+		extItemDataFormat = dataFormat;
+		tagList.setExtItemDataFormat(dataFormat);
 	}
 
 	public void setOnSelectTag(final EventHandler<ActionEvent> handler) {
