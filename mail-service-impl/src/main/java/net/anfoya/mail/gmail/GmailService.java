@@ -14,8 +14,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.prefs.BackingStoreException;
+import java.util.prefs.Preferences;
 
-import net.anfoya.java.io.JsonFile;
 import net.anfoya.mail.gmail.model.GmailMessage;
 import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.gmail.model.GmailTag;
@@ -85,19 +86,16 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		try {
 			final String path = this.getClass().getResource(CLIENT_SECRET_PATH).toURI().getPath();
 			final GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(jsonFactory, new FileReader(path));
-			// read refresh token
-			final JsonFile<String> refreshTokenFile = new JsonFile<String>("refreshToken.json");
 
-			String refreshToken = null;
-			if (refreshTokenFile.exists()) {
-				refreshToken = refreshTokenFile.load(String.class);
-			}
+			// read refresh token
+		    final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
+		    final String refreshToken = prefs.get("refreshToken", null);
 
 			// Generate Credential using retrieved code.
-			final GoogleCredential credential = new GoogleCredential
-					.Builder()
+			final GoogleCredential credential = new GoogleCredential.Builder()
 					.setClientSecrets(clientSecrets)
-					.setJsonFactory(jsonFactory).setTransport(httpTransport)
+					.setJsonFactory(jsonFactory)
+					.setTransport(httpTransport)
 					.build();
 			if (refreshToken == null || refreshToken.isEmpty()) {
 				// Allow user to authorize via url.
@@ -122,8 +120,9 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			gmail = new Gmail.Builder(httpTransport, jsonFactory, credential).setApplicationName(APP_NAME).build();
 
 			// save refresh token
-			refreshTokenFile.save(credential.getRefreshToken());
-		} catch (final URISyntaxException | IOException e) {
+			prefs.put("refreshToken", refreshToken);
+			prefs.flush();
+		} catch (final URISyntaxException | IOException | BackingStoreException e) {
 			throw new GMailException("login", e);
 		}
 
@@ -386,7 +385,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			if (tags.isEmpty()) {
 				return 0;
 			}
-			
+
 			final StringBuilder query = new StringBuilder();
 			boolean first = true;
 			for (final GmailTag t: tags) {
