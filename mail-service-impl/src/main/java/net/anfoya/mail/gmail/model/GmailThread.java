@@ -42,8 +42,7 @@ public class GmailThread extends SimpleThread {
 		if (from.contains(" <")) {
 			from = from.substring(0, from.indexOf(" <"));
 		}
-		from = from.replaceAll("\"", "");
-		return from;
+		return from.replaceAll("\"", "");
 	}
 
 	private static Date findDate(final Thread thread) {

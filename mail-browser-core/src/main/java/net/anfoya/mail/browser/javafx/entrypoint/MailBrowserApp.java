@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage> extends Application{
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailBrowserApp.class);
+	private static final Duration REFRESH_PERIOD = Duration.seconds(20);
 
 	public static void main(final String[] args) {
 		launch(args);
@@ -59,14 +60,7 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 		@SuppressWarnings("unchecked")
 		final MailService<S, T, H, M> mailService = (MailService<S, T, H, M>) new GmailService();
 		this.mailService = mailService;
-		ThreadPool.getInstance().submitHigh(() -> {
-			try {
-				mailService.login(null, null);
-			} catch (final MailException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		});
+		mailService.login("fisher-mail");
 
 		initGui(primaryStage);
 		initData();
@@ -125,9 +119,12 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 		primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("Mail.png")));
         primaryStage.setScene(scene);
         primaryStage.show();
+
+		sectionListPane.requestFocus();
 	}
 
 	private void initData() {
+
 		sectionListPane.refreshAsync(v -> {
 			sectionListPane.selectTag(GmailSection.SYSTEM.getName(), "Inbox");
 //			sectionListPane.selectTag("Bank", "HK HSBC");
@@ -155,8 +152,8 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 				refreshAfterRemoteUpdate();
 			}
 		});
-		refreshService.setDelay(Duration.seconds(10));
-		refreshService.setPeriod(Duration.seconds(5));
+		refreshService.setDelay(REFRESH_PERIOD);
+		refreshService.setPeriod(REFRESH_PERIOD);
 		refreshService.setExecutor(ThreadPool.getInstance().getExecutor());
 		refreshService.start();
 	}
@@ -236,7 +233,6 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 		LOGGER.debug("refreshAfterPatternUpdate");
 
 		sectionListPane.updateItemCount(threadListPane.getThreadsTags(), threadListPane.getThreadCount(), threadListPane.getNamePattern(), false);
-		threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
 	}
 
 	private void refreshAfterThreadUpdate() {

@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 
 import javafx.collections.FXCollections;
@@ -31,7 +30,6 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadList.class);
 
 	private final MailService<S, T, H, ? extends SimpleMessage> mailService;
-	private final AtomicLong taskId = new AtomicLong();
 
 	private boolean refreshing;
 	private Set<H> threads;
@@ -44,6 +42,9 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 	//TODO enhance
 	private final Predicate<H> nameFilter = thread -> thread.getSubject().toLowerCase().contains(namePattern);
 	private EventHandler<ActionEvent> loadHandler;
+
+	private long loadTaskId;
+	private Task<Set<H>> loadTask;
 
 	public ThreadList(final MailService<S, T, H, ? extends SimpleMessage> mailService) {
 		this.mailService = mailService;
@@ -82,28 +83,30 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 		load();
 	}
 
-	protected void load() {
-		final long id = this.taskId.incrementAndGet();
-		final Task<Set<H>> task = new Task<Set<H>>() {
+	protected synchronized void load() {
+		final long taskId = ++loadTaskId;
+		if (loadTask != null && loadTask.isRunning()) {
+			loadTask.cancel();
+		}
+		loadTask = new Task<Set<H>>() {
 			@Override
 			protected Set<H> call() throws InterruptedException, MailException {
-				if (Thread.currentThread().isInterrupted()) {
-					throw new InterruptedException();
-				}
+				LOGGER.debug("loading for includes {}, excludes {}, pattern: {}", includes, excludes, namePattern);
 				return mailService.getThreads(includes, excludes, namePattern);
 			}
 		};
-		task.setOnFailed(event -> {
+		loadTask.setOnFailed(event -> {
 			// TODO Auto-generated catch block
 			event.getSource().getException().printStackTrace(System.out);
 		});
-		task.setOnSucceeded(event -> {
-			threads = task.getValue();
-			if (id == taskId.get()) {
-				refresh();
+		loadTask.setOnSucceeded(event -> {
+			if (taskId != loadTaskId) {
+				return;
 			}
+			threads = loadTask.getValue();
+			refresh();
 		});
-		ThreadPool.getInstance().submitHigh(task);
+		ThreadPool.getInstance().submitHigh(loadTask);
 	}
 
 	private void refresh() {

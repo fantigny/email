@@ -20,7 +20,7 @@ public class MessageServiceTest {
 	private String messageId;
 
 	@Before public void init() throws MailException, ThreadException {
-		final Gmail gmail = new GmailService().login();
+		final Gmail gmail = new GmailService().login("test");
 		service = new MessageService(gmail, "me");
 		messageId = new ThreadService(gmail, "me").find("subject:" + TEST_SUBJECT).iterator().next().getMessages().get(0).getId();
 	}

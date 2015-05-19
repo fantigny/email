@@ -6,6 +6,8 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.beans.value.ChangeListener;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
@@ -20,6 +22,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.util.Callback;
+import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.Title;
 import net.anfoya.tag.javafx.scene.dnd.DndFormat;
@@ -30,7 +33,6 @@ import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
 import net.anfoya.tag.service.TagException;
 import net.anfoya.tag.service.TagService;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class SectionListPane<S extends SimpleSection, T extends SimpleTag> extends BorderPane {
 	private final TagService<S, T> tagService;
@@ -55,6 +57,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 	private Task<Set<S>> refreshTask;
 	private int refreshTaskId;
 	private Set<T> previousExcludes;
+	private Timeline tagPatternDelay;
 
 	public SectionListPane(final TagService<S, T> tagService) {
 		this(tagService, null);
@@ -74,8 +77,8 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 			refreshWithTagPattern();
 		});
 
-		final HBox patternBox = new HBox(5, new Title("Label"), tagPatternField);
-		patternBox.setPadding(new Insets(0 , 5, 0, 5));
+		final HBox patternBox = new HBox(5, new Title("tags"), tagPatternField);
+		patternBox.setPadding(new Insets(0, 5, 0, 5));
 		setTop(patternBox);
 
 		/* TODO: text field with stacked pane for reset button
@@ -216,8 +219,19 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		ThreadPool.getInstance().submitHigh(refreshTask);
 	}
 
-	protected void refreshWithTagPattern() {
-		throw new NotImplementedException();
+	private synchronized void refreshWithTagPattern() {
+		if (tagPatternDelay != null) {
+			tagPatternDelay.stop();
+		}
+
+		tagPatternDelay = new Timeline(new KeyFrame(Duration.millis(500), new EventHandler<ActionEvent>() {
+		    @Override
+		    public void handle(final ActionEvent event) {
+	    		refreshAsync();
+		    }
+		}));
+		tagPatternDelay.setCycleCount(1);
+		tagPatternDelay.play();
 	}
 
 	public void unselectTag(final String tagName) {

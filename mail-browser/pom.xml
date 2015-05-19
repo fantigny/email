@@ -1,0 +1,16 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>net.anfoya</groupId>
+	<artifactId>mail-browser</artifactId>
+	<packaging>pom</packaging>
+	<version>0.0.1-SNAPSHOT</version>
+	<modules>
+		<module>../anfoya-tools</module>
+		<module>../anfoya-tag</module>
+		<module>../anfoya-javafx</module>
+		<module>../mail-service</module>
+		<module>../mail-service-impl</module>
+		<module>../mail-browser-core</module>
+	</modules>
+</project>
