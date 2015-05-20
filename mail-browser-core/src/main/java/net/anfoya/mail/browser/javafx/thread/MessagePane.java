@@ -7,11 +7,9 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.Set;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -72,7 +70,6 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 	private M message;
 	private MimeMessage mimeMessage;
 	private Task<String> loadTask;
-	private final Set<MimeBodyPart> attachements;
 	private final Map<String, String> cidFilenames;
 
 	private static boolean copied = false;
@@ -93,7 +90,6 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 		this.messageId = messageId;
 		this.collapsible = true;
 
-		attachements = new LinkedHashSet<MimeBodyPart>();
 		cidFilenames = new HashMap<String, String>();
 		bodyView = new WebViewFitContent();
 
@@ -155,13 +151,13 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 	private String toHtml(final Part part, boolean isHtml) throws IOException, MessagingException {
 		final String type = part.getContentType().replaceAll("\\r", "").replaceAll("\\n", "").replaceAll("\\t", " ");
 		isHtml = isHtml || type.contains("multipart/alternative");
-		if (type.contains("text/html")) {
+		if (part.getContent() instanceof String && type.contains("text/html")) {
 			LOGGER.debug("++++ type {}", type);
 			return (String) part.getContent();
-		} else if (type.contains("text/plain") && !isHtml) {
+		} else if (part.getContent() instanceof String && type.contains("text/plain") && !isHtml) {
 			LOGGER.debug("++++ type {}", type);
 			return "<pre>" + part.getContent() + "</pre>";
-		} else if (type.contains("multipart")) {
+		} else if (part instanceof Multipart || type.contains("multipart")) {
 			LOGGER.debug("++++ type {}", type);
 			final Multipart parts = (Multipart) part.getContent();
 			final StringBuilder html = new StringBuilder();
@@ -191,14 +187,6 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 			} else {
 				return "<a href ='file://" + tempFilename + "'><table><tr><td><img src='file://" + ATTACH_ICON_PATH + "'></td></tr><tr><td>" + MimeUtility.decodeText(bodyPart.getFileName()) + "</td></tr></table></a>";
 			}
-		} else if (part instanceof MimeBodyPart
-				&& part.getContent() instanceof BASE64DecoderStream
-				&& MimeBodyPart.ATTACHMENT.equals(part.getDisposition())) {
-			final MimeBodyPart bodyPart = (MimeBodyPart) part;
-			final String filename = MimeUtility.decodeText(bodyPart.getFileName());
-			LOGGER.debug("++++ atta {}", filename);
-			attachements.add(bodyPart);
-			return "";
 		} else {
 			LOGGER.warn("---- type {}", type);
 			return "";
