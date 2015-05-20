@@ -2,8 +2,7 @@ package net.anfoya.mail.browser.javafx.entrypoint;
 
 import static net.anfoya.mail.browser.javafx.threadlist.ThreadListPane.DND_THREADS_DATA_FORMAT;
 import javafx.application.Application;
-import javafx.concurrent.ScheduledService;
-import javafx.concurrent.Task;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
@@ -14,7 +13,6 @@ import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Callback;
-import javafx.util.Duration;
 
 import javax.security.auth.login.LoginException;
 
@@ -36,7 +34,6 @@ import org.slf4j.LoggerFactory;
 
 public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage> extends Application{
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailBrowserApp.class);
-	private static final Duration REFRESH_PERIOD = Duration.seconds(20);
 
 	public static void main(final String[] args) {
 		launch(args);
@@ -47,13 +44,10 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 	private ThreadListPane<S, T, H, M> threadListPane;
 	private ThreadPane<T, H, M> threadPane;
 
-	private ScheduledService<Boolean> refreshService;
-
 	@Override
 	public void start(final Stage primaryStage) throws Exception {
 		primaryStage.initStyle(StageStyle.UNIFIED);
 		primaryStage.setOnCloseRequest(event -> {
-			refreshService.cancel();
 			ThreadPool.getInstance().shutdown();
 		});
 
@@ -131,31 +125,24 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 			return null;
 		});
 
-		refreshService = new ScheduledService<Boolean>() {
+		mailService.addOnUpdate(new Callback<Throwable, Void>() {
 			@Override
-			protected Task<Boolean> createTask() {
-				return new Task<Boolean>() {
+			public Void call(final Throwable t) {
+				if (t != null) {
+					// TODO Auto-generated catch block
+					t.printStackTrace();
+					return null;
+				}
+				Platform.runLater(new Runnable() {
 					@Override
-					protected Boolean call() throws Exception {
-						return mailService.hasUpdate();
+					public void run() {
+						LOGGER.info("update detected");
+						refreshAfterRemoteUpdate();
 					}
-				};
-			}
-		};
-		refreshService.setOnFailed(event -> {
-			// TODO Auto-generated catch block
-			event.getSource().getException().printStackTrace(System.out);
-		});
-		refreshService.setOnSucceeded(event -> {
-			if (refreshService.getValue()) {
-				LOGGER.info("update detected");
-				refreshAfterRemoteUpdate();
+				});
+				return null;
 			}
 		});
-		refreshService.setDelay(REFRESH_PERIOD);
-		refreshService.setPeriod(REFRESH_PERIOD);
-		refreshService.setExecutor(ThreadPool.getInstance().getExecutor());
-		refreshService.start();
 	}
 
 	boolean refreshAfterTagSelected = true;

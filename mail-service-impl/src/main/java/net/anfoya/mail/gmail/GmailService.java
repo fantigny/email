@@ -14,11 +14,11 @@ import java.util.TreeSet;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
+import javafx.util.Callback;
 import net.anfoya.mail.gmail.model.GmailMessage;
 import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.gmail.model.GmailTag;
 import net.anfoya.mail.gmail.model.GmailThread;
-import net.anfoya.mail.gmail.service.HistoryException;
 import net.anfoya.mail.gmail.service.HistoryService;
 import net.anfoya.mail.gmail.service.LabelException;
 import net.anfoya.mail.gmail.service.LabelService;
@@ -55,6 +55,8 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	private static final String CLIENT_SECRET_PATH = "client_secret.json";
 	private static final String SCOPE = "https://mail.google.com/";
 	private static final String USER = "me";
+
+	private static final long PULL_PERIOD = 1000 * 30;
 
 	private final HttpTransport httpTransport;
 	private final JsonFactory jsonFactory;
@@ -116,10 +118,20 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			throw new GMailException("login", e);
 		}
 
-		historyService = new HistoryService(gmail, USER);
-		labelService = new LabelService(gmail, USER);
 		messageService = new MessageService(gmail, USER);
 		threadService = new ThreadService(gmail, USER);
+		historyService = new HistoryService(gmail, USER);
+		labelService = new LabelService(gmail, USER);
+		historyService.addOnLabelUpdate(new Callback<Throwable, Void>() {
+			@Override
+			public Void call(final Throwable t) {
+				if (t == null) {
+					labelService.update();
+				}
+				return null;
+			}
+		});
+		historyService.start(PULL_PERIOD);
 
 		return gmail;
 	}
@@ -600,15 +612,6 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	@Override
-	public boolean hasUpdate() throws GMailException {
-		try {
-			return historyService.hasUpdate();
-		} catch (final HistoryException e) {
-			throw new GMailException("checking for updates", e);
-		}
-	}
-
-	@Override
 	public void remove(final GmailMessage message) throws MailException {
 		try {
 			if (message.isDraft()) {
@@ -619,5 +622,10 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		} catch (final MessageException e) {
 			throw new GMailException("removing message " + message.getId(), e);
 		}
+	}
+
+	@Override
+	public void addOnUpdate(final Callback<Throwable, Void> callback) {
+		historyService.addOnUpdate(callback);
 	}
 }

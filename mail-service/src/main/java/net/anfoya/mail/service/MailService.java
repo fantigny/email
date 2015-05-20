@@ -2,6 +2,7 @@ package net.anfoya.mail.service;
 
 import java.util.Set;
 
+import javafx.util.Callback;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.tag.model.SimpleSection;
@@ -15,7 +16,7 @@ public interface MailService<S extends SimpleSection
 
 	public Object login(String mailId) throws MailException;
 	public void logout();
-	public boolean hasUpdate() throws MailException;
+	void addOnUpdate(Callback<Throwable, Void> callback);
 
 	public T getTag(String id) throws MailException;
 	public T findTag(String name) throws MailException;

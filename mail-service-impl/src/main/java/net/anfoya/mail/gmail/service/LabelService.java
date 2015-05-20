@@ -14,7 +14,6 @@ import com.google.api.services.gmail.model.Label;
 public class LabelService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LabelService.class);
 
-	//TODO refresh cache
 	private final Map<String, Label> idLabels = new ConcurrentHashMap<String, Label>();
 	private final Gmail gmail;
 	private final String user;
@@ -88,5 +87,9 @@ public class LabelService {
 			}
 		}
 		return null;
+	}
+
+	public void update() {
+		idLabels.clear();
 	}
 }
