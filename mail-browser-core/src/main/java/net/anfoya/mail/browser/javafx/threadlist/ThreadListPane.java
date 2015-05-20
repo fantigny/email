@@ -133,7 +133,7 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		namePatternField = new ResetTextField();
 		namePatternField.setPromptText("search");
 		patternPane.setCenter(namePatternField);
-		BorderPane.setMargin(namePatternField, new Insets(0, 5, 0, 5));
+		BorderPane.setMargin(namePatternField, new Insets(0, 5, 0, 0));
 
 		final Button addButton = new Button("+");
 		addButton.setOnAction(event -> {
@@ -146,7 +146,7 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		});
 		patternPane.setRight(addButton);
 
-		setMargin(patternPane, new Insets(5));
+		setMargin(patternPane, new Insets(5, 0, 5, 0));
 		setMargin(threadList, new Insets(0, 5, 0, 5));
 		setMargin(box, new Insets(5));
 	}

@@ -78,7 +78,6 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		});
 
 		final HBox patternBox = new HBox(5, new Title("tags"), tagPatternField);
-		patternBox.setPadding(new Insets(0, 5, 0, 5));
 		setTop(patternBox);
 
 		sectionAcc = new Accordion();
