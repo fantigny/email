@@ -4,6 +4,8 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -48,7 +50,6 @@ import net.anfoya.tag.model.SimpleTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.io.Files;
 import com.sun.mail.util.BASE64DecoderStream;
 
 public class MessagePane<M extends SimpleMessage> extends VBox {
@@ -73,6 +74,19 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 	private Task<String> loadTask;
 	private final Set<MimeBodyPart> attachements;
 	private final Map<String, String> cidFilenames;
+
+	private static boolean copied = false;
+	{
+		if (!copied) {
+			copied = true;
+			try {
+				Files.copy(getClass().getResourceAsStream("attachment.png"), new File(ATTACH_ICON_PATH).toPath(), StandardCopyOption.REPLACE_EXISTING);
+			} catch (final IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
 
 	public MessagePane(final String messageId, final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService) {
 		this.mailService = mailService;
@@ -121,9 +135,6 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 		loadTask = new Task<String>() {
 			@Override
 			protected String call() throws MailException, MessagingException, IOException, URISyntaxException {
-				//TODO remove
-				Files.copy(new File(getClass().getResource("attachment.png").toURI()), new File(ATTACH_ICON_PATH));
-
 				message = mailService.getMessage(messageId);
 			    mimeMessage = new MimeMessage(SESSION, new ByteArrayInputStream(message.getRfc822mimeRaw()));
 			    String html = toHtml(mimeMessage, false);
@@ -178,7 +189,7 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 			if (MimeBodyPart.INLINE.equalsIgnoreCase(part.getDisposition())) {
 				return "<img src='file://" + tempFilename + "'>";
 			} else {
-				return "<a href ='file://" + tempFilename + "'><table><tr><td><img src='file://" + ATTACH_ICON_PATH + "'></td><td>" + MimeUtility.decodeText(bodyPart.getFileName()) + "</td></tr></table></a>";
+				return "<a href ='file://" + tempFilename + "'><table><tr><td><img src='file://" + ATTACH_ICON_PATH + "'></td></tr><tr><td>" + MimeUtility.decodeText(bodyPart.getFileName()) + "</td></tr></table></a>";
 			}
 		} else if (part instanceof MimeBodyPart
 				&& part.getContent() instanceof BASE64DecoderStream
