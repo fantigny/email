@@ -1,12 +1,15 @@
 package net.anfoya.mail.browser.javafx.thread;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
-import java.io.FileWriter;
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -23,10 +26,10 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
 import javax.mail.Address;
-import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
+import javax.mail.Part;
 import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
@@ -45,6 +48,7 @@ import net.anfoya.tag.model.SimpleTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.io.Files;
 import com.sun.mail.util.BASE64DecoderStream;
 
 public class MessagePane<M extends SimpleMessage> extends VBox {
@@ -52,6 +56,8 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 	private static final Session SESSION = Session.getDefaultInstance(new Properties(), null);
 	private static final String EMPTY = "[empty]";
 	private static final String UNKNOWN = "[unknown]";
+	private static final String TEMP = System.getProperty("java.io.tmpdir") + "/";
+	private static final String ATTACH_ICON_PATH = TEMP + "/fishermail-attachment.png";
 
 	private final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService;
 
@@ -65,12 +71,16 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 	private M message;
 	private MimeMessage mimeMessage;
 	private Task<String> loadTask;
+	private final Set<MimeBodyPart> attachements;
+	private final Map<String, String> cidFilenames;
 
 	public MessagePane(final String messageId, final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService) {
 		this.mailService = mailService;
 		this.messageId = messageId;
 		this.collapsible = true;
 
+		attachements = new LinkedHashSet<MimeBodyPart>();
+		cidFilenames = new HashMap<String, String>();
 		bodyView = new WebViewFitContent();
 
 		expanded = new SimpleBooleanProperty(true);
@@ -105,15 +115,20 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 
 	public synchronized void load() {
 		if (loadTask != null) {
-			//already loading;
+			//already loaded;
 			return;
 		}
 		loadTask = new Task<String>() {
 			@Override
-			protected String call() throws MailException, MessagingException, IOException {
+			protected String call() throws MailException, MessagingException, IOException, URISyntaxException {
+				//TODO remove
+				Files.copy(new File(getClass().getResource("attachment.png").toURI()), new File(ATTACH_ICON_PATH));
+
 				message = mailService.getMessage(messageId);
 			    mimeMessage = new MimeMessage(SESSION, new ByteArrayInputStream(message.getRfc822mimeRaw()));
-			    return toHtml(mimeMessage);
+			    String html = toHtml(mimeMessage, false);
+			    html = replaceCids(html);
+			    return html;
 			}
 		};
 		loadTask.setOnFailed(event -> {
@@ -126,62 +141,64 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 		ThreadPool.getInstance().submitHigh(loadTask);
 	}
 
-	protected String toHtml(final MimeMessage message) throws MessagingException, IOException {
-		final boolean isHtml = message.getContentType().contains("multipart/alternative");
-		String html = toHtml(message.getContent(), message.getContentType(), message.getFileName(), isHtml);
-		if (html.isEmpty() || !isHtml) {
-			html = "<html><body><pre>" + html + "</pre></body></html>";
-		}
-		return html;
-	}
-
-	private String toHtml(final Object content, String type, String filename, boolean isHtml) throws IOException, MessagingException {
+	private String toHtml(final Part part, boolean isHtml) throws IOException, MessagingException {
+		final String type = part.getContentType().replaceAll("\\r", "").replaceAll("\\n", "").replaceAll("\\t", " ");
 		isHtml = isHtml || type.contains("multipart/alternative");
-		type = type.replaceAll("\\r", "").replaceAll("\\n", "").replaceAll("\\t", " ");
 		if (type.contains("text/html")) {
-			LOGGER.debug("part type {}", type);
-			return (String) content;
+			LOGGER.debug("++++ type {}", type);
+			return (String) part.getContent();
 		} else if (type.contains("text/plain") && !isHtml) {
-			LOGGER.debug("part type {}", type);
-			return (String) content;
-		} else if (content instanceof MimeBodyPart) {
-			LOGGER.debug("part type {}", type);
-			final MimeBodyPart part = (MimeBodyPart) content;
-			return toHtml(part.getContent(), part.getContentType(), part.getFileName(), isHtml);
-		} else if (content instanceof Multipart) {
-			LOGGER.debug("part type {}", type);
-			final Multipart parts = (Multipart) content;
+			LOGGER.debug("++++ type {}", type);
+			return "<pre>" + part.getContent() + "</pre>";
+		} else if (type.contains("multipart")) {
+			LOGGER.debug("++++ type {}", type);
+			final Multipart parts = (Multipart) part.getContent();
 			final StringBuilder html = new StringBuilder();
 			for(int i=0, n=parts.getCount(); i<n; i++) {
-				final BodyPart part = parts.getBodyPart(i);
-				html.append(toHtml(part.getContent(), part.getContentType(), part.getFileName(), isHtml));
+				html.append(toHtml(parts.getBodyPart(i), isHtml));
 			}
 			return html.toString();
-		} else if (content instanceof BASE64DecoderStream) {
-			filename = MimeUtility.decodeText(filename);
-			LOGGER.debug("save file {}", filename);
-			save((BASE64DecoderStream) content, filename);
+		} else if (part instanceof MimeBodyPart
+				&& part.getContent() instanceof BASE64DecoderStream
+				&& ((MimeBodyPart)part).getContentID() != null) {
+			final MimeBodyPart bodyPart = (MimeBodyPart) part;
+			final String cid = bodyPart.getContentID().replaceAll("<", "").replaceAll(">", "");
+			final String tempFilename = TEMP + (part.getFileName() == null? cid: MimeUtility.decodeText(bodyPart.getFileName()));
+			LOGGER.debug("++++ save {}", tempFilename);
+			bodyPart.saveFile(tempFilename);
+			cidFilenames.put(cid, tempFilename);
+			return "";
+		} else if (part instanceof MimeBodyPart
+				&& part.getContent() instanceof BASE64DecoderStream
+				&& part.getDisposition() != null) {
+			final MimeBodyPart bodyPart = (MimeBodyPart) part;
+			final String tempFilename = TEMP + MimeUtility.decodeText(bodyPart.getFileName());
+			LOGGER.debug("++++ save {}", tempFilename);
+			bodyPart.saveFile(tempFilename);
+			if (MimeBodyPart.INLINE.equalsIgnoreCase(part.getDisposition())) {
+				return "<img src='file://" + tempFilename + "'>";
+			} else {
+				return "<a href ='file://" + tempFilename + "'><table><tr><td><img src='file://" + ATTACH_ICON_PATH + "'></td><td>" + MimeUtility.decodeText(bodyPart.getFileName()) + "</td></tr></table></a>";
+			}
+		} else if (part instanceof MimeBodyPart
+				&& part.getContent() instanceof BASE64DecoderStream
+				&& MimeBodyPart.ATTACHMENT.equals(part.getDisposition())) {
+			final MimeBodyPart bodyPart = (MimeBodyPart) part;
+			final String filename = MimeUtility.decodeText(bodyPart.getFileName());
+			LOGGER.debug("++++ atta {}", filename);
+			attachements.add(bodyPart);
 			return "";
 		} else {
-			LOGGER.warn("skip type {}", type, content.getClass().getName());
+			LOGGER.warn("---- type {}", type);
 			return "";
 		}
 	}
 
-	private void save(final BASE64DecoderStream stream, final String name) throws IOException {
-		final BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
-		BufferedWriter writer = null;
-		try {
-			writer = new BufferedWriter(new FileWriter(name));
-			String line;
-			while((line=reader.readLine()) != null) {
-				writer.write(line);
-			}
-		} finally {
-			if (writer != null) {
-				writer.close();
-			}
+	private String replaceCids(String html) {
+		for(final Entry<String, String> entry: cidFilenames.entrySet()) {
+			html = html.replaceAll("cid:" + entry.getKey(), "file://" + entry.getValue());
 		}
+		return html;
 	}
 
 	private void refreshTitle() {
