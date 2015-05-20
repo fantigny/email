@@ -129,7 +129,7 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 		// restore selection
 		getSelectionModel().clearSelection();
 		if (!getItems().isEmpty() && !selectedThreads.isEmpty()) {
-			LOGGER.debug("selected threads", threads);
+			LOGGER.debug("selected threads {}", threads);
 			final int[] indices = new int[selectedThreads.size()];
 			Arrays.fill(indices, -1);
 			int itemIndex = 0, arrayIndex = 0;

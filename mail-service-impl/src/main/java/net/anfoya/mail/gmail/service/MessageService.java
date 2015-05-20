@@ -16,7 +16,7 @@ import com.google.api.services.gmail.model.Draft;
 import com.google.api.services.gmail.model.Message;
 
 public class MessageService {
-	private final Map<String, byte[]> idMessages = new ConcurrentHashMap<String, byte[]>();
+	private final Map<String, Message> idMessages = new ConcurrentHashMap<String, Message>();
 	private final Gmail gmail;
 	private final String user;
 
@@ -25,11 +25,11 @@ public class MessageService {
 		this.user = user;
 	}
 
-	public byte[] getRaw(final String id) throws MessageException {
+	public Message getMessage(final String id) throws MessageException {
 		try {
 			if (!idMessages.containsKey(id)) {
 				final Message message = gmail.users().messages().get(user, id).setFormat("raw").execute();
-				idMessages.put(id,  Base64.getUrlDecoder().decode(message.getRaw()));
+				idMessages.put(id, message);
 			}
 			return idMessages.get(id);
 		} catch (final IOException e) {

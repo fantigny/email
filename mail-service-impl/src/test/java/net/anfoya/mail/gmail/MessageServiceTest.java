@@ -12,6 +12,7 @@ import org.junit.Test;
 
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Draft;
+import com.google.api.services.gmail.model.Message;
 
 public class MessageServiceTest {
 	private static final String TEST_SUBJECT = "mail_service_test";
@@ -26,8 +27,8 @@ public class MessageServiceTest {
 	}
 
 	@Test public void get() throws MessageException {
-		final byte[] raw = service.getRaw(messageId);
-		Assert.assertNotNull(raw);
+		final Message message = service.getMessage(messageId);
+		Assert.assertNotNull(message);
 	}
 
 	@Test public void createDelete() throws MessageException {

@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -203,7 +202,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public GmailMessage getMessage(final String id) throws GMailException {
 		try {
-		    return new GmailMessage(id, messageService.getRaw(id), false);
+		    return new GmailMessage(messageService.getMessage(id));
 		} catch (final MessageException e) {
 			throw new GMailException("loading message id: " + id, e);
 		}
@@ -213,7 +212,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	public GmailMessage createDraft() throws GMailException {
 		try {
 			final Draft draft = messageService.createDraft();
-			return new GmailMessage(draft.getId(), Base64.getUrlDecoder().decode(draft.getMessage().getRaw()), true);
+			return new GmailMessage(draft);
 		} catch (final MessageException e) {
 			throw new GMailException("creating draft", e);
 		}
