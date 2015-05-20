@@ -13,7 +13,6 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
-import javafx.scene.control.TextField;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.input.ClipboardContent;
@@ -24,6 +23,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.javafx.scene.control.ResetTextField;
 import net.anfoya.javafx.scene.control.Title;
 import net.anfoya.mail.browser.javafx.MessageComposer;
 import net.anfoya.mail.model.SimpleMessage;
@@ -40,7 +40,7 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 
 	private final MailService<S, T, H, M> mailService;
 	private final ThreadList<S, T, H> threadList;
-	private final TextField namePatternField;
+	private final ResetTextField namePatternField;
 
 	private EventHandler<ActionEvent> updateThreadHandler;
 
@@ -124,7 +124,7 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		title.setPadding(new Insets(0, 5, 0, 0));
 		patternPane.setLeft(title);
 
-		namePatternField = new TextField();
+		namePatternField = new ResetTextField();
 		namePatternField.setPromptText("search");
 		namePatternField.textProperty().addListener((ChangeListener<String>) (ov, oldPattern, newPattern) -> {
 			threadList.refreshWithPattern(newPattern);

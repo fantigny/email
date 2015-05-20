@@ -1,113 +1,90 @@
 package net.anfoya.javafx.scene.control;
 
+import javafx.beans.property.StringProperty;
 import javafx.event.EventHandler;
-import javafx.geometry.HPos;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.control.TextField;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
-import javafx.scene.shape.RectangleBuilder;
 
-/**
- *
- * @author Lawrence PremKumar
- */
-public class ResetTextField extends Group {
+public class ResetTextField extends StackPane {
+	private final TextField delegate;
+	private final Group resetButton;
 
-    TextField tc = null;
-    Group closeButton = null;
+	public ResetTextField() {
+		setAlignment(Pos.CENTER_RIGHT);
 
-    public ResetTextField() {
-        tc = new TextField();
-        tc.setStyle(".text-field,.text-field-focused");
-        tc.setOnKeyTyped(new EventHandler<KeyEvent>() {
-            @Override
-            public void handle(final KeyEvent event) {
+		delegate = new TextField();
+		delegate.prefWidthProperty().bind(widthProperty());
+		delegate.textProperty().addListener((ov, oldVal, newVal) -> {
+			if (newVal.isEmpty()) {
+				resetButton.setVisible(false);
+			} else {
+				resetButton.setVisible(true);
+			}
+		});
+		getChildren().add(delegate);
 
-                System.out.println(tc.getText().length());
-                if ((tc.textProperty().get().length() < 0) || (tc.textProperty().get().equals(""))) {                     closeButton.setVisible(false);                 } else if (tc.textProperty().get().length() > -1) {
-                    closeButton.setVisible(true);
-                }
-            }
-        });
+		resetButton = getResetButton();
+		resetButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
+			@Override
+			public void handle(final MouseEvent t) {
+				delegate.clear();
+			}
+		});
+		setMargin(resetButton, new Insets(0, 5, 0, 0));
+		getChildren().add(resetButton);
+	}
 
-        closeButton = getCloseButton();
-        closeButton.setOnMouseClicked(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(final MouseEvent t) {
-                closeButton.setVisible(false);
-                tc.clear();
-            }
-        });
+	private Group getResetButton() {
+		final Circle circle = new Circle(7.0, Color.web("#4c4c4c"));
+		final Rectangle r1 = getCard(-45);
+		final Rectangle r2 = getCard(45);
 
-        final GridPane grid = new GridPane();
-        grid.setLayoutX(1.0);
-        grid.setLayoutY(1.0);
-        grid.setHgap(0.0);
-        final ColumnConstraints txtComponent = new ColumnConstraints();
-        txtComponent.setHalignment(HPos.RIGHT);
-        grid.getColumnConstraints().add(txtComponent);
-        final ColumnConstraints closeBtn = new ColumnConstraints();
-        closeBtn.setHalignment(HPos.LEFT);
-        grid.getColumnConstraints().add(closeBtn);
-        grid.add(tc, 0, 0);
-        grid.add(closeButton, 1, 0);
+		final Group group = new Group(circle, r1, r2);
+		group.setVisible(false);
+		group.setLayoutX(group.getLayoutBounds().getMinX() - 3);
+		group.setOnMouseEntered(new EventHandler<MouseEvent>() {
+			@Override
+			public void handle(final MouseEvent t) {
+				circle.setFill(Color.web("#097dda"));
+				r1.setFill(Color.WHITE);
+				r2.setFill(Color.WHITE);
+			}
+		});
+		group.setOnMouseExited(new EventHandler<MouseEvent>() {
+			@Override
+			public void handle(final MouseEvent t) {
+				circle.setFill(Color.web("#4c4c4c"));
+				r1.setFill(Color.web("#868686"));
+				r2.setFill(Color.web("#868686"));
+			}
+		});
+		return group;
+	}
 
-        final Rectangle focusBorder = new Rectangle();
-        focusBorder.setFill(null);
-        focusBorder.setStrokeWidth(2.0);
-        focusBorder.setStroke(Color.web("#097dda"));
-        focusBorder.widthProperty().bind(grid.widthProperty().add(2));
-        focusBorder.heightProperty().bind(grid.heightProperty().add(2));
-        focusBorder.visibleProperty().bind(tc.focusedProperty());
+	private Rectangle getCard(final int rotate) {
+		final Rectangle card = new Rectangle(-4, -1, 8, 2);
+		card.setStrokeWidth(1);
+		card.setFill(Color.web("#868686"));
+		card.setRotate(rotate);
+		return card;
+	}
 
-        this.getChildren().addAll(focusBorder, grid);
-    }
+	public void setPromptText(final String text) {
+		delegate.setPromptText(text);
+	}
 
-    private Group getCloseButton() {
-        final Group grp = new Group();
-        final Circle circle = new Circle();
-        circle.setRadius(7.0);
-        final Rectangle r1 = getCard();
-        r1.setRotate(-45);
-        final Rectangle r2 = getCard();
-        r2.setRotate(45);
-        grp.setOnMouseEntered(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(final MouseEvent t) {
-                circle.setFill(Color.web("#097dda"));
-                r1.setFill(Color.WHITE);
-                r2.setFill(Color.WHITE);
-            }
-        });
-        grp.setOnMouseExited(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(final MouseEvent t) {
-                circle.setFill(Color.web("#4c4c4c"));
-                r1.setFill(Color.web("#868686"));
-                r2.setFill(Color.web("#868686"));
-            }
-        });
-        grp.setVisible(false);
-        circle.setFill(Color.web("#4c4c4c"));
-        grp.getChildren().addAll(circle, r1, r2);
-        return grp;
-    }
+	public StringProperty textProperty() {
+		return delegate.textProperty();
+	}
 
-    private Rectangle getCard() {
-        final Rectangle card = RectangleBuilder.create()
-                .x(-4)
-                .y(-1)
-                .width(8)
-                .height(2)
-                .strokeWidth(1.0)
-                .fill(Color.web("#868686"))
-                .build();
-        return card;
-    }
+	public String getText() {
+		return delegate.getText();
+	}
 }

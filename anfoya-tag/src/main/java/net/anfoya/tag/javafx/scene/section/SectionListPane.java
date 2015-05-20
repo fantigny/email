@@ -13,7 +13,6 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Accordion;
-import javafx.scene.control.TextField;
 import javafx.scene.control.TitledPane;
 import javafx.scene.input.DataFormat;
 import javafx.scene.layout.BorderPane;
@@ -21,6 +20,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.util.Callback;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.javafx.scene.control.ResetTextField;
 import net.anfoya.javafx.scene.control.Title;
 import net.anfoya.tag.javafx.scene.dnd.DndFormat;
 import net.anfoya.tag.javafx.scene.dnd.ExtItemDropPane;
@@ -35,7 +35,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 	private final TagService<S, T> tagService;
 	private final DataFormat extItemDataFormat;
 
-	private final TextField tagPatternField;
+	private final ResetTextField tagPatternField;
 	private final Accordion sectionAcc;
 	private final SelectedTagsPane<T> selectedPane;
 
@@ -64,7 +64,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		this.tagService = tagService;
 		this.extItemDataFormat = extItemDataFormat;
 
-		tagPatternField = new TextField();
+		tagPatternField = new ResetTextField();
 		tagPatternField.prefWidthProperty().bind(widthProperty());
 		tagPatternField.setPromptText("search");
 		tagPatternField.textProperty().addListener((ChangeListener<String>) (ov, oldPattern, newPattern) -> {
@@ -74,12 +74,6 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		final HBox patternBox = new HBox(5, new Title("Label"), tagPatternField);
 		patternBox.setPadding(new Insets(0 , 5, 0, 5));
 		setTop(patternBox);
-
-		/* TODO: text field with stacked pane for reset button
-		final Button delPatternButton = new Button("X");
-		delPatternButton.setOnAction(event -> tagPatternField.textProperty().set(""));
-		patternPane.setRight(delPatternButton);
-		*/
 
 		sectionAcc = new Accordion();
 		final StackPane stackPane = new StackPane(sectionAcc);
