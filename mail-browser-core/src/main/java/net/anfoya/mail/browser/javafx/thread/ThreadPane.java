@@ -27,11 +27,8 @@ import net.anfoya.tag.javafx.scene.section.SelectedTagsPane;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage> extends BorderPane {
-	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadPane.class);
+//	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadPane.class);
 
 	private final MailService<? extends SimpleSection, T, H, M> mailService;
 
@@ -100,11 +97,11 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 			scrollPane.setVvalue(current + offset);
 			event.consume();
 
-			LOGGER.debug("[max {}, delta {}], [max {}, delta {}]"
-					, maxPx
-					, event.getDeltaY()
-					, scrollPane.getVmax()
-					, offset);
+//			LOGGER.debug("[e {}, delta {}], [max {}, delta {}]"
+//					, maxPx
+//					, event.getDeltaY()
+//					, scrollPane.getVmax()
+//					, offset);
 		};
 
 		stackPane.getChildren().add(scrollPane);

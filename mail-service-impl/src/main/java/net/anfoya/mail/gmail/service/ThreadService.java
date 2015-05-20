@@ -152,13 +152,28 @@ public class ThreadService {
 		}
 	}
 
-	public void trash(final Set<GmailThread> threads) throws ThreadException {
-		for(final GmailThread t: threads) {
-			try {
-				gmail.users().threads().trash(user, t.getId()).execute();
-			} catch (final IOException e) {
-				throw new ThreadException("trashing thread id " + t.getId(), e);
+	public void trash(final Set<String> ids) throws ThreadException {
+		try {
+			final CountDownLatch latch = new CountDownLatch(ids.size());
+			final BatchRequest batch = gmail.batch();
+			final JsonBatchCallback<Thread> callback = new JsonBatchCallback<Thread>() {
+				@Override
+				public void onSuccess(final Thread t, final HttpHeaders responseHeaders) throws IOException {
+					latch.countDown();
+				}
+				@Override
+				public void onFailure(final GoogleJsonError e, final HttpHeaders responseHeaders) throws IOException {
+					LOGGER.error("trashing thread", e.getMessage());
+					latch.countDown();
+				}
+			};
+			for(final String id: ids) {
+				gmail.users().threads().trash(user, id).queue(batch, callback);
 			}
+			batch.execute();
+			latch.await();
+		} catch (IOException | InterruptedException e) {
+			throw new ThreadException("trashing for ids " + ids, e);
 		}
 	}
 

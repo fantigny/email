@@ -572,13 +572,13 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public void archive(final Set<GmailThread> threads) throws GMailException {
 		try {
-			final Set<String> threadIds = new HashSet<String>();
-			for(final String id: threadIds) {
-				threadIds.add(id);
+			final Set<String> ids = new HashSet<String>();
+			for(final GmailThread t: threads) {
+				ids.add(t.getId());
 			}
 			final Set<String> labelIds = new HashSet<String>();
 			labelIds.add("INBOX");
-			threadService.update(threadIds, labelIds, false);
+			threadService.update(ids, labelIds, false);
 		} catch (final ThreadException e) {
 			throw new GMailException("archiving threads " + threads, e);
 		}
@@ -587,7 +587,13 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public void trash(final Set<GmailThread> threads) throws GMailException {
 		try {
-			threadService.trash(threads);
+			final Set<String> ids = new HashSet<String>();
+			for(final GmailThread t: threads) {
+				ids.add(t.getId());
+			}
+			final Set<String> labelIds = new HashSet<String>();
+			labelIds.add("INBOX");
+			threadService.trash(ids);
 		} catch (final ThreadException e) {
 			throw new GMailException("trashing threads " + threads, e);
 		}
