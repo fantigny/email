@@ -1,0 +1,16 @@
+.background {
+    -fx-background-color: white;
+}
+
+.label-bright {
+    -fx-font-size: 11pt;
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-text-fill: white;
+    -fx-opacity: 1;
+}
+
+.split-pane *.split-pane-divider {
+    -fx-padding: 0 0 0 2;
+    -fx-border-color: white transparent white transparent;
+    -fx-background-color: white, transparent;
+}

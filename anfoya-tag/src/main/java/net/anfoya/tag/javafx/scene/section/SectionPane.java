@@ -3,7 +3,11 @@ package net.anfoya.tag.javafx.scene.section;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.TitledPane;
@@ -11,6 +15,7 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
+import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.IncExcBox;
 import net.anfoya.tag.javafx.scene.dnd.DndFormat;
@@ -21,7 +26,12 @@ import net.anfoya.tag.model.SimpleTag;
 import net.anfoya.tag.service.TagException;
 import net.anfoya.tag.service.TagService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends TitledPane {
+	private static final Logger LOGGER = LoggerFactory.getLogger(SectionPane.class);
+
 	private final AtomicLong taskId = new AtomicLong();
 	private final TagService<S, T> tagService;
 	private final TagList<S, T> tagList;
@@ -37,13 +47,19 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 
 	private boolean disableWhenZero;
 	private DataFormat extItemDataFormat;
+	private Timeline expandDelay;
+	private EventHandler<ActionEvent> selectHandler;
+
+	private EventHandler<ActionEvent> updateHandler;
 
 	@SuppressWarnings("unchecked")
-	public SectionPane(final TagService<S, T> tagService, final S section, final TagList<S, T> tagList) {
-		super("", tagList);
+	public SectionPane(final TagService<S, T> tagService, final S section) {
 		this.tagService = tagService;
-		this.tagList = (TagList<S, T>) getContent();
 		this.sectionItem = new TagListItem<SimpleTag>(new SimpleTag(section.getId(), section.getName()));
+
+		tagList = new TagList<S, T>(tagService, section);
+		setContent(tagList);
+
 		isTag = false;
 		initialized = false;
 		disableWhenZero = false;
@@ -58,33 +74,35 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 		});
 		setOnDragEntered(event -> {
 			final Dragboard db = event.getDragboard();
+			if (db.hasContent(extItemDataFormat)) {
+				if (!isExpanded()) {
+					event.acceptTransferModes(TransferMode.ANY);
+					expandDelay = expandAfterDelay();
+					event.consume();
+				}
+			}
+		});
+		setOnDragOver(event -> {
+			final Dragboard db = event.getDragboard();
 			if (db.hasContent(DndFormat.TAG_DATA_FORMAT)
-					&& !section.getId().equals(SimpleSection.NO_ID)) {
+					&& !section.getId().startsWith(SimpleSection.NO_ID)) { //TODO improve
 				final T tag = (T) db.getContent(DndFormat.TAG_DATA_FORMAT);
-				if (!tagList.contains(tag.getName())) {
+				if (!tagList.contains(tag)) {
 					SectionPane.this.setOpacity(.5);
+					event.acceptTransferModes(TransferMode.ANY);
 					event.consume();
 				}
 			}
 		});
 		setOnDragExited(event -> {
-			if (event.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT)) {
-				SectionPane.this.setOpacity(1);
-				event.consume();
-			}
-		});
-		setOnDragOver(event -> {
 			final Dragboard db = event.getDragboard();
-			if (db.hasContent(extItemDataFormat) && !isExpanded()) {
-				setExpanded(true);
+			if (db.hasContent(extItemDataFormat)) {
+				expandDelay = null;
 				event.consume();
 			} else if (db.hasContent(DndFormat.TAG_DATA_FORMAT)
 					&& !section.getId().startsWith(SimpleSection.NO_ID)) { //TODO improve
-				final T tag = (T) db.getContent(DndFormat.TAG_DATA_FORMAT);
-				if (!tagList.contains(tag.getName())) {
-					event.acceptTransferModes(TransferMode.ANY);
-					event.consume();
-				}
+				SectionPane.this.setOpacity(1);
+				event.consume();
 			}
 		});
 		setOnDragDropped(event -> {
@@ -101,16 +119,39 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 				}
 			}
 		});
+		setOnDragDone(event -> {
+			updateHandler.handle(null);
+		});
 
+		setExpanded(false);
 		expandedProperty().addListener((ov, oldVal, newVal) -> {
 			if (newVal && lazyCountTask != null) {
 				ThreadPool.getInstance().submitLow(lazyCountTask);
 				lazyCountTask = null;
 			}
 			if (!newVal) {
+				LOGGER.debug("expand changed {} -> {}", oldVal, newVal);
 				tagList.getSelectionModel().clearSelection();
+				selectHandler.handle(null);
 			}
 		});
+	}
+
+	private Timeline expandAfterDelay() {
+		final Timeline timeline = new Timeline(new KeyFrame(Duration.millis(500), new EventHandler<ActionEvent>() {
+		    @Override
+		    public void handle(final ActionEvent event) {
+		    	if (expandDelay != null) {
+		    		setExpanded(true);
+		    	}
+	    		return;
+		    }
+		}));
+		timeline.setCycleCount(1);
+		timeline.play();
+
+
+		return timeline;
 	}
 
 	public void updateCountAsync(final int currentCount, final Set<T> availableTags, final Set<T> includes, final Set<T> excludes, final String namePattern, final String tagPattern) {
@@ -142,9 +183,6 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 		}
 
 		final Runnable tagListTask = () -> {
-			if (Thread.currentThread().isInterrupted()) {
-				return;
-			}
 			tagList.updateCount(currentCount, availableTags, includes, excludes, namePattern);
 		};
 		if (!lazyCount || isExpanded()) {
@@ -230,6 +268,21 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 	}
 
 	public void setExtItemDataFormat(final DataFormat dataFormat) {
-		this.extItemDataFormat = dataFormat;
+		extItemDataFormat = dataFormat;
+		tagList.setExtItemDataFormat(dataFormat);
+	}
+
+	public void setOnSelectTag(final EventHandler<ActionEvent> handler) {
+		selectHandler = handler;
+		tagList.setOnIncExcTag(handler);
+		tagList.setOnSelectTag(event -> {
+			if (isExpanded()) {
+				handler.handle(event);
+			}
+		});
+	}
+
+	public void setOnUpdateSection(final EventHandler<ActionEvent> handler) {
+		updateHandler = handler;
 	}
 }

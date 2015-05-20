@@ -13,7 +13,7 @@ public interface MailService<S extends SimpleSection
 		, H extends SimpleThread
 		, M extends SimpleMessage> extends TagService<S, T> {
 
-	public void login(String id, String pwd) throws MailException;
+	public Object login(String mailId) throws MailException;
 	public void logout();
 	public boolean hasUpdate() throws MailException;
 
@@ -27,5 +27,7 @@ public interface MailService<S extends SimpleSection
 	public void trash(Set<H> threads) throws MailException;
 
 	public M getMessage(String id) throws MailException;
+
 	public M createDraft() throws MailException;
+	public void remove(M message) throws MailException;
 }

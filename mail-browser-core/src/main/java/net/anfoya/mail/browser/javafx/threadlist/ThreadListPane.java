@@ -3,6 +3,8 @@ package net.anfoya.mail.browser.javafx.threadlist;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -22,6 +24,7 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
+import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.ResetTextField;
 import net.anfoya.javafx.scene.control.Title;
@@ -45,6 +48,8 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 	private EventHandler<ActionEvent> updateThreadHandler;
 
 	private ThreadListDropPane<H> threadListDropPane;
+
+	protected Timeline expandDelay;
 
 	public ThreadListPane(final MailService<S, T, H, M> mailService) {
 		this.mailService = mailService;
@@ -114,26 +119,24 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		dateSortButton.setSelected(true);
 
 		final HBox box = new HBox(new Label("Sort by: "), nameSortButton, dateSortButton);
-		box.setAlignment(Pos.BASELINE_CENTER);
+		box.setMinHeight(26);
+		box.setAlignment(Pos.CENTER);
 		box.setSpacing(5);
 		setBottom(box);
 		final BorderPane patternPane = new BorderPane();
 		setTop(patternPane);
 
-		final Title title = new Title("Thread");
+		final Title title = new Title("threads");
 		title.setPadding(new Insets(0, 5, 0, 0));
 		patternPane.setLeft(title);
 
 		namePatternField = new ResetTextField();
 		namePatternField.setPromptText("search");
-		namePatternField.textProperty().addListener((ChangeListener<String>) (ov, oldPattern, newPattern) -> {
-			threadList.refreshWithPattern(newPattern);
-		});
 		patternPane.setCenter(namePatternField);
 		BorderPane.setMargin(namePatternField, new Insets(0, 5, 0, 5));
 
-		final Button delPatternButton = new Button("+");
-		delPatternButton.setOnAction(event -> {
+		final Button addButton = new Button("+");
+		addButton.setOnAction(event -> {
 			try {
 				new MessageComposer<M>(mailService);
 			} catch (final Exception e) {
@@ -141,7 +144,7 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 				e.printStackTrace();
 			}
 		});
-		patternPane.setRight(delPatternButton);
+		patternPane.setRight(addButton);
 
 		setMargin(patternPane, new Insets(5));
 		setMargin(threadList, new Insets(0, 5, 0, 5));
@@ -216,7 +219,19 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 
 	public void setOnUpdatePattern(final EventHandler<ActionEvent> handler) {
 		namePatternField.textProperty().addListener((ov, oldVal, newVal) -> {
-			handler.handle(null);
+			if (expandDelay != null) {
+				expandDelay.stop();
+			}
+			expandDelay = new Timeline(new KeyFrame(Duration.millis(500), new EventHandler<ActionEvent>() {
+				@Override
+			    public void handle(final ActionEvent event) {
+					threadList.refreshWithPattern(newVal);
+					handler.handle(null);
+		    		return;
+			    }
+			}));
+			expandDelay.setCycleCount(1);
+			expandDelay.play();
 		});
 	}
 

@@ -13,6 +13,7 @@ import javafx.scene.control.ToolBar;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.util.Callback;
 import javafx.util.Duration;
 
 import javax.security.auth.login.LoginException;
@@ -35,6 +36,7 @@ import org.slf4j.LoggerFactory;
 
 public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage> extends Application{
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailBrowserApp.class);
+	private static final Duration REFRESH_PERIOD = Duration.seconds(20);
 
 	public static void main(final String[] args) {
 		launch(args);
@@ -58,14 +60,7 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 		@SuppressWarnings("unchecked")
 		final MailService<S, T, H, M> mailService = (MailService<S, T, H, M>) new GmailService();
 		this.mailService = mailService;
-		ThreadPool.getInstance().submitHigh(() -> {
-			try {
-				mailService.login(null, null);
-			} catch (final MailException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		});
+		mailService.login("fisher-mail");
 
 		initGui(primaryStage);
 		initData();
@@ -73,10 +68,11 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 
 	private void initGui(final Stage primaryStage) throws MailException, LoginException {
 		final SplitPane splitPane = new SplitPane();
-		splitPane.setStyle("-fx-background-color: transparent; -fx-border-color: transparent");
+		splitPane.getStyleClass().add("background");
 
 		final Scene scene = new Scene(splitPane, 1400, 700);
 		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/excludebox.css").toExternalForm());
+		scene.getStylesheets().add(getClass().getResource("MailBrowserApp.css").toExternalForm());
 
 		/* section+tag list */ {
 			sectionListPane = new SectionListPane<S, T>(mailService, DND_THREADS_DATA_FORMAT);
@@ -123,9 +119,12 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 		primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("Mail.png")));
         primaryStage.setScene(scene);
         primaryStage.show();
+
+		sectionListPane.requestFocus();
 	}
 
 	private void initData() {
+
 		sectionListPane.refreshAsync(v -> {
 			sectionListPane.selectTag(GmailSection.SYSTEM.getName(), "Inbox");
 //			sectionListPane.selectTag("Bank", "HK HSBC");
@@ -153,8 +152,8 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 				refreshAfterRemoteUpdate();
 			}
 		});
-		refreshService.setDelay(Duration.seconds(60));
-		refreshService.setPeriod(Duration.seconds(60));
+		refreshService.setDelay(REFRESH_PERIOD);
+		refreshService.setPeriod(REFRESH_PERIOD);
 		refreshService.setExecutor(ThreadPool.getInstance().getExecutor());
 		refreshService.start();
 	}
@@ -176,7 +175,11 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 		}
 		LOGGER.debug("refreshAfterRemoteUpdate");
 
-		sectionListPane.refreshAsync();
+		sectionListPane.refreshAsync(v -> {
+			sectionListPane.updateItemCount(threadListPane.getThreadsTags(), threadListPane.getThreadCount(), threadListPane.getNamePattern(), false);
+			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
+			return null;
+		});
 	}
 
 	private void refreshAfterSectionUpdate() {
@@ -185,7 +188,13 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 		}
 		LOGGER.debug("refreshAfterSectionUpdate");
 
-		sectionListPane.refreshAsync();
+		sectionListPane.refreshAsync(new Callback<Void, Void>() {
+			@Override
+			public Void call(final Void v) {
+				threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
+				return null;
+			}
+		});
 	}
 
 	private void refreshAfterThreadSelected() {
@@ -204,14 +213,8 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 		}
 		LOGGER.debug("refreshAfterThreadListLoad");
 
-		// refresh tags when a new list of threads is loaded
-		sectionListPane.refreshWithTags(
-				threadListPane.getThreadsTags()
-				, threadListPane.getThreadCount()
-				, true);
-
-		// update thread details in case no thread is selected
 		threadPane.refresh(threadListPane.getSelectedThreads());
+		sectionListPane.updateItemCount(threadListPane.getThreadsTags(), threadListPane.getThreadCount(), threadListPane.getNamePattern(), true);
 	}
 
 	private void refreshAfterTagSelected() {
@@ -220,7 +223,7 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 		}
 		LOGGER.debug("refreshAfterTagSelected");
 
-		threadListPane.refreshWithTags(sectionListPane.getIncludedTagsNew(), sectionListPane.getExcludedTagsNew());
+		threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
 	}
 
 	private void refreshAfterPatternUpdate() {
@@ -229,7 +232,7 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 		}
 		LOGGER.debug("refreshAfterPatternUpdate");
 
-		sectionListPane.refreshWithPattern(threadListPane.getNamePattern());
+		sectionListPane.updateItemCount(threadListPane.getThreadsTags(), threadListPane.getThreadCount(), threadListPane.getNamePattern(), false);
 	}
 
 	private void refreshAfterThreadUpdate() {
@@ -238,7 +241,9 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 		}
 		LOGGER.debug("refreshAfterThreadUpdate");
 
-		sectionListPane.refreshAsync();
-		threadListPane.refreshWithTags(sectionListPane.getIncludedTagsNew(), sectionListPane.getExcludedTagsNew());
+		sectionListPane.refreshAsync(event -> {
+			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
+			return null;
+		});
 	}
 }

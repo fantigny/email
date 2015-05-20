@@ -18,6 +18,7 @@ public class SelectedTagsPane<T extends SimpleTag> extends FlowPane {
 		setVgap(3);
 		setHgap(3);
 		setPrefWidth(0);
+		setMinHeight(26);
 	}
 
 	public void refresh(final Set<T> tags) {

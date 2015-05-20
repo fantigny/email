@@ -3,10 +3,8 @@ package net.anfoya.mail.browser.javafx.threadlist;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Predicate;
 
 import javafx.collections.FXCollections;
@@ -25,9 +23,13 @@ import net.anfoya.mail.service.MailService;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends SimpleThread> extends ListView<H> {
+	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadList.class);
+
 	private final MailService<S, T, H, ? extends SimpleMessage> mailService;
-	private final AtomicLong taskId = new AtomicLong();
 
 	private boolean refreshing;
 	private Set<H> threads;
@@ -40,6 +42,9 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 	//TODO enhance
 	private final Predicate<H> nameFilter = thread -> thread.getSubject().toLowerCase().contains(namePattern);
 	private EventHandler<ActionEvent> loadHandler;
+
+	private long loadTaskId;
+	private Task<Set<H>> loadTask;
 
 	public ThreadList(final MailService<S, T, H, ? extends SimpleMessage> mailService) {
 		this.mailService = mailService;
@@ -78,28 +83,30 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 		load();
 	}
 
-	protected void load() {
-		final long id = this.taskId.incrementAndGet();
-		final Task<Set<H>> task = new Task<Set<H>>() {
+	protected synchronized void load() {
+		final long taskId = ++loadTaskId;
+		if (loadTask != null && loadTask.isRunning()) {
+			loadTask.cancel();
+		}
+		loadTask = new Task<Set<H>>() {
 			@Override
 			protected Set<H> call() throws InterruptedException, MailException {
-				if (Thread.currentThread().isInterrupted()) {
-					throw new InterruptedException();
-				}
+				LOGGER.debug("loading for includes {}, excludes {}, pattern: {}", includes, excludes, namePattern);
 				return mailService.getThreads(includes, excludes, namePattern);
 			}
 		};
-		task.setOnFailed(event -> {
+		loadTask.setOnFailed(event -> {
 			// TODO Auto-generated catch block
 			event.getSource().getException().printStackTrace(System.out);
 		});
-		task.setOnSucceeded(event -> {
-			threads = task.getValue();
-			if (id == taskId.get()) {
-				refresh();
+		loadTask.setOnSucceeded(event -> {
+			if (taskId != loadTaskId) {
+				return;
 			}
+			threads = loadTask.getValue();
+			refresh();
 		});
-		ThreadPool.getInstance().submitHigh(task);
+		ThreadPool.getInstance().submitHigh(loadTask);
 	}
 
 	private void refresh() {
@@ -115,25 +122,24 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 		// sort
 		Collections.sort(obsThreads, sortOrder.getComparator());
 
-		// find selected indices in new list
-		final int[] indices = new int[selectedThreads.size()];
-		Arrays.fill(indices, -1);
-		int listIndex = 0, arrayIndex = 0;
-		for(final H thread: obsThreads) {
-			if (!thread.isUnread() && selectedThreads.contains(thread)) {
-				indices[arrayIndex] = listIndex;
-				arrayIndex++;
-			}
-			listIndex++;
-		}
-
 		// display
 		refreshing = true;
 		getItems().setAll(threads);
 
 		// restore selection
 		getSelectionModel().clearSelection();
-		if (indices.length > 0) {
+		if (!getItems().isEmpty() && !selectedThreads.isEmpty()) {
+			LOGGER.debug("selected threads", threads);
+			final int[] indices = new int[selectedThreads.size()];
+			Arrays.fill(indices, -1);
+			int itemIndex = 0, arrayIndex = 0;
+			for(final H t: getItems()) {
+				if (selectedThreads.contains(t) && !t.isUnread()) {
+					indices[arrayIndex] = itemIndex;
+					arrayIndex++;
+				}
+				itemIndex++;
+			}
 			getSelectionModel().selectIndices(indices[0], indices);
 		}
 		refreshing = false;
@@ -159,14 +165,14 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 	}
 
 	public Set<H> getSelectedThreads() {
-		final Set<H> selectedThreads = new LinkedHashSet<H>(getSelectionModel().getSelectedItems());
-		if (selectedThreads.size() == 1) {
-			final Iterator<H> i = selectedThreads.iterator();
-			if (i.next() == null) {
-				i.remove();
-			}
+		final ObservableList<H> selectedList = getSelectionModel().getSelectedItems();
+		Set<H> selectedSet;
+		if (selectedList.isEmpty()) {
+			selectedSet = new HashSet<H>();
+		} else {
+			selectedSet = Collections.unmodifiableSet(new LinkedHashSet<H>(selectedList));
 		}
-		return Collections.unmodifiableSet(selectedThreads);
+		return Collections.unmodifiableSet(selectedSet);
 	}
 
 	public void setOnSelectThreads(final EventHandler<ActionEvent> handler) {

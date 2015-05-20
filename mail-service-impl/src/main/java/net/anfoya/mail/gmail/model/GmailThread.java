@@ -1,10 +1,11 @@
 package net.anfoya.mail.gmail.model;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Set;
+
+import javax.mail.internet.MailDateFormat;
 
 import net.anfoya.mail.model.SimpleThread;
 
@@ -41,17 +42,17 @@ public class GmailThread extends SimpleThread {
 		if (from.contains(" <")) {
 			from = from.substring(0, from.indexOf(" <"));
 		}
-		from = from.replaceAll("\"", "");
-		return from;
+		return from.replaceAll("\"", "");
 	}
 
-	@SuppressWarnings("deprecation")
 	private static Date findDate(final Thread thread) {
 		final String s = findHeader(thread, "Date");
 		try {
-			return new SimpleDateFormat().parse(s);
+			return new MailDateFormat().parse(s);
 		} catch (final ParseException e) {
-			return new Date(s);
+			//TODO handle error
+			e.printStackTrace();
+			return new Date();
 		}
 	}
 

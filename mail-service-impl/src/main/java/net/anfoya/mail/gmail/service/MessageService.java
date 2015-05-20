@@ -55,11 +55,19 @@ public class MessageService {
 		}
 	}
 
-	public void deleteDraft(final String id) throws MessageException {
+	public void removeDraft(final String id) throws MessageException {
 		try {
 			gmail.users().drafts().delete(user, id).execute();
 		} catch (final IOException e) {
 			throw new MessageException("deleting draft id " + id, e);
+		}
+	}
+
+	public void removeMessage(final String id) throws MessageException {
+		try {
+			gmail.users().messages().delete(user, id).execute();
+		} catch (final IOException e) {
+			throw new MessageException("deleting message id " + id, e);
 		}
 	}
 }
