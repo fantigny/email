@@ -129,11 +129,6 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 				ThreadPool.getInstance().submitLow(lazyCountTask);
 				lazyCountTask = null;
 			}
-			if (!newVal) {
-				LOGGER.debug("expand changed {} -> {}", oldVal, newVal);
-				tagList.getSelectionModel().clearSelection();
-				selectHandler.handle(null);
-			}
 		});
 	}
 

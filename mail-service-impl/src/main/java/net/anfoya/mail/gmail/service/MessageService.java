@@ -12,7 +12,6 @@ import javax.mail.internet.MimeMessage;
 
 import net.anfoya.java.cache.FileSerieSerializedMap;
 import net.anfoya.mail.gmail.cache.CacheData;
-import net.anfoya.mail.gmail.cache.CacheException;
 
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Draft;
@@ -35,7 +34,7 @@ public class MessageService {
 		if (idMessages.containsKey(id)) {
 			try {
 				message = idMessages.get(id).getData();
-			} catch (final CacheException e) {
+			} catch (final Exception e) {
 				idMessages.remove(id);
 			}
 		}

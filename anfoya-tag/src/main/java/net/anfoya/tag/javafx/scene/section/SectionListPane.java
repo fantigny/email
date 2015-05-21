@@ -81,6 +81,16 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		setTop(patternBox);
 
 		sectionAcc = new Accordion();
+		sectionAcc.expandedPaneProperty().addListener((ov, oldVal, newVal) -> {
+			if (newVal != null && newVal.isExpanded() && !isCheckMode()) {
+				@SuppressWarnings("unchecked")
+				final TagList<S, T> tagList = (TagList<S, T>) newVal.getContent();
+				if (tagList.getSelectedTag() != null) {
+					selectTagHandler.handle(null);
+				}
+			}
+		});
+
 		final StackPane stackPane = new StackPane(sectionAcc);
 		stackPane.setAlignment(Pos.BOTTOM_CENTER);
 		stackPane.setPadding(new Insets(5, 0, 5, 0));
