@@ -40,7 +40,7 @@ public class ThreadService {
 		this.gmail = gmail;
 		this.user = user;
 
-		idThreads = new FileSerieSerializedMap<String, CacheData<Thread>>("id-threads", 200);
+		idThreads = new FileSerieSerializedMap<String, CacheData<Thread>>("id-threads-" + user, 200);
 	}
 
 	public Set<Thread> find(final String query) throws ThreadException {

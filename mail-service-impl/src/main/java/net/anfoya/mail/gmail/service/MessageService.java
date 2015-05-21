@@ -27,7 +27,7 @@ public class MessageService {
 		this.gmail = gmail;
 		this.user = user;
 
-		idMessages = new FileSerieSerializedMap<String, CacheData<Message>>("id-messages", 50);
+		idMessages = new FileSerieSerializedMap<String, CacheData<Message>>("id-messages-" + user, 50);
 	}
 
 	public Message getMessage(final String id) throws MessageException {

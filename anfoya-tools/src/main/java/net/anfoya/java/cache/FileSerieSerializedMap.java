@@ -10,7 +10,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import net.anfoya.java.io.SerializedFile;
 
@@ -27,7 +26,7 @@ public class FileSerieSerializedMap<K extends Serializable, V extends Serializab
 	private final int threshold;
 	private final String dicoFilename;
 	private final String filenamePattern;
-	private final Map<K, V> delegate = new ConcurrentHashMap<K, V>();
+	private final Map<K, V> delegate;
 	private final List<K> dico;
 	private final List<Boolean> loaded;
 	private final List<Boolean> saved;
@@ -36,6 +35,7 @@ public class FileSerieSerializedMap<K extends Serializable, V extends Serializab
 	public FileSerieSerializedMap(final String name, final int fileCreationThreshold) {
 		threshold = fileCreationThreshold;
 		filenamePattern = String.format(FILE_NAME_PATTERN, name + "-%s");
+		delegate = new HashMap<K, V>();
 
 		dicoFilename = String.format(filenamePattern, "dico");
 		List<K> dico;
@@ -89,30 +89,29 @@ public class FileSerieSerializedMap<K extends Serializable, V extends Serializab
 				}
 			}
 		} catch (final IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.error("saving", e);
 		} finally {
 			saving = false;
 		}
 	}
 
 	@Override
-	public int size() {
+	public synchronized int size() {
 		return dico.size();
 	}
 
 	@Override
-	public boolean isEmpty() {
+	public synchronized boolean isEmpty() {
 		return dico.isEmpty();
 	}
 
 	@Override
-	public boolean containsKey(final Object key) {
+	public synchronized boolean containsKey(final Object key) {
 		return dico.contains(key);
 	}
 
 	@Override
-	public V get(final Object key) {
+	public synchronized V get(final Object key) {
 		final int index = dico.indexOf(key);
 		if (index != -1 && !loaded.get(index)) {
 			final String filename = String.format(filenamePattern, "" + index / threshold);
@@ -134,32 +133,32 @@ public class FileSerieSerializedMap<K extends Serializable, V extends Serializab
 	}
 
 	@Override
-	public V put(final K key, final V value) {
-		V previous = null;
-		synchronized (this) {
-			previous = delegate.put(key, value);
-			if (previous == null) {
-				dico.add(key);
-				loaded.add(true);
-				saved.add(false);
-			} else {
-				final int index = dico.indexOf(key);
-				loaded.set(index, true);
-				saved.set(index, false);
-			}
+	public synchronized V put(final K key, final V value) {
+		final V previous = delegate.put(key, value);
+		if (previous == null) {
+			dico.add(key);
+			loaded.add(true);
+			saved.add(false);
+		} else {
+			final int index = dico.indexOf(key);
+			loaded.set(index, true);
+			saved.set(index, false);
 		}
 
 		return previous;
 	}
 
 	@Override
-	public V remove(final Object key) {
-		V previous = null;
-		synchronized (this) {
-			previous = delegate.remove(key);
-			if (previous != null) {
-				final int index = dico.indexOf(key);
-				final int lastIndex = dico.size() - 1;
+	public synchronized V remove(final Object key) {
+		final V previous = delegate.remove(key);
+		if (previous != null) {
+			final int index = dico.indexOf(key);
+			final int lastIndex = dico.size() - 1;
+			if (index == lastIndex) {
+				dico.remove(index);
+				loaded.remove(index);
+				saved.remove(index);
+			} else {
 				dico.set(index, dico.remove(lastIndex));
 				loaded.set(index, loaded.remove(lastIndex) || true);
 				saved.set(index, saved.remove(lastIndex) && false);
@@ -170,29 +169,27 @@ public class FileSerieSerializedMap<K extends Serializable, V extends Serializab
 	}
 
 	@Override
-	public void putAll(final Map<? extends K, ? extends V> m) {
+	public synchronized void putAll(final Map<? extends K, ? extends V> m) {
 		for(final Entry<? extends K, ? extends V> entry: m.entrySet()) {
 			put(entry.getKey(), entry.getValue());
 		}
 	}
 
 	@Override
-	public void clear() {
-		synchronized (this) {
-			delegate.clear();
-			dico.clear();
-			loaded.clear();
-			saved.clear();
-		}
+	public synchronized void clear() {
+		delegate.clear();
+		dico.clear();
+		loaded.clear();
+		saved.clear();
 	}
 
 	@Override
-	public Set<K> keySet() {
+	public synchronized Set<K> keySet() {
 		return Collections.unmodifiableSet(new HashSet<K>(dico));
 	}
 
 	@Override
-	public boolean containsValue(final Object value) {
+	public synchronized boolean containsValue(final Object value) {
 		throw new NotImplementedException();
 	}
 
