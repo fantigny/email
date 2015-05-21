@@ -9,6 +9,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import javafx.util.Callback;
+import net.anfoya.java.io.SerializedFile;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +22,7 @@ import com.google.api.services.gmail.model.Message;
 
 public class HistoryService extends TimerTask {
 	private static final Logger LOGGER = LoggerFactory.getLogger(HistoryService.class);
+	private static final String FILE_PREFIX = System.getProperty("java.io.tmpdir") + "fsm-cache-history-id-";
 
 	private final Gmail gmail;
 	private final String user;
@@ -36,7 +38,22 @@ public class HistoryService extends TimerTask {
 		this.gmail = gmail;
 		this.user = user;
 
-		historyId = null;
+		try {
+			historyId = new SerializedFile<BigInteger>(FILE_PREFIX + user).load();
+		} catch (ClassNotFoundException | IOException e) {
+			historyId = null;
+		}
+		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					new SerializedFile<BigInteger>(FILE_PREFIX + user).save(historyId);
+				} catch (final IOException e) {
+					LOGGER.error("saving history id", e);
+				}
+			}
+		}));
+
 		onUpdateCallBacks = new LinkedHashSet<Callback<Throwable, Void>>();
 		onLabelUpdateCallBacks = new LinkedHashSet<Callback<Throwable, Void>>();
 	}

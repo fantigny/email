@@ -28,6 +28,7 @@ import com.google.api.services.gmail.model.Thread;
 
 public class ThreadService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadService.class);
+	private static final String FILE_PREFIX = System.getProperty("java.io.tmpdir") + "fsm-cache-id-threads-";
 
 	private static final long MAX_RESULS = 50;
 
@@ -40,7 +41,7 @@ public class ThreadService {
 		this.gmail = gmail;
 		this.user = user;
 
-		idThreads = new FileSerieSerializedMap<String, CacheData<Thread>>("id-threads-" + user, 200);
+		idThreads = new FileSerieSerializedMap<String, CacheData<Thread>>(FILE_PREFIX + user, 200);
 	}
 
 	public Set<Thread> find(final String query) throws ThreadException {

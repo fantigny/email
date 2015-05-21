@@ -12,13 +12,14 @@ import javax.mail.internet.MimeMessage;
 
 import net.anfoya.java.cache.FileSerieSerializedMap;
 import net.anfoya.mail.gmail.cache.CacheData;
-import net.anfoya.mail.gmail.cache.CacheException;
 
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Draft;
 import com.google.api.services.gmail.model.Message;
 
 public class MessageService {
+	private static final String FILE_PREFIX = System.getProperty("java.io.tmpdir") + "fsm-cache-id-messages-";
+
 	private final Map<String, CacheData<Message>> idMessages;
 	private final Gmail gmail;
 	private final String user;
@@ -27,7 +28,7 @@ public class MessageService {
 		this.gmail = gmail;
 		this.user = user;
 
-		idMessages = new FileSerieSerializedMap<String, CacheData<Message>>("id-messages-" + user, 50);
+		idMessages = new FileSerieSerializedMap<String, CacheData<Message>>(FILE_PREFIX + user, 50);
 	}
 
 	public Message getMessage(final String id) throws MessageException {
@@ -35,7 +36,7 @@ public class MessageService {
 		if (idMessages.containsKey(id)) {
 			try {
 				message = idMessages.get(id).getData();
-			} catch (final CacheException e) {
+			} catch (final Exception e) {
 				idMessages.remove(id);
 			}
 		}
