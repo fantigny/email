@@ -1,6 +1,7 @@
 package net.anfoya.mail.gmail.service;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -10,6 +11,7 @@ import java.util.concurrent.CountDownLatch;
 
 import net.anfoya.java.cache.FileSerieSerializedMap;
 import net.anfoya.mail.gmail.cache.CacheData;
+import net.anfoya.mail.gmail.cache.CacheException;
 import net.anfoya.mail.gmail.model.GmailThread;
 
 import org.slf4j.Logger;
@@ -54,8 +56,13 @@ public class ThreadService {
 			while (threadResponse.getThreads() != null) {
 				for(final Thread t : threadResponse.getThreads()) {
 					final String id = t.getId();
-					final CacheData<Thread> cached = idThreads.get(id);
-					if (cached == null || !cached.getData().getHistoryId().equals(t.getHistoryId())) {
+					BigInteger historyId;
+					try {
+						historyId = idThreads.get(id).getData().getHistoryId();
+					} catch (final Exception e) {
+						historyId = null;
+					}
+					if (!t.getHistoryId().equals(historyId)) {
 						toLoadIds.add(id);
 					}
 					ids.add(id);
@@ -73,7 +80,7 @@ public class ThreadService {
 				threads.add(idThreads.get(id).getData());
 			}
 			return threads;
-		} catch (final IOException e) {
+		} catch (final IOException | CacheException e) {
 			throw new ThreadException("getting threads for query " + query, e);
 		} finally {
 			LOGGER.debug("get threads for query {} ({}=ms)", query, System.currentTimeMillis()-start);

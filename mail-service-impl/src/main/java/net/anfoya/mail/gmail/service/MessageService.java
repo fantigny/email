@@ -12,6 +12,7 @@ import javax.mail.internet.MimeMessage;
 
 import net.anfoya.java.cache.FileSerieSerializedMap;
 import net.anfoya.mail.gmail.cache.CacheData;
+import net.anfoya.mail.gmail.cache.CacheException;
 
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Draft;
@@ -30,15 +31,24 @@ public class MessageService {
 	}
 
 	public Message getMessage(final String id) throws MessageException {
-		try {
-			if (!idMessages.containsKey(id)) {
-				final Message message = gmail.users().messages().get(user, id).setFormat("raw").execute();
-				idMessages.put(id, new CacheData<Message>(message));
+		Message message = null;
+		if (idMessages.containsKey(id)) {
+			try {
+				message = idMessages.get(id).getData();
+			} catch (final CacheException e) {
+				idMessages.remove(id);
 			}
-			return idMessages.get(id).getData();
-		} catch (final IOException e) {
-			throw new MessageException("getting message id " + id, e);
 		}
+		if (message == null) {
+			try {
+				message = gmail.users().messages().get(user, id).setFormat("raw").execute();
+				idMessages.put(id, new CacheData<Message>(message));
+			} catch (final IOException e) {
+				throw new MessageException("getting message id " + id, e);
+			}
+		}
+
+		return message;
 	}
 
 	public Draft createDraft() throws MessageException {
