@@ -58,7 +58,7 @@ public class HistoryService extends TimerTask {
 		if (exception != null) {
 			call(onLabelUpdateCallBacks, exception);
 			call(onUpdateCallBacks, exception);
-		} else {
+		} else if (types.contains(UpdateType.UPDATE)) {
 			if (types.contains(UpdateType.LABEL)) {
 				call(onLabelUpdateCallBacks, null);
 			}
