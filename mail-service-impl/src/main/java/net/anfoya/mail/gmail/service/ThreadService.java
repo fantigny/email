@@ -6,9 +6,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 
+import net.anfoya.java.cache.FileSerieSerializedMap;
+import net.anfoya.mail.gmail.cache.CacheData;
 import net.anfoya.mail.gmail.model.GmailThread;
 
 import org.slf4j.Logger;
@@ -31,13 +32,13 @@ public class ThreadService {
 	private final Gmail gmail;
 	private final String user;
 
-	private final Map<String, Thread> idThreads;
+	private final Map<String, CacheData<Thread>> idThreads;
 
 	public ThreadService(final Gmail gmail, final String user) {
 		this.gmail = gmail;
 		this.user = user;
 
-		idThreads = new ConcurrentHashMap<String, Thread>();
+		idThreads = new FileSerieSerializedMap<String, CacheData<Thread>>("id-threads", 200);
 	}
 
 	public Set<Thread> find(final String query) throws ThreadException {
@@ -53,8 +54,8 @@ public class ThreadService {
 			while (threadResponse.getThreads() != null) {
 				for(final Thread t : threadResponse.getThreads()) {
 					final String id = t.getId();
-					final Thread cached = idThreads.get(id);
-					if (cached == null || !cached.getHistoryId().equals(t.getHistoryId())) {
+					final CacheData<Thread> cached = idThreads.get(id);
+					if (cached == null || !cached.getData().getHistoryId().equals(t.getHistoryId())) {
 						toLoadIds.add(id);
 					}
 					ids.add(id);
@@ -69,7 +70,7 @@ public class ThreadService {
 			load(toLoadIds);
 			final Set<Thread> threads = new LinkedHashSet<Thread>();
 			for(final String id: ids) {
-				threads.add(idThreads.get(id));
+				threads.add(idThreads.get(id).getData());
 			}
 			return threads;
 		} catch (final IOException e) {
@@ -190,7 +191,7 @@ public class ThreadService {
 				@Override
 				public void onSuccess(final Thread t, final HttpHeaders responseHeaders) throws IOException {
 					threads.add(t);
-					idThreads.put(t.getId(), t);
+					idThreads.put(t.getId(), new CacheData<Thread>(t));
 					latch.countDown();
 				}
 				@Override

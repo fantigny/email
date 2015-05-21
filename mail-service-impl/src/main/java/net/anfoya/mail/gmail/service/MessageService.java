@@ -11,13 +11,14 @@ import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 
 import net.anfoya.java.cache.FileSerieSerializedMap;
+import net.anfoya.mail.gmail.cache.CacheData;
 
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Draft;
 import com.google.api.services.gmail.model.Message;
 
 public class MessageService {
-	private final Map<String, SerializableMessage> idMessages;
+	private final Map<String, CacheData<Message>> idMessages;
 	private final Gmail gmail;
 	private final String user;
 
@@ -25,16 +26,16 @@ public class MessageService {
 		this.gmail = gmail;
 		this.user = user;
 
-		idMessages = new FileSerieSerializedMap<String, SerializableMessage>("id-messages");
+		idMessages = new FileSerieSerializedMap<String, CacheData<Message>>("id-messages", 50);
 	}
 
 	public Message getMessage(final String id) throws MessageException {
 		try {
 			if (!idMessages.containsKey(id)) {
 				final Message message = gmail.users().messages().get(user, id).setFormat("raw").execute();
-				idMessages.put(id, new SerializableMessage(message));
+				idMessages.put(id, new CacheData<Message>(message));
 			}
-			return idMessages.get(id).getMessage();
+			return idMessages.get(id).getData();
 		} catch (final IOException e) {
 			throw new MessageException("getting message id " + id, e);
 		}
