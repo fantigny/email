@@ -53,7 +53,6 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 		subjectField.prefWidthProperty().bind(widthProperty());
 		subjectField.setEditable(false);
 		final HBox subjectBox = new HBox(subjectField);
-		subjectBox.setPadding(new Insets(0, 5, 0, 5));
 		setTop(subjectBox);
 
 		final StackPane stackPane = new StackPane();

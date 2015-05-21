@@ -5,33 +5,36 @@ import java.io.IOException;
 import java.util.Base64;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
+
+import net.anfoya.java.cache.FileSerieSerializedMap;
 
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Draft;
 import com.google.api.services.gmail.model.Message;
 
 public class MessageService {
-	private final Map<String, Message> idMessages = new ConcurrentHashMap<String, Message>();
+	private final Map<String, SerializableMessage> idMessages;
 	private final Gmail gmail;
 	private final String user;
 
 	public MessageService(final Gmail gmail, final String user) {
 		this.gmail = gmail;
 		this.user = user;
+
+		idMessages = new FileSerieSerializedMap<String, SerializableMessage>("id-messages");
 	}
 
 	public Message getMessage(final String id) throws MessageException {
 		try {
 			if (!idMessages.containsKey(id)) {
 				final Message message = gmail.users().messages().get(user, id).setFormat("raw").execute();
-				idMessages.put(id, message);
+				idMessages.put(id, new SerializableMessage(message));
 			}
-			return idMessages.get(id);
+			return idMessages.get(id).getMessage();
 		} catch (final IOException e) {
 			throw new MessageException("getting message id " + id, e);
 		}

@@ -12,7 +12,7 @@
 	</appender>
 
 
-  <logger name="net.anfoya.mail.browser.javafx.entrypoint" level="DEBUG"/>
+  <logger name="net.anfoya.java.cache" level="DEBUG"/>
     <logger name="net.anfoya.mail.browser.javafx.threadlist" level="DEBUG"/>
       <logger name="net.anfoya.mail.browser.javafx.thread" level="DEBUG"/>
   <!--

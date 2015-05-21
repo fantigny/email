@@ -55,7 +55,7 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 	private static final Session SESSION = Session.getDefaultInstance(new Properties(), null);
 	private static final String EMPTY = "[empty]";
 	private static final String UNKNOWN = "[unknown]";
-	private static final String TEMP = System.getProperty("java.io.tmpdir") + "/";
+	private static final String TEMP = System.getProperty("java.io.tmpdir");
 	private static final String ATTACH_ICON_PATH = TEMP + "/fishermail-attachment.png";
 
 	private final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService;
