@@ -93,7 +93,6 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)
 					&& !stackPane.getChildren().contains(threadListDropPane)) {
 				stackPane.getChildren().add(threadListDropPane);
-				System.out.println("setOnDragEntered");
 			}
 
 		});
@@ -101,7 +100,6 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)
 					&& stackPane.getChildren().contains(threadListDropPane)) {
 				stackPane.getChildren().remove(threadListDropPane);
-				System.out.println("setOnDragExited");
 			}
 		});
 
