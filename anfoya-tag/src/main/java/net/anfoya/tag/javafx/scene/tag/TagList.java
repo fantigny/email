@@ -152,6 +152,8 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 			item = i.next();
 			if (item.getTag().getName().equals(SimpleTag.THIS_NAME)) {
 				break;
+			} else {
+				item = null;
 			}
 		}
 		final TagListItem<T> thisItem = item;

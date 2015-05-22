@@ -26,11 +26,8 @@ import net.anfoya.tag.model.SimpleTag;
 import net.anfoya.tag.service.TagException;
 import net.anfoya.tag.service.TagService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends TitledPane {
-	private static final Logger LOGGER = LoggerFactory.getLogger(SectionPane.class);
+//	private static final Logger LOGGER = LoggerFactory.getLogger(SectionPane.class);
 
 	private final AtomicLong taskId = new AtomicLong();
 	private final TagService<S, T> tagService;
@@ -48,7 +45,6 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 	private boolean disableWhenZero;
 	private DataFormat extItemDataFormat;
 	private Timeline expandDelay;
-	private EventHandler<ActionEvent> selectHandler;
 
 	private EventHandler<ActionEvent> updateHandler;
 
@@ -268,7 +264,6 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 	}
 
 	public void setOnSelectTag(final EventHandler<ActionEvent> handler) {
-		selectHandler = handler;
 		tagList.setOnIncExcTag(handler);
 		tagList.setOnSelectTag(event -> {
 			if (isExpanded()) {

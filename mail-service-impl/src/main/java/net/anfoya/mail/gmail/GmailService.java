@@ -255,7 +255,9 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 			final Set<GmailSection> sections = new LinkedHashSet<GmailSection>();
 			sections.add(GmailSection.SYSTEM);
-			sections.add(GmailSection.TO_SORT);
+			if (!getTags(GmailSection.TO_SORT, "").isEmpty()) {
+				sections.add(GmailSection.TO_SORT);
+			}
 			sections.addAll(sectionTmp);
 
 			LOGGER.debug("get sections: {}", sections);
