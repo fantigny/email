@@ -1,6 +1,9 @@
 package net.anfoya.mail.browser.javafx.entrypoint;
 
 import static net.anfoya.mail.browser.javafx.threadlist.ThreadListPane.DND_THREADS_DATA_FORMAT;
+
+import java.util.Set;
+
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
@@ -20,6 +23,7 @@ import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
 import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
 import net.anfoya.mail.gmail.GmailService;
+import net.anfoya.mail.gmail.model.GmailMoreThreads;
 import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
@@ -156,6 +160,8 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 
 	boolean refreshAfterPatternUpdate = false;
 
+	boolean refreshAfterMoreResultsSelected = true;
+
 	private void refreshAfterRemoteUpdate() {
 		if (!refreshAfterRemoteUpdate) {
 			return;
@@ -190,8 +196,25 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 		}
 		LOGGER.debug("refreshAfterThreadSelected");
 
+		final Set<H> threads = threadListPane.getSelectedThreads();
+		if (threads.size() == 1 && threads.iterator().next() instanceof GmailMoreThreads) {
+			refreshAfterMoreThreadsSelected();
+			return;
+		}
+
 		// update thread details when (a) thread(s) is/are selected
 		threadPane.refresh(threadListPane.getSelectedThreads());
+	}
+
+	private void refreshAfterMoreThreadsSelected() {
+		if (!refreshAfterMoreResultsSelected) {
+			return;
+		}
+		LOGGER.debug("refreshAfterMoreResultsSelected");
+
+		// update thread list with next page token
+		final GmailMoreThreads more = (GmailMoreThreads) threadListPane.getSelectedThreads().iterator().next();
+		threadListPane.refreshWithPage(more.getPage());
 	}
 
 	private void refreshAfterThreadListLoad() {

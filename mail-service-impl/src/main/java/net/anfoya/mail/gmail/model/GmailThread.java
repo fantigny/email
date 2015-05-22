@@ -16,13 +16,13 @@ import com.google.api.services.gmail.model.Thread;
 @SuppressWarnings("serial")
 public class GmailThread extends SimpleThread {
 
-	public GmailThread(final Thread thread, final String unreadTagId) {
+	public GmailThread(final Thread thread) {
 		this(
 			thread.getId()
 			, findSubject(thread)
 			, getMessageIds(thread)
 			, getLabelIds(thread)
-			, getLabelIds(thread).contains(unreadTagId)
+			, getLabelIds(thread).contains(GmailTag.UNREAD.getId())
 			, findFrom(thread)
 			, findDate(thread));
 	}
@@ -84,11 +84,16 @@ public class GmailThread extends SimpleThread {
 
 	private static Set<String> findHeaders(final Thread thread, final String key) {
 		final Set<String> headers = new LinkedHashSet<String>();
-		for(final MessagePartHeader h:thread.getMessages().get(0).getPayload().getHeaders()) {
-			if (key.equals(h.getName())) {
-				headers.add(h.getValue());
+		if (thread.getMessages() != null && !thread.getMessages().isEmpty()) {
+			for(final MessagePartHeader h:thread.getMessages().get(0).getPayload().getHeaders()) {
+				if (key.equals(h.getName())) {
+					headers.add(h.getValue());
+				}
 			}
 		}
+
+		System.out.println(thread.get(key) + "--" + headers);
+
 
 		return headers;
 	}

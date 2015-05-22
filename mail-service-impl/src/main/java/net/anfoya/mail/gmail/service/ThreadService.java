@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -12,7 +11,6 @@ import java.util.concurrent.CountDownLatch;
 import net.anfoya.java.cache.FileSerieSerializedMap;
 import net.anfoya.mail.gmail.cache.CacheData;
 import net.anfoya.mail.gmail.cache.CacheException;
-import net.anfoya.mail.gmail.model.GmailThread;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,8 +27,9 @@ import com.google.api.services.gmail.model.Thread;
 public class ThreadService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadService.class);
 	private static final String FILE_PREFIX = System.getProperty("java.io.tmpdir") + "fsm-cache-id-threads-";
-
-	private static final long MAX_RESULS = 50;
+	private static final Long MAX_LIST_RESULTS = Long.valueOf(100);
+	
+	public static final String PAGE_TOKEN_ID = "no-id-page-token";
 
 	private final Gmail gmail;
 	private final String user;
@@ -44,7 +43,7 @@ public class ThreadService {
 		idThreads = new FileSerieSerializedMap<String, CacheData<Thread>>(FILE_PREFIX + user, 200);
 	}
 
-	public Set<Thread> find(final String query) throws ThreadException {
+	public Set<Thread> find(final String query, final int pageMax) throws ThreadException {
 		if (query.isEmpty()) {
 			throw new ThreadException("empty query not allowed");
 		}
@@ -53,7 +52,9 @@ public class ThreadService {
 		final Set<String> ids = new LinkedHashSet<String>();
 		final Set<String> toLoadIds = new LinkedHashSet<String>();
 		try {
-			ListThreadsResponse threadResponse = gmail.users().threads().list(user).setQ(query.toString()).setMaxResults(MAX_RESULS).execute();
+			ListThreadsResponse threadResponse;
+			threadResponse = gmail.users().threads().list(user).setQ(query.toString()).setMaxResults(MAX_LIST_RESULTS).execute();
+			int page = 0;
 			while (threadResponse.getThreads() != null) {
 				for(final Thread t : threadResponse.getThreads()) {
 					final String id = t.getId();
@@ -68,9 +69,9 @@ public class ThreadService {
 					}
 					ids.add(id);
 				}
-				if (threadResponse.getNextPageToken() != null) {
-					final String pageToken = threadResponse.getNextPageToken();
-					threadResponse = gmail.users().threads().list(user).setQ(query.toString()).setPageToken(pageToken).setMaxResults(MAX_RESULS).execute();
+				page++;
+				if (threadResponse.getNextPageToken() != null && page < pageMax) {
+					threadResponse = gmail.users().threads().list(user).setQ(query.toString()).setPageToken(threadResponse.getNextPageToken()).setMaxResults(MAX_LIST_RESULTS).execute();
 				} else {
 					break;
 				}
@@ -80,6 +81,10 @@ public class ThreadService {
 			for(final String id: ids) {
 				threads.add(idThreads.get(id).getData());
 			}
+			if (threadResponse.getNextPageToken() != null) {
+				// special thread for next page
+				threads.add(nextPageThread(page));
+			}
 			return threads;
 		} catch (final IOException | CacheException e) {
 			throw new ThreadException("getting threads for query " + query, e);
@@ -87,6 +92,15 @@ public class ThreadService {
 			LOGGER.debug("get threads for query {} ({}=ms)", query, System.currentTimeMillis()-start);
 		}
 	}
+
+	private static Thread nextPageThread(final int nextPage) {
+		final Thread thread = new Thread();
+		thread.setId(PAGE_TOKEN_ID);
+		thread.setHistoryId(BigInteger.valueOf(nextPage));
+
+		return thread;
+	}
+
 
 	public int count(final String query) throws ThreadException {
 		if (query.isEmpty()) {
@@ -145,19 +159,6 @@ public class ThreadService {
 			throw new ThreadException("update<{" + (add? "add": "del") + "}> labels " + labelIds + " for threads " + threadIds, e);
 		} finally {
 			LOGGER.debug("update<{}> labels {} for threads {} ({}ms)", add? "add": "del", labelIds, threadIds, System.currentTimeMillis()-start);
-		}
-	}
-
-	public void archive(final Set<GmailThread> threads) throws ThreadException {
-		@SuppressWarnings("serial")
-		final List<String> inboxId = new ArrayList<String>() {{ add(find("INBOX").iterator().next().getId());}};
-		final ModifyThreadRequest request = new ModifyThreadRequest().setRemoveLabelIds(inboxId);
-		for(final GmailThread t: threads) {
-			try {
-				gmail.users().threads().modify(user, t.getId(), request).execute();
-			} catch (final IOException e) {
-				throw new ThreadException("archiving thread id " + t.getId(), e);
-			}
 		}
 	}
 

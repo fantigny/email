@@ -6,6 +6,10 @@ import com.google.api.services.gmail.model.Label;
 
 @SuppressWarnings("serial")
 public class GmailTag extends SimpleTag {
+	public static final GmailTag ALL_MAIL = new GmailTag("ALL", "All mail", "ALL", true);
+	public static final GmailTag UNREAD = new GmailTag("UNREAD", "Unread", "UNREAD", true);
+	public static final GmailTag INBOX = new GmailTag("INBOX", "Inbox", "INBOX", true);
+
 	private final String path;
 	private final boolean hidden;
 
@@ -28,10 +32,13 @@ public class GmailTag extends SimpleTag {
 	}
 
 	public GmailTag(final Label label) {
-		super(label.getId(), getName(label));
+		this(label.getId(), getName(label), label.getName(), isHidden(label));
+	}
 
-		this.path = label.getName();
-		this.hidden = isHidden(label);
+	public GmailTag(final String id, final String name,final String path, final boolean hidden) {
+		super(id, name);
+		this.path = path;
+		this.hidden = hidden;
 	}
 
 	public boolean isHidden() {

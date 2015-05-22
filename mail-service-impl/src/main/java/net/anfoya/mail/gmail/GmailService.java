@@ -16,6 +16,7 @@ import java.util.prefs.Preferences;
 
 import javafx.util.Callback;
 import net.anfoya.mail.gmail.model.GmailMessage;
+import net.anfoya.mail.gmail.model.GmailMoreThreads;
 import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.gmail.model.GmailTag;
 import net.anfoya.mail.gmail.model.GmailThread;
@@ -143,7 +144,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	@Override
-	public Set<GmailThread> getThreads(final Set<GmailTag> includes, final Set<GmailTag> excludes, final String pattern) throws GMailException {
+	public Set<GmailThread> findThreads(final Set<GmailTag> includes, final Set<GmailTag> excludes, final String pattern, final int pageMax) throws GMailException {
 		try {
 			final Set<GmailThread> threads = new LinkedHashSet<GmailThread>();
 			if (includes.isEmpty()) { //TODO && excludes.isEmpty() && pattern.isEmpty()) {
@@ -181,8 +182,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 				query.append("(").append(p).append(")");
 			}
 
-			final String unreadId = labelService.find("UNREAD").getId();
-			for(final Thread t: threadService.find(query.toString())) {
+			for(final Thread t: threadService.find(query.toString(), pageMax)) {
 				// clean labels
 				if (t.getMessages() == null) {
 					LOGGER.error("no message for thread {}", t.toPrettyString());
@@ -202,7 +202,11 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 						m.setLabelIds(cleaned);
 					}
 				}
-				threads.add(new GmailThread(t, unreadId));
+				if (ThreadService.PAGE_TOKEN_ID.equals(t.getId())) {
+					threads.add(new GmailMoreThreads(pageMax + 1));
+				} else {
+					threads.add(new GmailThread(t));
+				}
 			}
 
 			return threads;
@@ -283,12 +287,14 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			final Collection<Label> labels = labelService.getAll();
 			if (GmailSection.SYSTEM.equals(section)) {
 				for(final Label l:labels) {
+					LOGGER.debug("{}, {}, {}", l.getName(), l.getLabelListVisibility(), l.getMessageListVisibility());
 					if (!GmailTag.isHidden(l) && GmailTag.isSystem(l)) {
 						final String name = l.getName();
 						l.setName(name.charAt(0) + name.substring(1).toLowerCase());
 						tags.add(new GmailTag(l));
 					}
 				}
+				tags.add(GmailTag.ALL_MAIL);
 			} else if (GmailSection.TO_HIDE.equals(section)) {
 				for(final Label label:labels) {
 					final String name = label.getName();
@@ -589,7 +595,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 				ids.add(t.getId());
 			}
 			final Set<String> labelIds = new HashSet<String>();
-			labelIds.add("INBOX");
+			labelIds.add(GmailTag.INBOX.getId());
 			threadService.update(ids, labelIds, false);
 		} catch (final ThreadException e) {
 			throw new GMailException("archiving threads " + threads, e);

@@ -24,19 +24,19 @@ public class ThreadServiceTest {
 	}
 
 	@Test public void find() throws ThreadException {
-		final Set<Thread> threads = service.find("subject:" + TEST_SUBJECT);
+		final Set<Thread> threads = service.find("subject:" + TEST_SUBJECT, 1);
 		Assert.assertFalse(threads.isEmpty());
 	}
 
 	@Test public void findThread() throws ThreadException {
-		final Thread thread = service.find("subject:" + TEST_SUBJECT).iterator().next();
+		final Thread thread = service.find("subject:" + TEST_SUBJECT, 1).iterator().next();
 		final Set<String> threadIds = new HashSet<String>();
 		threadIds.add(thread.getId());
 	}
 
 	@Test public void addRemoveLabel() throws ThreadException {
 		final String INBOX = "INBOX";
-		final String threadId = service.find("subject:" + TEST_SUBJECT).iterator().next().getId();
+		final String threadId = service.find("subject:" + TEST_SUBJECT, 1).iterator().next().getId();
 		final Set<String> threadIds = new HashSet<String>();
 		threadIds.add(threadId);
 		final Set<String> labelIds = new HashSet<String>();
@@ -44,34 +44,34 @@ public class ThreadServiceTest {
 
 		// add to INBOX
 		service.update(threadIds, labelIds, true);
-		Set<Thread> threads = service.find("label:" + INBOX + " AND subject:" + TEST_SUBJECT);
+		Set<Thread> threads = service.find("label:" + INBOX + " AND subject:" + TEST_SUBJECT, 1);
 		Assert.assertEquals(1, threads.size());
 
 		// remove from INBOX
 		service.update(threadIds, labelIds, false);
-		threads = service.find("label:" + INBOX + " AND subject:" + TEST_SUBJECT);
+		threads = service.find("label:" + INBOX + " AND subject:" + TEST_SUBJECT, 1);
 		Assert.assertTrue(threads.isEmpty());
 	}
 
 	@Test public void cache() throws ThreadException {
 		final String INBOX = "INBOX";
-		final String threadId = service.find("subject:" + TEST_SUBJECT).iterator().next().getId();
+		final String threadId = service.find("subject:" + TEST_SUBJECT, 1).iterator().next().getId();
 		final Set<String> threadIds = new HashSet<String>();
 		threadIds.add(threadId);
 		final Set<String> labelIds = new HashSet<String>();
 		labelIds.add(INBOX);
 
 		// get thread
-		Thread thread = service.find("subject:" + TEST_SUBJECT).iterator().next();
+		Thread thread = service.find("subject:" + TEST_SUBJECT, 1).iterator().next();
 		// add to INBOX
 		BigInteger historyId = thread.getHistoryId();
 		service.update(threadIds, labelIds, true);
-		thread = service.find("subject:" + TEST_SUBJECT).iterator().next();
+		thread = service.find("subject:" + TEST_SUBJECT, 1).iterator().next();
 		Assert.assertFalse(thread.getHistoryId().equals(historyId));
 		// remove from INBOX
 		historyId = thread.getHistoryId();
 		service.update(threadIds, labelIds, false);
-		thread = service.find("subject:" + TEST_SUBJECT).iterator().next();
+		thread = service.find("subject:" + TEST_SUBJECT, 1).iterator().next();
 		Assert.assertFalse(thread.getHistoryId().equals(historyId));
 	}
 }

@@ -23,7 +23,7 @@ public interface MailService<S extends SimpleSection
 	public void addTagForThreads(T tag, Set<H> threads) throws MailException;
 	public void removeTagForThread(T tag, H thread) throws MailException;
 
-	public Set<H> getThreads(Set<T> includes, Set<T> excludes, String pattern) throws MailException;
+	public Set<H> findThreads(Set<T> includes, Set<T> excludes, String pattern, int pageMax) throws MailException;
 	public void archive(Set<H> threads) throws MailException;
 	public void trash(Set<H> threads) throws MailException;
 

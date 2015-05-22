@@ -15,6 +15,7 @@ import javafx.event.EventHandler;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.mail.gmail.model.GmailMoreThreads;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.model.SimpleThread.SortOrder;
@@ -38,6 +39,7 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 	private Set<T> excludes;
 	private SortOrder sortOrder;
 	private String namePattern;
+	private int pageMax;
 
 	//TODO enhance
 	private final Predicate<H> nameFilter = thread -> thread.getSubject().toLowerCase().contains(namePattern);
@@ -77,9 +79,15 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 		load();
 	}
 
+	public void refreshWithPage(final int page) {
+		pageMax = page;
+		load();
+	}
+
 	public void refresh(final Set<T> includes, final Set<T> excludes) {
 		this.includes = includes;
 		this.excludes = excludes;
+		this.pageMax = 1;
 		load();
 	}
 
@@ -92,7 +100,7 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 			@Override
 			protected Set<H> call() throws InterruptedException, MailException {
 				LOGGER.debug("loading for includes {}, excludes {}, pattern: {}", includes, excludes, namePattern);
-				return mailService.getThreads(includes, excludes, namePattern);
+				return mailService.findThreads(includes, excludes, namePattern, pageMax);
 			}
 		};
 		loadTask.setOnFailed(event -> {
@@ -132,13 +140,18 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 			LOGGER.debug("selected threads {}", threads);
 			final int[] indices = new int[selectedThreads.size()];
 			Arrays.fill(indices, -1);
-			int itemIndex = 0, arrayIndex = 0;
-			for(final H t: getItems()) {
-				if (selectedThreads.contains(t) && !t.isUnread()) {
-					indices[arrayIndex] = itemIndex;
-					arrayIndex++;
+			if (selectedThreads.size() == 1 && selectedThreads.iterator().next() instanceof GmailMoreThreads) {
+				indices[0] = getItems().size() / pageMax * (pageMax - 1);
+				scrollTo(indices[0]);
+			} else {
+				int itemIndex = 0, arrayIndex = 0;
+				for(final H t: getItems()) {
+					if (selectedThreads.contains(t) && !t.isUnread()) {
+						indices[arrayIndex] = itemIndex;
+						arrayIndex++;
+					}
+					itemIndex++;
 				}
-				itemIndex++;
 			}
 			getSelectionModel().selectIndices(indices[0], indices);
 		}
