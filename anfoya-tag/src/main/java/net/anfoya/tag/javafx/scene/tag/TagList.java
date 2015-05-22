@@ -192,7 +192,7 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 		ThreadPool.getInstance().submitLow(showThisTask);
 	}
 
-	public synchronized void updateCount(final int currentCount, final Set<T> availableTags, final Set<T> includes, final Set<T> excludes, final String itemPattern) {
+	public synchronized void updateCount(final int queryCount, final Set<T> availableTags, final Set<T> includes, final Set<T> excludes, final String itemPattern) {
 		LOGGER.debug("update count {} {} {}", availableTags, includes, excludes);
 		final long taskId = ++countTaskId;
 		for(final Task<Integer> t: updateCountTasks) {
@@ -204,8 +204,8 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 
 		for(final TagListItem<T> item: getItems()) {
 			if (availableTags.contains(item.getTag()) || item.excludedProperty().get()) {
-				if (item.includedProperty().get()) {
-					item.countProperty().set(currentCount);
+				if (item.includedProperty().get() && queryCount != -1) {
+					item.countProperty().set(queryCount);
 				} else {
 					// request count for available tags
 					updateCountTasks.add(updateCountAsync(item, includes, excludes, itemPattern, taskId));

@@ -223,7 +223,7 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 		LOGGER.debug("refreshAfterThreadListLoad");
 
 		threadPane.refresh(threadListPane.getSelectedThreads());
-		sectionListPane.updateItemCount(threadListPane.getThreadsTags(), threadListPane.getThreadCount(), threadListPane.getNamePattern(), true);
+		sectionListPane.updateItemCount(threadListPane.getThreadsTags(), threadListPane.getNamePattern(), true);
 	}
 
 	private void refreshAfterTagSelected() {
@@ -241,7 +241,7 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 		}
 		LOGGER.debug("refreshAfterPatternUpdate");
 
-		sectionListPane.updateItemCount(threadListPane.getThreadsTags(), threadListPane.getThreadCount(), threadListPane.getNamePattern(), false);
+		sectionListPane.updateItemCount(threadListPane.getThreadsTags(), threadListPane.getNamePattern(), false);
 	}
 
 	private void refreshAfterThreadUpdate() {

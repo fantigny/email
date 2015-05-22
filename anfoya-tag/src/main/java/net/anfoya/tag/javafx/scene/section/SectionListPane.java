@@ -268,7 +268,11 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		updateSectionHandler = handler;
 	}
 
-	public void updateItemCount(Set<T> availableTags, final int currentCount, final String itemPattern, final boolean lazy) {
+	public void updateItemCount(final Set<T> toRefresh, final String itemPattern, final boolean lazy) {
+		updateItemCount(toRefresh, -1, itemPattern, lazy);
+	}
+
+	public void updateItemCount(Set<T> toRefresh, final int queryCount, final String itemPattern, final boolean lazy) {
 		this.itemPattern = itemPattern;
 		tagPattern = tagPatternField.getText();
 		final Set<T> includes = getIncludedTags();
@@ -279,13 +283,13 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 			final SectionPane<S, T> sectionPane = (SectionPane<S, T>) titledPane;
 			if (!checkMode) {
 				try {
-					availableTags = tagService.getTags(sectionPane.getSection(), itemPattern);
+					toRefresh = tagService.getTags(sectionPane.getSection(), itemPattern);
 				} catch (final TagException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
-			sectionPane.updateCountAsync(currentCount, availableTags, includes, excludes, itemPattern, tagPattern);
+			sectionPane.updateCountAsync(queryCount, toRefresh, includes, excludes, itemPattern, tagPattern);
 		}
 	}
 

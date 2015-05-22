@@ -87,7 +87,13 @@ public abstract class SimpleThread implements Thread {
 
 	@Override
 	public Date getDate() {
-		return date;
+		if (date != null) {
+			return date;
+		}
+		else {
+			// TODO remove when found why it can be null !!!
+			return new Date();
+		}
 	}
 
 	@Override

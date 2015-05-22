@@ -1,6 +1,5 @@
 package net.anfoya.mail.gmail.model;
 
-import java.text.ParseException;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -46,10 +45,10 @@ public class GmailThread extends SimpleThread {
 	}
 
 	private static Date findDate(final Thread thread) {
-		final String s = findHeader(thread, "Date");
 		try {
+			final String s = findHeader(thread, "Date");
 			return new MailDateFormat().parse(s);
-		} catch (final ParseException e) {
+		} catch (final Exception e) {
 			//TODO handle error
 			e.printStackTrace();
 			return new Date();
