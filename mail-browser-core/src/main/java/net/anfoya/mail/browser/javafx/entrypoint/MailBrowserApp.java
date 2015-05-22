@@ -68,7 +68,7 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 		final SplitPane splitPane = new SplitPane();
 		splitPane.getStyleClass().add("background");
 
-		final Scene scene = new Scene(splitPane, 1400, 700);
+		final Scene scene = new Scene(splitPane, 1400, 600);
 		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/excludebox.css").toExternalForm());
 		scene.getStylesheets().add(getClass().getResource("MailBrowserApp.css").toExternalForm());
 
@@ -169,7 +169,6 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 		LOGGER.debug("refreshAfterRemoteUpdate");
 
 		sectionListPane.refreshAsync(v -> {
-			sectionListPane.updateItemCount(threadListPane.getThreadsTags(), threadListPane.getThreadCount(), threadListPane.getNamePattern(), false);
 			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
 			return null;
 		});

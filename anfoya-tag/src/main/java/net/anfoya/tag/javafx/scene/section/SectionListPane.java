@@ -40,7 +40,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 
 	private final ResetTextField tagPatternField;
 	private final Accordion sectionAcc;
-	private final SelectedTagsPane<T> selectedPane;
+	private final SelectedTagsPane<T> selectedTagsPane;
 
 	private Set<S> sections;
 	private EventHandler<ActionEvent> selectTagHandler;
@@ -138,12 +138,12 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		});
 		setCenter(stackPane);
 
-		selectedPane = new SelectedTagsPane<T>();
-		selectedPane.setDelTagCallBack(tag -> {
+		selectedTagsPane = new SelectedTagsPane<T>();
+		selectedTagsPane.setDelTagCallBack(tag -> {
 			unselectTag(tag.getName());
 			return null;
 		});
-		setBottom(selectedPane);
+		setBottom(selectedTagsPane);
 	}
 
 	private void refreshSections() {
@@ -182,7 +182,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		for(final TitledPane pane: sectionAcc.getPanes()) {
 			@SuppressWarnings("unchecked")
 			final SectionPane<S, T> sectionPane = (SectionPane<S, T>) pane;
-			sectionPane.refresh(includes, excludes, tagPattern);
+			sectionPane.refresh(includes, excludes, previousItemPattern, tagPattern);
 		}
 	}
 
@@ -210,7 +210,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 			sections = refreshTask.getValue();
 			refreshSections();
 			refreshTags();
-			selectedPane.refresh(getAllSelectedTags());
+			selectedTagsPane.refresh(getAllSelectedTags());
 			if (callback != null) {
 				callback.call(null);
 			}
@@ -255,12 +255,12 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 				break;
 			}
 		}
-		selectedPane.refresh(getAllSelectedTags());
+		selectedTagsPane.refresh(getAllSelectedTags());
 	}
 
 	public void setOnSelectTag(final EventHandler<ActionEvent> handler) {
 		selectTagHandler = event -> {
-			selectedPane.refresh(getAllSelectedTags());
+			selectedTagsPane.refresh(getAllSelectedTags());
 			handler.handle(event);
 		};
 	}

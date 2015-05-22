@@ -58,7 +58,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	private static final String SCOPE = "https://mail.google.com/";
 	private static final String USER = "me";
 
-	private static final long PULL_PERIOD = 1000 * 30;
+	private static final long PULL_PERIOD = 1000 * 5;
 
 	private final HttpTransport httpTransport;
 	private final JsonFactory jsonFactory;
@@ -255,9 +255,6 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 			final Set<GmailSection> sections = new LinkedHashSet<GmailSection>();
 			sections.add(GmailSection.SYSTEM);
-			if (!getTags(GmailSection.TO_SORT, "").isEmpty()) {
-				sections.add(GmailSection.TO_SORT);
-			}
 			sections.addAll(sectionTmp);
 
 			LOGGER.debug("get sections: {}", sections);
@@ -288,47 +285,42 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			final String pattern = tagPattern.trim().toLowerCase();
 			final Collection<Label> labels = labelService.getAll();
 			if (GmailSection.SYSTEM.equals(section)) {
-				for(final Label l:labels) {
-					LOGGER.debug("{}, {}, {}", l.getName(), l.getLabelListVisibility(), l.getMessageListVisibility());
-					if (!GmailTag.isHidden(l) && GmailTag.isSystem(l)) {
-						final String name = l.getName();
-						l.setName(name.charAt(0) + name.substring(1).toLowerCase());
-						tags.add(new GmailTag(l));
-					}
-				}
 				tags.add(GmailTag.ALL_MAIL);
-			} else if (GmailSection.TO_SORT.equals(section)) {
 				for(final Label label:labels) {
 					final String name = label.getName();
-					if (!GmailTag.isHidden(label) && !GmailTag.isSystem(label) && !name.contains("/")) {
-						boolean isToSort = true;
-						for(final Label l: labels) {
-							final String n = l.getName();
-							if (!n.equals(name)
-									&& n.contains(name + "/")
-									&& name.indexOf("/") == name.lastIndexOf("/")) {
-								isToSort = false;
-								break;
+					LOGGER.debug("{}, {}, {}", name, label.getLabelListVisibility(), label.getMessageListVisibility());
+					if (!GmailTag.isHidden(label)) {
+						if (GmailTag.isSystem(label) && GmailTag.getName(label).toLowerCase().contains(pattern)) {
+							// GMail system tags
+							tags.add(new GmailTag(label.getId(), name.charAt(0) + name.substring(1).toLowerCase(), label.getName(), false));
+						} else if (!name.contains("/")) {
+							// root tags, put them here if no sub-tag
+							boolean hasSubTag = false;
+							for(final Label l: labels) {
+								final String n = l.getName();
+								if (!n.equals(name)
+										&& n.contains(name + "/")
+										&& name.indexOf("/") == name.lastIndexOf("/")) {
+									hasSubTag = true;
+									break;
+								}
 							}
-						}
-						if (isToSort) {
-							tags.add(new GmailTag(label));
+							if (!hasSubTag) {
+								tags.add(new GmailTag(label));
+							}
 						}
 					}
 				}
 			} else {
 				for(final Label label:labels) {
-					final String name = label.getName();
-					if (!GmailTag.isHidden(label)
-							&& !GmailTag.isSystem(label)) {
-						final String tagName = GmailTag.getName(label);
-						if (tagName.toLowerCase().contains(pattern)) {
-							if (section != null && name.equals(section.getPath())) {
-								tags.add(new GmailTag(label.getId(), SimpleTag.THIS_NAME, label.getName(), GmailTag.isHidden(label)));
-							} else if (name.indexOf("/") == name.lastIndexOf("/")
-									&& section == null || name.startsWith(section.getName() + "/")) {
-								tags.add(new GmailTag(label));
-							}
+					if (!GmailTag.isHidden(label) && !GmailTag.isSystem(label)
+							&& GmailTag.getName(label).toLowerCase().contains(pattern)) {
+						final String name = label.getName();
+						if (section != null && name.equals(section.getPath())) {
+							tags.add(new GmailTag(label.getId(), SimpleTag.THIS_NAME, label.getName(), GmailTag.isHidden(label)));
+						} else if (name.indexOf("/") == name.lastIndexOf("/")
+								&& section == null || name.startsWith(section.getName() + "/")) {
+							tags.add(new GmailTag(label));
 						}
 					}
 				}

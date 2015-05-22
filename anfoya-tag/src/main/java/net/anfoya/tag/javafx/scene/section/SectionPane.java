@@ -184,8 +184,8 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 		}
 	}
 
-	public void refresh(final Set<T> includes, final Set<T> excludes, final String tagPattern) {
-		tagList.refresh(includes, excludes, tagPattern);
+	public void refresh(final Set<T> includes, final Set<T> excludes, final String tagPattern, final String itemPattern) {
+		tagList.refresh(includes, excludes, tagPattern, itemPattern);
 
 		if (!initialized) {
 			init();

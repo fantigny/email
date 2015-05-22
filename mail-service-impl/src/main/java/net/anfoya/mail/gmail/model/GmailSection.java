@@ -6,7 +6,6 @@ import com.google.api.services.gmail.model.Label;
 
 @SuppressWarnings("serial")
 public class GmailSection extends SimpleSection {
-	public static final GmailSection TO_SORT = new GmailSection(SimpleSection.NO_SECTION_NAME);
 	public static final GmailSection SYSTEM = new GmailSection("GMail");
 
 	private final String string;
