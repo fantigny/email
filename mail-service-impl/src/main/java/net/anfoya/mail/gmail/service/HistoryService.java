@@ -84,7 +84,7 @@ public class HistoryService extends TimerTask {
 	}
 
 	private void call(final Set<Callback<Throwable, Void>> callBacks, final Throwable exception) {
-		for(final Callback<Throwable, Void> c: onUpdateCallBacks) {
+		for(final Callback<Throwable, Void> c: callBacks) {
 			c.call(exception);
 		}
 	}
@@ -107,7 +107,9 @@ public class HistoryService extends TimerTask {
 					types.add(UpdateType.NONE);
 				} else {
 					types.add(UpdateType.UPDATE);
-					if (response.getHistory() != null) {
+					if (response.getHistory() == null) {
+						types.add(UpdateType.LABEL);
+					} else {
 						for(final History h: response.getHistory()) {
 							if (h.getLabelsAdded() != null || h.getLabelsRemoved() != null) {
 								types.add(UpdateType.LABEL);

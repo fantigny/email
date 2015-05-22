@@ -55,7 +55,9 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 	private static final String APP_NAME = "AGARAM";
 	private static final String CLIENT_SECRET_PATH = "client_secret.json";
-	private static final String SCOPE = "https://mail.google.com/";
+	private static final String SCOPE = "https://www.googleapis.com/auth/gmail.modify"
+			+ " https://www.googleapis.com/auth/gmail.labels"
+			+ " https://www.google.com/m8/feeds";
 	private static final String USER = "me";
 
 	private static final long PULL_PERIOD = 1000 * 5;
@@ -337,8 +339,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	public GmailTag moveToSection(final GmailTag tag, final GmailSection section) throws GMailException {
 		try {
 			final String name = section.getName() + "/" + tag.getName();
-			final Label label = labelService.get(tag.getId());
-			return new GmailTag(labelService.rename(label, name));
+			return new GmailTag(labelService.rename(tag.getId(), name));
 		} catch (final LabelException e) {
 			throw new GMailException("moving " + tag.getName() + " to " + section.getName(), e);
 		}
@@ -494,8 +495,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		final Set<GmailTag> tags = getTags(section, "");
 		Label label;
 		try {
-			label = labelService.get(section.getId());
-			String newName = label.getName();
+			String newName = section.getPath();
 			if (newName.contains("/")) {
 				newName = newName.substring(0, newName.lastIndexOf("/"));
 			} else {
@@ -503,7 +503,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			}
 			newName += name;
 
-			label = labelService.rename(label, newName);
+			label = labelService.rename(section.getId(), newName);
 		} catch (final LabelException e) {
 			throw new GMailException("rename section " + section.getName() + " to " + name, e);
 		}
@@ -520,15 +520,14 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public GmailTag rename(final GmailTag tag, final String name) throws GMailException {
 		try {
-			final Label label = labelService.get(tag.getId());
-			String newName = label.getName();
+			String newName = tag.getPath();
 			if (newName.contains("/")) {
 				newName = newName.substring(0, newName.lastIndexOf("/") + 1);
 			} else {
 				newName = "";
 			}
 			newName += name;
-			return new GmailTag(labelService.rename(label, newName));
+			return new GmailTag(labelService.rename(tag.getId(), newName));
 		} catch (final LabelException e) {
 			throw new GMailException("rename tag \"" + tag.getName() + "\" to \"" + name + "\"", e);
 		}
@@ -555,7 +554,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public void remove(final GmailSection section) throws GMailException {
 		try {
-			labelService.remove(labelService.get(section.getId()));
+			labelService.remove(section.getId());
 		} catch (final LabelException e) {
 			throw new GMailException("remove section \"" + section.getName() + "\"", e);
 		}
@@ -564,7 +563,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public void remove(final GmailTag tag) throws GMailException {
 		try {
-			labelService.remove(labelService.get(tag.getId()));
+			labelService.remove(tag.getId());
 		} catch (final LabelException e) {
 			throw new GMailException("remove tag " + tag.getName(), e);
 		}

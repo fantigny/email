@@ -72,41 +72,41 @@ public class LabelService {
 		return idLabels.get(id);
 	}
 
-	public Label rename(Label label, final String name) throws LabelException {
+	public Label rename(final String labelId, final String name) throws LabelException {
 		try {
+			final Label label = get(labelId);
 			label.setName(name);
 			label.setMessageListVisibility("show");
 			label.setLabelListVisibility("labelShow");
 			label.setType("user");
-			label = gmail.users().labels().update(user, label.getId(), label).execute();
-			idLabels.put(label.getId(), label);
+			gmail.users().labels().update(user, labelId, label).execute();
 			return label;
 		} catch (final IOException e) {
-			throw new LabelException("renaming \"" + label.getName() + "\" to \"" + name + "\"", e);
+			throw new LabelException("renaming label (id: " + labelId + ") to \"" + name + "\"", e);
 		}
 	}
 
 	public Label add(final String name) throws LabelException {
 		try {
-			Label label = new Label();
+			final Label label = new Label();
 			label.setMessageListVisibility("show");
 			label.setLabelListVisibility("labelShow");
 			label.setType("user");
 			label.setName(name);
-			label = gmail.users().labels().create(user, label).execute();
-			idLabels.put(label.getId(), label);
+			final Label newLabel = gmail.users().labels().create(user, label).execute();
+			idLabels.put(newLabel.getId(), label);
 			return label;
 		} catch (final IOException e) {
 			throw new LabelException("adding \"" + name + "\"", e);
 		}
 	}
 
-	public void remove(final Label label) throws LabelException {
+	public void remove(final String labelId) throws LabelException {
 		try {
-			gmail.users().labels().delete(user, label.getId());
-			idLabels.remove(label.getId());
+			gmail.users().labels().delete(user, labelId).execute();
+			idLabels.remove(labelId);
 		} catch (final IOException e) {
-			throw new LabelException("removing \"" + label.getName() + "\"", e);
+			throw new LabelException("removing \"" + labelId + "\"", e);
 		}
 	}
 
