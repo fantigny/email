@@ -94,7 +94,8 @@ public class LabelService {
 			label.setType("user");
 			label.setName(name);
 			final Label newLabel = gmail.users().labels().create(user, label).execute();
-			idLabels.put(newLabel.getId(), label);
+			label.setId(newLabel.getId());
+			idLabels.put(label.getId(), label);
 			return label;
 		} catch (final IOException e) {
 			throw new LabelException("adding \"" + name + "\"", e);
