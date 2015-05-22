@@ -2,21 +2,25 @@ package net.anfoya.tag.javafx.scene.tag;
 
 import java.util.Optional;
 
+import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.GridPane;
+import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.dnd.DropArea;
 import net.anfoya.tag.javafx.scene.dnd.DndFormat;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
-import net.anfoya.tag.service.TagException;
 import net.anfoya.tag.service.TagService;
 
 public class TagDropPane<S extends SimpleSection, T extends SimpleTag> extends GridPane {
 	private final TagService<S, T> tagService;
+	private EventHandler<ActionEvent> onUpdateHandler;
 
 	public TagDropPane(final TagService<S, T> tagService) {
 		this.tagService = tagService;
@@ -89,13 +93,19 @@ public class TagDropPane<S extends SimpleSection, T extends SimpleTag> extends G
 			}
 		}
 
-		try {
-			final S section = tagService.addSection(name);
-			tagService.moveToSection(tag, section);
-		} catch (final TagException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		final String finalAnswer = name;
+		final Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				final S section = tagService.addSection(finalAnswer);
+				tagService.moveToSection(tag, section);
+				return null;
+			}
+		};
+		task.setOnFailed(event -> // TODO Auto-generated catch block
+		event.getSource().getException().printStackTrace(System.out));
+		task.setOnSucceeded(event -> onUpdateHandler.handle(null));
+		ThreadPool.getInstance().submitHigh(task);
 	}
 
 	private void rename(final T tag) {
@@ -120,12 +130,18 @@ public class TagDropPane<S extends SimpleSection, T extends SimpleTag> extends G
 			}
 		}
 
-		try {
-			tagService.rename(tag, name);
-		} catch (final TagException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		final String finalAnswer = name;
+		final Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				tagService.rename(tag, finalAnswer);
+				return null;
+			}
+		};
+		task.setOnFailed(event -> // TODO Auto-generated catch block
+		event.getSource().getException().printStackTrace(System.out));
+		task.setOnSucceeded(event -> onUpdateHandler.handle(null));
+		ThreadPool.getInstance().submitHigh(task);
 	}
 
 	private void remove(final T tag) {
@@ -135,12 +151,21 @@ public class TagDropPane<S extends SimpleSection, T extends SimpleTag> extends G
 		confirmDialog.setContentText("");
 		final Optional<ButtonType> response = confirmDialog.showAndWait();
 		if (response.isPresent() && response.get() == ButtonType.OK) {
-			try {
-				tagService.remove(tag);
-			} catch (final TagException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			final Task<Void> task = new Task<Void>() {
+				@Override
+				protected Void call() throws Exception {
+					tagService.remove(tag);
+					return null;
+				}
+			};
+			task.setOnFailed(event -> // TODO Auto-generated catch block
+			event.getSource().getException().printStackTrace(System.out));
+			task.setOnSucceeded(event -> onUpdateHandler.handle(null));
+			ThreadPool.getInstance().submitHigh(task);
 		}
+	}
+
+	public void setOnUpdate(final EventHandler<ActionEvent> handler) {
+		onUpdateHandler = handler;
 	}
 }

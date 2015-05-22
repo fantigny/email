@@ -57,6 +57,8 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 	private int refreshTaskId;
 
 	private Timeline tagPatternDelay;
+	private SectionDropPane<S> sectionDropPane;
+	private TagDropPane<S, T> tagDropPane;
 
 	public SectionListPane(final TagService<S, T> tagService) {
 		this(tagService, null);
@@ -97,10 +99,10 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		final ExtItemDropPane<T> extItemDropPane = new ExtItemDropPane<T>(tagService, extItemDataFormat);
 		extItemDropPane.prefWidthProperty().bind(stackPane.widthProperty());
 
-		final SectionDropPane<S> sectionDropPane = new SectionDropPane<S>(tagService);
+		sectionDropPane = new SectionDropPane<S>(tagService);
 		sectionDropPane.prefWidthProperty().bind(stackPane.widthProperty());
 
-		final TagDropPane<S, T> tagDropPane = new TagDropPane<S, T>(tagService);
+		tagDropPane = new TagDropPane<S, T>(tagService);
 		tagDropPane.prefWidthProperty().bind(stackPane.widthProperty());
 
 		stackPane.setOnDragEntered(event -> {
@@ -127,12 +129,6 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 					&& event.getDragboard().hasContent(extItemDataFormat)
 					&& stackPane.getChildren().contains(extItemDropPane)) {
 				stackPane.getChildren().remove(extItemDropPane);
-			}
-		});
-		stackPane.setOnDragDone(event -> {
-			if (event.isDropCompleted()) {
-				updateSectionHandler.handle(null);
-				event.consume();
 			}
 		});
 		setCenter(stackPane);
@@ -266,6 +262,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 
 	public void setOnUpdateSection(final EventHandler<ActionEvent> handler) {
 		updateSectionHandler = handler;
+		sectionDropPane.setOnUpdateSection(handler);
 	}
 
 	public void updateItemCount(final Set<T> toRefresh, final String itemPattern, final boolean lazy) {
@@ -393,5 +390,9 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 			}
 		}
 		return checkMode;
+	}
+
+	public void setOnUpdateTag(final EventHandler<ActionEvent> handler) {
+		tagDropPane.setOnUpdate(handler);
 	}
 }

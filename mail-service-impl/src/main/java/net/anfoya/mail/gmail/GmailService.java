@@ -337,6 +337,10 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 	@Override
 	public GmailTag moveToSection(final GmailTag tag, final GmailSection section) throws GMailException {
+		if (GmailTag.THIS_NAME.equals(tag.getName())) {
+			return tag;
+		}
+
 		try {
 			final String name = section.getName() + "/" + tag.getName();
 			return new GmailTag(labelService.rename(tag.getId(), name));
@@ -553,10 +557,13 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 	@Override
 	public void remove(final GmailSection section) throws GMailException {
+		for(final GmailTag t: getTags(section, "")) {
+			remove(t);
+		}
 		try {
 			labelService.remove(section.getId());
 		} catch (final LabelException e) {
-			throw new GMailException("remove section \"" + section.getName() + "\"", e);
+			// don't bother if the label really exists
 		}
 	}
 

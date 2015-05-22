@@ -82,10 +82,6 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 				final T tag = (T) db.getContent(DndFormat.TAG_DATA_FORMAT);
 				addTag(tag, threads);
 				event.consume();
-			} else if (db.hasContent(ThreadListPane.DND_THREADS_DATA_FORMAT)) {
-				//TODO test (was: threadList.load();)
-				updateHandler.handle(null);
-				event.consume();
 			}
 		});
 		stackPane.getChildren().add(threadList);
@@ -158,13 +154,9 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 				return null;
 			}
 		};
-		task.setOnFailed(event -> {
-			// TODO Auto-generated catch block
-			event.getSource().getException().printStackTrace(System.out);
-		});
-		task.setOnSucceeded(event -> {
-			updateHandler.handle(null);
-		});
+		task.setOnFailed(event -> // TODO Auto-generated catch block
+			event.getSource().getException().printStackTrace(System.out));
+		task.setOnSucceeded(event -> updateHandler.handle(null));
 		ThreadPool.getInstance().submitHigh(task);
 	}
 

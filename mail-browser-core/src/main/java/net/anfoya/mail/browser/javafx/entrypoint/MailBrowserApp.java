@@ -81,6 +81,7 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 			sectionListPane.setLazyCount(true);
 			sectionListPane.setOnSelectTag(event -> refreshAfterTagSelected());
 			sectionListPane.setOnUpdateSection(event -> refreshAfterSectionUpdate());
+			sectionListPane.setOnUpdateTag(event -> refreshAfterTagUpdate());
 			splitPane.getItems().add(sectionListPane);
 		}
 
@@ -152,6 +153,7 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 	boolean refreshAfterTagSelected = true;
 	boolean refreshAfterThreadSelected = true;
 
+	boolean refreshAfterTagUpdate = true;
 	boolean refreshAfterSectionUpdate = true;
 	boolean refreshAfterThreadUpdate = true;
 	boolean refreshAfterThreadListLoad = true;
@@ -186,6 +188,18 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 				threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
 				return null;
 			}
+		});
+	}
+
+	private void refreshAfterTagUpdate() {
+		if (!refreshAfterTagUpdate) {
+			return;
+		}
+		LOGGER.debug("refreshAfterTagUpdate");
+
+		sectionListPane.refreshAsync(event -> {
+			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
+			return null;
 		});
 	}
 

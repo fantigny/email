@@ -92,6 +92,7 @@ public abstract class SimpleThread implements Thread {
 		}
 		else {
 			// TODO remove when found why it can be null !!!
+			// test case Account
 			return new Date();
 		}
 	}

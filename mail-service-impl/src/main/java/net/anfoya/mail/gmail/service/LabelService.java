@@ -104,8 +104,8 @@ public class LabelService {
 
 	public void remove(final String labelId) throws LabelException {
 		try {
-			gmail.users().labels().delete(user, labelId).execute();
 			idLabels.remove(labelId);
+			gmail.users().labels().delete(user, labelId).execute();
 		} catch (final IOException e) {
 			throw new LabelException("removing \"" + labelId + "\"", e);
 		}
