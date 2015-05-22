@@ -21,6 +21,7 @@ import com.google.api.client.googleapis.json.GoogleJsonError;
 import com.google.api.client.http.HttpHeaders;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.ListThreadsResponse;
+import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.ModifyThreadRequest;
 import com.google.api.services.gmail.model.Thread;
 
@@ -28,7 +29,7 @@ public class ThreadService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadService.class);
 	private static final String FILE_PREFIX = System.getProperty("java.io.tmpdir") + "fsm-cache-id-threads-";
 	private static final Long MAX_LIST_RESULTS = Long.valueOf(100);
-	
+
 	public static final String PAGE_TOKEN_ID = "no-id-page-token";
 
 	private final Gmail gmail;
@@ -79,6 +80,10 @@ public class ThreadService {
 			load(toLoadIds);
 			final Set<Thread> threads = new LinkedHashSet<Thread>();
 			for(final String id: ids) {
+				if (!idThreads.containsKey(id)) {
+					LOGGER.error("missing from cache thread id: {}", id);
+					continue;
+				}
 				threads.add(idThreads.get(id).getData());
 			}
 			if (threadResponse.getNextPageToken() != null) {
@@ -97,10 +102,10 @@ public class ThreadService {
 		final Thread thread = new Thread();
 		thread.setId(PAGE_TOKEN_ID);
 		thread.setHistoryId(BigInteger.valueOf(nextPage));
+		thread.setMessages(new ArrayList<Message>());
 
 		return thread;
 	}
-
 
 	public int count(final String query) throws ThreadException {
 		if (query.isEmpty()) {
@@ -205,7 +210,7 @@ public class ThreadService {
 				}
 				@Override
 				public void onFailure(final GoogleJsonError e, final HttpHeaders responseHeaders) throws IOException {
-					LOGGER.error("loading thread", e.getMessage());
+					LOGGER.error("loading thread {}", e.getMessage());
 					latch.countDown();
 				}
 			};
