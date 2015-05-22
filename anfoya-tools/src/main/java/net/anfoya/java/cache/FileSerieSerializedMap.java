@@ -20,7 +20,6 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class FileSerieSerializedMap<K extends Serializable, V extends Serializable> implements Map<K, V>{
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileSerieSerializedMap.class);
-	private static final String FILE_NAME_PATTERN = "%s.ser";
 
 	private final int threshold;
 	private final String dicoFilename;
@@ -31,9 +30,9 @@ public class FileSerieSerializedMap<K extends Serializable, V extends Serializab
 	private final List<Boolean> saved;
 	private boolean saving;
 
-	public FileSerieSerializedMap(final String name, final int fileCreationThreshold) {
+	public FileSerieSerializedMap(final String filepathPrefix, final int fileCreationThreshold) {
 		threshold = fileCreationThreshold;
-		filenamePattern = String.format(FILE_NAME_PATTERN, name + "-%s");
+		filenamePattern = filepathPrefix + "-%s";
 		delegate = new HashMap<K, V>();
 
 		dicoFilename = String.format(filenamePattern, "dico");

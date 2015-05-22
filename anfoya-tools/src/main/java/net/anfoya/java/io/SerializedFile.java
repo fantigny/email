@@ -18,7 +18,7 @@ public class SerializedFile<K> extends File {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SerializedFile.class);
 
 	public SerializedFile(final String filepath) {
-		super(filepath);
+		super(filepath + ".ser");
 	}
 
 	@SuppressWarnings("unchecked")

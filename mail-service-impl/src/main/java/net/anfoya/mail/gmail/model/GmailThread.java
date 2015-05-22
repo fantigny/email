@@ -92,9 +92,6 @@ public class GmailThread extends SimpleThread {
 			}
 		}
 
-		System.out.println(thread.get(key) + "--" + headers);
-
-
 		return headers;
 	}
 }
