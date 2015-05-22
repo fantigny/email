@@ -45,7 +45,7 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 	private final ThreadList<S, T, H> threadList;
 	private final ResetTextField namePatternField;
 
-	private EventHandler<ActionEvent> updateThreadHandler;
+	private EventHandler<ActionEvent> updateHandler;
 
 	private ThreadListDropPane<H> threadListDropPane;
 
@@ -83,7 +83,8 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 				addTag(tag, threads);
 				event.consume();
 			} else if (db.hasContent(ThreadListPane.DND_THREADS_DATA_FORMAT)) {
-				threadList.load();
+				//TODO test (was: threadList.load();)
+				updateHandler.handle(null);
 				event.consume();
 			}
 		});
@@ -162,7 +163,7 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 			event.getSource().getException().printStackTrace(System.out);
 		});
 		task.setOnSucceeded(event -> {
-			updateThreadHandler.handle(null);
+			updateHandler.handle(null);
 		});
 		ThreadPool.getInstance().submitHigh(task);
 	}
@@ -173,6 +174,10 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 
 	public void refreshWithTags(final Set<T> includes, final Set<T> excludes) {
 		threadList.refresh(includes, excludes);
+	}
+
+	public void refreshWithPage(final int page) {
+		threadList.refreshWithPage(page);
 	}
 
 	public int getThreadCount() {
@@ -234,7 +239,7 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 	}
 
 	public void setOnUpdateThread(final EventHandler<ActionEvent> handler) {
-		updateThreadHandler = handler;
+		updateHandler = handler;
 		threadListDropPane.setOnUpdate(handler);
 	}
 }
