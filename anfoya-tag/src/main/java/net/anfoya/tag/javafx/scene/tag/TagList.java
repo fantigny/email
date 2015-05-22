@@ -4,10 +4,10 @@ import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
@@ -36,10 +36,14 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 
 	private ChangeListener<? super Boolean> incExcListener;
 
-	private final AtomicBoolean refreshing = new AtomicBoolean(false);
+	private boolean refreshing;
+	private boolean initializing;
 
 	private int countTaskId;
 	private final Set<Task<Integer>> updateCountTasks;
+
+	private int initTaskId;
+	private Task<Boolean> initTask;
 
 	public TagList(final TagService<S, T> tagService, final S section) {
 		this.tagService = tagService;
@@ -87,7 +91,7 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 		return Collections.unmodifiableSet(tags);
 	}
 
-	public void refresh(final Set<T> includes, final Set<T> excludes, final String tagPattern) {
+	public synchronized void refresh(final Set<T> includes, final Set<T> excludes, final String tagPattern) {
 		// get all tags
 		Set<T> tags;
 		try {
@@ -102,7 +106,7 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 		final int selectedIndex = getSelectionModel().getSelectedIndex();
 
 		// build items map and restore selection
-		refreshing.set(true);
+		refreshing = true;
 		final Map<String, TagListItem<T>> countedItemMap = new HashMap<String, TagListItem<T>>(itemMap);
 		itemMap.clear();
 		final ObservableList<TagListItem<T>> items = FXCollections.observableArrayList();
@@ -132,8 +136,53 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 		if (selectedIndex != -1) {
 			getSelectionModel().selectIndices(selectedIndex);
 		}
-		refreshing.set(false);
+		refreshing = false;
 
+		initThisTag();
+	}
+
+	private synchronized void initThisTag() {
+		final long taskId = ++initTaskId;
+		if (initTask != null && initTask.isRunning()) {
+			initTask.cancel();
+		}
+
+		TagListItem<T> item = null;
+		for(final Iterator<TagListItem<T>> i=getItems().iterator(); i.hasNext();) {
+			item = i.next();
+			if (item.getTag().getName().equals(SimpleTag.THIS_NAME)) {
+				break;
+			}
+		}
+		final TagListItem<T> thisItem = item;
+		if (thisItem == null) {
+			return;
+		}
+		getItems().remove(thisItem);
+
+		initTask = new Task<Boolean>() {
+			@Override
+			public Boolean call() throws SQLException, TagException, InterruptedException {
+				@SuppressWarnings("serial")
+				final HashSet<T> includes = new HashSet<T>() {{ add(thisItem.getTag()); }};
+				return 0 == tagService.getCountForTags(includes, new HashSet<T>(), "");
+			}
+		};
+		initTask.setOnFailed(event -> {
+			// TODO Auto-generated catch block
+			event.getSource().getException().printStackTrace(System.out);
+		});
+		initTask.setOnSucceeded(event -> {
+			if (taskId != initTaskId) {
+				return;
+			}
+			if (!initTask.getValue()) {
+				initializing = true;
+				getItems().add(0, thisItem);
+				initializing = false;
+			}
+		});
+		ThreadPool.getInstance().submitLow(initTask);
 	}
 
 	public synchronized void updateCount(final int currentCount, final Set<T> availableTags, final Set<T> includes, final Set<T> excludes, final String namePattern) {
@@ -165,7 +214,7 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 		}
 	}
 
-	protected synchronized Task<Integer> updateCountAsync(final TagListItem<T> item, final Set<T> includes, final Set<T> excludes, final String nameFilter, final long taskId) {
+	private Task<Integer> updateCountAsync(final TagListItem<T> item, final Set<T> includes, final Set<T> excludes, final String nameFilter, final long taskId) {
 		final Task<Integer> task = new Task<Integer>() {
 			@Override
 			public Integer call() throws SQLException, TagException, InterruptedException {
@@ -195,7 +244,7 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 
 	public void setOnIncExcTag(final EventHandler<ActionEvent> handler) {
 		incExcListener = (ov, oldVal, newVal) -> {
-			if (refreshing.get()) {
+			if (refreshing || initializing) {
 				return;
 			}
 			handler.handle(null);
@@ -208,7 +257,7 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 
 	public void setOnSelectTag(final EventHandler<ActionEvent> handler) {
 		getSelectionModel().selectedItemProperty().addListener((ov, oldVal, newVal) -> {
-			if (refreshing.get()) {
+			if (refreshing || initializing) {
 				return;
 			}
 			if (!hasCheckedTag()) {

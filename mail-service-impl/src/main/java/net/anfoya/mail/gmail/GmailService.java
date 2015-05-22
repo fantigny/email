@@ -29,6 +29,7 @@ import net.anfoya.mail.gmail.service.ThreadException;
 import net.anfoya.mail.gmail.service.ThreadService;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
+import net.anfoya.tag.model.SimpleTag;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -254,7 +255,6 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 			final Set<GmailSection> sections = new LinkedHashSet<GmailSection>();
 			sections.add(GmailSection.SYSTEM);
-			sections.add(GmailSection.TO_HIDE);
 			sections.add(GmailSection.TO_SORT);
 			sections.addAll(sectionTmp);
 
@@ -295,21 +295,6 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 					}
 				}
 				tags.add(GmailTag.ALL_MAIL);
-			} else if (GmailSection.TO_HIDE.equals(section)) {
-				for(final Label label:labels) {
-					final String name = label.getName();
-					if (!GmailTag.isHidden(label) && !GmailTag.isSystem(label) && !name.contains("/")) {
-						for(final Label l: labels) {
-							final String n = l.getName();
-							if (!n.equals(name)
-									&& n.contains(name + "/")
-									&& name.indexOf("/") == name.lastIndexOf("/")) {
-								tags.add(new GmailTag(label));
-								break;
-							}
-						}
-					}
-				}
 			} else if (GmailSection.TO_SORT.equals(section)) {
 				for(final Label label:labels) {
 					final String name = label.getName();
@@ -332,12 +317,16 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			} else {
 				for(final Label label:labels) {
 					final String name = label.getName();
-					if (!GmailTag.isHidden(label) && !GmailTag.isSystem(label)) {
+					if (!GmailTag.isHidden(label)
+							&& !GmailTag.isSystem(label)) {
 						final String tagName = GmailTag.getName(label);
-						if (tagName.toLowerCase().contains(pattern)
-								&& name.indexOf("/") == name.lastIndexOf("/")
-								&& section == null || name.startsWith(section.getName() + "/")) {
-							tags.add(new GmailTag(label));
+						if (tagName.toLowerCase().contains(pattern)) {
+							if (section != null && name.equals(section.getPath())) {
+								tags.add(new GmailTag(label.getId(), SimpleTag.THIS_NAME, label.getName(), GmailTag.isHidden(label)));
+							} else if (name.indexOf("/") == name.lastIndexOf("/")
+									&& section == null || name.startsWith(section.getName() + "/")) {
+								tags.add(new GmailTag(label));
+							}
 						}
 					}
 				}

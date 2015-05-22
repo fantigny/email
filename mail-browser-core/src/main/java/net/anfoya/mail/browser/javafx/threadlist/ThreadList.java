@@ -99,7 +99,7 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 		loadTask = new Task<Set<H>>() {
 			@Override
 			protected Set<H> call() throws InterruptedException, MailException {
-				LOGGER.debug("loading for includes {}, excludes {}, pattern: {}", includes, excludes, namePattern);
+				LOGGER.debug("loading for includes {}, excludes {}, pattern: {}, pageMax: {}", includes, excludes, namePattern, pageMax);
 				return mailService.findThreads(includes, excludes, namePattern, pageMax);
 			}
 		};
