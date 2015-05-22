@@ -55,7 +55,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 
 	private Task<Set<S>> refreshTask;
 	private int refreshTaskId;
-	
+
 	private Timeline tagPatternDelay;
 
 	public SectionListPane(final TagService<S, T> tagService) {
@@ -268,17 +268,24 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		updateSectionHandler = handler;
 	}
 
-	public void updateItemCount(final Set<T> availableTags, final int currentCount, final String itemPattern, final boolean lazy) {
+	public void updateItemCount(Set<T> availableTags, final int currentCount, final String itemPattern, final boolean lazy) {
 		this.itemPattern = itemPattern;
-		updateItemCount(currentCount, availableTags, getIncludedTags(), getExcludedTags(), itemPattern);
-	}
-
-	private void updateItemCount(final int currentCount, final Set<T> availableTags, final Set<T> includes, final Set<T> excludes, final String namePattern) {
 		tagPattern = tagPatternField.getText();
+		final Set<T> includes = getIncludedTags();
+		final Set<T> excludes = getExcludedTags();
+		final boolean checkMode = isCheckMode();
 		for(final TitledPane titledPane: sectionAcc.getPanes()) {
 			@SuppressWarnings("unchecked")
 			final SectionPane<S, T> sectionPane = (SectionPane<S, T>) titledPane;
-			sectionPane.updateCountAsync(currentCount, availableTags, includes, excludes, namePattern, tagPattern);
+			if (!checkMode) {
+				try {
+					availableTags = tagService.getTags(sectionPane.getSection(), itemPattern);
+				} catch (final TagException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			sectionPane.updateCountAsync(currentCount, availableTags, includes, excludes, itemPattern, tagPattern);
 		}
 	}
 

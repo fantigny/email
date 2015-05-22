@@ -23,10 +23,14 @@ import net.anfoya.tag.model.SimpleTag;
 import net.anfoya.tag.service.TagException;
 import net.anfoya.tag.service.TagService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 //TODO use tag id instead of tag name
 
 public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListView<TagListItem<T>> {
-//	private static final Logger LOGGER = LoggerFactory.getLogger(TagList.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(TagList.class);
 
 	private final TagService<S, T> tagService;
 
@@ -189,12 +193,11 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 	}
 
 	public synchronized void updateCount(final int currentCount, final Set<T> availableTags, final Set<T> includes, final Set<T> excludes, final String itemPattern) {
+		LOGGER.debug("update count {} {} {}", availableTags, includes, excludes);
 		final long taskId = ++countTaskId;
-		if (!updateCountTasks.isEmpty()) {
-			for(final Task<Integer> t: updateCountTasks) {
-				if (t.isRunning()) {
-					t.cancel();
-				}
+		for(final Task<Integer> t: updateCountTasks) {
+			if (t.isRunning()) {
+				t.cancel();
 			}
 		}
 		updateCountTasks.clear();

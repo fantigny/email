@@ -1,10 +1,10 @@
 package net.anfoya.tag.javafx.scene.section;
 
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -29,7 +29,7 @@ import net.anfoya.tag.service.TagService;
 public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends TitledPane {
 //	private static final Logger LOGGER = LoggerFactory.getLogger(SectionPane.class);
 
-	private final AtomicLong taskId = new AtomicLong();
+	private long sectionTaskId;
 	private final TagService<S, T> tagService;
 	private final TagList<S, T> tagList;
 
@@ -122,7 +122,7 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 		setExpanded(false);
 		expandedProperty().addListener((ov, oldVal, newVal) -> {
 			if (newVal && lazyCountTask != null) {
-				ThreadPool.getInstance().submitLow(lazyCountTask);
+				Platform.runLater(lazyCountTask);
 				lazyCountTask = null;
 			}
 		});
@@ -145,16 +145,13 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 		return timeline;
 	}
 
-	public void updateCountAsync(final int currentCount, final Set<T> availableTags, final Set<T> includes, final Set<T> excludes, final String namePattern, final String tagPattern) {
+	public synchronized void updateCountAsync(final int queryCount, final Set<T> tags, final Set<T> includes, final Set<T> excludes, final String itemPattern, final String tagPattern) {
 		if (!isTag) {
-			final long taskId = this.taskId.incrementAndGet();
+			final long taskId = ++sectionTaskId;
 			final Task<Integer> sectionTask = new Task<Integer>() {
 				@Override
-				protected Integer call() throws TagException, InterruptedException {
-					if (Thread.currentThread().isInterrupted()) {
-						throw new InterruptedException();
-					}
-					return tagService.getCountForSection(tagList.getSection(), includes, excludes, namePattern, tagPattern);
+				protected Integer call() throws TagException {
+					return tagService.getCountForSection(tagList.getSection(), includes, excludes, itemPattern, tagPattern);
 				}
 			};
 			sectionTask.setOnFailed(event -> {
@@ -162,9 +159,10 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 				event.getSource().getException().printStackTrace(System.out);
 			});
 			sectionTask.setOnSucceeded(event -> {
-				if (taskId == this.taskId.get()) {
-					sectionItem.countProperty().set(sectionTask.getValue());
+				if (taskId != sectionTaskId) {
+					return;
 				}
+				sectionItem.countProperty().set(sectionTask.getValue());
 			});
 			ThreadPool.getInstance().submitHigh(sectionTask);
 		} else {
@@ -174,7 +172,7 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 		}
 
 		final Runnable tagListTask = () -> {
-			tagList.updateCount(currentCount, availableTags, includes, excludes, namePattern);
+			tagList.updateCount(queryCount, tags, includes, excludes, itemPattern);
 		};
 		if (!lazyCount || isExpanded()) {
 			lazyCountTask = null;
@@ -238,7 +236,7 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 		return tagList;
 	}
 
-	public SimpleSection getSection() {
+	public S getSection() {
 		return tagList.getSection();
 	}
 
