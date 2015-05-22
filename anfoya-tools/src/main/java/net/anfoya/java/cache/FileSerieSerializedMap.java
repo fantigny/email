@@ -20,8 +20,7 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class FileSerieSerializedMap<K extends Serializable, V extends Serializable> implements Map<K, V>{
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileSerieSerializedMap.class);
-	private static final String TEMP = System.getProperty("java.io.tmpdir");
-	private static final String FILE_NAME_PATTERN = TEMP + "fsm-cache-%s.ser";
+	private static final String FILE_NAME_PATTERN = "%s.ser";
 
 	private final int threshold;
 	private final String dicoFilename;
