@@ -348,7 +348,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public int getCountForTags(final Set<GmailTag> includes, final Set<GmailTag> excludes, final String pattern) throws GMailException {
 		try {
-			if (includes.isEmpty()) { //TODO && excludes.isEmpty() && pattern.isEmpty()) {
+			if (includes.isEmpty() || includes.contains(GmailTag.ALL_MAIL)) { //TODO && excludes.isEmpty() && pattern.isEmpty()) {
 				return 0;
 			}
 
@@ -396,7 +396,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			, final String namePattern, final String tagPattern) throws GMailException {
 		try {
 			final Set<GmailTag> tags = getTags(section, tagPattern);
-			if (tags.isEmpty()) {
+			if (tags.isEmpty() || tags.contains(GmailTag.ALL_MAIL)) {
 				return 0;
 			}
 

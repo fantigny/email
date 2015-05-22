@@ -49,14 +49,13 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 	private boolean sectionDisableWhenZero;
 
 	private boolean lazyCount;
-	private String previousItemPattern;
-	private Set<T> previousIncludes;
+	private String itemPattern;
 
 	private String tagPattern;
 
 	private Task<Set<S>> refreshTask;
 	private int refreshTaskId;
-	private Set<T> previousExcludes;
+	
 	private Timeline tagPatternDelay;
 
 	public SectionListPane(final TagService<S, T> tagService) {
@@ -182,7 +181,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		for(final TitledPane pane: sectionAcc.getPanes()) {
 			@SuppressWarnings("unchecked")
 			final SectionPane<S, T> sectionPane = (SectionPane<S, T>) pane;
-			sectionPane.refresh(includes, excludes, previousItemPattern, tagPattern);
+			sectionPane.refresh(includes, excludes, itemPattern, tagPattern);
 		}
 	}
 
@@ -270,22 +269,8 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 	}
 
 	public void updateItemCount(final Set<T> availableTags, final int currentCount, final String itemPattern, final boolean lazy) {
-		final Set<T> includes = getIncludedTags();
-		final Set<T> excludes = getExcludedTags();
-		if (isCheckMode()) {
-			updateItemCount(currentCount, availableTags, getIncludedTags(), getExcludedTags(), itemPattern);
-		} else if (!lazy) {
-			updateItemCount(currentCount, availableTags, getIncludedTags(), getExcludedTags(), itemPattern);
-		} else {
-			if (!itemPattern.equals(previousItemPattern)
-					|| !includes.equals(previousIncludes)
-					|| !excludes.equals(previousExcludes)) {
-				updateItemCount(currentCount, availableTags, includes, excludes, itemPattern);
-			}
-		}
-		this.previousItemPattern = itemPattern;
-		this.previousIncludes = includes;
-		this.previousExcludes = excludes;
+		this.itemPattern = itemPattern;
+		updateItemCount(currentCount, availableTags, getIncludedTags(), getExcludedTags(), itemPattern);
 	}
 
 	private void updateItemCount(final int currentCount, final Set<T> availableTags, final Set<T> includes, final Set<T> excludes, final String namePattern) {
