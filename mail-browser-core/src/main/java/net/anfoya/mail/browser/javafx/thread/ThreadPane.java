@@ -1,5 +1,6 @@
 package net.anfoya.mail.browser.javafx.thread;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -190,7 +191,9 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 		try {
 			final T unread = mailService.findTag("UNREAD");
 			if (thread.getTagIds().contains(unread.getId())) {
-				mailService.removeTagForThread(unread, thread);
+				@SuppressWarnings("serial")
+				final Set<H> threads = new HashSet<H>() {{ add(thread); }};
+				mailService.removeTagForThreads(unread, threads);
 				delTagHandler.handle(null);
 			}
 		} catch (final MailException e) {
@@ -221,7 +224,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 			}
 			tagsPane.setDelTagCallBack(tag -> {
 				try {
-					mailService.removeTagForThread(tag, t);
+					mailService.removeTagForThreads(tag, threads);
 				} catch (final MailException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

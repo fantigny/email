@@ -487,12 +487,14 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	@Override
-	public void removeTagForThread(final GmailTag tag, final GmailThread thread) throws GMailException {
+	public void removeTagForThreads(final GmailTag tag, final Set<GmailThread> threads) throws GMailException {
 		try {
 			final Set<String> labelIds = new HashSet<String>();
 			labelIds.add(tag.getId());
 			final Set<String> threadIds = new HashSet<String>();
-			threadIds.add(thread.getId());
+			for(final GmailThread t: threads) {
+				threadIds.add(t.getId());
+			}
 			threadService.update(threadIds, labelIds, false);
 		} catch (final ThreadException e) {
 			throw new GMailException("removing tag " + tag.getName(), e);
