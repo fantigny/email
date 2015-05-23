@@ -40,10 +40,8 @@ public class ContactService {
 	}
 
 	public ContactService init() {
-		LOGGER.info("loaded {} contacts", nameContacts.size());
 		future = ThreadPool.getInstance().submitLow(() -> {
 			final Map<String, ContactEntry> nameContacts = new LinkedHashMap<String, ContactEntry>();
-			try {
 			final Query query = new Query(new URL("https://www.google.com/m8/feeds/contacts/" + user + "/full"));
 			query.setMaxResults(10000);
 			final List<ContactEntry> entries = gcontact.query(query, ContactFeed.class).getEntries();
@@ -54,9 +52,6 @@ public class ContactService {
 			}
 
 			LOGGER.info("loaded {} contacts", nameContacts.size());
-			} catch (final Exception e) {
-				LOGGER.error("loaded {} contacts", nameContacts.size(), e);
-			}
 			return nameContacts;
 		});
 		return this;

@@ -215,7 +215,7 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 	}
 
 	public void setOnLoadThreadList(final EventHandler<ActionEvent> handler) {
-		threadList.setOnLoadThreads(handler);
+		threadList.setOnLoad(handler);
 	}
 
 	public Set<T> getThreadsTags() {
@@ -255,5 +255,6 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 	public void setOnUpdateThread(final EventHandler<ActionEvent> handler) {
 		updateHandler = handler;
 		threadListDropPane.setOnUpdate(handler);
+		threadList.setOnUpdate(handler);
 	}
 }

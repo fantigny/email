@@ -14,6 +14,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.input.KeyCode;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
 import net.anfoya.mail.model.SimpleMessage;
@@ -48,6 +49,8 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 	private long loadTaskId;
 	private Task<Set<H>> loadTask;
 
+	private EventHandler<ActionEvent> updateHandler;
+
 	public ThreadList(final MailService<S, T, H, ? extends SimpleMessage> mailService) {
 		this.mailService = mailService;
 
@@ -61,6 +64,26 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 
 		getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 		setCellFactory(param -> new ThreadListCell<H>());
+
+		setOnKeyPressed(event -> {
+			if (event.getCode() == KeyCode.BACK_SPACE
+					|| event.getCode() == KeyCode.DELETE) {
+				archive();
+			}
+		});
+	}
+
+	private void archive() {
+		final Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				mailService.archive(getSelectedThreads());
+				return null;
+			}
+		};
+		task.setOnFailed(event -> {/*TODO*/});
+		task.setOnSucceeded(event -> updateHandler.handle(null));
+		ThreadPool.getInstance().submitHigh(task);
 	}
 
 	public void refreshWithPattern(final String pattern) {
@@ -196,7 +219,11 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 		});
 	}
 
-	public void setOnLoadThreads(final EventHandler<ActionEvent> handler) {
+	public void setOnLoad(final EventHandler<ActionEvent> handler) {
 		this.loadHandler = handler;
+	}
+
+	public void setOnUpdate(final EventHandler<ActionEvent> handler) {
+		updateHandler = handler;
 	}
 }

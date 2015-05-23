@@ -120,7 +120,7 @@ public class HistoryService extends TimerTask {
 				}
 			}
 			return types;
-		} catch (final IOException e) {
+		} catch (final Exception e) {
 			throw new HistoryException("getting history id", e);
 		} finally {
 			LOGGER.debug("got history id: {} ({}ms)", historyId, System.currentTimeMillis()-start);
