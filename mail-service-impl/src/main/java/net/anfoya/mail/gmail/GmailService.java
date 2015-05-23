@@ -297,18 +297,19 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public Set<GmailTag> getTags(final GmailSection section, final String tagPattern) throws GMailException {
 		try {
-			final Set<GmailTag> tags = new TreeSet<GmailTag>();
+			final Set<GmailTag> tags;
 			final String pattern = tagPattern.trim().toLowerCase();
 			final Collection<Label> labels = labelService.getAll();
 			if (GmailSection.SYSTEM.equals(section)) {
-				tags.add(GmailTag.ALL_MAIL);
+				final Set<GmailTag> alphaTags = new TreeSet<GmailTag>();
+				alphaTags.add(GmailTag.ALL_MAIL);
 				for(final Label label:labels) {
 					final String name = label.getName();
 					LOGGER.debug("{}, {}, {}", name, label.getLabelListVisibility(), label.getMessageListVisibility());
 					if (!GmailTag.isHidden(label)) {
 						if (GmailTag.isSystem(label) && GmailTag.getName(label).toLowerCase().contains(pattern)) {
 							// GMail system tags
-							tags.add(new GmailTag(label.getId(), name.charAt(0) + name.substring(1).toLowerCase(), label.getName(), false));
+							alphaTags.add(new GmailTag(label.getId(), name.charAt(0) + name.substring(1).toLowerCase(), label.getName(), true));
 						} else if (!name.contains("/")) {
 							// root tags, put them here if no sub-tag
 							boolean hasSubTag = false;
@@ -322,18 +323,30 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 								}
 							}
 							if (!hasSubTag) {
-								tags.add(new GmailTag(label));
+								alphaTags.add(new GmailTag(label));
 							}
 						}
 					}
 				}
+				tags = new LinkedHashSet<GmailTag>();
+				for(final GmailTag t: alphaTags) {
+					if (t.isSystem()) {
+						tags.add(t);
+					}
+				}
+				for(final GmailTag t: alphaTags) {
+					if (!t.isSystem()) {
+						tags.add(t);
+					}
+				}
 			} else {
+				tags = new TreeSet<GmailTag>();
 				for(final Label label:labels) {
 					if (!GmailTag.isHidden(label) && !GmailTag.isSystem(label)
 							&& GmailTag.getName(label).toLowerCase().contains(pattern)) {
 						final String name = label.getName();
 						if (section != null && name.equals(section.getPath())) {
-							tags.add(new GmailTag(label.getId(), SimpleTag.THIS_NAME, label.getName(), GmailTag.isHidden(label)));
+							tags.add(new GmailTag(label.getId(), SimpleTag.THIS_NAME, label.getName(), false));
 						} else if (name.indexOf("/") == name.lastIndexOf("/")
 								&& section == null || name.startsWith(section.getName() + "/")) {
 							tags.add(new GmailTag(label));

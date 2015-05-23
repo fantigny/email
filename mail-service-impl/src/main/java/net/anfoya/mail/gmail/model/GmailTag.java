@@ -11,7 +11,7 @@ public class GmailTag extends SimpleTag {
 	public static final GmailTag INBOX = new GmailTag("INBOX", "Inbox", "INBOX", true);
 
 	private final String path;
-	private final boolean hidden;
+	private final boolean system;
 
 	public static boolean isHidden(final Label label) {
 		return "labelHide".equals(label.getLabelListVisibility())
@@ -32,20 +32,20 @@ public class GmailTag extends SimpleTag {
 	}
 
 	public GmailTag(final Label label) {
-		this(label.getId(), getName(label), label.getName(), isHidden(label));
+		this(label.getId(), getName(label), label.getName(), isSystem(label));
 	}
 
-	public GmailTag(final String id, final String name,final String path, final boolean hidden) {
+	public GmailTag(final String id, final String name,final String path, final boolean system) {
 		super(id, name);
 		this.path = path;
-		this.hidden = hidden;
-	}
-
-	public boolean isHidden() {
-		return hidden;
+		this.system = system;
 	}
 
 	public String getPath() {
 		return path;
+	}
+
+	public boolean isSystem() {
+		return system;
 	}
 }
