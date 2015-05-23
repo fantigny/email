@@ -68,7 +68,7 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 		final SplitPane splitPane = new SplitPane();
 		splitPane.getStyleClass().add("background");
 
-		final Scene scene = new Scene(splitPane, 1400, 600);
+		final Scene scene = new Scene(splitPane, 1400, 800);
 		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/excludebox.css").toExternalForm());
 		scene.getStylesheets().add(getClass().getResource("MailBrowserApp.css").toExternalForm());
 
@@ -111,8 +111,8 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 			splitPane.getItems().add(threadPane);
 		}
 
-		splitPane.setDividerPosition(0, .15);
-		splitPane.setDividerPosition(1, .35);
+		splitPane.setDividerPosition(0, .14);
+		splitPane.setDividerPosition(1, .38);
 
 		primaryStage.setTitle("FisherMail / Agaar / Agamar / Agaram");
 		primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("Mail.png")));
