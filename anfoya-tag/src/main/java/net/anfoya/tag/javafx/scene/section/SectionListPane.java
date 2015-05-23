@@ -96,7 +96,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		stackPane.setAlignment(Pos.BOTTOM_CENTER);
 		stackPane.setPadding(new Insets(5, 0, 5, 0));
 
-		final ExtItemDropPane<T> extItemDropPane = new ExtItemDropPane<T>(tagService, extItemDataFormat);
+		final ExtItemDropPane<T> extItemDropPane = new ExtItemDropPane<T>(extItemDataFormat);
 		extItemDropPane.prefWidthProperty().bind(stackPane.widthProperty());
 
 		sectionDropPane = new SectionDropPane<S>(tagService);

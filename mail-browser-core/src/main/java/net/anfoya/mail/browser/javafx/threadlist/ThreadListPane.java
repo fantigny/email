@@ -80,7 +80,14 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 				final Set<H> threads = (Set<H>) db.getContent(DND_THREADS_DATA_FORMAT);
 				@SuppressWarnings("unchecked")
 				final T tag = (T) db.getContent(DndFormat.TAG_DATA_FORMAT);
-				addTag(tag, threads);
+				addTagForThreads(tag, threads);
+				event.consume();
+			} else if (db.hasContent(ThreadListPane.DND_THREADS_DATA_FORMAT)
+					&& db.hasContent(DndFormat.TAG_NAME_DATA_FORMAT)) {
+				@SuppressWarnings("unchecked")
+				final Set<H> threads = (Set<H>) db.getContent(DND_THREADS_DATA_FORMAT);
+				final String name = (String) db.getContent(DndFormat.TAG_NAME_DATA_FORMAT);
+				createTagForThreads(name, threads);
 				event.consume();
 			}
 		});
@@ -146,10 +153,25 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		setMargin(box, new Insets(5));
 	}
 
-	private void addTag(final T tag, final Set<H> threads) {
+	private void addTagForThreads(final T tag, final Set<H> threads) {
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
+				mailService.addTagForThreads(tag, threads);
+				return null;
+			}
+		};
+		task.setOnFailed(event -> // TODO Auto-generated catch block
+			event.getSource().getException().printStackTrace(System.out));
+		task.setOnSucceeded(event -> updateHandler.handle(null));
+		ThreadPool.getInstance().submitHigh(task);
+	}
+
+	private void createTagForThreads(final String name, final Set<H> threads) {
+		final Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				final T tag = mailService.addTag(name);
 				mailService.addTagForThreads(tag, threads);
 				return null;
 			}

@@ -11,17 +11,10 @@ import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
 import javafx.scene.layout.GridPane;
 import net.anfoya.javafx.scene.dnd.DropArea;
-import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
-import net.anfoya.tag.service.TagException;
-import net.anfoya.tag.service.TagService;
 
 public class ExtItemDropPane<T extends SimpleTag> extends GridPane {
-	private final TagService<? extends SimpleSection, T> tagService;
-
-	public ExtItemDropPane(final TagService<? extends SimpleSection, T> tagService, final DataFormat extItemDataFormat) {
-		this.tagService = tagService;
-
+	public ExtItemDropPane(final DataFormat extItemDataFormat) {
 		setVgap(2);
 		setHgap(2);
 		setAlignment(Pos.BOTTOM_CENTER);
@@ -33,15 +26,15 @@ public class ExtItemDropPane<T extends SimpleTag> extends GridPane {
 		newTagArea.setOnDragDropped(event -> {
 			final Dragboard db = event.getDragboard();
 			if (db.hasContent(extItemDataFormat)) {
-				final T tag = addTag();
-				if (tag == null) {
+				final String name = getName();
+				if (name == null) {
 					event.consume();
 					return;
 				}
 
 				final ClipboardContent content = new ClipboardContent();
 				content.put(extItemDataFormat, db.getContent(extItemDataFormat));
-				content.put(DndFormat.TAG_DATA_FORMAT, tag);
+				content.put(DndFormat.TAG_NAME_DATA_FORMAT, name);
 				db.setContent(content);
 			}
 		});
@@ -49,7 +42,7 @@ public class ExtItemDropPane<T extends SimpleTag> extends GridPane {
 		addRow(0, newTagArea);
 	}
 
-	private T addTag() {
+	private String getName() {
 		String name = "";
 		while(name.isEmpty()) {
 			final TextInputDialog inputDialog = new TextInputDialog();
@@ -71,12 +64,6 @@ public class ExtItemDropPane<T extends SimpleTag> extends GridPane {
 			}
 		}
 
-		try {
-			return tagService.addTag(name);
-		} catch (final TagException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return null;
-		}
+		return name;
 	}
 }
