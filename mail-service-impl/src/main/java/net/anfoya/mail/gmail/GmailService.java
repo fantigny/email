@@ -20,6 +20,8 @@ import net.anfoya.mail.gmail.model.GmailMoreThreads;
 import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.gmail.model.GmailTag;
 import net.anfoya.mail.gmail.model.GmailThread;
+import net.anfoya.mail.gmail.service.ContactException;
+import net.anfoya.mail.gmail.service.ContactService;
 import net.anfoya.mail.gmail.service.HistoryService;
 import net.anfoya.mail.gmail.service.LabelException;
 import net.anfoya.mail.gmail.service.LabelService;
@@ -48,18 +50,21 @@ import com.google.api.services.gmail.model.Draft;
 import com.google.api.services.gmail.model.Label;
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.Thread;
+import com.google.gdata.client.contacts.ContactsService;
 
 public class GmailService implements MailService<GmailSection, GmailTag, GmailThread, GmailMessage> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GmailService.class);
     private static final String REFRESH_TOKEN = "-refresh-token";
 
-	private static final String APP_NAME = "AGARAM";
+	private static final String USER = "me";
+	private static final String DEFAULT = "default";
+
+    private static final String APP_NAME = "AGARAM";
 	private static final String CLIENT_SECRET_PATH = "client_secret.json";
 	private static final String SCOPE =
 			"https://www.googleapis.com/auth/gmail.modify"
 			+ " https://www.googleapis.com/auth/gmail.labels"
 			+ " https://www.google.com/m8/feeds";
-	private static final String USER = "me";
 
 	private static final long PULL_PERIOD = 1000 * 5;
 
@@ -70,6 +75,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	private MessageService messageService;
 	private ThreadService threadService;
 	private HistoryService historyService;
+	private ContactService contactService;
 
 	public GmailService() {
 		httpTransport = new NetHttpTransport();
@@ -79,6 +85,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public Gmail login(final String mailId) throws GMailException {
 		Gmail gmail;
+		ContactsService gcontact;
 		try {
 			final BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(CLIENT_SECRET_PATH)));
 			final GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(jsonFactory, reader);
@@ -113,8 +120,13 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 				credential.setRefreshToken(refreshToken);
 			}
 
-			// Create a new authorized Gmail API client
+			// Create a new authorized Gmail Client service
 			gmail = new Gmail.Builder(httpTransport, jsonFactory, credential).setApplicationName(APP_NAME).build();
+
+			// Create a new authorized Google Contact service
+			credential.refreshToken();
+			gcontact = new ContactsService(APP_NAME);
+			gcontact.setOAuth2Credentials(credential);
 
 			// save refresh token
 			prefs.put(refreshTokenName, credential.getRefreshToken());
@@ -123,6 +135,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			throw new GMailException("login", e);
 		}
 
+		contactService = new ContactService(gcontact, DEFAULT).init();
 		messageService = new MessageService(gmail, USER);
 		threadService = new ThreadService(gmail, USER);
 		historyService = new HistoryService(gmail, USER);
@@ -640,6 +653,15 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			messageService.save(draft.getId(), draft.getRaw());
 		} catch (final MessageException e) {
 			throw new GMailException("saving message", e);
+		}
+	}
+
+	@Override
+	public Set<String> getContactAddresses() throws GMailException {
+		try {
+			return contactService.getAllAddresses();
+		} catch (final ContactException e) {
+			throw new GMailException("getting contacts", e);
 		}
 	}
 }

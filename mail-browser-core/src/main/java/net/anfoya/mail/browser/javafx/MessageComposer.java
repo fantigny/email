@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.util.Base64;
 import java.util.Properties;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -31,6 +33,7 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
+import net.anfoya.mail.browser.javafx.ACComboBox1.AutoCompleteMode;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailException;
@@ -46,7 +49,7 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 
 	private final HTMLEditor editor;
 	private final ComboBox<String> fromCombo;
-	private final TextField toField;
+	private final ComboBox<String> toCombo;
 	private final TextField ccField;
 	private final TextField bccField;
 	private final TextField subjectField;
@@ -102,7 +105,19 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 				toFullHeader();
 			}
 		});
-		toField = new TextField();
+
+		final ObservableList<String> contacts = FXCollections.observableArrayList();
+		try {
+			contacts.addAll(mailService.getContactAddresses());
+		} catch (final MailException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		toCombo = new ComboBox<String>(contacts);
+		toCombo.prefWidthProperty().bind(widthProperty());
+		toCombo.setEditable(true);
+		ACComboBox1.autoCompleteComboBox(toCombo, AutoCompleteMode.CONTAINING);
+
 		ccField = new TextField();
 		bccField = new TextField();
 		subjectField = new TextField("FisherMail - test");
@@ -144,7 +159,7 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 
 		InternetAddress to;
 		try {
-			to = new InternetAddress(toField.getText());
+			to = new InternetAddress(toCombo.getValue());
 		} catch (final AddressException e) {
 			to = new InternetAddress("frederic.antigny@gmail.com");
 		}
@@ -193,14 +208,14 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 
 	private void toMiniHeader() {
 		headerPane.getChildren().clear();
-		headerPane.addRow(0, toBox, toField);
+		headerPane.addRow(0, toBox, toCombo);
 		headerPane.addRow(1, new Label("subject"), subjectField);
 	}
 
 	private void toFullHeader() {
 		headerPane.getChildren().clear();
 //		headerPane.addRow(0, new Label("from"), fromCombo);
-		headerPane.addRow(0, toLabel, toField);
+		headerPane.addRow(0, toLabel, toCombo);
 		headerPane.addRow(1, new Label("cc"), ccField);
 		headerPane.addRow(2, new Label("bcc"), bccField);
 		headerPane.addRow(3, new Label("subject"), subjectField);

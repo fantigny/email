@@ -33,4 +33,5 @@ public interface MailService<S extends SimpleSection
 	public M createDraft() throws MailException;
 	public void send(M draft) throws MailException;
 	public void save(M draft) throws MailException;
+	public Set<String> getContactAddresses() throws MailException;
 }
