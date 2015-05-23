@@ -52,6 +52,40 @@ public class MessageService {
 		return message;
 	}
 
+	public void removeMessage(final String id) throws MessageException {
+		try {
+			gmail.users().messages().delete(user, id).execute();
+		} catch (final IOException e) {
+			throw new MessageException("deleting message id " + id, e);
+		}
+	}
+
+	public void send(final String id, final byte[] raw) throws MessageException {
+		try {
+			final Message message = new Message();
+			message.setRaw(new String(raw));
+			final Draft draft = new Draft();
+			draft.setId(id);
+			draft.setMessage(message);
+			gmail.users().drafts().send(user, draft).execute();
+		} catch (final IOException e) {
+			throw new MessageException("sending message", e);
+		}
+	}
+
+	public void save(final String id, final byte[] raw) throws MessageException {
+		try {
+			final Message message = new Message();
+			message.setRaw(new String(raw));
+			final Draft draft = new Draft();
+			draft.setId(id);
+			draft.setMessage(message);
+			gmail.users().drafts().update(user, id, draft).execute();
+		} catch (final IOException e) {
+			throw new MessageException("saving draft " + id, e);
+		}
+	}
+
 	public Draft createDraft() throws MessageException {
 		try {
 			final MimeMessage mimeMessage = new MimeMessage(Session.getInstance(new Properties()));
@@ -75,14 +109,6 @@ public class MessageService {
 			gmail.users().drafts().delete(user, id).execute();
 		} catch (final IOException e) {
 			throw new MessageException("deleting draft id " + id, e);
-		}
-	}
-
-	public void removeMessage(final String id) throws MessageException {
-		try {
-			gmail.users().messages().delete(user, id).execute();
-		} catch (final IOException e) {
-			throw new MessageException("deleting message id " + id, e);
 		}
 	}
 }

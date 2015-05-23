@@ -1,5 +1,10 @@
 package net.anfoya.mail.browser.javafx;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.Base64;
+import java.util.Properties;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -16,6 +21,16 @@ import javafx.scene.layout.Priority;
 import javafx.scene.web.HTMLEditor;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+
+import javax.mail.Message.RecipientType;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
+
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailException;
@@ -24,19 +39,21 @@ import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
 
 public class MessageComposer<M extends SimpleMessage> extends Stage {
+	private static final Session SESSION = Session.getDefaultInstance(new Properties(), null);
 
 	private final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService;
 	private final M draft;
+
 	private final HTMLEditor editor;
-	private ComboBox<String> fromCombo;
-	private TextField toField;
-	private TextField ccField;
-	private TextField bccField;
-	private TextField subjectField;
-	private GridPane headerPane;
-	private HBox toBox;
-	private BorderPane mainPane;
-	private Label toLabel;
+	private final ComboBox<String> fromCombo;
+	private final TextField toField;
+	private final TextField ccField;
+	private final TextField bccField;
+	private final TextField subjectField;
+	private final GridPane headerPane;
+	private final HBox toBox;
+	private final BorderPane mainPane;
+	private final Label toLabel;
 
 	public MessageComposer(
 			final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService)
@@ -56,6 +73,18 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 		this.mailService = mailService;
 		this.draft = draft;
 
+		final ColumnConstraints widthConstraints = new ColumnConstraints(80);
+		final ColumnConstraints growConstraints = new ColumnConstraints();
+		growConstraints.setHgrow(Priority.ALWAYS);
+		headerPane = new GridPane();
+		headerPane.setVgap(5);
+		headerPane.setHgap(5);
+		headerPane.setPadding(new Insets(5));
+		headerPane.prefWidthProperty().bind(widthProperty());
+		headerPane.getColumnConstraints().add(widthConstraints);
+		headerPane.getColumnConstraints().add(growConstraints);
+		mainPane.setTop(headerPane);
+
 		fromCombo = new ComboBox<String>();
 		fromCombo.prefWidthProperty().bind(widthProperty());
 		fromCombo.getItems().add("me");
@@ -74,47 +103,92 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 			}
 		});
 		toField = new TextField();
-
 		ccField = new TextField();
-
 		bccField = new TextField();
+		subjectField = new TextField("FisherMail - test");
 
-		subjectField = new TextField();
-
-		final ColumnConstraints widthConstraints = new ColumnConstraints(80);
-		final ColumnConstraints growConstraints = new ColumnConstraints();
-		growConstraints.setHgrow(Priority.ALWAYS);
-
-		headerPane = new GridPane();
-		headerPane.setVgap(5);
-		headerPane.setHgap(5);
-		headerPane.setPadding(new Insets(5));
-		headerPane.prefWidthProperty().bind(widthProperty());
-		headerPane.getColumnConstraints().add(widthConstraints);
-		headerPane.getColumnConstraints().add(growConstraints);
-		mainPane.setTop(headerPane);
 		toMiniHeader();
 
 		editor = new HTMLEditor();
 		mainPane.setCenter(editor);
 
 		final Button discardButton = new Button("discard");
-		discardButton.setOnAction(event -> {
-			try {
-				mailService.remove(draft);
-			} catch (final Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			close();
-		});
+		discardButton.setOnAction(event -> discardAndClose());
 
-		final HBox buttonBox = new HBox(5, discardButton, new Button("save"), new Button("send"));
+		final Button saveButton = new Button("save");
+		saveButton.setOnAction(event -> saveAndClose());
+
+		final Button sendButton = new Button("send");
+		sendButton.setOnAction(event -> sendAndClose());
+
+		final HBox buttonBox = new HBox(5, discardButton, saveButton, sendButton);
 		buttonBox.setAlignment(Pos.CENTER_RIGHT);
 		buttonBox.setPadding(new Insets(5));
 		mainPane.setBottom(buttonBox);
 
 		show();
+	}
+
+	private MimeMessage buildMessage() throws MessagingException {
+		final MimeMessage message = new MimeMessage(SESSION);
+		message.setFrom(new InternetAddress("frederic.antigny@gmail.com"));
+		message.setSubject(subjectField.getText());
+
+		final MimeMultipart multipart = new MimeMultipart();
+		message.setContent(multipart);
+
+		final MimeBodyPart mimeBodyPart = new MimeBodyPart();
+		mimeBodyPart.setContent(editor.getHtmlText(), "text/html");
+		mimeBodyPart.setHeader("Content-Type", "text/html; charset=\"UTF-8\"");
+		multipart.addBodyPart(mimeBodyPart);
+
+		InternetAddress to;
+		try {
+			to = new InternetAddress(toField.getText());
+		} catch (final AddressException e) {
+			to = new InternetAddress("frederic.antigny@gmail.com");
+		}
+		message.addRecipient(RecipientType.TO, to);
+
+		return message;
+	}
+
+	private M buildDraft() throws MessagingException, IOException {
+		final MimeMessage message = buildMessage();
+		final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		message.writeTo(bos);
+	    draft.setRaw(Base64.getUrlEncoder().encode(bos.toByteArray()));
+		return draft;
+	}
+
+	private void sendAndClose() {
+		try {
+			mailService.send(buildDraft());
+		} catch (final MessagingException | IOException | MailException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		close();
+	}
+
+	private void saveAndClose() {
+	    try {
+			mailService.save(buildDraft());
+		} catch (IOException | MessagingException | MailException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	    close();
+	}
+
+	private void discardAndClose() {
+		try {
+			mailService.remove(draft);
+		} catch (final Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		close();
 	}
 
 	private void toMiniHeader() {

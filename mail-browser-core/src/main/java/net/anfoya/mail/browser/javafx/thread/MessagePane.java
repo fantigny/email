@@ -132,7 +132,7 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 			@Override
 			protected String call() throws MailException, MessagingException, IOException, URISyntaxException {
 				message = mailService.getMessage(messageId);
-			    mimeMessage = new MimeMessage(SESSION, new ByteArrayInputStream(message.getRfc822mimeRaw()));
+			    mimeMessage = new MimeMessage(SESSION, new ByteArrayInputStream(message.getRaw()));
 			    String html = toHtml(mimeMessage, false);
 			    html = replaceCids(html);
 			    return html;

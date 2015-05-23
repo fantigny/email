@@ -76,7 +76,7 @@ public class GmailThread extends SimpleThread {
 	private static String findHeader(final Thread thread, final String key) {
 		final Set<String> headers = findHeaders(thread, key);
 		if (headers.isEmpty()) {
-			headers.add(EMPTY);
+			headers.add("");
 		}
 		return headers.iterator().next();
 	}

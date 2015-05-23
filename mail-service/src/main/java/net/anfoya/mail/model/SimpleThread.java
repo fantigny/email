@@ -8,8 +8,6 @@ import net.anfoya.mail.service.Thread;
 
 @SuppressWarnings("serial")
 public abstract class SimpleThread implements Thread {
-	protected static final String EMPTY = "[empty]";
-
 	public enum SortOrder {
 		DATE((s1, s2) -> s2.getDate().compareTo(s1.getDate())),
 		SUBJECT((s1, s2) -> s1.getSubject().compareTo(s2.getSubject()));

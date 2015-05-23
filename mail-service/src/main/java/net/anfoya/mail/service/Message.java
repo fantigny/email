@@ -5,6 +5,7 @@ import java.io.Serializable;
 public interface Message extends Serializable {
 
 	public String getId();
-	public byte[] getRfc822mimeRaw();
 	public boolean isDraft();
+	public byte[] getRaw();
+	public void setRaw(byte[] rfc822mimeRaw);
 }

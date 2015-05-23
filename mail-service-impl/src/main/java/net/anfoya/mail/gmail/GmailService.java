@@ -55,7 +55,8 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 	private static final String APP_NAME = "AGARAM";
 	private static final String CLIENT_SECRET_PATH = "client_secret.json";
-	private static final String SCOPE = "https://www.googleapis.com/auth/gmail.modify"
+	private static final String SCOPE =
+			"https://www.googleapis.com/auth/gmail.modify"
 			+ " https://www.googleapis.com/auth/gmail.labels"
 			+ " https://www.google.com/m8/feeds";
 	private static final String USER = "me";
@@ -622,5 +623,23 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public void addOnUpdate(final Callback<Throwable, Void> callback) {
 		historyService.addOnUpdate(callback);
+	}
+
+	@Override
+	public void send(final GmailMessage draft) throws GMailException {
+		try {
+			messageService.send(draft.getId(), draft.getRaw());
+		} catch (final MessageException e) {
+			throw new GMailException("sending message", e);
+		}
+	}
+
+	@Override
+	public void save(final GmailMessage draft) throws GMailException {
+		try {
+			messageService.save(draft.getId(), draft.getRaw());
+		} catch (final MessageException e) {
+			throw new GMailException("saving message", e);
+		}
 	}
 }
