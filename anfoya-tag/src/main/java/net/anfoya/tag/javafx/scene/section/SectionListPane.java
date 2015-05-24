@@ -134,8 +134,8 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		setCenter(stackPane);
 
 		selectedTagsPane = new SelectedTagsPane<T>();
-		selectedTagsPane.setDelTagCallBack(tag -> {
-			unselectTag(tag.getName());
+		selectedTagsPane.setClearTagCallBack(tag -> {
+			clear(tag.getName());
 			return null;
 		});
 		setBottom(selectedTagsPane);
@@ -232,25 +232,27 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		tagPatternDelay.play();
 	}
 
-	public void unselectTag(final String tagName) {
+	public void clear(final String tagName) {
 		for(final TitledPane sectionPane: sectionAcc.getPanes()) {
 			@SuppressWarnings("unchecked")
 			final TagList<S, T> tagList = (TagList<S, T>) sectionPane.getContent();
-			tagList.setTagSelected(tagName, false);
+			tagList.clear(tagName);
 		}
 	}
 
-	public void selectTag(final String sectionName, final String tagName) {
-		for(final TitledPane sectionPane: sectionAcc.getPanes()) {
-			@SuppressWarnings("unchecked")
-			final TagList<S, T> tagList = (TagList<S, T>) sectionPane.getContent();
-			if (tagList.getSection().getName().equals(sectionName)) {
-				tagList.setTagSelected(tagName, true);
-				sectionPane.setExpanded(true);
-				break;
+	public void init(final String sectionName, final String tagName) {
+		refreshAsync(v -> {
+			for(final TitledPane sectionPane: sectionAcc.getPanes()) {
+				@SuppressWarnings("unchecked")
+				final TagList<S, T> tagList = (TagList<S, T>) sectionPane.getContent();
+				if (tagList.getSection().getName().equals(sectionName)) {
+					sectionPane.setExpanded(true);
+					tagList.selectLight(tagName);
+					break;
+				}
 			}
-		}
-		selectedTagsPane.refresh(getAllSelectedTags());
+			return null;
+		});
 	}
 
 	public void setOnSelectTag(final EventHandler<ActionEvent> handler) {

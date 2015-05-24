@@ -222,7 +222,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 					e.printStackTrace();
 				}
 			}
-			tagsPane.setDelTagCallBack(tag -> {
+			tagsPane.setClearTagCallBack(tag -> {
 				try {
 					mailService.removeTagForThreads(tag, threads);
 				} catch (final MailException e) {

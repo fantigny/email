@@ -124,11 +124,7 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 
 	private void initData() {
 
-		sectionListPane.refreshAsync(v -> {
-			sectionListPane.selectTag(GmailSection.SYSTEM.getName(), "Inbox");
-//			sectionListPane.selectTag("Bank", "HK HSBC");
-			return null;
-		});
+		sectionListPane.init(GmailSection.SYSTEM.getName(), "Inbox");
 
 		mailService.addOnUpdate(new Callback<Throwable, Void>() {
 			@Override

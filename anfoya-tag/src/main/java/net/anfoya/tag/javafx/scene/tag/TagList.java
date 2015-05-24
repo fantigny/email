@@ -35,7 +35,7 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 	private final TagService<S, T> tagService;
 
 	private final S section;
-	private final Map<String, TagListItem<T>> nameItems = new HashMap<String, TagListItem<T>>();
+	private final Map<String, TagListItem<T>> nameTags = new HashMap<String, TagListItem<T>>();
 
 	private ChangeListener<? super Boolean> incExcListener;
 
@@ -108,12 +108,12 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 		final TagListItem<T> selectedItem = getSelectionModel().getSelectedItem();
 
 		// check if "this" tag is in the list
-		final boolean hasThisTag = getItems().contains(nameItems.get(SimpleTag.THIS_NAME));
+		final boolean hasThisTag = getItems().contains(nameTags.get(SimpleTag.THIS_NAME));
 
 		// build items map and restore selection
 		refreshing = true;
-		final Map<String, TagListItem<T>> countedItemMap = new HashMap<String, TagListItem<T>>(nameItems);
-		nameItems.clear();
+		final Map<String, TagListItem<T>> countedItemMap = new HashMap<String, TagListItem<T>>(nameTags);
+		nameTags.clear();
 		final List<TagListItem<T>> items = new ArrayList<TagListItem<T>>();
 		for(final T tag: tags) {
 			final TagListItem<T> item = new TagListItem<T>(tag);
@@ -136,7 +136,7 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 			} else {
 				items.add(item);
 			}
-			nameItems.put(tag.getName(), item);
+			nameTags.put(tag.getName(), item);
 		}
 
 		// display
@@ -145,7 +145,7 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 		// restore selection
 		if (selectedItem != null) {
 			getSelectionModel().clearSelection();
-			final TagListItem<T> item = nameItems.get(selectedItem.getTag().getName());
+			final TagListItem<T> item = nameTags.get(selectedItem.getTag().getName());
 			if (item != null) {
 				getSelectionModel().select(item);
 			}
@@ -161,7 +161,7 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 			showThisTask.cancel();
 		}
 
-		final TagListItem<T> item = nameItems.get(SimpleTag.THIS_NAME);
+		final TagListItem<T> item = nameTags.get(SimpleTag.THIS_NAME);
 		if (item == null) {
 			return;
 		}
@@ -255,7 +255,7 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 			}
 			handler.handle(null);
 		};
-		for(final TagListItem<T> item: nameItems.values()) {
+		for(final TagListItem<T> item: nameTags.values()) {
 			item.includedProperty().addListener(incExcListener);
 			item.excludedProperty().addListener(incExcListener);
 		}
@@ -272,14 +272,17 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 		});
 	}
 
-	public void setTagSelected(final String tagName, final boolean selected) {
-		if (nameItems.containsKey(tagName)) {
-			getSelectionModel().select(nameItems.get(tagName));
-			final TagListItem<T> item = nameItems.get(tagName);
-			item.includedProperty().set(selected);
-			if (!selected) {
-				item.excludedProperty().set(false);
-			}
+	public void selectLight(final String tagName) {
+		if (nameTags.containsKey(tagName)) {
+			getSelectionModel().select(nameTags.get(tagName));
+		}
+	}
+
+	public void clear(final String tagName) {
+		if (nameTags.containsKey(tagName)) {
+			final TagListItem<T> item = nameTags.get(tagName);
+			item.includedProperty().set(false);
+			item.excludedProperty().set(false);
 		}
 	}
 
@@ -288,11 +291,11 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 	}
 
 	public boolean contains(final T tag) {
-		return nameItems.containsKey(tag.getName());
+		return nameTags.containsKey(tag.getName());
 	}
 
 	public TagListItem<T> getSectionItem() {
-		return nameItems.get(section.getName());
+		return nameTags.get(section.getName());
 	}
 
 	public boolean isStandAloneSectionTag() {

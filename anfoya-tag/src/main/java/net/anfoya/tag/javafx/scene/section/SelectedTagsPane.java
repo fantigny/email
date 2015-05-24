@@ -12,7 +12,7 @@ import net.anfoya.tag.model.SimpleTag;
 public class SelectedTagsPane<T extends SimpleTag> extends FlowPane {
 
 	protected static final String CROSS = " X";
-	private Callback<T, Void> delTagCallBack;
+	private Callback<T, Void> clearTagCallBack;
 
 	public SelectedTagsPane() {
 		setVgap(3);
@@ -26,9 +26,9 @@ public class SelectedTagsPane<T extends SimpleTag> extends FlowPane {
 		for(final T tag: tags) {
 			final Button button = new Button(tag.getName() + CROSS);
 			button.setOnAction(event -> {
-				if (delTagCallBack != null) {
+				if (clearTagCallBack != null) {
 					SelectedTagsPane.this.getChildren().remove(button);
-					delTagCallBack.call(tag);
+					clearTagCallBack.call(tag);
 				}
 			});
 			buttons.add(button);
@@ -36,8 +36,8 @@ public class SelectedTagsPane<T extends SimpleTag> extends FlowPane {
 		getChildren().setAll(buttons);
 	}
 
-	public void setDelTagCallBack(final Callback<T, Void> callback) {
-		this.delTagCallBack = callback;
+	public void setClearTagCallBack(final Callback<T, Void> callback) {
+		this.clearTagCallBack = callback;
 	}
 
 	public void clear() {

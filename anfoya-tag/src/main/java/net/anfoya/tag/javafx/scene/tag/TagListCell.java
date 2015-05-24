@@ -86,7 +86,8 @@ class TagListCell<T extends SimpleTag> extends CheckBoxListCell<TagListItem<T>> 
 
         	setGraphic(pane);
         	//TODO: setDisable(item.disableProperty().get());
-	        setTextFill(isDisabled()? Color.GRAY: Color.BLACK);
+	        //TODO: setTextFill(isDisabled()? Color.GRAY: Color.BLACK);
+	        setTextFill(item.getTag().isSystem()? Color.DARKBLUE: Color.BLACK);
         }
 	}
 }
