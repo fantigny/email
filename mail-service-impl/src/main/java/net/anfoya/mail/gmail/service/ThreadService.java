@@ -54,7 +54,11 @@ public class ThreadService {
 		final Set<String> toLoadIds = new LinkedHashSet<String>();
 		try {
 			ListThreadsResponse threadResponse;
-			threadResponse = gmail.users().threads().list(user).setQ(query.toString()).setMaxResults(MAX_LIST_RESULTS).execute();
+			threadResponse = gmail.users().threads().list(user)
+					.setFields("nextPageToken,threads(historyId,id)")
+					.setQ(query.toString())
+					.setMaxResults(MAX_LIST_RESULTS)
+					.execute();
 			int page = 0;
 			while (threadResponse.getThreads() != null) {
 				for(final Thread t : threadResponse.getThreads()) {
@@ -72,7 +76,12 @@ public class ThreadService {
 				}
 				page++;
 				if (threadResponse.getNextPageToken() != null && page < pageMax) {
-					threadResponse = gmail.users().threads().list(user).setQ(query.toString()).setPageToken(threadResponse.getNextPageToken()).setMaxResults(MAX_LIST_RESULTS).execute();
+					threadResponse = gmail.users().threads().list(user)
+							.setFields("nextPageToken,threads(historyId,id)")
+							.setQ(query.toString())
+							.setPageToken(threadResponse.getNextPageToken())
+							.setMaxResults(MAX_LIST_RESULTS)
+							.execute();
 				} else {
 					break;
 				}
@@ -114,12 +123,19 @@ public class ThreadService {
 		final long start = System.currentTimeMillis();
 		try {
 			int count = 0;
-			ListThreadsResponse response = gmail.users().threads().list(user).setQ(query.toString()).execute();
+			ListThreadsResponse response = gmail.users().threads().list(user)
+					.setFields("nextPageToken,threads(id)")
+					.setQ(query.toString())
+					.execute();
 			while(response.getThreads() != null) {
 				count += response.getThreads().size();
 				if (response.getNextPageToken() != null) {
 					final String pageToken = response.getNextPageToken();
-					response = gmail.users().threads().list(user).setQ(query.toString()).setPageToken(pageToken).execute();
+					response = gmail.users().threads().list(user)
+							.setFields("nextPageToken,threads(id)")
+							.setQ(query.toString())
+							.setPageToken(pageToken)
+							.execute();
 				} else {
 					break;
 				}
@@ -215,7 +231,9 @@ public class ThreadService {
 				}
 			};
 			for(final String id: ids) {
-				gmail.users().threads().get(user, id).setFormat("metadata").queue(batch, callback);
+				gmail.users().threads().get(user, id)
+					.setFields("historyId,id,messages(id,labelIds,payload)")
+					.queue(batch, callback);
 			}
 			batch.execute();
 			latch.await();
