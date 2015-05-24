@@ -6,11 +6,29 @@ import java.util.Set;
 
 import net.anfoya.mail.service.Thread;
 
+import org.slf4j.LoggerFactory;
+
 @SuppressWarnings("serial")
 public abstract class SimpleThread implements Thread {
 	public enum SortOrder {
-		DATE((s1, s2) -> s2.getDate().compareTo(s1.getDate())),
-		SUBJECT((s1, s2) -> s1.getSubject().compareTo(s2.getSubject()));
+		DATE((t1, t2) -> {
+			if (t1.date == null || PAGE_TOKEN_ID.equals(t2.id)) {
+				return -1;
+			} else if (t2.date == null || PAGE_TOKEN_ID.equals(t1.id)) {
+				return 1;
+			} else {
+				return t2.date.compareTo(t1.date);
+			}
+		}),
+		SENDER((t1, t2) -> {
+			if (t1.sender == null || PAGE_TOKEN_ID.equals(t2.id)) {
+				return -1;
+			} else if (t2.sender == null || PAGE_TOKEN_ID.equals(t1.id)) {
+				return 1;
+			} else {
+				return t2.sender.compareTo(t1.sender);
+			}
+		});
 
 		private Comparator<SimpleThread> comparator;
 		private SortOrder(final Comparator<SimpleThread> comparator) {
@@ -85,14 +103,10 @@ public abstract class SimpleThread implements Thread {
 
 	@Override
 	public Date getDate() {
-		if (date != null) {
-			return date;
+		if (date == null) {
+			LoggerFactory.getLogger(SimpleThread.class).error("no date for thread id {}", id);
 		}
-		else {
-			// TODO remove when found why it can be null !!!
-			// test case Account
-			return new Date();
-		}
+		return date;
 	}
 
 	@Override

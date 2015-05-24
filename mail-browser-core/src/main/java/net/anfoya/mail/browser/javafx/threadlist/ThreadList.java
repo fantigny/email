@@ -1,13 +1,13 @@
 package net.anfoya.mail.browser.javafx.threadlist;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
@@ -42,8 +42,6 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 	private String namePattern;
 	private int pageMax;
 
-	//TODO enhance
-	private final Predicate<H> nameFilter = thread -> thread.getSubject().toLowerCase().contains(namePattern);
 	private EventHandler<ActionEvent> loadHandler;
 
 	private long loadTaskId;
@@ -87,14 +85,8 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 	}
 
 	public void refreshWithPattern(final String pattern) {
-		final String previousPattern = namePattern;
 		namePattern = pattern.toLowerCase();
-
-		if (namePattern.contains(previousPattern)) {
-			refresh();
-		} else {
-			refresh(includes, excludes);
-		}
+		load();
 	}
 
 	public void refreshWithOrder(final SortOrder order) {
@@ -145,17 +137,14 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 		final Set<H> selectedThreads = new HashSet<H>(getSelectedThreads());
 
 		// get list
-		ObservableList<H> obsThreads = FXCollections.observableArrayList(threads);
-
-		// filter
-		obsThreads = FXCollections.observableArrayList(obsThreads.filtered(nameFilter));
+		final List<H> sortedThreads = new ArrayList<H>(threads);
 
 		// sort
-		Collections.sort(obsThreads, sortOrder.getComparator());
+		Collections.sort(sortedThreads, sortOrder.getComparator());
 
 		// display
 		refreshing = true;
-		getItems().setAll(threads);
+		getItems().setAll(sortedThreads);
 
 		// restore selection
 		getSelectionModel().clearSelection();

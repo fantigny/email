@@ -109,14 +109,14 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 
 		final ToggleGroup toggleGroup = new ToggleGroup();
 
-		final RadioButton nameSortButton = new RadioButton("name ");
+		final RadioButton nameSortButton = new RadioButton("sender");
 		nameSortButton.setToggleGroup(toggleGroup);
 
 		final RadioButton dateSortButton = new RadioButton("date");
 		dateSortButton.setToggleGroup(toggleGroup);
 
 		toggleGroup.selectedToggleProperty().addListener((ChangeListener<Toggle>) (ov, oldVal, newVal) -> threadList.refreshWithOrder(nameSortButton.isSelected()
-				? SortOrder.SUBJECT
+				? SortOrder.SENDER
 				: SortOrder.DATE));
 		dateSortButton.setSelected(true);
 

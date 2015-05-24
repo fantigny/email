@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.Set;
 
 public interface Thread extends Serializable {
+	public static final String PAGE_TOKEN_ID = "no-id-page-token";
 
 	public String getId();
 	public Set<String> getTagIds();

@@ -11,6 +11,7 @@ import java.util.concurrent.CountDownLatch;
 import net.anfoya.java.cache.FileSerieSerializedMap;
 import net.anfoya.mail.gmail.cache.CacheData;
 import net.anfoya.mail.gmail.cache.CacheException;
+import net.anfoya.mail.gmail.model.GmailThread;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,8 +30,6 @@ public class ThreadService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadService.class);
 	private static final String FILE_PREFIX = System.getProperty("java.io.tmpdir") + "fsm-cache-id-threads-";
 	private static final Long MAX_LIST_RESULTS = Long.valueOf(100);
-
-	public static final String PAGE_TOKEN_ID = "no-id-page-token";
 
 	private final Gmail gmail;
 	private final String user;
@@ -109,7 +108,7 @@ public class ThreadService {
 
 	private static Thread nextPageThread(final int nextPage) {
 		final Thread thread = new Thread();
-		thread.setId(PAGE_TOKEN_ID);
+		thread.setId(GmailThread.PAGE_TOKEN_ID);
 		thread.setHistoryId(BigInteger.valueOf(nextPage));
 		thread.setMessages(new ArrayList<Message>());
 

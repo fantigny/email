@@ -219,7 +219,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 						m.setLabelIds(cleaned);
 					}
 				}
-				if (ThreadService.PAGE_TOKEN_ID.equals(t.getId())) {
+				if (GmailThread.PAGE_TOKEN_ID.equals(t.getId())) {
 					threads.add(new GmailMoreThreads(pageMax + 1));
 				} else {
 					threads.add(new GmailThread(t));
