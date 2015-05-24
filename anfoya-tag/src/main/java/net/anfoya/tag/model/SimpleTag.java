@@ -11,14 +11,16 @@ public class SimpleTag implements Serializable, Comparable<SimpleTag> {
 
 	private final String id;
 	private final String name;
+	private final boolean system;
 	private final int hash;
 
 	public SimpleTag() {
-		this("n/d", "n/d");
+		this("n/d", "n/d", false);
 	}
-	public SimpleTag(final String id, final String name) {
+	public SimpleTag(final String id, final String name, final boolean system) {
 		this.id = id;
 		this.name = name;
+		this.system = system;
 		this.hash = id.hashCode();
 	}
 
@@ -49,7 +51,7 @@ public class SimpleTag implements Serializable, Comparable<SimpleTag> {
 	}
 
 	public SimpleTag copyWithId(final String id) {
-		return new SimpleTag(id, name);
+		return new SimpleTag(id, name, system);
 	}
 
 	//TODO should not need an id?
@@ -59,5 +61,8 @@ public class SimpleTag implements Serializable, Comparable<SimpleTag> {
 
 	public String getName() {
 		return name;
+	}
+	public boolean isSystem() {
+		return system;
 	}
 }

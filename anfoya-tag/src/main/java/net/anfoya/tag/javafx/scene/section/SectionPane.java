@@ -51,7 +51,7 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 	@SuppressWarnings("unchecked")
 	public SectionPane(final TagService<S, T> tagService, final S section) {
 		this.tagService = tagService;
-		this.sectionItem = new TagListItem<SimpleTag>(new SimpleTag(section.getId(), section.getName()));
+		this.sectionItem = new TagListItem<SimpleTag>(new SimpleTag(section.getId(), section.getName(), section.isSystem()));
 
 		tagList = new TagList<S, T>(tagService, section);
 		setContent(tagList);
@@ -209,7 +209,7 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 			}
 			incExcBox.includedProperty().bindBidirectional(sectionItem.includedProperty());
 			incExcBox.excludedProperty().bindBidirectional(sectionItem.excludedProperty());
-			this.sectionItem = new TagListItem<SimpleTag>(new SimpleTag(sectionItem.getTag().getId(), sectionItem.getTag().getName()));
+			this.sectionItem = new TagListItem<SimpleTag>(new SimpleTag(sectionItem.getTag().getId(), sectionItem.getTag().getName(), true));
 		}
 	}
 

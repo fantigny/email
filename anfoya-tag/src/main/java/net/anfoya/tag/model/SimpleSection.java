@@ -13,14 +13,16 @@ public class SimpleSection implements Serializable, Comparable<SimpleSection> {
 
 	private final String id;
 	private final String name;
+	private final boolean system;
 	private final int hash;
 
 	public SimpleSection(final String name) {
-		this(NO_ID + name, name);
+		this(NO_ID + name, name, true);
 	}
-	public SimpleSection(final String id, final String name) {
+	public SimpleSection(final String id, final String name, final boolean system) {
 		this.id = id;
 		this.name = name;
+		this.system = system;
 		hash = id.hashCode();
 	}
 	public String getName() {
@@ -50,5 +52,8 @@ public class SimpleSection implements Serializable, Comparable<SimpleSection> {
 	@Override
 	public int compareTo(final SimpleSection o) {
 		return name.compareTo(o.name);
+	}
+	public boolean isSystem() {
+		return system;
 	}
 }

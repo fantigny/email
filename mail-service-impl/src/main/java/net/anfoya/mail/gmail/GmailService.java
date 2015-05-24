@@ -257,8 +257,8 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			final Collection<Label> labels = labelService.getAll();
 			final Set<GmailSection> sectionTmp = new TreeSet<GmailSection>();
 			for(final Label label: labels) {
-				final GmailSection section = new GmailSection(label);
-				if (!section.isHidden()) {
+				if (!GmailSection.isHidden(label)) {
+					final GmailSection section = new GmailSection(label);
 					final String sectionName = section.getName() + "/";
 					for(final Label l: labels) {
 						if (l.getName().contains(sectionName)) {
@@ -305,11 +305,13 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 				alphaTags.add(GmailTag.ALL_MAIL);
 				for(final Label label:labels) {
 					final String name = label.getName();
-					LOGGER.debug("{}, {}, {}", name, label.getLabelListVisibility(), label.getMessageListVisibility());
 					if (!GmailTag.isHidden(label)) {
 						if (GmailTag.isSystem(label) && GmailTag.getName(label).toLowerCase().contains(pattern)) {
 							// GMail system tags
-							alphaTags.add(new GmailTag(label.getId(), name.charAt(0) + name.substring(1).toLowerCase(), label.getName(), true));
+							String n = name;
+							n = n.contains("CATEGORY_")? n.substring(9): n;
+							n = n.charAt(0) + n.substring(1).toLowerCase();
+							alphaTags.add(new GmailTag(label.getId(), n, label.getName(), true));
 						} else if (!name.contains("/")) {
 							// root tags, put them here if no sub-tag
 							boolean hasSubTag = false;
@@ -379,7 +381,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public int getCountForTags(final Set<GmailTag> includes, final Set<GmailTag> excludes, final String pattern) throws GMailException {
 		try {
-			if (includes.isEmpty() || includes.contains(GmailTag.ALL_MAIL)) { //TODO && excludes.isEmpty() && pattern.isEmpty()) {
+			if (includes.isEmpty() || includes.contains(GmailTag.ALL_MAIL) || includes.contains(GmailTag.SENT)) { //TODO && excludes.isEmpty() && pattern.isEmpty()) {
 				return 0;
 			}
 
@@ -427,7 +429,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			, final String namePattern, final String tagPattern) throws GMailException {
 		try {
 			final Set<GmailTag> tags = getTags(section, tagPattern);
-			if (tags.isEmpty() || tags.contains(GmailTag.ALL_MAIL)) {
+			if (tags.isEmpty() || tags.contains(GmailTag.ALL_MAIL) || tags.contains(GmailTag.SENT)) {
 				return 0;
 			}
 

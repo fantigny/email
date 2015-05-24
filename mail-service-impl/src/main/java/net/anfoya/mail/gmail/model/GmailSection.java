@@ -9,19 +9,17 @@ public class GmailSection extends SimpleSection {
 	public static final GmailSection SYSTEM = new GmailSection("GMail");
 
 	private final String string;
-	private final boolean hidden;
 	private final String path;
 
 	private GmailSection(final String name) {
 		super(name);
 
 		string = name;
-		hidden = false;
 		path = name;
 	}
 
 	public GmailSection(final Label label) {
-		super(label.getId(), label.getName());
+		super(label.getId(), label.getName(), false);
 
 		final String name = label.getName();
 		if (name.contains("/")) {
@@ -30,7 +28,6 @@ public class GmailSection extends SimpleSection {
 			string = name;
 		}
 
-		hidden = "labelHide".equals(label.getLabelListVisibility());
 		path = label.getName();
 	}
 
@@ -39,11 +36,11 @@ public class GmailSection extends SimpleSection {
 		return string;
 	}
 
-	public boolean isHidden() {
-		return hidden;
-	}
-
 	public String getPath() {
 		return path;
+	}
+
+	public static boolean isHidden(final Label label) {
+		return "labelHide".equals(label.getLabelListVisibility());
 	}
 }
