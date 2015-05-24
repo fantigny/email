@@ -49,16 +49,16 @@ public class GmailThread extends SimpleThread {
 			final String s = findHeader(thread, "Date");
 			return new MailDateFormat().parse(s);
 		} catch (final Exception e) {
-			//TODO handle error
-			e.printStackTrace();
 			return new Date();
 		}
 	}
 
 	private static Set<String> getMessageIds(final Thread thread) {
 		final Set<String> messageIds = new LinkedHashSet<String>();
-		for(final Message m: thread.getMessages()) {
-			messageIds.add(m.getId());
+		if (thread.getMessages() != null) {
+			for(final Message m: thread.getMessages()) {
+				messageIds.add(m.getId());
+			}
 		}
 
 		return messageIds;
@@ -66,8 +66,10 @@ public class GmailThread extends SimpleThread {
 
 	private static Set<String> getLabelIds(final Thread thread) {
 		final Set<String> labelIds = new LinkedHashSet<String>();
-		for(final Message m: thread.getMessages()) {
-			labelIds.addAll(m.getLabelIds());
+		if (thread.getMessages() != null) {
+			for(final Message m: thread.getMessages()) {
+				labelIds.addAll(m.getLabelIds());
+			}
 		}
 
 		return labelIds;

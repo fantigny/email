@@ -79,7 +79,7 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 				return null;
 			}
 		};
-		task.setOnFailed(event -> {/*TODO*/});
+		task.setOnFailed(event -> {/* TODO Auto-generated catch block */});
 		task.setOnSucceeded(event -> updateHandler.handle(null));
 		ThreadPool.getInstance().submitHigh(task);
 	}

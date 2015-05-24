@@ -47,7 +47,7 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 
 	private EventHandler<ActionEvent> updateHandler;
 
-	private ThreadListDropPane<H> threadListDropPane;
+	private ThreadListDropPane<T, H> threadListDropPane;
 
 	protected Timeline expandDelay;
 
@@ -58,7 +58,7 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		stackPane.setAlignment(Pos.BOTTOM_CENTER);
 		setCenter(stackPane);
 
-		threadListDropPane = new ThreadListDropPane<H>(mailService);
+		threadListDropPane = new ThreadListDropPane<T, H>(mailService);
 		threadListDropPane.prefWidthProperty().bind(stackPane.widthProperty());
 
 		threadList = new ThreadList<S, T, H>(mailService);

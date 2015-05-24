@@ -26,7 +26,7 @@ public class SimpleTag implements Serializable, Comparable<SimpleTag> {
 
     @Override
 	public String toString() {
-    	return name;
+    	return getName();
     }
 
 	@Override
@@ -42,16 +42,16 @@ public class SimpleTag implements Serializable, Comparable<SimpleTag> {
         if (!this.getClass().equals(other.getClass())) {
 			return false;
 		}
-        return ((SimpleTag) other).id.equals(id);
+        return ((SimpleTag) other).getId().equals(id);
     }
 
 	@Override
 	public int compareTo(final SimpleTag o) {
-		return name.compareTo(o.name);
+		return getName().compareTo(o.getName());
 	}
 
 	public SimpleTag copyWithId(final String id) {
-		return new SimpleTag(id, name, system);
+		return new SimpleTag(id, getName(), isSystem());
 	}
 
 	//TODO should not need an id?
@@ -62,6 +62,7 @@ public class SimpleTag implements Serializable, Comparable<SimpleTag> {
 	public String getName() {
 		return name;
 	}
+
 	public boolean isSystem() {
 		return system;
 	}

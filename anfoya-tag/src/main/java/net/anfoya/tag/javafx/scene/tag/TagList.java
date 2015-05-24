@@ -99,7 +99,7 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 		try {
 			tags = tagService.getTags(section, tagPattern);
 		} catch (final TagException e) {
-			//TODO display exception
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return;
 		}
