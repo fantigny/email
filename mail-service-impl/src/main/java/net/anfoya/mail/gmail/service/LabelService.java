@@ -19,7 +19,7 @@ import com.google.api.services.gmail.model.Label;
 
 public class LabelService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LabelService.class);
-	private static final String FILE_PREFIX = System.getProperty("java.io.tmpdir") + "fsm-cache-id-labels-";
+	private static final String FILE_PREFIX = System.getProperty("java.io.tmpdir") + "/fsm-cache-id-labels-";
 
 	private final Map<String, Label> idLabels;
 	private final Gmail gmail;

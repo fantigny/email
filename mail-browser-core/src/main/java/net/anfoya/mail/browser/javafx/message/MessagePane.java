@@ -1,15 +1,7 @@
-package net.anfoya.mail.browser.javafx.thread;
+package net.anfoya.mail.browser.javafx.message;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Properties;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -28,16 +20,12 @@ import javafx.scene.text.Text;
 import javax.mail.Address;
 import javax.mail.Message;
 import javax.mail.MessagingException;
-import javax.mail.Multipart;
-import javax.mail.Part;
-import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeUtility;
 
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.web.WebViewFitContent;
+import net.anfoya.mail.browser.javafx.thread.ThreadDropPane;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailException;
@@ -48,19 +36,13 @@ import net.anfoya.tag.model.SimpleTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sun.mail.util.BASE64DecoderStream;
-
 public class MessagePane<M extends SimpleMessage> extends VBox {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessagePane.class);
-	private static final Session SESSION = Session.getDefaultInstance(new Properties(), null);
-	private static final String EMPTY = "[empty]";
-	private static final String UNKNOWN = "[unknown]";
-	private static final String TEMP = System.getProperty("java.io.tmpdir");
-	private static final String ATTACH_ICON_PATH = TEMP + "/fishermail-attachment.png";
 
 	private final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService;
-
 	private final BooleanProperty expanded;
+	private final MimeMessageHelper helper;
+
 	private boolean collapsible;
 
 	private final Text titleText;
@@ -68,29 +50,15 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 
 	private final String messageId;
 	private M message;
-	private MimeMessage mimeMessage;
 	private Task<String> loadTask;
-	private final Map<String, String> cidFilenames;
-
-	private static boolean copied = false;
-	{
-		if (!copied) {
-			copied = true;
-			try {
-				Files.copy(getClass().getResourceAsStream("attachment.png"), new File(ATTACH_ICON_PATH).toPath(), StandardCopyOption.REPLACE_EXISTING);
-			} catch (final IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-	}
 
 	public MessagePane(final String messageId, final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService) {
 		this.mailService = mailService;
 		this.messageId = messageId;
-		this.collapsible = true;
 
-		cidFilenames = new HashMap<String, String>();
+		helper = new MimeMessageHelper();
+		collapsible = true;
+
 		bodyView = new WebViewFitContent();
 
 		expanded = new SimpleBooleanProperty(true);
@@ -132,10 +100,7 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 			@Override
 			protected String call() throws MailException, MessagingException, IOException, URISyntaxException {
 				message = mailService.getMessage(messageId);
-			    mimeMessage = new MimeMessage(SESSION, new ByteArrayInputStream(message.getRaw()));
-			    String html = toHtml(mimeMessage, false);
-			    html = replaceCids(html);
-			    return html;
+			    return helper.toHtml(message.getMimeMessage());
 			}
 		};
 		loadTask.setOnFailed(event -> {
@@ -148,60 +113,10 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 		ThreadPool.getInstance().submitHigh(loadTask);
 	}
 
-	private String toHtml(final Part part, boolean isHtml) throws IOException, MessagingException {
-		final String type = part.getContentType().replaceAll("\\r", "").replaceAll("\\n", "").replaceAll("\\t", " ");
-		isHtml = isHtml || type.contains("multipart/alternative");
-		if (part.getContent() instanceof String && type.contains("text/html")) {
-			LOGGER.debug("++++ type {}", type);
-			return (String) part.getContent();
-		} else if (part.getContent() instanceof String && type.contains("text/plain") && !isHtml) {
-			LOGGER.debug("++++ type {}", type);
-			return "<pre>" + part.getContent() + "</pre>";
-		} else if (part instanceof Multipart || type.contains("multipart")) {
-			LOGGER.debug("++++ type {}", type);
-			final Multipart parts = (Multipart) part.getContent();
-			final StringBuilder html = new StringBuilder();
-			for(int i=0, n=parts.getCount(); i<n; i++) {
-				html.append(toHtml(parts.getBodyPart(i), isHtml));
-			}
-			return html.toString();
-		} else if (part instanceof MimeBodyPart
-				&& part.getContent() instanceof BASE64DecoderStream
-				&& ((MimeBodyPart)part).getContentID() != null) {
-			final MimeBodyPart bodyPart = (MimeBodyPart) part;
-			final String cid = bodyPart.getContentID().replaceAll("<", "").replaceAll(">", "");
-			final String tempFilename = TEMP + (part.getFileName() == null? cid: MimeUtility.decodeText(bodyPart.getFileName()));
-			LOGGER.debug("++++ save {}", tempFilename);
-			bodyPart.saveFile(tempFilename);
-			cidFilenames.put(cid, tempFilename);
-			return "";
-		} else if (part instanceof MimeBodyPart
-				&& part.getContent() instanceof BASE64DecoderStream
-				&& part.getDisposition() != null) {
-			final MimeBodyPart bodyPart = (MimeBodyPart) part;
-			final String tempFilename = TEMP + MimeUtility.decodeText(bodyPart.getFileName());
-			LOGGER.debug("++++ save {}", tempFilename);
-			bodyPart.saveFile(tempFilename);
-			if (MimeBodyPart.INLINE.equalsIgnoreCase(part.getDisposition())) {
-				return "<img src='file://" + tempFilename + "'>";
-			} else {
-				return "<a href ='file://" + tempFilename + "'><table><tr><td><img src='file://" + ATTACH_ICON_PATH + "'></td></tr><tr><td>" + MimeUtility.decodeText(bodyPart.getFileName()) + "</td></tr></table></a>";
-			}
-		} else {
-			LOGGER.warn("---- type {}", type);
-			return "";
-		}
-	}
-
-	private String replaceCids(String html) {
-		for(final Entry<String, String> entry: cidFilenames.entrySet()) {
-			html = html.replaceAll("cid:" + entry.getKey(), "file://" + entry.getValue());
-		}
-		return html;
-	}
-
 	private void refreshTitle() {
 		try {
+			final MimeMessage mimeMessage = message.getMimeMessage();
+
 			final StringBuilder title = new StringBuilder();
 			title.append(mimeMessage.getSentDate());
 			title.append(" from ").append(getMailAddresses(mimeMessage.getFrom()));
@@ -216,7 +131,7 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 	private String getMailAddresses(final Address[] addresses) {
 		final StringBuilder sb = new StringBuilder();
 		if (addresses == null || addresses.length == 0) {
-			sb.append(EMPTY);
+			sb.append("");
 		} else {
 			boolean first = true;
 			for(final Address address: addresses) {
@@ -233,7 +148,7 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 						sb.append(mailAddress.getAddress());
 					}
 				} else {
-					sb.append(UNKNOWN);
+					sb.append("");
 				}
 			}
 		}

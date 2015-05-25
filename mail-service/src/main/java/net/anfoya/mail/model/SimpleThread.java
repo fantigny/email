@@ -6,8 +6,6 @@ import java.util.Set;
 
 import net.anfoya.mail.service.Thread;
 
-import org.slf4j.LoggerFactory;
-
 @SuppressWarnings("serial")
 public abstract class SimpleThread implements Thread {
 	public enum SortOrder {
@@ -86,6 +84,14 @@ public abstract class SimpleThread implements Thread {
 		return messageIds;
 	}
 
+	public String getLastMessageId() {
+		String lastId = null;
+		for(final String id: getMessageIds()) {
+			lastId = id;
+		}
+		return lastId;
+	}
+
 	@Override
 	public Set<String> getTagIds() {
 		return tagIds;
@@ -103,9 +109,6 @@ public abstract class SimpleThread implements Thread {
 
 	@Override
 	public Date getDate() {
-		if (date == null) {
-			LoggerFactory.getLogger(SimpleThread.class).error("no date for thread id {}", id);
-		}
 		return date;
 	}
 

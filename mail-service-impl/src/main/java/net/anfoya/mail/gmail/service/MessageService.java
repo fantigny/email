@@ -18,7 +18,7 @@ import com.google.api.services.gmail.model.Draft;
 import com.google.api.services.gmail.model.Message;
 
 public class MessageService {
-	private static final String FILE_PREFIX = System.getProperty("java.io.tmpdir") + "fsm-cache-id-messages-";
+	private static final String FILE_PREFIX = System.getProperty("java.io.tmpdir") + "/fsm-cache-id-messages-";
 
 	private final Map<String, CacheData<Message>> idMessages;
 	private final Gmail gmail;
@@ -60,16 +60,15 @@ public class MessageService {
 		}
 	}
 
-	public void send(final String id, final byte[] raw) throws MessageException {
+	public void send(final String draftId, final byte[] raw) throws MessageException {
 		try {
 			final Message message = new Message();
 			message.setRaw(new String(raw));
-			final Draft draft = new Draft();
-			draft.setId(id);
+			final Draft draft = gmail.users().drafts().get(user, draftId).execute();
 			draft.setMessage(message);
 			gmail.users().drafts().send(user, draft).execute();
 		} catch (final IOException e) {
-			throw new MessageException("sending message", e);
+			throw new MessageException("sending message id " + draftId, e);
 		}
 	}
 
@@ -109,6 +108,22 @@ public class MessageService {
 			gmail.users().drafts().delete(user, id).execute();
 		} catch (final IOException e) {
 			throw new MessageException("deleting draft id " + id, e);
+		}
+	}
+
+	public Draft getDraftForMessage(final String id) throws MessageException {
+		try {
+			Draft draft = null;
+			for(final Draft d: gmail.users().drafts().list(user).execute().getDrafts()) {
+				if (d.getMessage() != null && id.equals(d.getMessage().getId())) {
+					draft = d;
+					draft.setMessage(getMessage(id));
+					break;
+				}
+			}
+			return draft;
+		} catch (final IOException e) {
+			throw new MessageException("getting draft id " + id, e);
 		}
 	}
 }

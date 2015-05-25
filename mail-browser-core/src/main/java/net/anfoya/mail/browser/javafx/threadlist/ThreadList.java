@@ -16,6 +16,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.input.KeyCode;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.mail.browser.javafx.message.MessageComposer;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
@@ -28,10 +29,11 @@ import net.anfoya.tag.model.SimpleTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends SimpleThread> extends ListView<H> {
+public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage>
+		extends ListView<H> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadList.class);
 
-	private final MailService<S, T, H, ? extends SimpleMessage> mailService;
+	private final MailService<S, T, H, M> mailService;
 
 	private boolean refreshing;
 	private Set<H> threads;
@@ -49,7 +51,7 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 
 	private EventHandler<ActionEvent> updateHandler;
 
-	public ThreadList(final MailService<S, T, H, ? extends SimpleMessage> mailService) {
+	public ThreadList(final MailService<S, T, H, M> mailService) {
 		this.mailService = mailService;
 
 		this.refreshing = false;
@@ -60,15 +62,30 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 		this.sortOrder = SortOrder.DATE;
 		this.namePattern = "";
 
-		getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 		setCellFactory(param -> new ThreadListCell<H>());
-
 		setOnKeyPressed(event -> {
 			if (event.getCode() == KeyCode.BACK_SPACE
 					|| event.getCode() == KeyCode.DELETE) {
 				archive();
 			}
 		});
+		setOnMousePressed(event -> {
+			if (event.isPrimaryButtonDown() && event.getClickCount() == 2) {
+				final Set<H> threads = getSelectedThreads();
+				if (threads.size() > 0 && threads.iterator().next().getMessageIds().size() > 0) {
+					M draft;
+					try {
+						draft = mailService.getDraft(threads.iterator().next().getLastMessageId());
+						new MessageComposer<M>(mailService).edit(draft);
+					} catch (final Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+		});
+
+		getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 	}
 
 	private void archive() {
@@ -79,7 +96,8 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 				return null;
 			}
 		};
-		task.setOnFailed(event -> {/* TODO Auto-generated catch block */});
+		task.setOnFailed(event -> {/* TODO Auto-generated catch block */
+		});
 		task.setOnSucceeded(event -> updateHandler.handle(null));
 		ThreadPool.getInstance().submitHigh(task);
 	}
@@ -114,8 +132,11 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 		loadTask = new Task<Set<H>>() {
 			@Override
 			protected Set<H> call() throws InterruptedException, MailException {
-				LOGGER.debug("loading for includes {}, excludes {}, pattern: {}, pageMax: {}", includes, excludes, namePattern, pageMax);
-				return mailService.findThreads(includes, excludes, namePattern, pageMax);
+				LOGGER.debug(
+						"loading for includes {}, excludes {}, pattern: {}, pageMax: {}",
+						includes, excludes, namePattern, pageMax);
+				return mailService.findThreads(includes, excludes, namePattern,
+						pageMax);
 			}
 		};
 		loadTask.setOnFailed(event -> {
@@ -135,6 +156,7 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 	private void refresh() {
 		// get previously selected threads
 		final Set<H> selectedThreads = new HashSet<H>(getSelectedThreads());
+		final int selectedIndex = getSelectionModel().getSelectedIndex();
 
 		// get list
 		final List<H> sortedThreads = new ArrayList<H>(threads);
@@ -152,12 +174,13 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 			LOGGER.debug("selected threads {}", threads);
 			final int[] indices = new int[selectedThreads.size()];
 			Arrays.fill(indices, -1);
-			if (selectedThreads.size() == 1 && selectedThreads.iterator().next() instanceof GmailMoreThreads) {
-				indices[0] = getItems().size() / pageMax * (pageMax - 1);
+			if (selectedThreads.size() == 1
+					&& selectedThreads.iterator().next() instanceof GmailMoreThreads) {
+				indices[0] = selectedIndex;
 				scrollTo(indices[0]);
 			} else {
 				int itemIndex = 0, arrayIndex = 0;
-				for(final H t: getItems()) {
+				for (final H t : getItems()) {
 					if (selectedThreads.contains(t) && !t.isUnread()) {
 						indices[arrayIndex] = itemIndex;
 						arrayIndex++;
@@ -175,8 +198,8 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 	public Set<T> getThreadsTags() {
 		// return all tags available from all threads
 		final Set<T> tags = new LinkedHashSet<T>();
-		for(final H thread: getItems()) {
-			for(final String id: thread.getTagIds()) {
+		for (final H thread : getItems()) {
+			for (final String id : thread.getTagIds()) {
 				try {
 					tags.add(mailService.getTag(id));
 				} catch (final MailException e) {
@@ -190,22 +213,25 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 	}
 
 	public Set<H> getSelectedThreads() {
-		final ObservableList<H> selectedList = getSelectionModel().getSelectedItems();
+		final ObservableList<H> selectedList = getSelectionModel()
+				.getSelectedItems();
 		Set<H> selectedSet;
 		if (selectedList.isEmpty()) {
 			selectedSet = new HashSet<H>();
 		} else {
-			selectedSet = Collections.unmodifiableSet(new LinkedHashSet<H>(selectedList));
+			selectedSet = Collections.unmodifiableSet(new LinkedHashSet<H>(
+					selectedList));
 		}
 		return Collections.unmodifiableSet(selectedSet);
 	}
 
 	public void setOnSelectThreads(final EventHandler<ActionEvent> handler) {
-		getSelectionModel().selectedItemProperty().addListener((ov, newVal, oldVal) -> {
-			if (!refreshing) {
-				handler.handle(null);
-			}
-		});
+		getSelectionModel().selectedItemProperty().addListener(
+				(ov, newVal, oldVal) -> {
+					if (!refreshing) {
+						handler.handle(null);
+					}
+				});
 	}
 
 	public void setOnLoad(final EventHandler<ActionEvent> handler) {

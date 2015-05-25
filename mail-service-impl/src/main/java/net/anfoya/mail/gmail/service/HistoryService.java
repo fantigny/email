@@ -22,7 +22,7 @@ import com.google.api.services.gmail.model.Message;
 
 public class HistoryService extends TimerTask {
 	private static final Logger LOGGER = LoggerFactory.getLogger(HistoryService.class);
-	private static final String FILE_PREFIX = System.getProperty("java.io.tmpdir") + "fsm-cache-history-id-";
+	private static final String FILE_PREFIX = System.getProperty("java.io.tmpdir") + "/fsm-cache-history-id-";
 
 	private final Gmail gmail;
 	private final String user;

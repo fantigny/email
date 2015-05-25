@@ -15,6 +15,9 @@ import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import javafx.util.Callback;
+
+import javax.mail.MessagingException;
+
 import net.anfoya.mail.gmail.model.GmailMessage;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
 import net.anfoya.mail.gmail.model.GmailSection;
@@ -94,6 +97,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			final String refreshTokenName = mailId + REFRESH_TOKEN;
 		    final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
 			final String refreshToken = prefs.get(refreshTokenName, null);
+//			final String refreshToken = null;
 
 			// Generate Credential using retrieved code.
 			final GoogleCredential credential = new GoogleCredential.Builder()
@@ -120,13 +124,13 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 				credential.setRefreshToken(refreshToken);
 			}
 
-			// Create a new authorized Gmail Client service
-			gmail = new Gmail.Builder(httpTransport, jsonFactory, credential).setApplicationName(APP_NAME).build();
-
 			// Create a new authorized Google Contact service
 			credential.refreshToken();
 			gcontact = new ContactsService(APP_NAME);
 			gcontact.setOAuth2Credentials(credential);
+
+			// Create a new authorized Gmail Client service
+			gmail = new Gmail.Builder(httpTransport, jsonFactory, credential).setApplicationName(APP_NAME).build();
 
 			// save refresh token
 			prefs.put(refreshTokenName, credential.getRefreshToken());
@@ -136,10 +140,12 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		}
 
 		contactService = new ContactService(gcontact, DEFAULT).init();
+
 		messageService = new MessageService(gmail, USER);
 		threadService = new ThreadService(gmail, USER);
-		historyService = new HistoryService(gmail, USER);
 		labelService = new LabelService(gmail, USER);
+
+		historyService = new HistoryService(gmail, USER);
 		historyService.addOnLabelUpdate(new Callback<Throwable, Void>() {
 			@Override
 			public Void call(final Throwable t) {
@@ -236,17 +242,20 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	public GmailMessage getMessage(final String id) throws GMailException {
 		try {
 		    return new GmailMessage(messageService.getMessage(id));
-		} catch (final MessageException e) {
+		} catch (final MessageException | MessagingException e) {
 			throw new GMailException("loading message id: " + id, e);
 		}
 	}
 
 	@Override
-	public GmailMessage createDraft() throws GMailException {
+	public GmailMessage createDraft(final GmailMessage message) throws GMailException {
 		try {
 			final Draft draft = messageService.createDraft();
+			if (message != null) {
+				draft.setMessage(messageService.getMessage(message.getId()));
+			}
 			return new GmailMessage(draft);
-		} catch (final MessageException e) {
+		} catch (final MessageException | MessagingException e) {
 			throw new GMailException("creating draft", e);
 		}
 	}
@@ -659,7 +668,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	public void send(final GmailMessage draft) throws GMailException {
 		try {
 			messageService.send(draft.getId(), draft.getRaw());
-		} catch (final MessageException e) {
+		} catch (final MessageException | IOException | MessagingException e) {
 			throw new GMailException("sending message", e);
 		}
 	}
@@ -668,7 +677,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	public void save(final GmailMessage draft) throws GMailException {
 		try {
 			messageService.save(draft.getId(), draft.getRaw());
-		} catch (final MessageException e) {
+		} catch (final MessageException | IOException | MessagingException e) {
 			throw new GMailException("saving message", e);
 		}
 	}
@@ -679,6 +688,15 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			return contactService.getAllAddresses();
 		} catch (final ContactException e) {
 			throw new GMailException("getting contacts", e);
+		}
+	}
+
+	@Override
+	public GmailMessage getDraft(final String messageId) throws MailException {
+		try {
+			return new GmailMessage(messageService.getDraftForMessage(messageId));
+		} catch (final MessageException | MessagingException e) {
+			throw new GMailException("getting draft", e);
 		}
 	}
 }

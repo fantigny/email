@@ -28,7 +28,7 @@ import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.ResetTextField;
 import net.anfoya.javafx.scene.control.Title;
-import net.anfoya.mail.browser.javafx.MessageComposer;
+import net.anfoya.mail.browser.javafx.message.MessageComposer;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.model.SimpleThread.SortOrder;
@@ -42,12 +42,12 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 	public static final DataFormat DND_THREADS_DATA_FORMAT = new DataFormat("Set<" + SimpleThread.class.getName() + ">");
 
 	private final MailService<S, T, H, M> mailService;
-	private final ThreadList<S, T, H> threadList;
+	private final ThreadList<S, T, H, M> threadList;
 	private final ResetTextField namePatternField;
 
 	private EventHandler<ActionEvent> updateHandler;
 
-	private ThreadListDropPane<T, H> threadListDropPane;
+	private ThreadListDropPane<T, H, M> threadListDropPane;
 
 	protected Timeline expandDelay;
 
@@ -58,10 +58,10 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		stackPane.setAlignment(Pos.BOTTOM_CENTER);
 		setCenter(stackPane);
 
-		threadListDropPane = new ThreadListDropPane<T, H>(mailService);
+		threadListDropPane = new ThreadListDropPane<T, H, M>(mailService);
 		threadListDropPane.prefWidthProperty().bind(stackPane.widthProperty());
 
-		threadList = new ThreadList<S, T, H>(mailService);
+		threadList = new ThreadList<S, T, H, M>(mailService);
 		threadList.setOnDragDetected(event -> {
 			final Set<H> threads = getSelectedThreads();
 			if (threads.size() == 0) {
@@ -140,7 +140,7 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		final Button addButton = new Button("+");
 		addButton.setOnAction(event -> {
 			try {
-				new MessageComposer<M>(mailService);
+				new MessageComposer<M>(mailService).newMessage();
 			} catch (final Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

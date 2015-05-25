@@ -28,7 +28,7 @@ import com.google.api.services.gmail.model.Thread;
 
 public class ThreadService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadService.class);
-	private static final String FILE_PREFIX = System.getProperty("java.io.tmpdir") + "fsm-cache-id-threads-";
+	private static final String FILE_PREFIX = System.getProperty("java.io.tmpdir") + "/fsm-cache-id-threads-";
 	private static final Long MAX_LIST_RESULTS = Long.valueOf(100);
 
 	private final Gmail gmail;

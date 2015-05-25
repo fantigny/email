@@ -1,5 +1,7 @@
 package net.anfoya.mail.model;
 
+import javax.mail.internet.MimeMessage;
+
 import net.anfoya.mail.service.Message;
 
 
@@ -9,12 +11,12 @@ public class SimpleMessage implements Message {
 	private final String id;
 	private final boolean draft;
 
-	private byte[] raw;
+	private transient MimeMessage mimeMessage;
 
-	public SimpleMessage(final String id, final boolean draft, final byte[] rfc822mimeRaw) {
+	public SimpleMessage(final String id, final boolean draft, final MimeMessage mimeMessage) {
 		this.id = id;
 		this.draft = draft;
-		this.raw = rfc822mimeRaw;
+		this.mimeMessage = mimeMessage;
 	}
 
 	@Override
@@ -23,20 +25,20 @@ public class SimpleMessage implements Message {
 	}
 
 	@Override
-	public byte[] getRaw() {
-		return raw;
+	public boolean isDraft() {
+		return draft;
 	}
 
 	@Override
-	public void setRaw(final byte[] rfc822mimeRaw) {
+	public MimeMessage getMimeMessage() {
+		return mimeMessage;
+	}
+
+	@Override
+	public void setMimeMessage(final MimeMessage mimeMessage) {
 		if (!isDraft()) {
 			throw new RuntimeException("not authorized to update message");
 		}
-		this.raw = rfc822mimeRaw;
-	}
-
-	@Override
-	public boolean isDraft() {
-		return draft;
+		this.mimeMessage = mimeMessage;
 	}
 }

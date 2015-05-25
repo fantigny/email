@@ -1,4 +1,4 @@
-package net.anfoya.mail.browser.javafx;
+package net.anfoya.mail.browser.javafx.message;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
