@@ -140,7 +140,7 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		final Button addButton = new Button("+");
 		addButton.setOnAction(event -> {
 			try {
-				new MessageComposer<M>(mailService).newMessage();
+				new MessageComposer<M>(mailService, updateHandler).newMessage();
 			} catch (final Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

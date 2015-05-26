@@ -107,7 +107,7 @@ public class ThreadListDropPane<T extends SimpleTag, H extends SimpleThread, M e
 	private void forward(final Set<H> threads) {
 		try {
 			final M message = mailService.getMessage(threads.iterator().next().getLastMessageId());
-			new MessageComposer<M>(mailService).forward(message);
+			new MessageComposer<M>(mailService, updateHandler).forward(message);
 		} catch (final MailException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -117,7 +117,7 @@ public class ThreadListDropPane<T extends SimpleTag, H extends SimpleThread, M e
 	private void reply(final Set<H> threads, final boolean all) {
 		try {
 			final M message = mailService.getMessage(threads.iterator().next().getLastMessageId());
-			new MessageComposer<M>(mailService).reply(message, all);
+			new MessageComposer<M>(mailService, updateHandler).reply(message, all);
 		} catch (final MailException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

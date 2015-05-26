@@ -76,7 +76,7 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 					M draft;
 					try {
 						draft = mailService.getDraft(threads.iterator().next().getLastMessageId());
-						new MessageComposer<M>(mailService).edit(draft);
+						new MessageComposer<M>(mailService, updateHandler).edit(draft);
 					} catch (final Exception e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();

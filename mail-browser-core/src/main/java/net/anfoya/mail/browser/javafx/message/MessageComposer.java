@@ -6,6 +6,9 @@ import java.util.Properties;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -31,6 +34,7 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
+import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.browser.javafx.message.ACComboBox1.AutoCompleteMode;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
@@ -61,13 +65,16 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 
 	private boolean anyChange;
 
-	public MessageComposer(final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService) {
+	private final EventHandler<ActionEvent> updateHandler;
+
+	public MessageComposer(final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService, final EventHandler<ActionEvent> updateHandler) {
 		super(StageStyle.UNIFIED);
 		setTitle("FisherMail / Agaar / Agamar / Agaram");
 		getIcons().add(new Image(getClass().getResourceAsStream("../entrypoint/Mail.png")));
 		setScene(new Scene(new BorderPane(), 800, 600));
 
 		this.mailService = mailService;
+		this.updateHandler = updateHandler;
 
 		helper = new MimeMessageHelper();
 		mainPane = (BorderPane) getScene().getRoot();
@@ -124,13 +131,22 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 		mainPane.setCenter(editor);
 
 		final Button discardButton = new Button("discard");
-		discardButton.setOnAction(event -> discardAndClose());
+		discardButton.setOnAction(event -> {
+			discard();
+			close();
+		});
 
 		final Button saveButton = new Button("save");
-		saveButton.setOnAction(event -> saveAndClose());
+		saveButton.setOnAction(event -> {
+			save();
+			close();
+		});
 
 		final Button sendButton = new Button("send");
-		sendButton.setOnAction(event -> sendAndClose());
+		sendButton.setOnAction(event -> {
+			send();
+			close();
+		});
 
 		final HBox buttonBox = new HBox(5, discardButton, saveButton, sendButton);
 		buttonBox.setAlignment(Pos.CENTER_RIGHT);
@@ -145,14 +161,15 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 
 	private void saveOrDiscard() {
 		if (anyChange) {
-			saveAndClose();
+			save();
 		} else {
-			discardAndClose();
+			discard();
 		}
 	}
 
 	public void newMessage() throws MailException {
 		draft = mailService.createDraft(null);
+		updateHandler.handle(null);
 	}
 
 	public void edit(final M draft) {
@@ -175,8 +192,9 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 	public void reply(final M message, final boolean all) {
 		try {
 			draft = mailService.createDraft(message);
-			final MimeMessage mimeMessage = message.getMimeMessage();
+			updateHandler.handle(null);
 
+			final MimeMessage mimeMessage = message.getMimeMessage();
 
 			String to;
 			try {
@@ -245,36 +263,45 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 		return message;
 	}
 
-	private void sendAndClose() {
-		try {
-		    draft.setMimeMessage(buildMessage());
-			mailService.send(draft);
-		} catch (final MessagingException | MailException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		close();
+	private void send() {
+		final Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+			    draft.setMimeMessage(buildMessage());
+				mailService.send(draft);
+				return null;
+			}
+		};
+		task.setOnFailed(event -> LOGGER.error("sending draft", event.getSource().getException()));
+		task.setOnSucceeded(event -> updateHandler.handle(null));
+		ThreadPool.getInstance().submitHigh(task);
 	}
 
-	private void saveAndClose() {
-	    try {
-		    draft.setMimeMessage(buildMessage());
-			mailService.save(draft);
-		} catch (MessagingException | MailException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	    close();
+	private void save() {
+		final Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+			    draft.setMimeMessage(buildMessage());
+				mailService.save(draft);
+				return null;
+			}
+		};
+		task.setOnFailed(event -> LOGGER.error("saving draft", event.getSource().getException()));
+		task.setOnSucceeded(event -> updateHandler.handle(null));
+		ThreadPool.getInstance().submitHigh(task);
 	}
 
-	private void discardAndClose() {
-		try {
-			mailService.remove(draft);
-		} catch (final Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		close();
+	private void discard() {
+		final Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				mailService.remove(draft);
+				return null;
+			}
+		};
+		task.setOnFailed(event -> LOGGER.error("deleting draft", event.getSource().getException()));
+		task.setOnSucceeded(event -> updateHandler.handle(null));
+		ThreadPool.getInstance().submitHigh(task);
 	}
 
 	private void toMiniHeader() {
