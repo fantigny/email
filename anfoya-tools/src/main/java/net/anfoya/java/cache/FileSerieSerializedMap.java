@@ -110,17 +110,22 @@ public class FileSerieSerializedMap<K extends Serializable, V extends Serializab
 
 	@Override
 	public synchronized V get(final Object key) {
-		final int index = dico.indexOf(key);
-		if (index != -1 && !loaded.get(index)) {
-			final String filename = String.format(filenamePattern, "" + index / threshold);
+		final int keyIndex = dico.indexOf(key);
+		if (keyIndex != -1 && !loaded.get(keyIndex)) {
+			final String filename = String.format(filenamePattern, "" + keyIndex / threshold);
 			try {
 				LOGGER.debug("loading {}", filename);
 				final Map<K, V> map = new SerializedFile<Map<K, V>>(filename).load();
 				delegate.putAll(map);
+				// mark all objects in this file as loaded and saved
 				for (final K k: map.keySet()) {
-					final int othersIndex = dico.indexOf(k);
-					loaded.set(othersIndex, true);
-					saved.set(othersIndex, true);
+					final int kIndex = dico.indexOf(k);
+					if (kIndex == -1) {
+						LOGGER.error("missing in dico: {}", k);
+					} else {
+						loaded.set(kIndex, true);
+						saved.set(kIndex, true);
+					}
 				}
 			} catch (ClassNotFoundException | IOException e) {
 				LOGGER.error("loading {}", filename);

@@ -32,9 +32,9 @@ public class GmailMessage extends SimpleMessage {
 		super(draft.getId(), true, getMimeMessage(draft.getMessage()));
 	}
 
-	public byte[] getRaw() throws IOException, MessagingException {
+	public String getRaw() throws IOException, MessagingException {
 		final ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		getMimeMessage().writeTo(bos);
-		return Base64.getUrlEncoder().encode(bos.toByteArray());
+		return new String(Base64.getUrlEncoder().encode(bos.toByteArray()));
 	}
 }

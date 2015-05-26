@@ -7,7 +7,7 @@ import java.io.Serializable;
 public class SimpleTag implements Serializable, Comparable<SimpleTag> {
 	public static final String NO_TAG_NAME = "[no tag]";
 	public static final String TO_WATCH_NAME = "To watch";
-	public static final String THIS_NAME = "[this]";
+	public static final String THIS_NAME = "[ this ]";
 
 	private final String id;
 	private final String name;

@@ -78,7 +78,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 			refreshWithTagPattern();
 		});
 
-		final HBox patternBox = new HBox(5, new Title("tags"), tagPatternField);
+		final HBox patternBox = new HBox(5, new Title("Label"), tagPatternField);
 		setTop(patternBox);
 
 		sectionAcc = new Accordion();

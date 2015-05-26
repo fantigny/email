@@ -1,9 +1,11 @@
-package net.anfoya.mail.gmail;
+package net.anfoya.mail.gmail.service;
 
-import net.anfoya.mail.gmail.service.MessageException;
-import net.anfoya.mail.gmail.service.MessageService;
-import net.anfoya.mail.gmail.service.ThreadException;
-import net.anfoya.mail.gmail.service.ThreadService;
+import java.io.IOException;
+
+import javax.mail.MessagingException;
+
+import net.anfoya.mail.gmail.GmailService;
+import net.anfoya.mail.gmail.model.GmailMessage;
 import net.anfoya.mail.service.MailException;
 
 import org.junit.Assert;
@@ -37,5 +39,11 @@ public class MessageServiceTest {
 
 		//cleanup
 		service.removeDraft(draft.getId());
+	}
+
+	@Test public void raw() throws MessageException, MessagingException, IOException {
+		final Message message = service.getMessage(messageId);
+		final GmailMessage gmailMessage = new GmailMessage(message);
+		Assert.assertEquals(message.getRaw(), gmailMessage.getRaw());
 	}
 }

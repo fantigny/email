@@ -1,10 +1,11 @@
-package net.anfoya.mail.gmail;
+package net.anfoya.mail.gmail.service;
 
 import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.Set;
 
 import junit.framework.Assert;
+import net.anfoya.mail.gmail.GmailService;
 import net.anfoya.mail.gmail.service.ThreadException;
 import net.anfoya.mail.gmail.service.ThreadService;
 import net.anfoya.mail.service.MailException;

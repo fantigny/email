@@ -45,7 +45,7 @@ public class MessageService {
 				message = gmail.users().messages().get(user, id).setFormat("raw").execute();
 				idMessages.put(id, new CacheData<Message>(message));
 			} catch (final IOException e) {
-				throw new MessageException("getting message id " + id, e);
+				throw new MessageException("getting message " + id, e);
 			}
 		}
 
@@ -56,28 +56,27 @@ public class MessageService {
 		try {
 			gmail.users().messages().delete(user, id).execute();
 		} catch (final IOException e) {
-			throw new MessageException("deleting message id " + id, e);
+			throw new MessageException("deleting message " + id, e);
 		}
 	}
 
-	public void send(final String draftId, final byte[] raw) throws MessageException {
+	public void send(final String id, final String raw) throws MessageException {
 		try {
 			final Message message = new Message();
-			message.setRaw(new String(raw));
-			final Draft draft = gmail.users().drafts().get(user, draftId).execute();
+			message.setRaw(raw);
+			final Draft draft = getDraft(id);
 			draft.setMessage(message);
 			gmail.users().drafts().send(user, draft).execute();
 		} catch (final IOException e) {
-			throw new MessageException("sending message id " + draftId, e);
+			throw new MessageException("sending draft " + id, e);
 		}
 	}
 
-	public void save(final String id, final byte[] raw) throws MessageException {
+	public void save(final String id, final String raw) throws MessageException {
 		try {
 			final Message message = new Message();
-			message.setRaw(new String(raw));
-			final Draft draft = new Draft();
-			draft.setId(id);
+			message.setRaw(raw);
+			final Draft draft = getDraft(id);
 			draft.setMessage(message);
 			gmail.users().drafts().update(user, id, draft).execute();
 		} catch (final IOException e) {
@@ -107,7 +106,7 @@ public class MessageService {
 		try {
 			gmail.users().drafts().delete(user, id).execute();
 		} catch (final IOException e) {
-			throw new MessageException("deleting draft id " + id, e);
+			throw new MessageException("deleting draft " + id, e);
 		}
 	}
 
@@ -115,15 +114,22 @@ public class MessageService {
 		try {
 			Draft draft = null;
 			for(final Draft d: gmail.users().drafts().list(user).execute().getDrafts()) {
-				if (d.getMessage() != null && id.equals(d.getMessage().getId())) {
-					draft = d;
-					draft.setMessage(getMessage(id));
+				if (d.getMessage() != null && d.getMessage().getId().equals(id)) {
+					draft = getDraft(d.getId());
 					break;
 				}
 			}
 			return draft;
 		} catch (final IOException e) {
-			throw new MessageException("getting draft id " + id, e);
+			throw new MessageException("getting draft for message " + id, e);
+		}
+	}
+
+	public Draft getDraft(final String id) throws MessageException {
+		try {
+			return gmail.users().drafts().get(user, id).setFormat("raw").execute();
+		} catch (final IOException e) {
+			throw new MessageException("getting draft " + id, e);
 		}
 	}
 }
