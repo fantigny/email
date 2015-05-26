@@ -317,10 +317,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 					if (!GmailTag.isHidden(label)) {
 						if (GmailTag.isSystem(label) && GmailTag.getName(label).toLowerCase().contains(pattern)) {
 							// GMail system tags
-							String n = name;
-							n = n.contains("CATEGORY_")? n.substring(9): n;
-							n = n.charAt(0) + n.substring(1).toLowerCase();
-							alphaTags.add(new GmailTag(label.getId(), n, label.getName(), true));
+							alphaTags.add(new GmailTag(label));
 						} else if (!name.contains("/")) {
 							// root tags, put them here if no sub-tag
 							boolean hasSubTag = false;

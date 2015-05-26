@@ -27,6 +27,10 @@ public class GmailTag extends SimpleTag {
 		if (name.contains("/") && name.length() > 1) {
 			name = name.substring(name.lastIndexOf("/") + 1);
 		}
+		if (isSystem(label)) {
+			name = name.contains("CATEGORY_")? name.substring(9): name;
+			name = name.charAt(0) + name.substring(1).toLowerCase();
+		}
 		return name;
 	}
 
@@ -34,7 +38,7 @@ public class GmailTag extends SimpleTag {
 		this(label.getId(), getName(label), label.getName(), isSystem(label));
 	}
 
-	public GmailTag(final String id, final String name,final String path, final boolean system) {
+	public GmailTag(final String id, final String name, final String path, final boolean system) {
 		super(id, name, system);
 		this.path = path;
 	}
