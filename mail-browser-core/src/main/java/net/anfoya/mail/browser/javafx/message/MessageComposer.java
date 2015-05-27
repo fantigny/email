@@ -111,8 +111,7 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 		try {
 			contacts.addAll(mailService.getContactAddresses());
 		} catch (final MailException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.error("getting contacts", e);
 		}
 		toCombo = new ComboBox<String>(contacts);
 		toCombo.prefWidthProperty().bind(widthProperty());
@@ -241,8 +240,7 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 
 	private MimeMessage buildMessage() throws MessagingException {
 		final MimeBodyPart mimeBodyPart = new MimeBodyPart();
-		mimeBodyPart.setHeader("Content-Type", "text/html");
-		mimeBodyPart.setText(editor.getHtmlText(), StandardCharsets.UTF_8.name());
+		mimeBodyPart.setText(editor.getHtmlText(), StandardCharsets.UTF_8.name(), "html");
 
 		final MimeMultipart multipart = new MimeMultipart();
 		multipart.addBodyPart(mimeBodyPart);
