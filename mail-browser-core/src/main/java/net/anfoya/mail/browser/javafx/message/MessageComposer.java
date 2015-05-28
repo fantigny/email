@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -33,9 +31,10 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
+import javax.mail.internet.MimeUtility;
 
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.mail.browser.javafx.message.ACComboBox1.AutoCompleteMode;
+import net.anfoya.javafx.scene.control.AutoCompComboBoxListener;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailException;
@@ -61,6 +60,7 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 	private final GridPane headerPane;
 	private final HBox toBox;
 	private final BorderPane mainPane;
+
 	private M draft;
 
 	private boolean anyChange;
@@ -107,16 +107,16 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 			}
 		});
 
-		final ObservableList<String> contacts = FXCollections.observableArrayList();
+		toCombo = new ComboBox<String>();
+		toCombo.prefWidthProperty().bind(widthProperty());
+		toCombo.setEditable(true);
 		try {
-			contacts.addAll(mailService.getContactAddresses());
+			toCombo.getItems().addAll(mailService.getContactAddresses());
 		} catch (final MailException e) {
 			LOGGER.error("getting contacts", e);
 		}
-		toCombo = new ComboBox<String>(contacts);
-		toCombo.prefWidthProperty().bind(widthProperty());
-		toCombo.setEditable(true);
-		ACComboBox1.autoCompleteComboBox(toCombo, AutoCompleteMode.CONTAINING);
+
+		new AutoCompComboBoxListener(toCombo, s -> s);
 
 		ccField = new TextField();
 		bccField = new TextField();
@@ -130,6 +130,7 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 		mainPane.setCenter(editor);
 
 		final Button discardButton = new Button("discard");
+		discardButton.setCancelButton(true);
 		discardButton.setOnAction(event -> {
 			discard();
 			close();
@@ -174,15 +175,7 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 	public void edit(final M draft) {
 		try {
 			this.draft = draft;
-			editor.setHtmlText(helper.toHtml(draft.getMimeMessage()));
-
-			String to;
-			try {
-				to = ((InternetAddress) draft.getMimeMessage().getRecipients(RecipientType.TO)[0]).getAddress();
-			} catch(final Exception e) {
-				to = "";
-			}
-			toCombo.setValue(to);
+			initComposer();
 		} catch (final MessagingException | IOException e) {
 			LOGGER.error("editing draft", e);
 		}
@@ -193,28 +186,12 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 			draft = mailService.createDraft(message);
 			updateHandler.handle(null);
 
-			final MimeMessage mimeMessage = message.getMimeMessage();
+			final MimeMessage reply = (MimeMessage) message.getMimeMessage().reply(all);
+//			reply.setContent((Multipart) draft.getMimeMessage().getContent());
+//			reply.saveChanges();
+			draft.setMimeMessage(reply);
 
-			String to;
-			try {
-				to = ((InternetAddress) mimeMessage.getReplyTo()[0]).getAddress();
-			} catch(final Exception e1) {
-				try {
-					to = ((InternetAddress) mimeMessage.getFrom()[0]).getAddress();
-				} catch(final Exception e2) {
-					to = "";
-				}
-			}
-
-			toCombo.setValue(to);
-			subjectField.setText("Re: " + mimeMessage.getSubject());
-
-			final StringBuffer html = new StringBuffer("<br><br>");
-			html.append("<blockquote class='fsm_quote' style='margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex'>");
-			html.append(helper.toHtml(mimeMessage));
-			html.append("</blockquote>");
-			editor.requestFocus();
-			editor.setHtmlText(html.toString());
+			initComposer();
 		} catch (final MessagingException | IOException | MailException e) {
 			LOGGER.error("replying message", e);
 		}
@@ -238,16 +215,41 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 		}
 	}
 
+	private void initComposer() throws MessagingException, IOException {
+		final MimeMessage message = draft.getMimeMessage();
+
+		String to;
+		try {
+			to = InternetAddress.toString(draft.getMimeMessage().getRecipients(RecipientType.TO)).split(",")[0];
+			to = MimeUtility.decodeText(to);
+		} catch(final Exception e) {
+			to = "";
+		}
+		toCombo.setValue(to);
+
+		subjectField.setText(message.getSubject());
+
+		String html = helper.toHtml(message);
+		if (!html.isEmpty()) {
+			final StringBuffer sb = new StringBuffer("<br><br>");
+			sb.append("<blockquote class='fsm_quote' style='margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex'>");
+			sb.append(html);
+			sb.append("</blockquote>");
+			html = sb.toString();
+		}
+		editor.setHtmlText(html);
+	}
+
 	private MimeMessage buildMessage() throws MessagingException {
-		final MimeBodyPart mimeBodyPart = new MimeBodyPart();
-		mimeBodyPart.setText(editor.getHtmlText(), StandardCharsets.UTF_8.name(), "html");
+		final MimeBodyPart bodyPart = new MimeBodyPart();
+		bodyPart.setText(editor.getHtmlText(), StandardCharsets.UTF_8.name(), "html");
 
 		final MimeMultipart multipart = new MimeMultipart();
-		multipart.addBodyPart(mimeBodyPart);
+		multipart.addBodyPart(bodyPart);
 
 		InternetAddress to;
 		try {
-			to = new InternetAddress(toCombo.getValue());
+			to = new InternetAddress(toCombo.getValue().toString());
 		} catch (final Exception e) {
 			to = null;
 			LOGGER.info("no recipient for draft");
