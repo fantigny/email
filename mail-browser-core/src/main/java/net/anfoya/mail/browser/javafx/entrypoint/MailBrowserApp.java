@@ -36,7 +36,7 @@ import net.anfoya.tag.model.SimpleTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage> extends Application{
+public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage> extends Application {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailBrowserApp.class);
 
 	public static void main(final String[] args) {
@@ -49,16 +49,18 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 	private ThreadPane<T, H, M> threadPane;
 
 	@Override
+	public void init() throws Exception {
+		@SuppressWarnings("unchecked")
+		final MailService<S, T, H, M> mailService = (MailService<S, T, H, M>) new GmailService().login("main");
+		this.mailService = mailService;
+	}
+
+	@Override
 	public void start(final Stage primaryStage) throws Exception {
 		primaryStage.initStyle(StageStyle.UNIFIED);
 		primaryStage.setOnCloseRequest(event -> {
 			ThreadPool.getInstance().shutdown();
 		});
-
-		@SuppressWarnings("unchecked")
-		final MailService<S, T, H, M> mailService = (MailService<S, T, H, M>) new GmailService();
-		this.mailService = mailService;
-		mailService.login("fisher-mail");
 
 		initGui(primaryStage);
 		initData();

@@ -9,11 +9,20 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.CountDownLatch;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
+import javafx.application.Platform;
+import javafx.concurrent.Worker.State;
+import javafx.scene.Scene;
+import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebView;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.util.Callback;
 
 import javax.mail.MessagingException;
@@ -38,6 +47,10 @@ import net.anfoya.tag.model.SimpleTag;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
@@ -86,7 +99,11 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	@Override
-	public Gmail login(final String mailId) throws GMailException {
+	public void login() throws GMailException {
+		login("main");
+	}
+
+	public GmailService login(final String string) throws GMailException {
 		Gmail gmail;
 		ContactsService gcontact;
 		try {
@@ -94,10 +111,9 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			final GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(jsonFactory, reader);
 
 			// read refresh token
-			final String refreshTokenName = mailId + REFRESH_TOKEN;
+			final String refreshTokenName = REFRESH_TOKEN;
 		    final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
 			final String refreshToken = prefs.get(refreshTokenName, null);
-//			final String refreshToken = null;
 
 			// Generate Credential using retrieved code.
 			final GoogleCredential credential = new GoogleCredential.Builder()
@@ -112,10 +128,10 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 						.setAccessType("offline")
 						.setApprovalPrompt("auto").build();
 				final String url = flow.newAuthorizationUrl().setRedirectUri(GoogleOAuthConstants.OOB_REDIRECT_URI).build();
-				System.out.println("Please open the following URL in your browser then type the authorization code:\n" + url);
-				// Read code entered by user.
-				final BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-				final String code = br.readLine();
+				final String code = getCode(url);
+				if (code.isEmpty()) {
+					throw new GMailException("no authentication code received from GMail", null);
+				}
 				final GoogleTokenResponse response = flow.newTokenRequest(code)
 						.setRedirectUri(GoogleOAuthConstants.OOB_REDIRECT_URI)
 						.execute();
@@ -157,7 +173,62 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		});
 		historyService.start(PULL_PERIOD);
 
-		return gmail;
+		return this;
+	}
+
+	private String getCode(final String url) {
+		final StringBuilder code = new StringBuilder();
+		final CountDownLatch countDownLatch = new CountDownLatch(1);
+
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				final WebView webView = new WebView();
+				final WebEngine webEngine = webView.getEngine();
+				final Stage stage = new Stage(StageStyle.UNIFIED);
+				stage.setScene(new Scene(webView, 450, 650));
+				stage.setOnCloseRequest(event -> countDownLatch.countDown());
+				stage.show();
+
+				webEngine.load(url);
+				webView.getEngine().getLoadWorker().stateProperty().addListener((ovState, oldState, newState) -> {
+					if (newState == State.SUCCEEDED) {
+						final String title = getTitle(webEngine);
+						if (title.length() > 13 && title.startsWith("Success code=")) {
+							code.append(title.substring(13));
+							stage.close();
+							countDownLatch.countDown();
+						}
+					}
+				});
+			}
+		});
+
+		try {
+			countDownLatch.await();
+		} catch (final InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return code.toString();
+	}
+
+	private String getTitle(final WebEngine webEngine) {
+	    final Document doc = webEngine.getDocument();
+	    final NodeList heads = doc.getElementsByTagName("head");
+	    final String titleText = webEngine.getLocation(); // use location if page does not define a title
+	    return getFirstElement(heads)
+	            .map(h -> h.getElementsByTagName("title"))
+	            .flatMap(this::getFirstElement)
+	            .map(Node::getTextContent).orElse(titleText);
+	}
+
+	private Optional<Element> getFirstElement(final NodeList nodeList) {
+	    if (nodeList.getLength() > 0 && nodeList.item(0) instanceof Element) {
+	        return Optional.of((Element) nodeList.item(0));
+	    }
+	    return Optional.empty();
 	}
 
 	@Override
@@ -695,5 +766,13 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		} catch (final MessageException | MessagingException e) {
 			throw new GMailException("getting draft", e);
 		}
+	}
+
+	public MessageService getMessageService() {
+		return messageService;
+	}
+
+	public ThreadService getThreadService() {
+		return threadService;
 	}
 }

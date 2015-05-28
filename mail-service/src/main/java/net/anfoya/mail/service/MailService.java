@@ -14,7 +14,7 @@ public interface MailService<S extends SimpleSection
 		, H extends SimpleThread
 		, M extends SimpleMessage> extends TagService<S, T> {
 
-	public Object login(String mailId) throws MailException;
+	public void login() throws MailException;
 	public void logout();
 	void addOnUpdate(Callback<Throwable, Void> callback);
 

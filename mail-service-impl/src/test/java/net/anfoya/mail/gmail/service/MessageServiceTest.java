@@ -12,7 +12,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Draft;
 import com.google.api.services.gmail.model.Message;
 
@@ -23,9 +22,9 @@ public class MessageServiceTest {
 	private String messageId;
 
 	@Before public void init() throws MailException, ThreadException {
-		final Gmail gmail = new GmailService().login("test");
-		service = new MessageService(gmail, "me");
-		messageId = new ThreadService(gmail, "me").find("subject:" + TEST_SUBJECT, 1).iterator().next().getMessages().get(0).getId();
+		final GmailService gmail = new GmailService().login("test");
+		service = gmail.getMessageService();
+		messageId = gmail.getThreadService().find("subject:" + TEST_SUBJECT, 1).iterator().next().getMessages().get(0).getId();
 	}
 
 	@Test public void get() throws MessageException {
