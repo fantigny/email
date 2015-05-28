@@ -1,4 +1,4 @@
-package net.anfoya.mail.browser.javafx.thread;
+package net.anfoya.mail.browser.javafx.message;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -25,7 +25,8 @@ import javax.mail.internet.MimeMessage;
 
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.web.WebViewFitContent;
-import net.anfoya.mail.browser.javafx.message.MimeMessageHelper;
+import net.anfoya.mail.browser.javafx.thread.ThreadDropPane;
+import net.anfoya.mail.browser.mime.MimeMessageHelper;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailException;
