@@ -28,11 +28,18 @@ public class AutoCompComboBoxListener {
     	}
 
 		final FilteredList<String> filteredList = new FilteredList<String>(items, s -> callback.call(s).startsWith(newVal));
-        comboBox.getItems().clear();
         comboBox.getItems().setAll(filteredList);
 
-        if (!comboBox.isShowing()) {
-        	comboBox.show();
+        if (filteredList.isEmpty()) {
+        	comboBox.getItems().clear();
+        	if (comboBox.isShowing()) {
+        		comboBox.hide();
+        	}
+        } else {
+        	comboBox.getItems().setAll(filteredList);
+	        if (!comboBox.isShowing()) {
+	        	comboBox.show();
+	        }
         }
     }
 }

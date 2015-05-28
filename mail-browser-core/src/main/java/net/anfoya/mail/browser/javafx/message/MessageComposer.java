@@ -49,23 +49,21 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessageComposer.class);
 
 	private final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService;
+	private final EventHandler<ActionEvent> updateHandler;
 	private final MimeMessageHelper helper;
 
-	private final HTMLEditor editor;
+	private final BorderPane mainPane;
+	private final GridPane headerPane;
+	private final HBox toBox;
+
+	private final HTMLEditor bodyEditor;
 	private final ComboBox<String> fromCombo;
 	private final ComboBox<String> toCombo;
 	private final TextField ccField;
 	private final TextField bccField;
 	private final TextField subjectField;
-	private final GridPane headerPane;
-	private final HBox toBox;
-	private final BorderPane mainPane;
 
 	private M draft;
-
-	private boolean anyChange;
-
-	private final EventHandler<ActionEvent> updateHandler;
 
 	public MessageComposer(final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService, final EventHandler<ActionEvent> updateHandler) {
 		super(StageStyle.UNIFIED);
@@ -124,19 +122,17 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 
 		toMiniHeader();
 
-		anyChange = false;
-		editor = new HTMLEditor();
-		editor.setOnKeyTyped(event -> anyChange = true);
-		mainPane.setCenter(editor);
+		bodyEditor = new HTMLEditor();
+		mainPane.setCenter(bodyEditor);
 
 		final Button discardButton = new Button("discard");
-		discardButton.setCancelButton(true);
 		discardButton.setOnAction(event -> {
 			discard();
 			close();
 		});
 
 		final Button saveButton = new Button("save");
+		saveButton.setCancelButton(true);
 		saveButton.setOnAction(event -> {
 			save();
 			close();
@@ -154,68 +150,78 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 		mainPane.setBottom(buttonBox);
 
 		show();
-		setOnCloseRequest(event -> {
-			saveOrDiscard();
-		});
-	}
-
-	private void saveOrDiscard() {
-		if (anyChange) {
-			save();
-		} else {
-			discard();
-		}
 	}
 
 	public void newMessage() throws MailException {
-		draft = mailService.createDraft(null);
-		updateHandler.handle(null);
+		final Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				draft = mailService.createDraft(null);
+				return null;
+			}
+		};
+		task.setOnFailed(event -> LOGGER.error("creting draft", event.getSource().getException()));
+		task.setOnSucceeded(event -> updateHandler.handle(null));
+		ThreadPool.getInstance().submitHigh(task);
 	}
 
 	public void edit(final M draft) {
 		try {
 			this.draft = draft;
-			initComposer();
+			initComposer(false);
 		} catch (final MessagingException | IOException e) {
 			LOGGER.error("editing draft", e);
 		}
 	}
 
 	public void reply(final M message, final boolean all) {
-		try {
-			draft = mailService.createDraft(message);
+		final Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				draft = mailService.createDraft(message);
+				return null;
+			}
+		};
+		task.setOnFailed(event -> LOGGER.error("creting draft", event.getSource().getException()));
+		task.setOnSucceeded(event -> {
 			updateHandler.handle(null);
-
-			final MimeMessage reply = (MimeMessage) message.getMimeMessage().reply(all);
-//			reply.setContent((Multipart) draft.getMimeMessage().getContent());
-//			reply.saveChanges();
-			draft.setMimeMessage(reply);
-
-			initComposer();
-		} catch (final MessagingException | IOException | MailException e) {
-			LOGGER.error("replying message", e);
-		}
+			try {
+				final MimeMessage reply = (MimeMessage) message.getMimeMessage().reply(all);
+				draft.setMimeMessage(reply);
+				initComposer(true);
+			} catch (final Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		});
+		ThreadPool.getInstance().submitHigh(task);
 	}
 
 	public void forward(final M message) {
-		try {
-			draft = mailService.createDraft(message);
-			final MimeMessage mimeMessage = message.getMimeMessage();
-
-			subjectField.setText("Fwd: " + mimeMessage.getSubject());
-
-			final StringBuffer html = new StringBuffer("<br><br>");
-			html.append("<blockquote class='fsm_quote' style='margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex'>");
-			html.append(helper.toHtml(mimeMessage));
-			html.append("</blockquote>");
-			editor.setHtmlText(html.toString());
-			editor.requestFocus();
-		} catch (final MessagingException | IOException | MailException e) {
-			LOGGER.error("replying message", e);
-		}
+		final Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				draft = mailService.createDraft(message);
+				return null;
+			}
+		};
+		task.setOnFailed(event -> LOGGER.error("creting draft", event.getSource().getException()));
+		task.setOnSucceeded(event -> {
+			updateHandler.handle(null);
+			try {
+				final MimeMessage mimeMessage = message.getMimeMessage();
+				subjectField.setText("Fwd: " + mimeMessage.getSubject());
+				draft.setMimeMessage(mimeMessage);
+				initComposer(true);
+			} catch (final Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		});
+		ThreadPool.getInstance().submitHigh(task);
 	}
 
-	private void initComposer() throws MessagingException, IOException {
+	private void initComposer(final boolean quote) throws MessagingException, IOException {
 		final MimeMessage message = draft.getMimeMessage();
 
 		String to;
@@ -230,19 +236,19 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 		subjectField.setText(message.getSubject());
 
 		String html = helper.toHtml(message);
-		if (!html.isEmpty()) {
+		if (quote) {
 			final StringBuffer sb = new StringBuffer("<br><br>");
 			sb.append("<blockquote class='fsm_quote' style='margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex'>");
 			sb.append(html);
 			sb.append("</blockquote>");
 			html = sb.toString();
 		}
-		editor.setHtmlText(html);
+		bodyEditor.setHtmlText(html);
 	}
 
 	private MimeMessage buildMessage() throws MessagingException {
 		final MimeBodyPart bodyPart = new MimeBodyPart();
-		bodyPart.setText(editor.getHtmlText(), StandardCharsets.UTF_8.name(), "html");
+		bodyPart.setText(bodyEditor.getHtmlText(), StandardCharsets.UTF_8.name(), "html");
 
 		final MimeMultipart multipart = new MimeMultipart();
 		multipart.addBodyPart(bodyPart);
@@ -259,7 +265,9 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 //		message.setFrom(new InternetAddress("frederic.antigny@gmail.com"));
 		message.setSubject(subjectField.getText());
 		message.setContent(multipart);
-		message.addRecipient(RecipientType.TO, to);
+		if (to != null) {
+			message.addRecipient(RecipientType.TO, to);
+		}
 		return message;
 	}
 
