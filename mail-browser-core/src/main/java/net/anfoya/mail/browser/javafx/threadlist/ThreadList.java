@@ -73,19 +73,8 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 			if (event.isPrimaryButtonDown() && event.getClickCount() == 2) {
 				final Set<H> threads = getSelectedThreads();
 				if (threads.size() > 0 && threads.iterator().next().getMessageIds().size() > 0) {
-					final String messageId = threads.iterator().next().getLastMessageId();
-					try {
-						final M draft = mailService.getDraft(messageId);
-						new MessageComposer<M>(mailService, updateHandler).edit(draft);
-					} catch (final Exception e) {
-						try {
-							final M message = mailService.getMessage(messageId);
-							new MessageComposer<>(mailService, updateHandler).reply(message, true);
-						} catch (final Exception e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}
-					}
+					final String id = threads.iterator().next().getLastMessageId();
+					new MessageComposer<M>(mailService, updateHandler).editOrReply(id);
 				}
 			}
 		});

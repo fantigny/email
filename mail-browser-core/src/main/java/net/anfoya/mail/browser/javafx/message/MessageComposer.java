@@ -1,6 +1,7 @@
 package net.anfoya.mail.browser.javafx.message;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
@@ -166,13 +167,23 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 		ThreadPool.getInstance().submitHigh(task);
 	}
 
-	public void edit(final M draft) {
+	public void editOrReply(final String id) {
 		try {
-			this.draft = draft;
-			initComposer(false);
-		} catch (final MessagingException | IOException e) {
-			LOGGER.error("editing draft", e);
+			final M draft = mailService.getDraft(id);
+			if (draft != null) {
+				edit(draft);
+			} else {
+				final M message = mailService.getMessage(id);
+				reply(message, true);
+			}
+		} catch (final MailException e) {
+			LOGGER.error("loading draft or message", e);
 		}
+	}
+
+	public void edit(final M draft) {
+		this.draft = draft;
+		initComposer(false);
 	}
 
 	public void reply(final M message, final boolean all) {
@@ -180,22 +191,17 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 			@Override
 			protected Void call() throws Exception {
 				draft = mailService.createDraft(message);
+				final MimeMessage reply = (MimeMessage) message.getMimeMessage().reply(all);
+				reply.setContent((Multipart) draft.getMimeMessage().getContent());
+				reply.saveChanges();
+				draft.setMimeMessage(reply);
 				return null;
 			}
 		};
 		task.setOnFailed(event -> LOGGER.error("creting draft", event.getSource().getException()));
 		task.setOnSucceeded(event -> {
 			updateHandler.handle(null);
-			try {
-				final MimeMessage reply = (MimeMessage) message.getMimeMessage().reply(all);
-				reply.setContent((Multipart) draft.getMimeMessage().getContent());
-				reply.saveChanges();
-				draft.setMimeMessage(reply);
-				initComposer(true);
-			} catch (final Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			initComposer(true);
 		});
 		ThreadPool.getInstance().submitHigh(task);
 	}
@@ -205,26 +211,20 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 			@Override
 			protected Void call() throws Exception {
 				draft = mailService.createDraft(message);
+				draft.setMimeMessage(message.getMimeMessage());
 				return null;
 			}
 		};
 		task.setOnFailed(event -> LOGGER.error("creting draft", event.getSource().getException()));
 		task.setOnSucceeded(event -> {
 			updateHandler.handle(null);
-			try {
-				final MimeMessage mimeMessage = message.getMimeMessage();
-				draft.setMimeMessage(mimeMessage);
-				initComposer(true);
-				subjectField.setText("Fwd: " + mimeMessage.getSubject());
-			} catch (final Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			initComposer(true);
+			subjectField.setText("Fwd: " + subjectField.getText());
 		});
 		ThreadPool.getInstance().submitHigh(task);
 	}
 
-	private void initComposer(final boolean quote) throws MessagingException, IOException {
+	private void initComposer(final boolean quote) {
 		final MimeMessage message = draft.getMimeMessage();
 
 		String to;
@@ -236,10 +236,21 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 		}
 		toCombo.setValue(to);
 
-		subjectField.setText(message.getSubject());
+		try {
+			subjectField.setText(MimeUtility.decodeText(message.getSubject()));
+		} catch (final MessagingException | UnsupportedEncodingException e) {
+			subjectField.setText("");
+			LOGGER.error("getting subject", e);
+		}
 
-		String html = helper.toHtml(message);
-		if (quote) {
+		String html;
+		try {
+			html = helper.toHtml(message);
+		} catch (IOException | MessagingException e) {
+			html = "";
+			LOGGER.error("getting body", e);
+		}
+		if (!html.isEmpty() && quote) {
 			final StringBuffer sb = new StringBuffer("<br><br>");
 			sb.append("<blockquote class='fsm_quote' style='margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex'>");
 			sb.append(html);
