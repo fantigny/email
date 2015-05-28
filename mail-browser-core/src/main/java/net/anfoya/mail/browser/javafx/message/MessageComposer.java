@@ -26,6 +26,7 @@ import javafx.stage.StageStyle;
 
 import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
 import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
@@ -187,6 +188,8 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 			updateHandler.handle(null);
 			try {
 				final MimeMessage reply = (MimeMessage) message.getMimeMessage().reply(all);
+				reply.setContent((Multipart) draft.getMimeMessage().getContent());
+				reply.saveChanges();
 				draft.setMimeMessage(reply);
 				initComposer(true);
 			} catch (final Exception e) {
@@ -210,9 +213,9 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 			updateHandler.handle(null);
 			try {
 				final MimeMessage mimeMessage = message.getMimeMessage();
-				subjectField.setText("Fwd: " + mimeMessage.getSubject());
 				draft.setMimeMessage(mimeMessage);
 				initComposer(true);
+				subjectField.setText("Fwd: " + mimeMessage.getSubject());
 			} catch (final Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
