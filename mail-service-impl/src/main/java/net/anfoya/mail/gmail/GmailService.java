@@ -111,9 +111,9 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			final GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(jsonFactory, reader);
 
 			// read refresh token
-			final String refreshTokenName = REFRESH_TOKEN;
+			final String refreshTokenName = mailId + REFRESH_TOKEN;
 		    final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
-			final String refreshToken = prefs.get(mailId + refreshTokenName, null);
+			final String refreshToken = prefs.get(refreshTokenName, null);
 
 			// Generate Credential using retrieved code.
 			final GoogleCredential credential = new GoogleCredential.Builder()

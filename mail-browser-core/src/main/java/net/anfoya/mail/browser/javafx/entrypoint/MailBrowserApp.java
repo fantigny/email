@@ -22,6 +22,7 @@ import javax.security.auth.login.LoginException;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
 import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
+import net.anfoya.mail.gmail.GMailException;
 import net.anfoya.mail.gmail.GmailService;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
 import net.anfoya.mail.gmail.model.GmailSection;
@@ -49,10 +50,15 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 	private ThreadPane<T, H, M> threadPane;
 
 	@Override
-	public void init() throws Exception {
-		@SuppressWarnings("unchecked")
-		final MailService<S, T, H, M> mailService = (MailService<S, T, H, M>) new GmailService().login("main");
-		this.mailService = mailService;
+	public void init() {
+		try {
+			@SuppressWarnings("unchecked")
+			final MailService<S, T, H, M> mailService = (MailService<S, T, H, M>) new GmailService().login("main");
+			this.mailService = mailService;
+		} catch (final GMailException e) {
+			LOGGER.error("login error", e);
+			System.exit(1);
+		}
 	}
 
 	@Override
