@@ -12,15 +12,20 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import net.anfoya.mail.browser.javafx.message.MessagePane;
+import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
+import net.anfoya.mail.model.SimpleContact;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailException;
@@ -32,7 +37,7 @@ import net.anfoya.tag.model.SimpleTag;
 public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage> extends BorderPane {
 //	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadPane.class);
 
-	private final MailService<? extends SimpleSection, T, H, M> mailService;
+	private final MailService<? extends SimpleSection, T, H, M, ? extends SimpleContact> mailService;
 
 	private final TextField subjectField;
 	private final SelectedTagsPane<T> tagsPane;
@@ -48,13 +53,18 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 
 	private final ObservableList<Node> msgPanes;
 
-	public ThreadPane(final MailService<? extends SimpleSection, T, H, M> mailService) {
+	public ThreadPane(final MailService<? extends SimpleSection, T, H, M, ? extends SimpleContact> mailService) {
 		this.mailService = mailService;
 
 		subjectField = new TextField("select a thread");
 		subjectField.prefWidthProperty().bind(widthProperty());
 		subjectField.setEditable(false);
-		final HBox subjectBox = new HBox(subjectField);
+
+		final Button settingsButton = new Button();
+		settingsButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("settings.png"))));
+		settingsButton.setOnAction(event -> new Settings(mailService).show());
+
+		final HBox subjectBox = new HBox(5, subjectField, settingsButton);
 		setTop(subjectBox);
 
 		final StackPane stackPane = new StackPane();

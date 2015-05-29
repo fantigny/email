@@ -27,7 +27,7 @@ public class AutoCompComboBoxListener {
     		return;
     	}
 
-		final FilteredList<String> filteredList = new FilteredList<String>(items, s -> callback.call(s).startsWith(newVal));
+		final FilteredList<String> filteredList = new FilteredList<String>(items, s -> callback.call(s).contains(newVal));
         comboBox.getItems().setAll(filteredList);
 
         if (filteredList.isEmpty()) {

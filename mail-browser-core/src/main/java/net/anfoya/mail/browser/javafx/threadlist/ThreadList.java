@@ -18,6 +18,7 @@ import javafx.scene.input.KeyCode;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.browser.javafx.message.MessageComposer;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
+import net.anfoya.mail.model.SimpleContact;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.model.SimpleThread.SortOrder;
@@ -29,11 +30,11 @@ import net.anfoya.tag.model.SimpleTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage>
+public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage, C extends SimpleContact>
 		extends ListView<H> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadList.class);
 
-	private final MailService<S, T, H, M> mailService;
+	private final MailService<S, T, H, M, C> mailService;
 
 	private boolean refreshing;
 	private Set<H> threads;
@@ -51,7 +52,7 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 
 	private EventHandler<ActionEvent> updateHandler;
 
-	public ThreadList(final MailService<S, T, H, M> mailService) {
+	public ThreadList(final MailService<S, T, H, M, C> mailService) {
 		this.mailService = mailService;
 
 		this.refreshing = false;
@@ -74,7 +75,7 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 				final Set<H> threads = getSelectedThreads();
 				if (threads.size() > 0 && threads.iterator().next().getMessageIds().size() > 0) {
 					final String id = threads.iterator().next().getLastMessageId();
-					new MessageComposer<M>(mailService, updateHandler).editOrReply(id);
+					new MessageComposer<M, C>(mailService, updateHandler).editOrReply(id);
 				}
 			}
 		});

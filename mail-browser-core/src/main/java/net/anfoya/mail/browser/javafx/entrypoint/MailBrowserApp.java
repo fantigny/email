@@ -26,6 +26,7 @@ import net.anfoya.mail.gmail.GMailException;
 import net.anfoya.mail.gmail.GmailService;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
 import net.anfoya.mail.gmail.model.GmailSection;
+import net.anfoya.mail.model.SimpleContact;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailException;
@@ -37,7 +38,14 @@ import net.anfoya.tag.model.SimpleTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage> extends Application {
+public class MailBrowserApp<
+		S extends SimpleSection
+		, T extends SimpleTag
+		, H extends SimpleThread
+		, M extends SimpleMessage
+		, C extends SimpleContact>
+		extends Application {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailBrowserApp.class);
 
 	public static void main(final String[] args) {
@@ -45,15 +53,15 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 	}
 
 	private SectionListPane<S, T> sectionListPane;
-	private MailService<S, T, H, M> mailService;
-	private ThreadListPane<S, T, H, M> threadListPane;
+	private MailService<S, T, H, M, C> mailService;
+	private ThreadListPane<S, T, H, M, C> threadListPane;
 	private ThreadPane<T, H, M> threadPane;
 
 	@Override
 	public void init() {
 		try {
 			@SuppressWarnings("unchecked")
-			final MailService<S, T, H, M> mailService = (MailService<S, T, H, M>) new GmailService().login("main");
+			final MailService<S, T, H, M, C> mailService = (MailService<S, T, H, M, C>) new GmailService().login("main");
 			this.mailService = mailService;
 		} catch (final GMailException e) {
 			LOGGER.error("login error", e);
@@ -94,7 +102,7 @@ public class MailBrowserApp<S extends SimpleSection, T extends SimpleTag, H exte
 		}
 
 		/* thread list */ {
-			threadListPane = new ThreadListPane<S, T, H, M>(mailService);
+			threadListPane = new ThreadListPane<S, T, H, M, C>(mailService);
 			threadListPane.setMinWidth(250);
 			threadListPane.prefHeightProperty().bind(splitPane.heightProperty());
 			threadListPane.setOnSelectThread(event -> refreshAfterThreadSelected());

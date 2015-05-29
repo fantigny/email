@@ -1,8 +1,9 @@
 package net.anfoya.mail.browser.javafx.message;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import javafx.concurrent.Task;
@@ -14,6 +15,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
@@ -38,6 +40,7 @@ import javax.mail.internet.MimeUtility;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.AutoCompComboBoxListener;
 import net.anfoya.mail.browser.mime.MimeMessageHelper;
+import net.anfoya.mail.model.SimpleContact;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailException;
@@ -48,10 +51,10 @@ import net.anfoya.tag.model.SimpleTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MessageComposer<M extends SimpleMessage> extends Stage {
+public class MessageComposer<M extends SimpleMessage, C extends SimpleContact> extends Stage {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessageComposer.class);
 
-	private final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService;
+	private final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M, C> mailService;
 	private final EventHandler<ActionEvent> updateHandler;
 	private final MimeMessageHelper helper;
 
@@ -68,7 +71,7 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 
 	private M draft;
 
-	public MessageComposer(final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService, final EventHandler<ActionEvent> updateHandler) {
+	public MessageComposer(final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M, C> mailService, final EventHandler<ActionEvent> updateHandler) {
 		super(StageStyle.UNIFIED);
 		setTitle("FisherMail / Agaar / Agamar / Agaram");
 		getIcons().add(new Image(getClass().getResourceAsStream("../entrypoint/Mail.png")));
@@ -108,16 +111,35 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 			}
 		});
 
+		final Map<String, C> emailContacts = new LinkedHashMap<String, C>();
+		try {
+			for(final C c: mailService.getContacts()) {
+				emailContacts.put(c.getEmail(), c);
+			}
+		} catch (final MailException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 		toCombo = new ComboBox<String>();
 		toCombo.prefWidthProperty().bind(widthProperty());
 		toCombo.setEditable(true);
-		try {
-			toCombo.getItems().addAll(mailService.getContactAddresses());
-		} catch (final MailException e) {
-			LOGGER.error("getting contacts", e);
-		}
+		toCombo.getItems().setAll(emailContacts.keySet());
+		toCombo.setCellFactory(listView -> {
+			return new ListCell<String>() {
+				@Override
+			    public void updateItem(final String address, final boolean empty) {
+			        super.updateItem(address, empty);
+			        if (!empty) {
+			        	setText(emailContacts.get(address).getFullname() + " <" + emailContacts.get(address).getEmail() + ">");
+			        }
+				}
+			};
+		});
 
-		new AutoCompComboBoxListener(toCombo, s -> s);
+		new AutoCompComboBoxListener(toCombo, address -> {
+			return emailContacts.get(address).getEmail() + " " + emailContacts.get(address).getFullname();
+		});
 
 		ccField = new TextField();
 		bccField = new TextField();
@@ -237,12 +259,14 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 		}
 		toCombo.setValue(to);
 
+
+		String subject;
 		try {
-			subjectField.setText(MimeUtility.decodeText(message.getSubject()));
-		} catch (final MessagingException | UnsupportedEncodingException e) {
-			subjectField.setText("");
-			LOGGER.error("getting subject", e);
+			subject = MimeUtility.decodeText(message.getSubject());
+		} catch (final Exception e) {
+			subject = "";
 		}
+		subjectField.setText(subject);
 
 		String html;
 		try {

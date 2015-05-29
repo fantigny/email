@@ -3,6 +3,7 @@ package net.anfoya.mail.service;
 import java.util.Set;
 
 import javafx.util.Callback;
+import net.anfoya.mail.model.SimpleContact;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.tag.model.SimpleSection;
@@ -12,7 +13,8 @@ import net.anfoya.tag.service.TagService;
 public interface MailService<S extends SimpleSection
 		, T extends SimpleTag
 		, H extends SimpleThread
-		, M extends SimpleMessage> extends TagService<S, T> {
+		, M extends SimpleMessage
+		, C extends SimpleContact> extends TagService<S, T> {
 
 	public void login() throws MailException;
 	public void logout();
@@ -35,5 +37,5 @@ public interface MailService<S extends SimpleSection
 	public void send(M draft) throws MailException;
 	public void save(M draft) throws MailException;
 
-	public Set<String> getContactAddresses() throws MailException;
+	public Set<C> getContacts() throws MailException;
 }

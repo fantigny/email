@@ -27,6 +27,7 @@ import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.web.WebViewFitContent;
 import net.anfoya.mail.browser.javafx.thread.ThreadDropPane;
 import net.anfoya.mail.browser.mime.MimeMessageHelper;
+import net.anfoya.mail.model.SimpleContact;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailException;
@@ -40,7 +41,7 @@ import org.slf4j.LoggerFactory;
 public class MessagePane<M extends SimpleMessage> extends VBox {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessagePane.class);
 
-	private final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService;
+	private final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M, ? extends SimpleContact> mailService;
 	private final BooleanProperty expanded;
 	private final MimeMessageHelper helper;
 
@@ -53,7 +54,7 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 	private M message;
 	private Task<String> loadTask;
 
-	public MessagePane(final String messageId, final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService) {
+	public MessagePane(final String messageId, final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M, ? extends SimpleContact> mailService) {
 		this.mailService = mailService;
 		this.messageId = messageId;
 

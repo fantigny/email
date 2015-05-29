@@ -12,6 +12,7 @@ import javafx.scene.layout.GridPane;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.dnd.DropArea;
 import net.anfoya.mail.browser.javafx.message.MessageComposer;
+import net.anfoya.mail.model.SimpleContact;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailException;
@@ -19,11 +20,11 @@ import net.anfoya.mail.service.MailService;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
 
-public class ThreadListDropPane<T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage> extends GridPane {
-	private final MailService<? extends SimpleSection, T, H, M> mailService;
+public class ThreadListDropPane<T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage, C extends SimpleContact> extends GridPane {
+	private final MailService<? extends SimpleSection, T, H, M, C> mailService;
 	private EventHandler<ActionEvent> updateHandler;
 
-	public ThreadListDropPane(final MailService<? extends SimpleSection, T, H, M> mailService) {
+	public ThreadListDropPane(final MailService<? extends SimpleSection, T, H, M, C> mailService) {
 		this.mailService = mailService;
 
 		setVgap(2);
@@ -107,7 +108,7 @@ public class ThreadListDropPane<T extends SimpleTag, H extends SimpleThread, M e
 	private void forward(final Set<H> threads) {
 		try {
 			final M message = mailService.getMessage(threads.iterator().next().getLastMessageId());
-			new MessageComposer<M>(mailService, updateHandler).forward(message);
+			new MessageComposer<M, C>(mailService, updateHandler).forward(message);
 		} catch (final MailException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -117,7 +118,7 @@ public class ThreadListDropPane<T extends SimpleTag, H extends SimpleThread, M e
 	private void reply(final Set<H> threads, final boolean all) {
 		try {
 			final M message = mailService.getMessage(threads.iterator().next().getLastMessageId());
-			new MessageComposer<M>(mailService, updateHandler).reply(message, all);
+			new MessageComposer<M, C>(mailService, updateHandler).reply(message, all);
 		} catch (final MailException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

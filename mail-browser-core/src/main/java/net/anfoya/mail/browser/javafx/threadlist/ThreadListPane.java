@@ -29,6 +29,7 @@ import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.ResetTextField;
 import net.anfoya.javafx.scene.control.Title;
 import net.anfoya.mail.browser.javafx.message.MessageComposer;
+import net.anfoya.mail.model.SimpleContact;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.model.SimpleThread.SortOrder;
@@ -38,30 +39,30 @@ import net.anfoya.tag.javafx.scene.dnd.DndFormat;
 import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
 
-public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage> extends BorderPane {
+public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage, C extends SimpleContact> extends BorderPane {
 	public static final DataFormat DND_THREADS_DATA_FORMAT = new DataFormat("Set<" + SimpleThread.class.getName() + ">");
 
-	private final MailService<S, T, H, M> mailService;
-	private final ThreadList<S, T, H, M> threadList;
+	private final MailService<S, T, H, M, C> mailService;
+	private final ThreadList<S, T, H, M, C> threadList;
 	private final ResetTextField namePatternField;
 
 	private EventHandler<ActionEvent> updateHandler;
 
-	private ThreadListDropPane<T, H, M> threadListDropPane;
+	private ThreadListDropPane<T, H, M, C> threadListDropPane;
 
 	protected Timeline expandDelay;
 
-	public ThreadListPane(final MailService<S, T, H, M> mailService) {
+	public ThreadListPane(final MailService<S, T, H, M, C> mailService) {
 		this.mailService = mailService;
 
 		final StackPane stackPane = new StackPane();
 		stackPane.setAlignment(Pos.BOTTOM_CENTER);
 		setCenter(stackPane);
 
-		threadListDropPane = new ThreadListDropPane<T, H, M>(mailService);
+		threadListDropPane = new ThreadListDropPane<T, H, M, C>(mailService);
 		threadListDropPane.prefWidthProperty().bind(stackPane.widthProperty());
 
-		threadList = new ThreadList<S, T, H, M>(mailService);
+		threadList = new ThreadList<S, T, H, M, C>(mailService);
 		threadList.setOnDragDetected(event -> {
 			final Set<H> threads = getSelectedThreads();
 			if (threads.size() == 0) {
@@ -140,7 +141,7 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		final Button addButton = new Button("+");
 		addButton.setOnAction(event -> {
 			try {
-				new MessageComposer<M>(mailService, updateHandler).newMessage();
+				new MessageComposer<M, C>(mailService, updateHandler).newMessage();
 			} catch (final Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

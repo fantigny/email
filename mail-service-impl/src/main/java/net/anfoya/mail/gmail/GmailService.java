@@ -27,6 +27,7 @@ import javafx.util.Callback;
 
 import javax.mail.MessagingException;
 
+import net.anfoya.mail.gmail.model.GmailContact;
 import net.anfoya.mail.gmail.model.GmailMessage;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
 import net.anfoya.mail.gmail.model.GmailSection;
@@ -67,10 +68,12 @@ import com.google.api.services.gmail.model.Label;
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.Thread;
 import com.google.gdata.client.contacts.ContactsService;
+import com.google.gdata.data.contacts.ContactEntry;
+import com.google.gdata.data.extensions.Email;
 
-public class GmailService implements MailService<GmailSection, GmailTag, GmailThread, GmailMessage> {
+public class GmailService implements MailService<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GmailService.class);
-    private static final String REFRESH_TOKEN = "-refresh-token";
+    private static final String REFRESH_TOKEN = "%s-refresh-token";
 
 	private static final String USER = "me";
 	private static final String DEFAULT = "default";
@@ -92,6 +95,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	private ThreadService threadService;
 	private HistoryService historyService;
 	private ContactService contactService;
+	private String refreshTokenName;
 
 	public GmailService() {
 		httpTransport = new NetHttpTransport();
@@ -111,7 +115,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			final GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(jsonFactory, reader);
 
 			// read refresh token
-			final String refreshTokenName = mailId + REFRESH_TOKEN;
+			refreshTokenName = String.format(REFRESH_TOKEN, mailId);
 		    final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
 			final String refreshToken = prefs.get(refreshTokenName, null);
 
@@ -176,6 +180,17 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		return this;
 	}
 
+	@Override
+	public void logout() {
+	    final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
+		prefs.remove(refreshTokenName);
+		try {
+			prefs.flush();
+		} catch (final BackingStoreException e) {
+			LOGGER.error("removing refresh token", e);
+		}
+	}
+
 	private String getCode(final String url) {
 		final StringBuilder code = new StringBuilder();
 		final CountDownLatch countDownLatch = new CountDownLatch(1);
@@ -229,12 +244,6 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	        return Optional.of((Element) nodeList.item(0));
 	    }
 	    return Optional.empty();
-	}
-
-	@Override
-	public void logout() {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -305,7 +314,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 			return threads;
 		} catch (final ThreadException | LabelException | IOException e) {
-			throw new GMailException("login", e);
+			throw new GMailException("find threads for includes="+includes+" excludes="+excludes+" pattern="+pattern+" pageMax="+pageMax, e);
 		}
 	}
 
@@ -751,9 +760,20 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	@Override
-	public Set<String> getContactAddresses() throws GMailException {
+	public Set<GmailContact> getContacts() throws GMailException {
 		try {
-			return contactService.getAllAddresses();
+			final Set<GmailContact> contacts = new LinkedHashSet<GmailContact>();
+			for(final ContactEntry c: contactService.getAll()) {
+				if (c.getEmailAddresses() != null
+						&& c.getName() != null
+						&& c.getName().getFullName() != null) {
+					final String fullName = c.getName().getFullName().getValue();
+					for(final Email e: c.getEmailAddresses()) {
+						contacts.add(new GmailContact(e.getAddress(), fullName));
+					}
+				}
+			}
+			return contacts;
 		} catch (final ContactException e) {
 			throw new GMailException("getting contacts", e);
 		}
