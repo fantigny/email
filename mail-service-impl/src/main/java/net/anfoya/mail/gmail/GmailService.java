@@ -132,7 +132,12 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 						.setAccessType("offline")
 						.setApprovalPrompt("auto").build();
 				final String url = flow.newAuthorizationUrl().setRedirectUri(GoogleOAuthConstants.OOB_REDIRECT_URI).build();
-				final String code = getCode(url);
+				final String code;
+				if ("test".equals(mailId)) {
+					code = getTextCode(url);
+				} else {
+					code = getCode(url);
+				}
 				if (code.isEmpty()) {
 					throw new GMailException("no authentication code received from GMail", null);
 				}
@@ -194,7 +199,6 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	private String getCode(final String url) {
 		final StringBuilder code = new StringBuilder();
 		final CountDownLatch countDownLatch = new CountDownLatch(1);
-
 		Platform.runLater(new Runnable() {
 			@Override
 			public void run() {
@@ -227,6 +231,17 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		}
 
 		return code.toString();
+	}
+
+	private String getTextCode(final String url) {
+		System.out.println("Please open the following URL in your browser then type the authorization code:\n" + url);
+		// Read code entered by user.
+		final BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		try {
+			return br.readLine();
+		} catch (final IOException e) {
+			return "";
+		}
 	}
 
 	private String getTitle(final WebEngine webEngine) {

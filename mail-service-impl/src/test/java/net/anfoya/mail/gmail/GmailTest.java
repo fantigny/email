@@ -12,7 +12,6 @@ public class GmailTest {
 	public void login() throws MailException {
 		final GmailService service = new GmailService();
 		service.login("test");
-		service.logout();
 	}
 
 	@Test
@@ -22,6 +21,5 @@ public class GmailTest {
 		for(final SimpleTag t: service.getTags()) {
 			System.out.println(t);
 		}
-		service.logout();
 	}
 }
