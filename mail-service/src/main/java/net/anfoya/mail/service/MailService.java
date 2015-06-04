@@ -15,7 +15,8 @@ public interface MailService<
 
 	public void login() throws MailException;
 	public void logout();
-	void addOnUpdate(Callback<Throwable, Void> callback);
+
+	public void addOnUpdate(Callback<Throwable, Void> callback);
 
 	public T getTag(String id) throws MailException;
 	public T findTag(String name) throws MailException;

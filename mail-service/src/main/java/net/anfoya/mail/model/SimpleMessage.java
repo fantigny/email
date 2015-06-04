@@ -35,7 +35,7 @@ public class SimpleMessage implements Message {
 	}
 
 	@Override
-	public void setMimeMessage(final MimeMessage mimeMessage) {
+	public void setMimeDraft(final MimeMessage mimeMessage) {
 		if (!isDraft()) {
 			throw new RuntimeException("message is unmutable, only draft can be updated");
 		}

@@ -12,10 +12,12 @@ public class SimpleContact implements Contact {
 		this.fullname = fullname;
 	}
 
+	@Override
 	public String getEmail() {
 		return email;
 	}
 
+	@Override
 	public String getFullname() {
 		return fullname;
 	}

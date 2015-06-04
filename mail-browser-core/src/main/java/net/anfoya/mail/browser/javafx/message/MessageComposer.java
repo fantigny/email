@@ -217,7 +217,7 @@ public class MessageComposer<M extends SimpleMessage, C extends SimpleContact> e
 				final MimeMessage reply = (MimeMessage) message.getMimeMessage().reply(all);
 				reply.setContent((Multipart) draft.getMimeMessage().getContent());
 				reply.saveChanges();
-				draft.setMimeMessage(reply);
+				draft.setMimeDraft(reply);
 				return null;
 			}
 		};
@@ -234,7 +234,7 @@ public class MessageComposer<M extends SimpleMessage, C extends SimpleContact> e
 			@Override
 			protected Void call() throws Exception {
 				draft = mailService.createDraft(message);
-				draft.setMimeMessage(message.getMimeMessage());
+				draft.setMimeDraft(message.getMimeMessage());
 				return null;
 			}
 		};
@@ -314,7 +314,7 @@ public class MessageComposer<M extends SimpleMessage, C extends SimpleContact> e
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
-			    draft.setMimeMessage(buildMessage());
+			    draft.setMimeDraft(buildMessage());
 				mailService.send(draft);
 				return null;
 			}
@@ -328,7 +328,7 @@ public class MessageComposer<M extends SimpleMessage, C extends SimpleContact> e
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
-			    draft.setMimeMessage(buildMessage());
+			    draft.setMimeDraft(buildMessage());
 				mailService.save(draft);
 				return null;
 			}

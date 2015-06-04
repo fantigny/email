@@ -7,7 +7,8 @@ import javax.mail.internet.MimeMessage;
 public interface Message extends Serializable {
 
 	public String getId();
+
 	public boolean isDraft();
 	public MimeMessage getMimeMessage();
-	public void setMimeMessage(MimeMessage mimeMessage);
+	public void setMimeDraft(MimeMessage mimeDraft);
 }
