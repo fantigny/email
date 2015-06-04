@@ -17,7 +17,7 @@ import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.tag.model.SimpleSection;
-import net.anfoya.tag.model.SimpleTag;
+import net.anfoya.mail.model.SimpleTag;
 
 public class ThreadDropPane<H extends SimpleThread, M extends SimpleMessage> extends GridPane {
 	public static final DataFormat MESSAGE_DATA_FORMAT = new DataFormat(MimeMessage.class.getCanonicalName());

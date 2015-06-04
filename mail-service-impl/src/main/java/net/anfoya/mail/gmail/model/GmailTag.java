@@ -1,6 +1,6 @@
 package net.anfoya.mail.gmail.model;
 
-import net.anfoya.tag.model.SimpleTag;
+import net.anfoya.mail.model.SimpleTag;
 
 import com.google.api.services.gmail.model.Label;
 

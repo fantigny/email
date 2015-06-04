@@ -33,7 +33,7 @@ import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.tag.model.SimpleSection;
-import net.anfoya.tag.model.SimpleTag;
+import net.anfoya.mail.model.SimpleTag;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

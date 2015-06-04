@@ -5,9 +5,9 @@ import java.util.Set;
 import javafx.util.Callback;
 import net.anfoya.mail.model.SimpleContact;
 import net.anfoya.mail.model.SimpleMessage;
+import net.anfoya.mail.model.SimpleTag;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.tag.model.SimpleSection;
-import net.anfoya.tag.model.SimpleTag;
 import net.anfoya.tag.service.TagService;
 
 public interface MailService<S extends SimpleSection

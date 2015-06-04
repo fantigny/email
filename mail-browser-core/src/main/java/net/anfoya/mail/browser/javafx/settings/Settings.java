@@ -23,7 +23,7 @@ import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.tag.model.SimpleSection;
-import net.anfoya.tag.model.SimpleTag;
+import net.anfoya.mail.model.SimpleTag;
 
 public class Settings extends Stage {
 

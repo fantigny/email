@@ -37,7 +37,7 @@ import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.tag.javafx.scene.dnd.DndFormat;
 import net.anfoya.tag.model.SimpleSection;
-import net.anfoya.tag.model.SimpleTag;
+import net.anfoya.mail.model.SimpleTag;
 
 public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage, C extends SimpleContact> extends BorderPane {
 	public static final DataFormat DND_THREADS_DATA_FORMAT = new DataFormat("Set<" + SimpleThread.class.getName() + ">");

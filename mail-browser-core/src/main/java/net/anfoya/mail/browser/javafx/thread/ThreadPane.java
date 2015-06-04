@@ -32,7 +32,7 @@ import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.tag.javafx.scene.section.SelectedTagsPane;
 import net.anfoya.tag.model.SimpleSection;
-import net.anfoya.tag.model.SimpleTag;
+import net.anfoya.mail.model.SimpleTag;
 
 public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage> extends BorderPane {
 //	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadPane.class);
