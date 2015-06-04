@@ -6,7 +6,7 @@ import net.anfoya.mail.service.Section;
 import com.google.api.services.gmail.model.Label;
 
 public class GmailSection extends SimpleSection implements Section {
-	public static final GmailSection SYSTEM = new GmailSection("GMail"); //TODO move to interface
+	public static final GmailSection SYSTEM = new GmailSection("GMail");
 
 	private final String string;
 	private final String path;

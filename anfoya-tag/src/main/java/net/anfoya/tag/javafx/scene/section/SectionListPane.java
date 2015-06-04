@@ -34,7 +34,12 @@ import net.anfoya.tag.model.SimpleTag;
 import net.anfoya.tag.service.TagException;
 import net.anfoya.tag.service.TagService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class SectionListPane<S extends SimpleSection, T extends SimpleTag> extends BorderPane {
+	private static final Logger LOGGER = LoggerFactory.getLogger(SectionListPane.class);
+
 	private final TagService<S, T> tagService;
 	private final DataFormat extItemDataFormat;
 
@@ -201,10 +206,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 				callback.call(null);
 			}
 		});
-		refreshTask.setOnFailed(event -> {
-			// TODO Auto-generated catch block
-			event.getSource().getException().printStackTrace(System.out);
-		});
+		refreshTask.setOnFailed(event -> LOGGER.error("getting sections", event.getSource().getException()));
 		ThreadPool.getInstance().submitHigh(refreshTask);
 	}
 
@@ -287,8 +289,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 				try {
 					toRefresh = tagService.getTags(sectionPane.getSection(), itemPattern);
 				} catch (final TagException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					LOGGER.error("getting section count", e);
 				}
 			}
 			sectionPane.updateCountAsync(queryCount, toRefresh, includes, excludes, itemPattern, tagPattern);
