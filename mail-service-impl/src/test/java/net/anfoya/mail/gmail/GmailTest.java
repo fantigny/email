@@ -1,7 +1,7 @@
 package net.anfoya.mail.gmail;
 
 import net.anfoya.mail.service.MailException;
-import net.anfoya.tag.model.SimpleTag;
+import net.anfoya.mail.service.Tag;
 import net.anfoya.tag.service.TagException;
 
 import org.junit.Test;
@@ -18,7 +18,7 @@ public class GmailTest {
 	public void getTags() throws MailException, TagException {
 		final GmailService service = new GmailService();
 		service.login("test");
-		for(final SimpleTag t: service.getTags()) {
+		for(final Tag t: service.getTags()) {
 			System.out.println(t);
 		}
 	}

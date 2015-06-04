@@ -1,6 +1,8 @@
 package net.anfoya.mail.model;
 
-public class SimpleContact {
+import net.anfoya.mail.service.Contact;
+
+public class SimpleContact implements Contact {
 
 	private final String email;
 	private final String fullname;

@@ -21,15 +21,14 @@ public class GmailThread extends SimpleThread {
 			, findSubject(thread)
 			, getMessageIds(thread)
 			, getLabelIds(thread)
-			, getLabelIds(thread).contains(GmailTag.UNREAD.getId())
 			, findFrom(thread)
 			, findDate(thread));
 	}
 
 	public GmailThread(final String id, final String subject
 			, final Set<String> messageIds, final Set<String> tagIds
-			, final boolean unread, final String sender, final Date received) {
-		super(id, subject, messageIds, tagIds, unread, sender, received);
+			, final String sender, final Date received) {
+		super(id, subject, messageIds, tagIds, sender, received);
 	}
 
 	private static String findSubject(final Thread thread) {

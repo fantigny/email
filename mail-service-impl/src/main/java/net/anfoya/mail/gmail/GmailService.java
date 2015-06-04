@@ -44,7 +44,7 @@ import net.anfoya.mail.gmail.service.ThreadException;
 import net.anfoya.mail.gmail.service.ThreadService;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
-import net.anfoya.tag.model.SimpleTag;
+import net.anfoya.mail.service.Tag;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -406,7 +406,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			final Collection<Label> labels = labelService.getAll();
 			if (GmailSection.SYSTEM.equals(section)) {
 				final Set<GmailTag> alphaTags = new TreeSet<GmailTag>();
-				alphaTags.add(GmailTag.ALL_MAIL);
+				alphaTags.add(GmailTag.ALL_TAG);
 				for(final Label label:labels) {
 					final String name = label.getName();
 					if (!GmailTag.isHidden(label)) {
@@ -449,7 +449,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 							&& GmailTag.getName(label).toLowerCase().contains(pattern)) {
 						final String name = label.getName();
 						if (section != null && name.equals(section.getPath())) {
-							tags.add(new GmailTag(label.getId(), SimpleTag.THIS_NAME, label.getName(), false));
+							tags.add(new GmailTag(label.getId(), Tag.THIS_NAME, label.getName(), false));
 						} else if (name.indexOf("/") == name.lastIndexOf("/")
 								&& section == null || name.startsWith(section.getName() + "/")) {
 							tags.add(new GmailTag(label));
@@ -482,7 +482,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public int getCountForTags(final Set<GmailTag> includes, final Set<GmailTag> excludes, final String pattern) throws GMailException {
 		try {
-			if (includes.isEmpty() || includes.contains(GmailTag.ALL_MAIL) || includes.contains(GmailTag.SENT)) { //TODO && excludes.isEmpty() && pattern.isEmpty()) {
+			if (includes.isEmpty() || includes.contains(GmailTag.ALL_TAG) || includes.contains(GmailTag.SENT_TAG)) { //TODO && excludes.isEmpty() && pattern.isEmpty()) {
 				return 0;
 			}
 
@@ -530,7 +530,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			, final String namePattern, final String tagPattern) throws GMailException {
 		try {
 			final Set<GmailTag> tags = getTags(section, tagPattern);
-			if (tags.isEmpty() || tags.contains(GmailTag.ALL_MAIL) || tags.contains(GmailTag.SENT)) {
+			if (tags.isEmpty() || tags.contains(GmailTag.ALL_TAG) || tags.contains(GmailTag.SENT_TAG)) {
 				return 0;
 			}
 
@@ -716,7 +716,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 				ids.add(t.getId());
 			}
 			final Set<String> labelIds = new HashSet<String>();
-			labelIds.add(GmailTag.INBOX.getId());
+			labelIds.add(GmailTag.INBOX_TAG.getId());
 			threadService.update(ids, labelIds, false);
 		} catch (final ThreadException e) {
 			throw new GMailException("archiving threads " + threads, e);

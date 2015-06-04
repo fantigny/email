@@ -2,10 +2,7 @@ package net.anfoya.tag.service;
 
 import java.util.Set;
 
-import net.anfoya.tag.model.SimpleSection;
-import net.anfoya.tag.model.SimpleTag;
-
-public interface TagService<S extends SimpleSection, T extends SimpleTag> {
+public interface TagService<S extends Section, T extends Tag> {
 
 	public S addSection(String name) throws TagException;
 	public S rename(S Section, String name) throws TagException;

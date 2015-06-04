@@ -1,15 +1,17 @@
 package net.anfoya.mail.gmail.model;
 
 import net.anfoya.mail.model.SimpleTag;
+import net.anfoya.mail.service.Tag;
 
 import com.google.api.services.gmail.model.Label;
 
 @SuppressWarnings("serial")
-public class GmailTag extends SimpleTag {
-	public static final GmailTag ALL_MAIL = new GmailTag("ALL", "All mail", "ALL", true);
-	public static final GmailTag UNREAD = new GmailTag("UNREAD", "Unread", "UNREAD", true);
-	public static final GmailTag INBOX = new GmailTag("INBOX", "Inbox", "INBOX", true);
-	public static final GmailTag SENT = new GmailTag("SENT", "Sent", "SENT", true);
+public class GmailTag extends SimpleTag implements Tag {
+	public static final GmailTag ALL_TAG = new GmailTag(ALL, "All mail", ALL, true);
+	public static final GmailTag UNREAD_TAG = new GmailTag(UNREAD, "Unread", UNREAD, true);
+	public static final GmailTag INBOX_TAG = new GmailTag(INBOX, "Inbox", INBOX, true);
+	public static final GmailTag SENT_TAG = new GmailTag(SENT, "Sent", SENT, true);
+	public static final GmailTag STARRED_TAG = new GmailTag(STARRED, "Starred", STARRED, true);
 
 	private final String path;
 

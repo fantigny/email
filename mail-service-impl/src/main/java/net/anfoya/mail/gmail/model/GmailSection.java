@@ -1,12 +1,12 @@
 package net.anfoya.mail.gmail.model;
 
-import net.anfoya.tag.model.SimpleSection;
+import net.anfoya.mail.model.SimpleSection;
+import net.anfoya.mail.service.Section;
 
 import com.google.api.services.gmail.model.Label;
 
-@SuppressWarnings("serial")
-public class GmailSection extends SimpleSection {
-	public static final GmailSection SYSTEM = new GmailSection("GMail");
+public class GmailSection extends SimpleSection implements Section {
+	public static final GmailSection SYSTEM = new GmailSection("GMail"); //TODO move to interface
 
 	private final String string;
 	private final String path;

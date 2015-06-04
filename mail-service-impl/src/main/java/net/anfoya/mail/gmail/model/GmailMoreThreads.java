@@ -10,7 +10,7 @@ public class GmailMoreThreads extends GmailThread {
 	private final int page;
 
 	public GmailMoreThreads(final int page) {
-		super(PAGE_TOKEN_ID, "", new HashSet<String>(), new HashSet<String>(), false, "more results...", new Date());
+		super(PAGE_TOKEN_ID, "", new HashSet<String>(), new HashSet<String>(), "more results...", new Date());
 		this.page = page;
 	}
 

@@ -4,6 +4,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.Set;
 
+import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
 
 @SuppressWarnings("serial")
@@ -43,7 +44,6 @@ public abstract class SimpleThread implements Thread {
 	private final String subject;
 	private final Set<String> messageIds;
 	private final Set<String> tagIds;
-	private final boolean unread;
 	private final String sender;
 	private final Date date;
 
@@ -51,7 +51,6 @@ public abstract class SimpleThread implements Thread {
 			, final String subject
 			, final Set<String> messageIds
 			, final Set<String> tagIds
-			, final boolean unread
 			, final String sender
 			, final Date date) {
 		this.id = id;
@@ -59,7 +58,6 @@ public abstract class SimpleThread implements Thread {
 		this.subject = subject;
 		this.messageIds = messageIds;
 		this.tagIds = tagIds;
-		this.unread = unread;
 		this.sender = sender;
 		this.date = date;
 	}
@@ -99,7 +97,12 @@ public abstract class SimpleThread implements Thread {
 
 	@Override
 	public boolean isUnread() {
-		return unread;
+		return getTagIds().contains(Tag.UNREAD);
+	}
+
+	@Override
+	public boolean isStarred() {
+		return getTagIds().contains(Tag.STARRED);
 	}
 
 	@Override
@@ -127,4 +130,6 @@ public abstract class SimpleThread implements Thread {
 		}
         return ((SimpleThread) other).id.equals(id);
     }
+
+
 }

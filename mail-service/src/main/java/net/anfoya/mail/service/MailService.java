@@ -3,18 +3,15 @@ package net.anfoya.mail.service;
 import java.util.Set;
 
 import javafx.util.Callback;
-import net.anfoya.mail.model.SimpleContact;
-import net.anfoya.mail.model.SimpleMessage;
-import net.anfoya.mail.model.SimpleTag;
-import net.anfoya.mail.model.SimpleThread;
-import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.service.TagService;
 
-public interface MailService<S extends SimpleSection
-		, T extends SimpleTag
-		, H extends SimpleThread
-		, M extends SimpleMessage
-		, C extends SimpleContact> extends TagService<S, T> {
+public interface MailService<
+		S extends Section
+		, T extends Tag
+		, H extends Thread
+		, M extends Message
+		, C extends Contact>
+		extends TagService<S, T> {
 
 	public void login() throws MailException;
 	public void logout();
