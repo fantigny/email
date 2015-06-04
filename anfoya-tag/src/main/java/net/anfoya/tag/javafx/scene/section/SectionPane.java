@@ -273,4 +273,8 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 	public void setOnUpdateSection(final EventHandler<ActionEvent> handler) {
 		updateHandler = handler;
 	}
+
+	public void clearSelection() {
+		tagList.getSelectionModel().clearSelection();
+	}
 }

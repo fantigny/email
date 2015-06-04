@@ -82,15 +82,6 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		setTop(patternBox);
 
 		sectionAcc = new Accordion();
-		sectionAcc.expandedPaneProperty().addListener((ov, oldVal, newVal) -> {
-			if (newVal != null && newVal.isExpanded() && !isCheckMode()) {
-				@SuppressWarnings("unchecked")
-				final TagList<S, T> tagList = (TagList<S, T>) newVal.getContent();
-				if (tagList.getSelectedTag() != null) {
-					selectTagHandler.handle(null);
-				}
-			}
-		});
 
 		final StackPane stackPane = new StackPane(sectionAcc);
 		stackPane.setAlignment(Pos.BOTTOM_CENTER);
@@ -257,9 +248,21 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 
 	public void setOnSelectTag(final EventHandler<ActionEvent> handler) {
 		selectTagHandler = event -> {
+			unselectOthers();
 			selectedTagsPane.refresh(getAllSelectedTags());
 			handler.handle(event);
 		};
+	}
+
+	private void unselectOthers() {
+		final TitledPane expanded = sectionAcc.getExpandedPane();
+		for(final TitledPane pane: sectionAcc.getPanes()) {
+			if (pane != expanded) {
+				@SuppressWarnings("unchecked")
+				final SectionPane<S, T> sectionPane = (SectionPane<S, T>) pane;
+				sectionPane.clearSelection();
+			}
+		}
 	}
 
 	public void setOnUpdateSection(final EventHandler<ActionEvent> handler) {
@@ -370,11 +373,9 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		for(final TitledPane sectionPane: sectionAcc.getPanes()) {
 			@SuppressWarnings("unchecked")
 			final TagList<S, T> tagList = (TagList<S, T>) sectionPane.getContent();
-			if (sectionPane.isExpanded()) {
-				tag = tagList.getSelectedTag();
-				if (tag != null) {
-					break;
-				}
+			tag = tagList.getSelectedTag();
+			if (tag != null) {
+				break;
 			}
 		}
 
