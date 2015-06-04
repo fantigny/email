@@ -2,17 +2,28 @@
     -fx-background-color: white;
 }
 
+.tag-button {
+    -fx-background-color: linear-gradient(#ff5400, #be1d00);
+    -fx-background-radius: 8;
+    -fx-background-insets: 0;
+    -fx-text-fill: white;
+//    -fx-font-weight: bold;
+    -fx-font-size: 9px;
+}
+
 .label-bright {
-    -fx-font-size: 11pt;
+    -fx-font-size: 11px;
     -fx-font-family: "Segoe UI Semibold";
     -fx-text-fill: white;
     -fx-opacity: 1;
 }
 
 .split-pane *.split-pane-divider {
+    -fx-opacity: 0;
     -fx-padding: 0 0 0 2;
-    -fx-border-color: white transparent white transparent;
-    -fx-background-color: white, transparent;
+    -fx-border-color: transparent transparent transparent transparent;
+    -fx-background-color: transparent, transparent;
+    -fx-background-insets: 0;
 }
 
 /* 
