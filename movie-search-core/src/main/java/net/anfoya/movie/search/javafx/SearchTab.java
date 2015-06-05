@@ -10,7 +10,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebHistory;
 import javafx.scene.web.WebHistory.Entry;
 import javafx.scene.web.WebView;
@@ -39,20 +38,23 @@ public class SearchTab extends Tab {
 		setContent(content);
 
 		view = new WebView();
+		view.getEngine().setJavaScriptEnabled(true);
 		view.setContextMenuEnabled(false);
 		view.getEngine().setCreatePopupHandler(popupFeatures -> {
 			final Stage stage = new Stage(StageStyle.UNIFIED);
+
 			final WebView webView = new WebView();
-			stage.setScene(new Scene(webView, 800, 600));
-			final WebEngine webEngine = webView.getEngine();
-			webEngine.setJavaScriptEnabled(true);
-			webEngine.getLoadWorker().stateProperty().addListener((ov, o, n) -> {
+			webView.getEngine().getLoadWorker().stateProperty().addListener((ov, o, n) -> {
 				if (o == State.RUNNING) {
-//TODO					stage.close();
+//					stage.close();
 				}
 			});
+			webView.getEngine().locationProperty().addListener((ov, o, n) -> LOGGER.info(n));
+
+			stage.setScene(new Scene(webView, 800, 600));
 			stage.show();
-			return webEngine;
+
+			return webView.getEngine();
 		});
 		content.setCenter(view);
 

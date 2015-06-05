@@ -17,6 +17,8 @@ public class DownloadHandlerFactory implements URLStreamHandlerFactory {
 	public URLStreamHandler createURLStreamHandler(final String protocol) {
 		if ("magnet".equals(protocol)) {
 			return new DownloadLinkHandler();
+		} else if ("about".equals(protocol)) {
+			return new DownloadLinkHandler();
 		} else if ("ed2k".equals(protocol)) {
 			return new DownloadLinkHandler();
 		} else if ("http".equals(protocol)) {
