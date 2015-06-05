@@ -3,9 +3,9 @@ package net.anfoya.movie.search.javafx;
 import java.net.URLStreamHandlerFactory;
 
 import net.anfoya.java.net.PersistentCookieStore;
+import net.anfoya.java.net.download.TorrentHandlerFactory;
 import net.anfoya.java.net.filtered.easylist.EasyListRuleSet;
 import net.anfoya.java.net.filtered.engine.RuleSet;
-import net.anfoya.java.net.torrent.TorrentHandlerFactory;
 
 public class ComponentBuilder {
 	private final PersistentCookieStore cookieStore;

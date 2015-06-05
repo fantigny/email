@@ -4,13 +4,18 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.ListBinding;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Worker.State;
 import javafx.event.EventHandler;
+import javafx.scene.Scene;
 import javafx.scene.control.Tab;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebHistory;
 import javafx.scene.web.WebHistory.Entry;
 import javafx.scene.web.WebView;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import net.anfoya.javafx.scene.control.TitledProgressBar;
 import net.anfoya.javafx.scene.layout.LocationPane;
 import net.anfoya.movie.connector.MovieConnector;
@@ -35,7 +40,20 @@ public class SearchTab extends Tab {
 
 		view = new WebView();
 		view.setContextMenuEnabled(false);
-		view.getEngine().setCreatePopupHandler(popupFeatures -> null);
+		view.getEngine().setCreatePopupHandler(popupFeatures -> {
+			final Stage stage = new Stage(StageStyle.UNIFIED);
+			final WebView webView = new WebView();
+			stage.setScene(new Scene(webView, 800, 600));
+			final WebEngine webEngine = webView.getEngine();
+			webEngine.setJavaScriptEnabled(true);
+			webEngine.getLoadWorker().stateProperty().addListener((ov, o, n) -> {
+				if (o == State.RUNNING) {
+//TODO					stage.close();
+				}
+			});
+			stage.show();
+			return webEngine;
+		});
 		content.setCenter(view);
 
 		final WebHistory history = view.getEngine().getHistory();

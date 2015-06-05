@@ -1,4 +1,4 @@
-package net.anfoya.java.net.torrent;
+package net.anfoya.java.net.download;
 
 import java.awt.Desktop;
 import java.io.BufferedInputStream;
@@ -6,8 +6,6 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -35,45 +33,33 @@ public class TorrentConnection extends GoBackUrlConnection {
 
 	@Override
 	public void connect() throws IOException {
-		LOGGER.info("downloading to {}", file);
+		final String path = file.getAbsolutePath();
+		LOGGER.info("download torrent to {}", path);
 		try {
 			download();
 		} catch (final IOException e) {
-			LOGGER.error("download {}", file,e);
+			LOGGER.error("downloading {}", path, e);
 			return;
 		}
 
-		LOGGER.info("starting {}", file);
+		LOGGER.info("Desktop.getDesktop().open(\"{}\")", path);
 		try {
 			Desktop.getDesktop().open(file);
 		} catch (final IOException e) {
-			LOGGER.error("starting {}", file,e);
+			LOGGER.error("starting torrent on current system {}", path, e);
 			return;
 		}
 	}
 
 	private void download() throws MalformedURLException, IOException {
-		BufferedInputStream bis = null;
-		BufferedOutputStream bos = null;
-		try {
-			final InputStream in = new URL(null, url.toString(), new Handler()).openStream(); // avoid handler factory re-entrance
-			bis = new BufferedInputStream(in);
-
-			final OutputStream out = new FileOutputStream(file);
-			bos = new BufferedOutputStream(out);
-
+		try (	BufferedInputStream bis = new BufferedInputStream(new URL(null, url.toString(), new Handler()).openStream()); // avoid handler factory re-entrance
+				BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file));
+				) {
 			int data;
 			while((data=bis.read()) != -1) {
 				bos.write(data);
 			}
 			bos.flush();
-		} finally {
-			try {
-				bis.close();
-			} catch (final Exception e) {}
-			try {
-				bos.close();
-			} catch (final Exception e) {}
 		}
 	}
 }

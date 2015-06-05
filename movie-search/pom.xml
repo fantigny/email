@@ -7,6 +7,7 @@
 	<packaging>pom</packaging>
 	<version>1.0-SNAPSHOT</version>
 	<modules>
+		<module>../anfoya-net</module>
 		<module>../anfoya-tools</module>
 		<module>../anfoya-javafx</module>
 		<module>../anfoya-easylist</module>
