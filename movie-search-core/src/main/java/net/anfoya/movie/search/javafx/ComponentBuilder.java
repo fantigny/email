@@ -3,7 +3,7 @@ package net.anfoya.movie.search.javafx;
 import java.net.URLStreamHandlerFactory;
 
 import net.anfoya.java.net.PersistentCookieStore;
-import net.anfoya.java.net.download.TorrentHandlerFactory;
+import net.anfoya.java.net.download.DownloadHandlerFactory;
 import net.anfoya.java.net.filtered.easylist.EasyListRuleSet;
 import net.anfoya.java.net.filtered.engine.RuleSet;
 
@@ -18,7 +18,7 @@ public class ComponentBuilder {
 	public ComponentBuilder() {
 		cookieStore = new PersistentCookieStore();
 		urlFilter = new EasyListRuleSet(false);
-		torrentHandlerFactory = new TorrentHandlerFactory(urlFilter);
+		torrentHandlerFactory = new DownloadHandlerFactory(urlFilter);
 
 		searchTabs = new SearchTabs();
 		searchPane = new SearchPane();
