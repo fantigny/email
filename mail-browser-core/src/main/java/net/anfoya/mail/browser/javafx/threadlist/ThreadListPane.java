@@ -17,6 +17,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
@@ -39,7 +41,12 @@ import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.tag.javafx.scene.dnd.DndFormat;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage, C extends SimpleContact> extends BorderPane {
+	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadListPane.class);
+
 	public static final DataFormat DND_THREADS_DATA_FORMAT = new DataFormat("Set<" + SimpleThread.class.getName() + ">");
 
 	private final MailService<S, T, H, M, C> mailService;
@@ -138,16 +145,16 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		patternPane.setCenter(namePatternField);
 		BorderPane.setMargin(namePatternField, new Insets(0, 5, 0, 0));
 
-		final Button addButton = new Button("+");
-		addButton.setOnAction(event -> {
+		final Button newButton = new Button();
+		newButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("new.png"))));
+		newButton.setOnAction(event -> {
 			try {
 				new MessageComposer<M, C>(mailService, updateHandler).newMessage();
 			} catch (final Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				LOGGER.error("loading new message composer", e);
 			}
 		});
-		patternPane.setRight(addButton);
+		patternPane.setRight(newButton);
 
 		setMargin(patternPane, new Insets(5, 0, 5, 0));
 		setMargin(threadList, new Insets(0, 5, 0, 5));
