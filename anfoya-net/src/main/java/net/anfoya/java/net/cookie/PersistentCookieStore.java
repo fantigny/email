@@ -1,4 +1,4 @@
-package net.anfoya.java.net;
+package net.anfoya.java.net.cookie;
 
 import java.io.IOException;
 import java.net.CookieManager;

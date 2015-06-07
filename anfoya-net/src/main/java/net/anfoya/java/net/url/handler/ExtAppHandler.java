@@ -1,4 +1,4 @@
-package net.anfoya.java.net.torrent;
+package net.anfoya.java.net.url.handler;
 
 import java.awt.Desktop;
 import java.io.BufferedReader;
@@ -10,14 +10,14 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
 
-import net.anfoya.java.net.GoBackUrlConnection;
+import net.anfoya.java.net.url.connection.GoBackUrlConnection;
 import net.anfoya.java.util.system.OperatingSystem;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MagnetHandler extends URLStreamHandler {
-	private static final Logger LOGGER = LoggerFactory.getLogger(MagnetHandler.class);
+public class ExtAppHandler extends URLStreamHandler {
+	private static final Logger LOGGER = LoggerFactory.getLogger(ExtAppHandler.class);
 
 	@Override
 	protected URLConnection openConnection(final URL url) throws IOException {

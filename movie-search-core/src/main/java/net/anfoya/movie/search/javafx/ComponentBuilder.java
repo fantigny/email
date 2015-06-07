@@ -2,14 +2,15 @@ package net.anfoya.movie.search.javafx;
 
 import java.net.URLStreamHandlerFactory;
 
-import net.anfoya.java.net.PersistentCookieStore;
+import net.anfoya.java.net.cookie.PersistentCookieStore;
 import net.anfoya.java.net.filtered.easylist.EasyListRuleSet;
-import net.anfoya.java.net.filtered.engine.RuleSet;
-import net.anfoya.java.net.torrent.TorrentHandlerFactory;
+import net.anfoya.java.net.url.CustomHandlerFactory;
+import net.anfoya.java.net.url.filter.Matcher;
+import net.anfoya.java.net.url.filter.RuleSet;
 
 public class ComponentBuilder {
 	private final PersistentCookieStore cookieStore;
-	private final RuleSet urlFilter;
+	private final RuleSet ruleSet;
 	private final URLStreamHandlerFactory torrentHandlerFactory;
 
 	private final SearchTabs searchTabs;
@@ -17,8 +18,8 @@ public class ComponentBuilder {
 
 	public ComponentBuilder() {
 		cookieStore = new PersistentCookieStore();
-		urlFilter = new EasyListRuleSet(false);
-		torrentHandlerFactory = new TorrentHandlerFactory(urlFilter);
+		ruleSet = new EasyListRuleSet(false);
+		torrentHandlerFactory = new CustomHandlerFactory(new Matcher(ruleSet));
 
 		searchTabs = new SearchTabs();
 		searchPane = new SearchPane();
@@ -37,7 +38,7 @@ public class ComponentBuilder {
 	}
 
 	public RuleSet buildRuleSet() {
-		return urlFilter;
+		return ruleSet;
 	}
 
 	public URLStreamHandlerFactory buildTorrentHandlerFactory() {

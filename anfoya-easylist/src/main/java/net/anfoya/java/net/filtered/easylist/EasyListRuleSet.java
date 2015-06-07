@@ -17,7 +17,7 @@ import net.anfoya.java.cache.LocalCache;
 import net.anfoya.java.io.SerializedFile;
 import net.anfoya.java.net.filtered.easylist.loader.InternetLoader;
 import net.anfoya.java.net.filtered.easylist.model.Rule;
-import net.anfoya.java.net.filtered.engine.RuleSet;
+import net.anfoya.java.net.url.filter.RuleSet;
 import net.anfoya.java.util.concurrent.ThreadPool;
 
 import org.slf4j.Logger;

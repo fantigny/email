@@ -1,4 +1,4 @@
-package net.anfoya.java.net.torrent;
+package net.anfoya.java.net.url.connection;
 
 import java.awt.Desktop;
 import java.io.BufferedInputStream;
@@ -6,25 +6,21 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-
-import net.anfoya.java.net.GoBackUrlConnection;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import sun.net.www.protocol.http.Handler;
 
-public class TorrentConnection extends GoBackUrlConnection {
-	private static final Logger LOGGER = LoggerFactory.getLogger(TorrentConnection.class);
+public class DownloadAndStartConnection extends GoBackUrlConnection {
+	private static final Logger LOGGER = LoggerFactory.getLogger(DownloadAndStartConnection.class);
 	private static final String TEMP_DIR = System.getProperty("java.io.tmpdir") +"/";
 
 	private final File file;
 
-	protected TorrentConnection(final URL url) {
+	public DownloadAndStartConnection(final URL url) {
 		super(url, "starting torrent...");
 
 		final String[] urlParts = url.getPath().split("/");
@@ -53,27 +49,15 @@ public class TorrentConnection extends GoBackUrlConnection {
 	}
 
 	private void download() throws MalformedURLException, IOException {
-		BufferedInputStream bis = null;
-		BufferedOutputStream bos = null;
-		try {
-			final InputStream in = new URL(null, url.toString(), new Handler()).openStream(); // avoid handler factory re-entrance
-			bis = new BufferedInputStream(in);
-
-			final OutputStream out = new FileOutputStream(file);
-			bos = new BufferedOutputStream(out);
-
+		try (
+				BufferedInputStream bis = new BufferedInputStream(new URL(null, url.toString(), new Handler()).openStream()); // avoid handler factory re-entrance
+				BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file));
+				) {
 			int data;
 			while((data=bis.read()) != -1) {
 				bos.write(data);
 			}
 			bos.flush();
-		} finally {
-			try {
-				bis.close();
-			} catch (final Exception e) {}
-			try {
-				bos.close();
-			} catch (final Exception e) {}
 		}
 	}
 }

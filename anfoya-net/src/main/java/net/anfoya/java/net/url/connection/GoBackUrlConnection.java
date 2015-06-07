@@ -1,4 +1,4 @@
-package net.anfoya.java.net;
+package net.anfoya.java.net.url.connection;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

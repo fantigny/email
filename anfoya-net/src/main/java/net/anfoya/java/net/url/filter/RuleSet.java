@@ -1,4 +1,4 @@
-package net.anfoya.java.net.filtered.engine;
+package net.anfoya.java.net.url.filter;
 
 
 public interface RuleSet {
