@@ -5,9 +5,9 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.net.URLStreamHandler;
 
 import net.anfoya.java.io.Ed2kFilterInputStream;
-import sun.net.www.protocol.http.Handler;
 
 public class Ed2kFixConnection extends URLConnection {
 	public Ed2kFixConnection(final URL url) {
@@ -20,6 +20,14 @@ public class Ed2kFixConnection extends URLConnection {
 
 	@Override
 	public InputStream getInputStream() throws MalformedURLException, IOException {
-		return new Ed2kFilterInputStream(new URL(null, url.toString(), new Handler()).openStream()); // avoid handler factory re-entrance
+		URLStreamHandler handler;
+		if ("http".equals(url.getProtocol())) {
+			handler = new sun.net.www.protocol.http.Handler();
+		} else if ("https".equals(url.getProtocol())) {
+			handler = new sun.net.www.protocol.https.Handler();
+		} else {
+			handler = null;
+		}
+		return handler == null? null: new Ed2kFilterInputStream(new URL(null, url.toString(), handler).openStream()); // avoid handler factory re-entrance
 	}
 }

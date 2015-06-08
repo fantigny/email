@@ -30,17 +30,19 @@ public class StartHandler extends URLStreamHandler {
 		case MAC: {
 	        final Process process = Runtime.getRuntime().exec(new String[] { "open", address } );
 			final BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			String line; while((line = br.readLine()) != null) {
-				LOGGER.debug(line);
-			}
+			String line; while((line = br.readLine()) != null) LOGGER.debug(line);
 			break;
 		}
 		case UNX: {
 	        final Process process = Runtime.getRuntime().exec(new String[] { "xdg-open", address } );
 			final BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			String line; while((line = br.readLine()) != null) {
-				LOGGER.debug(line);
-			}
+			String line; while((line = br.readLine()) != null) LOGGER.debug(line);
+			break;
+		}
+		case WIN: {
+	        final Process process = Runtime.getRuntime().exec(new String[] { "explorer", address } );
+			final BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
+			String line; while((line = br.readLine()) != null) LOGGER.debug(line);
 			break;
 		}
 		default:

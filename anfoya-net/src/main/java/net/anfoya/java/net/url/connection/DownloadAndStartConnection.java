@@ -8,11 +8,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLStreamHandler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import sun.net.www.protocol.http.Handler;
 
 public class DownloadAndStartConnection extends GoBackUrlConnection {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DownloadAndStartConnection.class);
@@ -49,12 +48,20 @@ public class DownloadAndStartConnection extends GoBackUrlConnection {
 	}
 
 	private void download() throws MalformedURLException, IOException {
+		final URLStreamHandler handler;
+		if ("http".equals(url.getProtocol())) {
+			handler = new sun.net.www.protocol.http.Handler();
+		} else if ("https".equals(url.getProtocol())) {
+			handler = new sun.net.www.protocol.https.Handler();
+		} else {
+			return;
+		}
+
 		try (
-				BufferedInputStream bis = new BufferedInputStream(new URL(null, url.toString(), new Handler()).openStream()); // avoid handler factory re-entrance
+				BufferedInputStream bis = new BufferedInputStream(new URL(null, url.toString(), handler).openStream()); // avoid handler factory re-entrance
 				BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file));
 				) {
-			int data;
-			while((data=bis.read()) != -1) {
+			int data; while((data=bis.read()) != -1) {
 				bos.write(data);
 			}
 			bos.flush();

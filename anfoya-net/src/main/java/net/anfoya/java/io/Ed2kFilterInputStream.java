@@ -5,11 +5,10 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class Ed2kFilterInputStream extends FilterInputStream {
-	private static final String ED2K_START = "ed2k://";
-	private static final String ED2K_END = "|/";
-
-	private static final int ED2K_START_LENGTH = ED2K_START.length();
-	private static final int ED2K_END_LENGTH = ED2K_END.length();
+	private static final byte[] ED2K_START_BYTES = "ed2k://".getBytes();
+	private static final int ED2K_START_LENGTH = ED2K_START_BYTES.length;
+	private static final byte[] ED2K_END_BYTES = "|/".getBytes();
+	private static final int ED2K_END_LENGTH = ED2K_END_BYTES.length;
 
 	private boolean ed2kLink = false;
 	private int matchIndex = 0;
@@ -33,7 +32,7 @@ public class Ed2kFilterInputStream extends FilterInputStream {
 
 	private byte fix(final byte chr) {
 	    if (ed2kLink) {
-	    	if (chr == ED2K_END.charAt(matchIndex)) {
+	    	if (chr == ED2K_END_BYTES[matchIndex]) {
 	    		matchIndex++;
 	    		if (matchIndex == ED2K_END_LENGTH) {
 	    			ed2kLink = false;
@@ -42,8 +41,11 @@ public class Ed2kFilterInputStream extends FilterInputStream {
 	    	} else {
 	    		matchIndex = 0;
 	    	}
+		    if (ed2kLink && chr == '|') {
+		    	return '-';
+		    }
 	    } else {
-	    	if (chr == ED2K_START.charAt(matchIndex)) {
+	    	if (chr == ED2K_START_BYTES[matchIndex]) {
 	    		matchIndex++;
 	    		if (matchIndex == ED2K_START_LENGTH) {
 	    			ed2kLink = true;
@@ -54,13 +56,6 @@ public class Ed2kFilterInputStream extends FilterInputStream {
 	    	}
 	    }
 
-	    final byte fix;
-	    if (ed2kLink && chr == '|') {
-	    	fix = '-';
-	    } else {
-	    	fix = chr;
-	    }
-
-	    return fix;
+    	return chr;
 	}
 }
