@@ -6,8 +6,6 @@ import java.util.Set;
 
 import junit.framework.Assert;
 import net.anfoya.mail.gmail.GmailService;
-import net.anfoya.mail.gmail.service.ThreadException;
-import net.anfoya.mail.gmail.service.ThreadService;
 import net.anfoya.mail.service.MailException;
 
 import org.junit.Before;
@@ -21,7 +19,7 @@ public class ThreadServiceTest {
 	private ThreadService service;
 
 	@Before public void init() throws MailException {
-		service = new ThreadService(new GmailService().login("test"), "me");
+		service = new GmailService().login("test").getThreadService();
 	}
 
 	@Test public void find() throws ThreadException {

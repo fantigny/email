@@ -12,18 +12,24 @@ import javafx.scene.layout.GridPane;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.dnd.DropArea;
 import net.anfoya.mail.browser.javafx.message.MessageComposer;
+import net.anfoya.mail.model.SimpleContact;
 import net.anfoya.mail.model.SimpleMessage;
+import net.anfoya.mail.model.SimpleTag;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.tag.model.SimpleSection;
-import net.anfoya.tag.model.SimpleTag;
 
-public class ThreadListDropPane<T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage> extends GridPane {
-	private final MailService<? extends SimpleSection, T, H, M> mailService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class ThreadListDropPane<T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage, C extends SimpleContact> extends GridPane {
+	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadListDropPane.class);
+
+	private final MailService<? extends SimpleSection, T, H, M, C> mailService;
 	private EventHandler<ActionEvent> updateHandler;
 
-	public ThreadListDropPane(final MailService<? extends SimpleSection, T, H, M> mailService) {
+	public ThreadListDropPane(final MailService<? extends SimpleSection, T, H, M, C> mailService) {
 		this.mailService = mailService;
 
 		setVgap(2);
@@ -44,12 +50,23 @@ public class ThreadListDropPane<T extends SimpleTag, H extends SimpleThread, M e
 			}
 		});
 
-		final DropArea deleteArea = new DropArea("delete", DND_THREADS_DATA_FORMAT);
-		deleteArea.setOnDragDropped(event -> {
+		final DropArea starArea = new DropArea("star", DND_THREADS_DATA_FORMAT);
+		starArea.setOnDragDropped(event -> {
 			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)) {
 				@SuppressWarnings("unchecked")
 				final Set<H> threads = (Set<H>) event.getDragboard().getContent(DND_THREADS_DATA_FORMAT);
-				delete(threads);
+				star(threads);
+				event.setDropCompleted(true);
+				event.consume();
+			}
+		});
+
+		final DropArea trashArea = new DropArea("trash", DND_THREADS_DATA_FORMAT);
+		trashArea.setOnDragDropped(event -> {
+			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)) {
+				@SuppressWarnings("unchecked")
+				final Set<H> threads = (Set<H>) event.getDragboard().getContent(DND_THREADS_DATA_FORMAT);
+				trash(threads);
 				event.setDropCompleted(true);
 				event.consume();
 			}
@@ -99,40 +116,53 @@ public class ThreadListDropPane<T extends SimpleTag, H extends SimpleThread, M e
 			}
 		});
 
-		addRow(0, archiveArea, deleteArea);
-		addRow(1, replyArea, replyAllArea);
-		addRow(2, forwardArea, unreadArea);
+		int i=0;
+		addRow(i++, starArea);
+		addRow(i++, archiveArea, trashArea);
+		addRow(i++, replyArea, replyAllArea);
+		addRow(i++, forwardArea, unreadArea);
 	}
 
 	private void forward(final Set<H> threads) {
 		try {
 			final M message = mailService.getMessage(threads.iterator().next().getLastMessageId());
-			new MessageComposer<M>(mailService, updateHandler).forward(message);
+			new MessageComposer<M, C>(mailService, updateHandler).forward(message);
 		} catch (final MailException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.error("forwarding message", e);
 		}
 	}
 
 	private void reply(final Set<H> threads, final boolean all) {
 		try {
 			final M message = mailService.getMessage(threads.iterator().next().getLastMessageId());
-			new MessageComposer<M>(mailService, updateHandler).reply(message, all);
+			new MessageComposer<M, C>(mailService, updateHandler).reply(message, all);
 		} catch (final MailException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.error("replying message", e);
 		}
+	}
+
+	private void star(final Set<H> threads) {
+		final Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				mailService.addTagForThreads(mailService.findTag(T.STARRED), threads);
+				return null;
+			}
+		};
+		task.setOnFailed(event -> LOGGER.error("adding {} to thread", T.STARRED, event.getSource().getException()));
+		task.setOnSucceeded(event -> updateHandler.handle(null));
+		ThreadPool.getInstance().submitHigh(task);
 	}
 
 	private void unread(final Set<H> threads) {
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
-				mailService.addTagForThreads(mailService.findTag("UNREAD"), threads);
+				mailService.addTagForThreads(mailService.findTag(T.UNREAD), threads);
 				return null;
 			}
 		};
-		task.setOnFailed(event -> { /* TODO*/ });
+		task.setOnFailed(event -> LOGGER.error("adding {} to thread", T.UNREAD, event.getSource().getException()));
 		task.setOnSucceeded(event -> updateHandler.handle(null));
 		ThreadPool.getInstance().submitHigh(task);
 	}
@@ -145,12 +175,12 @@ public class ThreadListDropPane<T extends SimpleTag, H extends SimpleThread, M e
 				return null;
 			}
 		};
-		task.setOnFailed(event -> { /* TODO*/ });
+		task.setOnFailed(event -> LOGGER.error("archiving thread", event.getSource().getException()));
 		task.setOnSucceeded(event -> updateHandler.handle(null));
 		ThreadPool.getInstance().submitHigh(task);
 	}
 
-	private void delete(final Set<H> threads) {
+	private void trash(final Set<H> threads) {
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
@@ -158,7 +188,7 @@ public class ThreadListDropPane<T extends SimpleTag, H extends SimpleThread, M e
 				return null;
 			}
 		};
-		task.setOnFailed(event -> { /* TODO*/ });
+		task.setOnFailed(event -> LOGGER.error("trashing thread", event.getSource().getException()));
 		task.setOnSucceeded(event -> updateHandler.handle(null));
 		ThreadPool.getInstance().submitHigh(task);
 	}

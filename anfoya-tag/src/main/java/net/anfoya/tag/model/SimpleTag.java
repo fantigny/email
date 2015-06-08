@@ -1,13 +1,10 @@
 package net.anfoya.tag.model;
 
-import java.io.Serializable;
+import net.anfoya.tag.service.Tag;
 
 
 @SuppressWarnings("serial")
-public class SimpleTag implements Serializable, Comparable<SimpleTag> {
-	public static final String NO_TAG_NAME = "[no tag]";
-	public static final String TO_WATCH_NAME = "To watch";
-	public static final String THIS_NAME = "[ this ]";
+public class SimpleTag implements Tag, Comparable<SimpleTag> {
 
 	private final String id;
 	private final String name;
@@ -50,19 +47,23 @@ public class SimpleTag implements Serializable, Comparable<SimpleTag> {
 		return getName().compareTo(o.getName());
 	}
 
+	@Override
 	public SimpleTag copyWithId(final String id) {
 		return new SimpleTag(id, getName(), isSystem());
 	}
 
 	//TODO should not need an id?
+	@Override
 	public String getId() {
 		return id;
 	}
 
+	@Override
 	public String getName() {
 		return name;
 	}
 
+	@Override
 	public boolean isSystem() {
 		return system;
 	}

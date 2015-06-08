@@ -1,4 +1,4 @@
-package net.anfoya.mail.browser.javafx.message;
+package net.anfoya.mail.browser.mime;
 
 import java.io.File;
 import java.io.IOException;

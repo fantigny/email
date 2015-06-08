@@ -48,7 +48,7 @@ public class SearchTabs extends TabPane {
 			});
 			getTabs().add(tab);
 		}
-		getSelectionModel().select(1);
+//		getSelectionModel().select(1);
 	}
 
 	public void init() {

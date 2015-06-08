@@ -34,7 +34,12 @@ import net.anfoya.tag.model.SimpleTag;
 import net.anfoya.tag.service.TagException;
 import net.anfoya.tag.service.TagService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class SectionListPane<S extends SimpleSection, T extends SimpleTag> extends BorderPane {
+	private static final Logger LOGGER = LoggerFactory.getLogger(SectionListPane.class);
+
 	private final TagService<S, T> tagService;
 	private final DataFormat extItemDataFormat;
 
@@ -82,15 +87,6 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		setTop(patternBox);
 
 		sectionAcc = new Accordion();
-		sectionAcc.expandedPaneProperty().addListener((ov, oldVal, newVal) -> {
-			if (newVal != null && newVal.isExpanded() && !isCheckMode()) {
-				@SuppressWarnings("unchecked")
-				final TagList<S, T> tagList = (TagList<S, T>) newVal.getContent();
-				if (tagList.getSelectedTag() != null) {
-					selectTagHandler.handle(null);
-				}
-			}
-		});
 
 		final StackPane stackPane = new StackPane(sectionAcc);
 		stackPane.setAlignment(Pos.BOTTOM_CENTER);
@@ -210,10 +206,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 				callback.call(null);
 			}
 		});
-		refreshTask.setOnFailed(event -> {
-			// TODO Auto-generated catch block
-			event.getSource().getException().printStackTrace(System.out);
-		});
+		refreshTask.setOnFailed(event -> LOGGER.error("getting sections", event.getSource().getException()));
 		ThreadPool.getInstance().submitHigh(refreshTask);
 	}
 
@@ -257,9 +250,21 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 
 	public void setOnSelectTag(final EventHandler<ActionEvent> handler) {
 		selectTagHandler = event -> {
+			unselectOthers();
 			selectedTagsPane.refresh(getAllSelectedTags());
 			handler.handle(event);
 		};
+	}
+
+	private void unselectOthers() {
+		final TitledPane expanded = sectionAcc.getExpandedPane();
+		for(final TitledPane pane: sectionAcc.getPanes()) {
+			if (pane != expanded) {
+				@SuppressWarnings("unchecked")
+				final SectionPane<S, T> sectionPane = (SectionPane<S, T>) pane;
+				sectionPane.clearSelection();
+			}
+		}
 	}
 
 	public void setOnUpdateSection(final EventHandler<ActionEvent> handler) {
@@ -284,8 +289,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 				try {
 					toRefresh = tagService.getTags(sectionPane.getSection(), itemPattern);
 				} catch (final TagException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					LOGGER.error("getting section count", e);
 				}
 			}
 			sectionPane.updateCountAsync(queryCount, toRefresh, includes, excludes, itemPattern, tagPattern);
@@ -370,11 +374,9 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		for(final TitledPane sectionPane: sectionAcc.getPanes()) {
 			@SuppressWarnings("unchecked")
 			final TagList<S, T> tagList = (TagList<S, T>) sectionPane.getContent();
-			if (sectionPane.isExpanded()) {
-				tag = tagList.getSelectedTag();
-				if (tag != null) {
-					break;
-				}
+			tag = tagList.getSelectedTag();
+			if (tag != null) {
+				break;
 			}
 		}
 

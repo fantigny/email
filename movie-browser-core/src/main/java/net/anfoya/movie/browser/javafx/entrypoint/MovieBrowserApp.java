@@ -25,9 +25,10 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import net.anfoya.cluster.StatusManager;
 import net.anfoya.cluster.UpdateManager;
-import net.anfoya.java.net.PersistentCookieStore;
-import net.anfoya.java.net.filtered.FilteredHandlerFactory;
-import net.anfoya.java.net.filtered.engine.RuleSet;
+import net.anfoya.java.net.cookie.PersistentCookieStore;
+import net.anfoya.java.net.url.CustomHandlerFactory;
+import net.anfoya.java.net.url.filter.Matcher;
+import net.anfoya.java.net.url.filter.RuleSet;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.movie.browser.javafx.ComponentBuilder;
 import net.anfoya.movie.browser.javafx.consolidation.FileConsolidationService;
@@ -71,7 +72,7 @@ public class MovieBrowserApp extends Application {
 	private final MoviePane moviePane;
 
 	private final PersistentCookieStore cookieStore;
-	private final RuleSet urlFilter;
+	private final RuleSet ruleSet;
 
 	public MovieBrowserApp() {
 		final ComponentBuilder compBuilder = new ComponentBuilder();
@@ -85,7 +86,7 @@ public class MovieBrowserApp extends Application {
 		this.movieConsoService = compBuilder.buildMovieConsolidationService();
 		this.fileConsoService = compBuilder.buildFileConsolidationService();
 		this.cookieStore = compBuilder.buildCookieStore();
-		this.urlFilter = compBuilder.buildUrlFilter();
+		this.ruleSet = compBuilder.buildUrlFilter();
 	}
 
 	@Override
@@ -95,9 +96,9 @@ public class MovieBrowserApp extends Application {
 			statusMgr.shutdown();
 		});
 
-		urlFilter.load();
-		urlFilter.setWithException(false);
-		URL.setURLStreamHandlerFactory(new FilteredHandlerFactory(urlFilter));
+		ruleSet.load();
+		ruleSet.setWithException(false);
+		URL.setURLStreamHandlerFactory(new CustomHandlerFactory(new Matcher(ruleSet)));
 
 		cookieStore.load();
 		CookieHandler.setDefault(new CookieManager(cookieStore, CookiePolicy.ACCEPT_ALL));

@@ -1,10 +1,9 @@
 package net.anfoya.tag.model;
 
-import java.io.Serializable;
+import net.anfoya.tag.service.Section;
 
 
-@SuppressWarnings("serial")
-public class SimpleSection implements Serializable, Comparable<SimpleSection> {
+public class SimpleSection implements Section, Comparable<SimpleSection> {
 	public static final String NO_SECTION_NAME = "[to sort]";
 	public static final String NO_ID = "section-with-no-id-";
 
@@ -25,6 +24,7 @@ public class SimpleSection implements Serializable, Comparable<SimpleSection> {
 		this.system = system;
 		hash = id.hashCode();
 	}
+	@Override
 	public String getName() {
 		return name;
 	}
@@ -46,6 +46,7 @@ public class SimpleSection implements Serializable, Comparable<SimpleSection> {
 		}
         return ((SimpleSection) other).name.equals(name);
     }
+	@Override
 	public String getId() {
 		return id;
 	}
@@ -53,6 +54,7 @@ public class SimpleSection implements Serializable, Comparable<SimpleSection> {
 	public int compareTo(final SimpleSection o) {
 		return name.compareTo(o.name);
 	}
+	@Override
 	public boolean isSystem() {
 		return system;
 	}

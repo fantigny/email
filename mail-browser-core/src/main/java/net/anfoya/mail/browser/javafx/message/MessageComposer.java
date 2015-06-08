@@ -2,6 +2,8 @@ package net.anfoya.mail.browser.javafx.message;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Properties;
 
 import javafx.concurrent.Task;
@@ -13,6 +15,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
@@ -26,6 +29,7 @@ import javafx.stage.StageStyle;
 
 import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
+import javax.mail.Multipart;
 import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
@@ -35,39 +39,39 @@ import javax.mail.internet.MimeUtility;
 
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.AutoCompComboBoxListener;
+import net.anfoya.mail.browser.mime.MimeMessageHelper;
+import net.anfoya.mail.model.SimpleContact;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.tag.model.SimpleSection;
-import net.anfoya.tag.model.SimpleTag;
+import net.anfoya.mail.model.SimpleTag;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MessageComposer<M extends SimpleMessage> extends Stage {
+public class MessageComposer<M extends SimpleMessage, C extends SimpleContact> extends Stage {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessageComposer.class);
 
-	private final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService;
+	private final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M, C> mailService;
+	private final EventHandler<ActionEvent> updateHandler;
 	private final MimeMessageHelper helper;
 
-	private final HTMLEditor editor;
+	private final BorderPane mainPane;
+	private final GridPane headerPane;
+	private final HBox toBox;
+
+	private final HTMLEditor bodyEditor;
 	private final ComboBox<String> fromCombo;
 	private final ComboBox<String> toCombo;
 	private final TextField ccField;
 	private final TextField bccField;
 	private final TextField subjectField;
-	private final GridPane headerPane;
-	private final HBox toBox;
-	private final BorderPane mainPane;
 
 	private M draft;
 
-	private boolean anyChange;
-
-	private final EventHandler<ActionEvent> updateHandler;
-
-	public MessageComposer(final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M> mailService, final EventHandler<ActionEvent> updateHandler) {
+	public MessageComposer(final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M, C> mailService, final EventHandler<ActionEvent> updateHandler) {
 		super(StageStyle.UNIFIED);
 		setTitle("FisherMail / Agaar / Agamar / Agaram");
 		getIcons().add(new Image(getClass().getResourceAsStream("../entrypoint/Mail.png")));
@@ -107,16 +111,35 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 			}
 		});
 
+		final Map<String, C> emailContacts = new LinkedHashMap<String, C>();
+		try {
+			for(final C c: mailService.getContacts()) {
+				emailContacts.put(c.getEmail(), c);
+			}
+		} catch (final MailException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 		toCombo = new ComboBox<String>();
 		toCombo.prefWidthProperty().bind(widthProperty());
 		toCombo.setEditable(true);
-		try {
-			toCombo.getItems().addAll(mailService.getContactAddresses());
-		} catch (final MailException e) {
-			LOGGER.error("getting contacts", e);
-		}
+		toCombo.getItems().setAll(emailContacts.keySet());
+		toCombo.setCellFactory(listView -> {
+			return new ListCell<String>() {
+				@Override
+			    public void updateItem(final String address, final boolean empty) {
+			        super.updateItem(address, empty);
+			        if (!empty) {
+			        	setText(emailContacts.get(address).getFullname() + " <" + emailContacts.get(address).getEmail() + ">");
+			        }
+				}
+			};
+		});
 
-		new AutoCompComboBoxListener(toCombo, s -> s);
+		new AutoCompComboBoxListener(toCombo, address -> {
+			return emailContacts.get(address).getEmail() + " " + emailContacts.get(address).getFullname();
+		});
 
 		ccField = new TextField();
 		bccField = new TextField();
@@ -124,19 +147,17 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 
 		toMiniHeader();
 
-		anyChange = false;
-		editor = new HTMLEditor();
-		editor.setOnKeyTyped(event -> anyChange = true);
-		mainPane.setCenter(editor);
+		bodyEditor = new HTMLEditor();
+		mainPane.setCenter(bodyEditor);
 
 		final Button discardButton = new Button("discard");
-		discardButton.setCancelButton(true);
 		discardButton.setOnAction(event -> {
 			discard();
 			close();
 		});
 
 		final Button saveButton = new Button("save");
+		saveButton.setCancelButton(true);
 		saveButton.setOnAction(event -> {
 			save();
 			close();
@@ -154,68 +175,79 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 		mainPane.setBottom(buttonBox);
 
 		show();
-		setOnCloseRequest(event -> {
-			saveOrDiscard();
-		});
-	}
-
-	private void saveOrDiscard() {
-		if (anyChange) {
-			save();
-		} else {
-			discard();
-		}
 	}
 
 	public void newMessage() throws MailException {
-		draft = mailService.createDraft(null);
-		updateHandler.handle(null);
+		final Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				draft = mailService.createDraft(null);
+				return null;
+			}
+		};
+		task.setOnFailed(event -> LOGGER.error("creting draft", event.getSource().getException()));
+		task.setOnSucceeded(event -> updateHandler.handle(null));
+		ThreadPool.getInstance().submitHigh(task);
+	}
+
+	public void editOrReply(final String id) {
+		try {
+			final M draft = mailService.getDraft(id);
+			if (draft != null) {
+				edit(draft);
+			} else {
+				final M message = mailService.getMessage(id);
+				reply(message, true);
+			}
+		} catch (final MailException e) {
+			LOGGER.error("loading draft or message", e);
+		}
 	}
 
 	public void edit(final M draft) {
-		try {
-			this.draft = draft;
-			initComposer();
-		} catch (final MessagingException | IOException e) {
-			LOGGER.error("editing draft", e);
-		}
+		this.draft = draft;
+		initComposer(false);
 	}
 
 	public void reply(final M message, final boolean all) {
-		try {
-			draft = mailService.createDraft(message);
+		final Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				draft = mailService.createDraft(message);
+				final MimeMessage reply = (MimeMessage) message.getMimeMessage().reply(all);
+				reply.setContent((Multipart) draft.getMimeMessage().getContent());
+				reply.saveChanges();
+				draft.setMimeDraft(reply);
+				return null;
+			}
+		};
+		task.setOnFailed(event -> LOGGER.error("creting draft", event.getSource().getException()));
+		task.setOnSucceeded(event -> {
 			updateHandler.handle(null);
-
-			final MimeMessage reply = (MimeMessage) message.getMimeMessage().reply(all);
-//			reply.setContent((Multipart) draft.getMimeMessage().getContent());
-//			reply.saveChanges();
-			draft.setMimeMessage(reply);
-
-			initComposer();
-		} catch (final MessagingException | IOException | MailException e) {
-			LOGGER.error("replying message", e);
-		}
+			initComposer(true);
+		});
+		ThreadPool.getInstance().submitHigh(task);
 	}
 
 	public void forward(final M message) {
-		try {
-			draft = mailService.createDraft(message);
-			final MimeMessage mimeMessage = message.getMimeMessage();
-
-			subjectField.setText("Fwd: " + mimeMessage.getSubject());
-
-			final StringBuffer html = new StringBuffer("<br><br>");
-			html.append("<blockquote class='fsm_quote' style='margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex'>");
-			html.append(helper.toHtml(mimeMessage));
-			html.append("</blockquote>");
-			editor.setHtmlText(html.toString());
-			editor.requestFocus();
-		} catch (final MessagingException | IOException | MailException e) {
-			LOGGER.error("replying message", e);
-		}
+		final Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				draft = mailService.createDraft(message);
+				draft.setMimeDraft(message.getMimeMessage());
+				return null;
+			}
+		};
+		task.setOnFailed(event -> LOGGER.error("creting draft", event.getSource().getException()));
+		task.setOnSucceeded(event -> {
+			updateHandler.handle(null);
+			initComposer(true);
+			subjectField.setText("Fwd: " + subjectField.getText());
+		});
+		ThreadPool.getInstance().submitHigh(task);
 	}
 
-	private void initComposer() throws MessagingException, IOException {
+	private void initComposer(final boolean quote) {
 		final MimeMessage message = draft.getMimeMessage();
 
 		String to;
@@ -227,22 +259,35 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 		}
 		toCombo.setValue(to);
 
-		subjectField.setText(message.getSubject());
 
-		String html = helper.toHtml(message);
-		if (!html.isEmpty()) {
+		String subject;
+		try {
+			subject = MimeUtility.decodeText(message.getSubject());
+		} catch (final Exception e) {
+			subject = "";
+		}
+		subjectField.setText(subject);
+
+		String html;
+		try {
+			html = helper.toHtml(message);
+		} catch (IOException | MessagingException e) {
+			html = "";
+			LOGGER.error("getting body", e);
+		}
+		if (!html.isEmpty() && quote) {
 			final StringBuffer sb = new StringBuffer("<br><br>");
 			sb.append("<blockquote class='fsm_quote' style='margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex'>");
 			sb.append(html);
 			sb.append("</blockquote>");
 			html = sb.toString();
 		}
-		editor.setHtmlText(html);
+		bodyEditor.setHtmlText(html);
 	}
 
 	private MimeMessage buildMessage() throws MessagingException {
 		final MimeBodyPart bodyPart = new MimeBodyPart();
-		bodyPart.setText(editor.getHtmlText(), StandardCharsets.UTF_8.name(), "html");
+		bodyPart.setText(bodyEditor.getHtmlText(), StandardCharsets.UTF_8.name(), "html");
 
 		final MimeMultipart multipart = new MimeMultipart();
 		multipart.addBodyPart(bodyPart);
@@ -259,7 +304,9 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 //		message.setFrom(new InternetAddress("frederic.antigny@gmail.com"));
 		message.setSubject(subjectField.getText());
 		message.setContent(multipart);
-		message.addRecipient(RecipientType.TO, to);
+		if (to != null) {
+			message.addRecipient(RecipientType.TO, to);
+		}
 		return message;
 	}
 
@@ -267,7 +314,7 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
-			    draft.setMimeMessage(buildMessage());
+			    draft.setMimeDraft(buildMessage());
 				mailService.send(draft);
 				return null;
 			}
@@ -281,7 +328,7 @@ public class MessageComposer<M extends SimpleMessage> extends Stage {
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
-			    draft.setMimeMessage(buildMessage());
+			    draft.setMimeDraft(buildMessage());
 				mailService.save(draft);
 				return null;
 			}

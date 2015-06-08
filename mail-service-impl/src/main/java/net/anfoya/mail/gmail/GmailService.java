@@ -9,15 +9,25 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.CountDownLatch;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
+import javafx.application.Platform;
+import javafx.concurrent.Worker.State;
+import javafx.scene.Scene;
+import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebView;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.util.Callback;
 
 import javax.mail.MessagingException;
 
+import net.anfoya.mail.gmail.model.GmailContact;
 import net.anfoya.mail.gmail.model.GmailMessage;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
 import net.anfoya.mail.gmail.model.GmailSection;
@@ -34,10 +44,14 @@ import net.anfoya.mail.gmail.service.ThreadException;
 import net.anfoya.mail.gmail.service.ThreadService;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
-import net.anfoya.tag.model.SimpleTag;
+import net.anfoya.mail.service.Tag;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
@@ -54,10 +68,12 @@ import com.google.api.services.gmail.model.Label;
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.Thread;
 import com.google.gdata.client.contacts.ContactsService;
+import com.google.gdata.data.contacts.ContactEntry;
+import com.google.gdata.data.extensions.Email;
 
-public class GmailService implements MailService<GmailSection, GmailTag, GmailThread, GmailMessage> {
+public class GmailService implements MailService<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GmailService.class);
-    private static final String REFRESH_TOKEN = "-refresh-token";
+    private static final String REFRESH_TOKEN = "%s-refresh-token";
 
 	private static final String USER = "me";
 	private static final String DEFAULT = "default";
@@ -79,6 +95,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	private ThreadService threadService;
 	private HistoryService historyService;
 	private ContactService contactService;
+	private String refreshTokenName;
 
 	public GmailService() {
 		httpTransport = new NetHttpTransport();
@@ -86,7 +103,11 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	@Override
-	public Gmail login(final String mailId) throws GMailException {
+	public void login() throws GMailException {
+		login("main");
+	}
+
+	public GmailService login(final String mailId) throws GMailException {
 		Gmail gmail;
 		ContactsService gcontact;
 		try {
@@ -94,10 +115,9 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			final GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(jsonFactory, reader);
 
 			// read refresh token
-			final String refreshTokenName = mailId + REFRESH_TOKEN;
+			refreshTokenName = String.format(REFRESH_TOKEN, mailId);
 		    final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
 			final String refreshToken = prefs.get(refreshTokenName, null);
-//			final String refreshToken = null;
 
 			// Generate Credential using retrieved code.
 			final GoogleCredential credential = new GoogleCredential.Builder()
@@ -112,10 +132,15 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 						.setAccessType("offline")
 						.setApprovalPrompt("auto").build();
 				final String url = flow.newAuthorizationUrl().setRedirectUri(GoogleOAuthConstants.OOB_REDIRECT_URI).build();
-				System.out.println("Please open the following URL in your browser then type the authorization code:\n" + url);
-				// Read code entered by user.
-				final BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-				final String code = br.readLine();
+				final String code;
+				if ("test".equals(mailId)) {
+					code = getTextCode(url);
+				} else {
+					code = getCode(url);
+				}
+				if (code.isEmpty()) {
+					throw new GMailException("no authentication code received from GMail", null);
+				}
 				final GoogleTokenResponse response = flow.newTokenRequest(code)
 						.setRedirectUri(GoogleOAuthConstants.OOB_REDIRECT_URI)
 						.execute();
@@ -157,13 +182,83 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		});
 		historyService.start(PULL_PERIOD);
 
-		return gmail;
+		return this;
 	}
 
 	@Override
 	public void logout() {
-		// TODO Auto-generated method stub
+	    final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
+		prefs.remove(refreshTokenName);
+		try {
+			prefs.flush();
+		} catch (final BackingStoreException e) {
+			LOGGER.error("removing refresh token", e);
+		}
+	}
 
+	private String getCode(final String url) {
+		final StringBuilder code = new StringBuilder();
+		final CountDownLatch countDownLatch = new CountDownLatch(1);
+		Platform.runLater(new Runnable() {
+			@Override
+			public void run() {
+				final WebView webView = new WebView();
+				final WebEngine webEngine = webView.getEngine();
+				final Stage stage = new Stage(StageStyle.UNIFIED);
+				stage.setScene(new Scene(webView, 450, 650));
+				stage.setOnCloseRequest(event -> countDownLatch.countDown());
+				stage.show();
+
+				webEngine.load(url);
+				webView.getEngine().getLoadWorker().stateProperty().addListener((ovState, oldState, newState) -> {
+					if (newState == State.SUCCEEDED) {
+						final String title = getTitle(webEngine);
+						if (title.length() > 13 && title.startsWith("Success code=")) {
+							code.append(title.substring(13));
+							stage.close();
+							countDownLatch.countDown();
+						}
+					}
+				});
+			}
+		});
+
+		try {
+			countDownLatch.await();
+		} catch (final InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return code.toString();
+	}
+
+	private String getTextCode(final String url) {
+		System.out.println("Please open the following URL in your browser then type the authorization code:\n" + url);
+		// Read code entered by user.
+		final BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		try {
+			return br.readLine();
+		} catch (final IOException e) {
+			return "";
+		}
+	}
+
+	private String getTitle(final WebEngine webEngine) {
+	    final Document doc = webEngine.getDocument();
+	    final NodeList heads = doc.getElementsByTagName("head");
+	    final String titleText = webEngine.getLocation(); // use location if page does not define a title
+	    return getFirstElement(heads)
+	            .map(h -> h.getElementsByTagName("title"))
+	            .flatMap(this::getFirstElement)
+	            .map(Node::getTextContent).orElse(titleText);
+	}
+
+	private Optional<Element> getFirstElement(final NodeList nodeList) {
+	    if (nodeList.getLength() > 0 && nodeList.item(0) instanceof Element) {
+	        return Optional.of((Element) nodeList.item(0));
+	    }
+	    return Optional.empty();
 	}
 
 	@Override
@@ -234,7 +329,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 			return threads;
 		} catch (final ThreadException | LabelException | IOException e) {
-			throw new GMailException("login", e);
+			throw new GMailException("find threads for includes="+includes+" excludes="+excludes+" pattern="+pattern+" pageMax="+pageMax, e);
 		}
 	}
 
@@ -311,7 +406,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			final Collection<Label> labels = labelService.getAll();
 			if (GmailSection.SYSTEM.equals(section)) {
 				final Set<GmailTag> alphaTags = new TreeSet<GmailTag>();
-				alphaTags.add(GmailTag.ALL_MAIL);
+				alphaTags.add(GmailTag.ALL_TAG);
 				for(final Label label:labels) {
 					final String name = label.getName();
 					if (!GmailTag.isHidden(label)) {
@@ -354,7 +449,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 							&& GmailTag.getName(label).toLowerCase().contains(pattern)) {
 						final String name = label.getName();
 						if (section != null && name.equals(section.getPath())) {
-							tags.add(new GmailTag(label.getId(), SimpleTag.THIS_NAME, label.getName(), false));
+							tags.add(new GmailTag(label.getId(), Tag.THIS_NAME, label.getName(), false));
 						} else if (name.indexOf("/") == name.lastIndexOf("/")
 								&& section == null || name.startsWith(section.getName() + "/")) {
 							tags.add(new GmailTag(label));
@@ -387,7 +482,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public int getCountForTags(final Set<GmailTag> includes, final Set<GmailTag> excludes, final String pattern) throws GMailException {
 		try {
-			if (includes.isEmpty() || includes.contains(GmailTag.ALL_MAIL) || includes.contains(GmailTag.SENT)) { //TODO && excludes.isEmpty() && pattern.isEmpty()) {
+			if (includes.isEmpty() || includes.contains(GmailTag.ALL_TAG) || includes.contains(GmailTag.SENT_TAG)) { //TODO && excludes.isEmpty() && pattern.isEmpty()) {
 				return 0;
 			}
 
@@ -435,7 +530,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			, final String namePattern, final String tagPattern) throws GMailException {
 		try {
 			final Set<GmailTag> tags = getTags(section, tagPattern);
-			if (tags.isEmpty() || tags.contains(GmailTag.ALL_MAIL) || tags.contains(GmailTag.SENT)) {
+			if (tags.isEmpty() || tags.contains(GmailTag.ALL_TAG) || tags.contains(GmailTag.SENT_TAG)) {
 				return 0;
 			}
 
@@ -621,7 +716,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 				ids.add(t.getId());
 			}
 			final Set<String> labelIds = new HashSet<String>();
-			labelIds.add(GmailTag.INBOX.getId());
+			labelIds.add(GmailTag.INBOX_TAG.getId());
 			threadService.update(ids, labelIds, false);
 		} catch (final ThreadException e) {
 			throw new GMailException("archiving threads " + threads, e);
@@ -680,9 +775,20 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	@Override
-	public Set<String> getContactAddresses() throws GMailException {
+	public Set<GmailContact> getContacts() throws GMailException {
 		try {
-			return contactService.getAllAddresses();
+			final Set<GmailContact> contacts = new LinkedHashSet<GmailContact>();
+			for(final ContactEntry c: contactService.getAll()) {
+				if (c.getEmailAddresses() != null
+						&& c.getName() != null
+						&& c.getName().getFullName() != null) {
+					final String fullName = c.getName().getFullName().getValue();
+					for(final Email e: c.getEmailAddresses()) {
+						contacts.add(new GmailContact(e.getAddress(), fullName));
+					}
+				}
+			}
+			return contacts;
 		} catch (final ContactException e) {
 			throw new GMailException("getting contacts", e);
 		}
@@ -695,5 +801,13 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		} catch (final MessageException | MessagingException e) {
 			throw new GMailException("getting draft", e);
 		}
+	}
+
+	public MessageService getMessageService() {
+		return messageService;
+	}
+
+	public ThreadService getThreadService() {
+		return threadService;
 	}
 }

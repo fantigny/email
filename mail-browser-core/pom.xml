@@ -50,11 +50,6 @@
 		</dependency>
 		<dependency>
 			<groupId>net.anfoya</groupId>
-			<artifactId>anfoya-tag</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>net.anfoya</groupId>
 			<artifactId>anfoya-javafx</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>

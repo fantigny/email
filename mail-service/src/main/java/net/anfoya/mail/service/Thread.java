@@ -8,11 +8,14 @@ public interface Thread extends Serializable {
 	public static final String PAGE_TOKEN_ID = "no-id-page-token";
 
 	public String getId();
+
+	public Date getDate();
+	public String getSender();
+	public String getSubject();
+
 	public Set<String> getTagIds();
 	public Set<String> getMessageIds();
 
-	public String getSender();
-	public String getSubject();
 	public boolean isUnread();
-	public Date getDate();
+	public boolean isStarred();
 }

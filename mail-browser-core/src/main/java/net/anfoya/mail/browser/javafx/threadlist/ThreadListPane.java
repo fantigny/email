@@ -17,6 +17,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
@@ -29,39 +31,45 @@ import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.ResetTextField;
 import net.anfoya.javafx.scene.control.Title;
 import net.anfoya.mail.browser.javafx.message.MessageComposer;
+import net.anfoya.mail.model.SimpleContact;
 import net.anfoya.mail.model.SimpleMessage;
+import net.anfoya.mail.model.SimpleSection;
+import net.anfoya.mail.model.SimpleTag;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.model.SimpleThread.SortOrder;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.tag.javafx.scene.dnd.DndFormat;
-import net.anfoya.tag.model.SimpleSection;
-import net.anfoya.tag.model.SimpleTag;
 
-public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage> extends BorderPane {
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage, C extends SimpleContact> extends BorderPane {
+	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadListPane.class);
+
 	public static final DataFormat DND_THREADS_DATA_FORMAT = new DataFormat("Set<" + SimpleThread.class.getName() + ">");
 
-	private final MailService<S, T, H, M> mailService;
-	private final ThreadList<S, T, H, M> threadList;
+	private final MailService<S, T, H, M, C> mailService;
+	private final ThreadList<S, T, H, M, C> threadList;
 	private final ResetTextField namePatternField;
 
 	private EventHandler<ActionEvent> updateHandler;
 
-	private ThreadListDropPane<T, H, M> threadListDropPane;
+	private ThreadListDropPane<T, H, M, C> threadListDropPane;
 
 	protected Timeline expandDelay;
 
-	public ThreadListPane(final MailService<S, T, H, M> mailService) {
+	public ThreadListPane(final MailService<S, T, H, M, C> mailService) {
 		this.mailService = mailService;
 
 		final StackPane stackPane = new StackPane();
 		stackPane.setAlignment(Pos.BOTTOM_CENTER);
 		setCenter(stackPane);
 
-		threadListDropPane = new ThreadListDropPane<T, H, M>(mailService);
+		threadListDropPane = new ThreadListDropPane<T, H, M, C>(mailService);
 		threadListDropPane.prefWidthProperty().bind(stackPane.widthProperty());
 
-		threadList = new ThreadList<S, T, H, M>(mailService);
+		threadList = new ThreadList<S, T, H, M, C>(mailService);
 		threadList.setOnDragDetected(event -> {
 			final Set<H> threads = getSelectedThreads();
 			if (threads.size() == 0) {
@@ -137,16 +145,16 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		patternPane.setCenter(namePatternField);
 		BorderPane.setMargin(namePatternField, new Insets(0, 5, 0, 0));
 
-		final Button addButton = new Button("+");
-		addButton.setOnAction(event -> {
+		final Button newButton = new Button();
+		newButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("new.png"))));
+		newButton.setOnAction(event -> {
 			try {
-				new MessageComposer<M>(mailService, updateHandler).newMessage();
+				new MessageComposer<M, C>(mailService, updateHandler).newMessage();
 			} catch (final Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				LOGGER.error("loading new message composer", e);
 			}
 		});
-		patternPane.setRight(addButton);
+		patternPane.setRight(newButton);
 
 		setMargin(patternPane, new Insets(5, 0, 5, 0));
 		setMargin(threadList, new Insets(0, 5, 0, 5));
