@@ -5,8 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLConnection;
 
-public class EmptyUrlConnection extends URLConnection {
-	public EmptyUrlConnection() {
+public class EmptyConnection extends URLConnection {
+	public EmptyConnection() {
 		super(null);
 	}
 

@@ -21,7 +21,7 @@ public class DownloadAndStartConnection extends GoBackUrlConnection {
 	private final File file;
 
 	public DownloadAndStartConnection(final URL url) {
-		super(url, "starting...");
+		super(url, "starting " + url.toString());
 
 		final String[] urlParts = url.getPath().split("/");
 		final String filename = urlParts[urlParts.length-1];
