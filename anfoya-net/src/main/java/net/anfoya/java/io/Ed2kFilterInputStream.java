@@ -4,7 +4,12 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class Ed2kFilterInputStream extends FilterInputStream {
+	private static final Logger LOGGER = LoggerFactory.getLogger(Ed2kFilterInputStream.class);
+
 	private static final byte[] ED2K_START_BYTES = "ed2k://".getBytes();
 	private static final int ED2K_START_LENGTH = ED2K_START_BYTES.length;
 	private static final byte[] ED2K_END_BYTES = "|/".getBytes();
@@ -19,11 +24,12 @@ public class Ed2kFilterInputStream extends FilterInputStream {
 
 	@Override
 	public int read() throws IOException {
-	    return fix((byte) super.read());
+		final int n = super.read();
+	    return n == -1? n: 128 + fix((byte) (n - 128));
 	}
     @Override
 	public int read(final byte b[], final int off, final int len) throws IOException {
-        final int n = in.read(b, off, len);
+        final int n = super.read(b, off, len);
     	for(int i=0; i<n; i++) {
     		b[i] = fix(b[i]);
     	}
@@ -48,6 +54,7 @@ public class Ed2kFilterInputStream extends FilterInputStream {
 	    	if (chr == ED2K_START_BYTES[matchIndex]) {
 	    		matchIndex++;
 	    		if (matchIndex == ED2K_START_LENGTH) {
+	    			LOGGER.info("fixing ed2k link");
 	    			ed2kLink = true;
 	    			matchIndex = 0;
 	    		}

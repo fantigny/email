@@ -18,6 +18,7 @@ public class CustomHandlerTest extends Application {
 	@Override
 	public void start(final Stage primaryStage) throws Exception {
 		final WebView view = new WebView();
+		view.getEngine().setCreatePopupHandler(f -> null);
 		final Scene scene = new Scene(view, 800, 600);
 		primaryStage.initStyle(StageStyle.UNIFIED);
 		primaryStage.setScene(scene);
@@ -25,6 +26,8 @@ public class CustomHandlerTest extends Application {
 
 		URL.setURLStreamHandlerFactory(new CustomHandlerFactory(null));
 //		view.getEngine().load("http://www.w3schools.com/html/tryit.asp?filename=tryhtml_intro");
-		view.getEngine().load("http://www.dvdrip-fr.com/Site/fiche.php?id=4867");
+//		view.getEngine().load("http://www.dvdrip-fr.com/Site/fiche.php?id=4867");
+//		view.getEngine().load("https://pirateproxy.sx/browse");
+		view.getEngine().load("https://pirateproxy.sx");
 	}
 }

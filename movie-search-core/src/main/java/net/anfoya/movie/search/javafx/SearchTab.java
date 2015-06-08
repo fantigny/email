@@ -35,7 +35,7 @@ public class SearchTab extends Tab {
 
 		view = new WebView();
 		view.setContextMenuEnabled(false);
-		view.getEngine().setCreatePopupHandler(popupFeatures -> new WebView().getEngine());
+		view.getEngine().setCreatePopupHandler(f -> null);
 		content.setCenter(view);
 
 		final WebHistory history = view.getEngine().getHistory();
