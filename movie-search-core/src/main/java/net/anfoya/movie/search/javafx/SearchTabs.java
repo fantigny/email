@@ -3,6 +3,8 @@ package net.anfoya.movie.search.javafx;
 import java.util.ArrayList;
 import java.util.List;
 
+import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
@@ -14,6 +16,7 @@ import javafx.scene.control.TabPane;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Callback;
+import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.movie.connector.MovieConnector;
 import net.anfoya.movie.connector.MovieVo;
 import net.anfoya.movie.search.Config;
@@ -66,15 +69,24 @@ public class SearchTabs extends TabPane {
 	}
 
 	private void search(final List<Tab> tabs, final String text) {
-		search(tabs, new MovieVo(text));
-		searchedCallBack.call(text);
+		final Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				search(tabs, new MovieVo(text));
+				return null;
+			}
+		};
+		task.setOnSucceeded(event -> searchedCallBack.call(text));
+		ThreadPool.getInstance().submitHigh(task);
 	}
 
 	private void search(final List<Tab> tabs, final MovieVo movieVo) {
-		LOGGER.info("search \"{}\" (source=\"{}\", id=\"{}\")", movieVo.getName(), movieVo.getSource(), movieVo.getId());
-		for(final Tab tab: tabs) {
-			((SearchTab)tab).search(movieVo);
-		}
+		Platform.runLater(() -> {
+			LOGGER.info("search \"{}\" (source=\"{}\", id=\"{}\")", movieVo.getName(), movieVo.getSource(), movieVo.getId());
+			for(final Tab tab: tabs) {
+				((SearchTab)tab).search(movieVo);
+			}
+		});
 	}
 
 	private ContextMenu buildContextMenu() {
@@ -101,7 +113,10 @@ public class SearchTabs extends TabPane {
 						subItem.setOnAction(new EventHandler<ActionEvent>() {
 							@Override
 							public void handle(final ActionEvent event) {
-								searchTab.search(new MovieVo(getSelection()));
+								final String selection = getSelection();
+								Platform.runLater(() -> {
+									searchTab.search(new MovieVo(selection));
+								});
 								getSelectionModel().select(searchTab);
 							}
 						});

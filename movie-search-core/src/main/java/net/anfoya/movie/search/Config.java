@@ -29,7 +29,7 @@ public class Config {
 				, new SimpleMovieConnector(
 						"Pirate Bay"
 						, "https://pirateproxy.sx"
-						, "https://pirateproxy.sx/search.php?q=%s")
+						, "https://pirateproxy.sx/search/%s/0/99/0")
 		};
 	}
 }
