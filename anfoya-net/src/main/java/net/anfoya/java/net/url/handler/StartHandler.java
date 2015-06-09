@@ -5,6 +5,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -46,9 +47,13 @@ public class StartHandler extends URLStreamHandler {
 			break;
 		}
 		case WIN: {
-	        final Process process = Runtime.getRuntime().exec(new String[] { "explorer", address } );
-			final BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			String line; while((line = br.readLine()) != null) LOGGER.debug(line);
+			try {
+				Desktop.getDesktop().browse(new URI(address));
+			} catch (final URISyntaxException e) {
+		        final Process process = Runtime.getRuntime().exec(new String[] { "explorer", address } );
+				final BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
+				String line; while((line = br.readLine()) != null) LOGGER.debug(line);
+			}
 			break;
 		}
 		default:
@@ -59,6 +64,6 @@ public class StartHandler extends URLStreamHandler {
 			}
 		}
 
-		return new GoBackUrlConnection("starting torrent...");
+		return new GoBackUrlConnection("opening " + address + " ...");
 	}
 }

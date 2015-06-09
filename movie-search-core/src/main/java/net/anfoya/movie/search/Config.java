@@ -2,7 +2,6 @@ package net.anfoya.movie.search;
 
 import net.anfoya.movie.connector.AllocineConnector;
 import net.anfoya.movie.connector.MovieConnector;
-import net.anfoya.movie.connector.RottenTomatoesConnector;
 import net.anfoya.movie.connector.SimpleMovieConnector;
 
 public class Config {
@@ -17,7 +16,7 @@ public class Config {
 						, "http://www.emule-island.ru/"
 						, "http://www.emule-island.ru/recherche.php?categorie=99&find=%s&rechercher=Rechercher&fastr_type=all")
 				, new AllocineConnector()
-				, new RottenTomatoesConnector()
+//				, new RottenTomatoesConnector()
 //				, new ImDbConnector()
 				, new SimpleMovieConnector(
 						"YouTube"
