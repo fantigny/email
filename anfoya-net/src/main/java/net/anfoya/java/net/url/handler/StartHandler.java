@@ -10,6 +10,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
 
+import net.anfoya.java.io.Ed2kWorkaroundInputStream;
 import net.anfoya.java.net.url.connection.GoBackUrlConnection;
 import net.anfoya.java.util.system.OperatingSystem;
 
@@ -20,11 +21,16 @@ public class StartHandler extends URLStreamHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StartHandler.class);
 
 	@Override
-	protected URLConnection openConnection(final URL url) throws IOException {
-		return openConnection(url.toString());
+	protected String toExternalForm(final URL u) {
+		if ("ed2k".equals(u.getProtocol())) {
+			return u.getProtocol() + "://" + Ed2kWorkaroundInputStream.decode(u.getHost()) + "/";
+		}
+		return super.toExternalForm(u);
 	}
 
-	public URLConnection openConnection(final String address) throws IOException {
+	@Override
+	protected URLConnection openConnection(final URL url) throws IOException {
+		final String address = url.toExternalForm();
 		LOGGER.info("starting: {}", address);
 		switch(OperatingSystem.getInstance().getFamily()) {
 		case MAC: {
@@ -47,7 +53,6 @@ public class StartHandler extends URLStreamHandler {
 		}
 		default:
 			try {
-				final URL url = new URL(address);
 				Desktop.getDesktop().open(new File(url.toURI()));
 			} catch (final URISyntaxException e) {
 				LOGGER.error("opening {}", address, e);

@@ -17,7 +17,7 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSocketFactory;
 
-import net.anfoya.java.io.Ed2kFilterInputStream;
+import net.anfoya.java.io.Ed2kWorkaroundInputStream;
 
 public class Ed2kWorkAroundHttpsConnection extends HttpsURLConnection {
 	private final HttpsURLConnection delegate;
@@ -38,7 +38,7 @@ public class Ed2kWorkAroundHttpsConnection extends HttpsURLConnection {
 		if (inputStream == null) {
 			inputStream = delegate.getInputStream();
 			if (delegate.getContentType() != null && delegate.getContentType().contains("text")) {
-				inputStream = new Ed2kFilterInputStream(inputStream);
+				inputStream = new Ed2kWorkaroundInputStream(inputStream);
 			}
 		}
 		return inputStream;

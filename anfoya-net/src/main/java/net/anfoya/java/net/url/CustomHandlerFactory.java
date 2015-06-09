@@ -5,7 +5,6 @@ import java.net.URLStreamHandlerFactory;
 import java.util.StringTokenizer;
 
 import net.anfoya.java.net.url.filter.Matcher;
-import net.anfoya.java.net.url.handler.E2dLinkHandler;
 import net.anfoya.java.net.url.handler.FilteredHttpHandler;
 import net.anfoya.java.net.url.handler.FilteredHttpsHandler;
 import net.anfoya.java.net.url.handler.StartHandler;
@@ -25,7 +24,7 @@ public class CustomHandlerFactory implements URLStreamHandlerFactory {
 	@Override
 	public URLStreamHandler createURLStreamHandler(final String protocol) {
 		if ("ed2k".equals(protocol)) {
-			return new E2dLinkHandler();
+			return new StartHandler();
 		} else if ("magnet".equals(protocol)) {
 			return new StartHandler();
 		} else if ("http".equals(protocol)) {

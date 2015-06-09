@@ -11,7 +11,7 @@ import java.security.Permission;
 import java.util.List;
 import java.util.Map;
 
-import net.anfoya.java.io.Ed2kFilterInputStream;
+import net.anfoya.java.io.Ed2kWorkaroundInputStream;
 
 public class Ed2kWorkAroundHttpConnection extends HttpURLConnection {
 	private final HttpURLConnection delegate;
@@ -32,7 +32,7 @@ public class Ed2kWorkAroundHttpConnection extends HttpURLConnection {
 		if (inputStream == null) {
 			inputStream = delegate.getInputStream();
 			if (delegate.getContentType() != null && delegate.getContentType().contains("text")) {
-				inputStream = new Ed2kFilterInputStream(inputStream);
+				inputStream = new Ed2kWorkaroundInputStream(inputStream);
 			}
 		}
 		return inputStream;
