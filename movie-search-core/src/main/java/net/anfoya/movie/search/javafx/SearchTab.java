@@ -4,6 +4,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.ListBinding;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.event.EventHandler;
 import javafx.scene.control.Tab;
 import javafx.scene.input.MouseEvent;
@@ -11,6 +12,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.web.WebHistory;
 import javafx.scene.web.WebHistory.Entry;
 import javafx.scene.web.WebView;
+import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.TitledProgressBar;
 import net.anfoya.javafx.scene.layout.LocationPane;
 import net.anfoya.movie.connector.MovieConnector;
@@ -81,8 +83,15 @@ public class SearchTab extends Tab {
 	}
 
 	public void search(final String pattern) {
-		LOGGER.info("{} - search ({})", connector.getName(), pattern);
-		search(connector.find(pattern));
+		final Task<MovieVo> task = new Task<MovieVo>() {
+			@Override
+			protected MovieVo call() throws Exception {
+				LOGGER.info("{} - search ({})", connector.getName(), pattern);
+				return connector.find(pattern);
+			}
+		};
+		task.setOnSucceeded(event -> search(task.getValue()));
+		ThreadPool.getInstance().submitHigh(task);
 	}
 
 	public void search(final MovieVo movieVo) {

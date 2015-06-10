@@ -4,19 +4,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javafx.application.Platform;
-import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Callback;
-import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.movie.connector.MovieConnector;
 import net.anfoya.movie.connector.MovieVo;
 import net.anfoya.movie.search.Config;
@@ -51,7 +49,7 @@ public class SearchTabs extends TabPane {
 			});
 			getTabs().add(tab);
 		}
-//		getSelectionModel().select(1);
+		getSelectionModel().select(1);
 	}
 
 	public void init() {
@@ -68,90 +66,77 @@ public class SearchTabs extends TabPane {
 		search(getTabs(), resultVo);
 	}
 
-	private void search(final List<Tab> tabs, final String text) {
-		final Task<Void> task = new Task<Void>() {
-			@Override
-			protected Void call() throws Exception {
-				search(tabs, new MovieVo(text));
-				return null;
-			}
-		};
-		task.setOnSucceeded(event -> searchedCallBack.call(text));
-		ThreadPool.getInstance().submitHigh(task);
+	private void search(final List<Tab> tabs, final MovieVo movieVo) {
+		for(final Tab tab: tabs) {
+			search(tab, movieVo);
+		}
 	}
 
-	private void search(final List<Tab> tabs, final MovieVo movieVo) {
-		Platform.runLater(() -> {
-			LOGGER.info("search \"{}\" (source=\"{}\", id=\"{}\")", movieVo.getName(), movieVo.getSource(), movieVo.getId());
-			for(final Tab tab: tabs) {
-				((SearchTab)tab).search(movieVo);
-			}
-		});
+	private void search(final Tab tab, final MovieVo movieVo) {
+		LOGGER.info("search \"{}\" (source=\"{}\", id=\"{}\")", movieVo.getName(), movieVo.getSource(), movieVo.getId());
+		Platform.runLater(() -> ((SearchTab)tab).search(movieVo));
 	}
 
 	private ContextMenu buildContextMenu() {
 		final ContextMenu menu = new ContextMenu();
-		{
-			final Tab selectedTab = getSelectionModel().getSelectedItem();
-			final Menu item = new Menu("Search Others");
-			item.setOnAction(new EventHandler<ActionEvent>() {
-				@Override
-				public void handle(final ActionEvent event) {
-					if (event.getTarget() instanceof Menu) {
-						@SuppressWarnings("serial")
-						final List<Tab> others = new ArrayList<Tab>(getTabs()) { { remove(selectedTab); } };
-						search(others, getSelection());
-						menu.hide();
-					}
-				}
-			});
-			for(final Tab tab: getTabs()) {
-				if (tab != selectedTab) {
-					final SearchTab searchTab = (SearchTab) tab;
-					if (searchTab.isSearchable()) {
-						final MenuItem subItem = new MenuItem(searchTab.getName());
-						subItem.setOnAction(new EventHandler<ActionEvent>() {
-							@Override
-							public void handle(final ActionEvent event) {
-								final String selection = getSelection();
-								Platform.runLater(() -> {
-									searchTab.search(new MovieVo(selection));
-								});
-								getSelectionModel().select(searchTab);
-							}
-						});
-						item.getItems().add(subItem);
-					}
-				}
-			}
-			menu.getItems().add(item);
-		}
-		{
+		/* search next tabs */ {
 			final int nextIndex = getSelectionModel().getSelectedIndex() + 1;
 			if (nextIndex < getTabs().size()) {
-				final List<Tab> tabs = getTabs().subList(nextIndex, getTabs().size()-1);
-				final MenuItem item = new MenuItem("Search Next Tabs");
+				final List<Tab> tabs = getTabs().subList(nextIndex, getTabs().size());
+				final MenuItem item = new MenuItem("Next Tabs");
 				item.setOnAction(new EventHandler<ActionEvent>() {
 					@Override
 					public void handle(final ActionEvent event) {
-						search(tabs, getSelection());
-						if (tabs.size() > 0) {
-							getSelectionModel().select(tabs.get(0));
-						}
+						search(tabs, new MovieVo(getSelection()));
+						getSelectionModel().select(tabs.get(0));
 					}
 				});
 				menu.getItems().add(item);
 			}
 		}
-		{
-			final MenuItem item = new MenuItem("Search All");
+		/* search others */ {
+			final List<Tab> others = new ArrayList<Tab>(getTabs());
+			others.remove(getSelectionModel().getSelectedItem());
+			final MenuItem item = new MenuItem("Others");
 			item.setOnAction(new EventHandler<ActionEvent>() {
 				@Override
 				public void handle(final ActionEvent event) {
-					search(getTabs(), getSelection());
+					search(others, new MovieVo(getSelection()));
+					getSelectionModel().select(others.get(0));
 				}
 			});
 			menu.getItems().add(item);
+		}
+		/* search all */ {
+			final MenuItem item = new MenuItem("All");
+			item.setOnAction(new EventHandler<ActionEvent>() {
+				@Override
+				public void handle(final ActionEvent event) {
+					final String selection = getSelection();
+					search(getTabs(), new MovieVo(selection));
+					searchedCallBack.call(selection);
+				}
+			});
+			menu.getItems().add(item);
+		}
+		menu.getItems().add(new SeparatorMenuItem());
+		/* search individual tabs */ {
+			final List<Tab> others = new ArrayList<Tab>(getTabs());
+			others.remove(getSelectionModel().getSelectedItem());
+			for(final Tab tab: others) {
+				final SearchTab searchTab = (SearchTab) tab;
+				if (searchTab.isSearchable()) {
+					final MenuItem subItem = new MenuItem(searchTab.getName());
+					subItem.setOnAction(new EventHandler<ActionEvent>() {
+						@Override
+						public void handle(final ActionEvent event) {
+							search(searchTab, new MovieVo(getSelection()));
+							getSelectionModel().select(searchTab);
+						}
+					});
+					menu.getItems().add(subItem);
+				}
+			}
 		}
 
 		return menu;
