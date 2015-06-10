@@ -113,7 +113,7 @@ public class SearchTab extends Tab {
 		if (selection == null) {
 			selection = "";
 		}
-		return selection;
+		return selection.trim();
 	}
 
 	public boolean isSearchable() {

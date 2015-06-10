@@ -121,9 +121,7 @@ public class SearchTabs extends TabPane {
 		}
 		menu.getItems().add(new SeparatorMenuItem());
 		/* search individual tabs */ {
-			final List<Tab> others = new ArrayList<Tab>(getTabs());
-			others.remove(getSelectionModel().getSelectedItem());
-			for(final Tab tab: others) {
+			for(final Tab tab: getTabs()) {
 				final SearchTab searchTab = (SearchTab) tab;
 				if (searchTab.isSearchable()) {
 					final MenuItem subItem = new MenuItem(searchTab.getName());
