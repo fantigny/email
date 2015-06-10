@@ -21,7 +21,7 @@ public class Config {
 				, new SimpleMovieConnector(
 						"YouTube"
 						, "https://www.youtube.com"
-						, "https://www.youtube.com/results?search_query=official+trailer+%s")
+						, "https://www.youtube.com/results?search_query=%s+official+trailer")
 				, new SimpleMovieConnector(
 						"C Pas Bien"
 						, "https://www.cpasbien.pw"

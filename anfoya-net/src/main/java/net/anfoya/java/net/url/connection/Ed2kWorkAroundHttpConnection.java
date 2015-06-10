@@ -31,7 +31,7 @@ public class Ed2kWorkAroundHttpConnection extends HttpURLConnection {
 	public InputStream getInputStream() throws MalformedURLException, IOException {
 		if (inputStream == null) {
 			inputStream = delegate.getInputStream();
-			if (delegate.getContentType() != null && delegate.getContentType().contains("text")) {
+			if (delegate.getContentType() != null && delegate.getContentType().contains("text/html")) {
 				inputStream = new Ed2kWorkaroundInputStream(inputStream);
 			}
 		}

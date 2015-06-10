@@ -36,6 +36,11 @@ public class CustomHandlerFactory implements URLStreamHandlerFactory {
 	}
 
 	private URLStreamHandler getJavaHandler(final String protocol) {
+		if ("data".equals(protocol)
+				|| "about".equals(protocol)) {
+			return null;
+		}
+
 		String packagePrefixList = null;
 
 		packagePrefixList = java.security.AccessController.doPrivileged(
@@ -75,7 +80,7 @@ public class CustomHandlerFactory implements URLStreamHandlerFactory {
 		    }
 		}
 		if (handler == null) {
-			LOGGER.error("no handler for {}", protocol);
+			LOGGER.warn("no handler for {}", protocol);
 		}
 		return handler;
 	}

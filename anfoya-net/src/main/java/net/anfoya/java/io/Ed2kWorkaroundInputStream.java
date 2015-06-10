@@ -15,7 +15,6 @@ public class Ed2kWorkaroundInputStream extends FilterInputStream {
 
 	private static final String ED2K_PREFIX = "ed2k://";
 
-
 	private static final byte[] START_BYTES = ED2K_PREFIX.getBytes();
 	private static final int START_LENGTH = START_BYTES.length;
 	private static final byte[] END_BYTES = "|/".getBytes();

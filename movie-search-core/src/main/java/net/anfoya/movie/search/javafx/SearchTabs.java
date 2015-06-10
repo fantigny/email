@@ -19,12 +19,7 @@ import net.anfoya.movie.connector.MovieConnector;
 import net.anfoya.movie.connector.MovieVo;
 import net.anfoya.movie.search.Config;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class SearchTabs extends TabPane {
-	private static final Logger LOGGER = LoggerFactory.getLogger(SearchTabs.class);
-
 	private ContextMenu menu;
 	private Callback<String, Void> searchedCallBack;
 
@@ -68,13 +63,18 @@ public class SearchTabs extends TabPane {
 
 	private void search(final List<Tab> tabs, final MovieVo movieVo) {
 		for(final Tab tab: tabs) {
-			search(tab, movieVo);
+			Platform.runLater(() -> ((SearchTab)tab).search(movieVo));
 		}
 	}
 
-	private void search(final Tab tab, final MovieVo movieVo) {
-		LOGGER.info("search \"{}\" (source=\"{}\", id=\"{}\")", movieVo.getName(), movieVo.getSource(), movieVo.getId());
-		Platform.runLater(() -> ((SearchTab)tab).search(movieVo));
+	private void search(final List<Tab> tabs, final String name) {
+		for(final Tab tab: tabs) {
+			search(tab, name);
+		}
+	}
+
+	private void search(final Tab tab, final String name) {
+		Platform.runLater(() -> ((SearchTab)tab).search(name));
 	}
 
 	private ContextMenu buildContextMenu() {
@@ -87,7 +87,7 @@ public class SearchTabs extends TabPane {
 				item.setOnAction(new EventHandler<ActionEvent>() {
 					@Override
 					public void handle(final ActionEvent event) {
-						search(tabs, new MovieVo(getSelection()));
+						search(tabs, getSelection());
 						getSelectionModel().select(tabs.get(0));
 					}
 				});
@@ -130,7 +130,7 @@ public class SearchTabs extends TabPane {
 					subItem.setOnAction(new EventHandler<ActionEvent>() {
 						@Override
 						public void handle(final ActionEvent event) {
-							search(searchTab, new MovieVo(getSelection()));
+							search(searchTab, getSelection());
 							getSelectionModel().select(searchTab);
 						}
 					});
