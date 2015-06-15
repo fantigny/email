@@ -29,11 +29,12 @@ import net.anfoya.mail.browser.javafx.thread.ThreadDropPane;
 import net.anfoya.mail.browser.mime.MimeMessageHelper;
 import net.anfoya.mail.model.SimpleContact;
 import net.anfoya.mail.model.SimpleMessage;
+import net.anfoya.mail.model.SimpleTag;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.tag.model.SimpleSection;
-import net.anfoya.mail.model.SimpleTag;
+import netscape.javascript.JSObject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,7 +103,7 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 			@Override
 			protected String call() throws MailException, MessagingException, IOException, URISyntaxException {
 				message = mailService.getMessage(messageId);
-			    return helper.toHtml(message.getMimeMessage());
+			    return helper.toHtml(message.getMimeMessage(), message.getId());
 			}
 		};
 		loadTask.setOnFailed(event -> {
@@ -110,7 +111,9 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 		});
 		loadTask.setOnSucceeded(event -> {
 			refreshTitle();
-			bodyView.loadContent(loadTask.getValue());
+			bodyView.getEngine().loadContent(loadTask.getValue());
+			final JSObject jsobj = (JSObject) bodyView.getEngine().executeScript("window");
+			jsobj.setMember("attHandler", new AttHandler());
 		});
 		ThreadPool.getInstance().submitHigh(loadTask);
 	}

@@ -12,6 +12,7 @@ import javafx.scene.Node;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.Region;
+import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import netscape.javascript.JSException;
 
@@ -49,14 +50,6 @@ public final class WebViewFitContent extends Region {
 		getChildren().add(delegate);
 	}
 
-	public void loadContent(final String html) {
-		delegate.getEngine().loadContent(html);
-	}
-
-	public void load(final String location) {
-		delegate.getEngine().load(location);
-	}
-
 	@Override
 	protected void layoutChildren() {
 		final double w = getWidth();
@@ -82,10 +75,6 @@ public final class WebViewFitContent extends Region {
 		delegate.setContextMenuEnabled(enable);
 	}
 
-	public void clear() {
-		loadContent("");
-	}
-
 	public void setScrollHandler(final EventHandler<ScrollEvent> handler) {
 		final EventDispatcher eventDispatcher = getEventDispatcher();
 		setEventDispatcher((event, tail) -> {
@@ -99,5 +88,9 @@ public final class WebViewFitContent extends Region {
 
 	public int getVscrollMax() {
 		return (int) delegate.getEngine().executeScript("document.body.scrollHeight - document.body.scrollTop");
+	}
+
+	public WebEngine getEngine() {
+		return delegate.getEngine();
 	}
 }

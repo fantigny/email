@@ -42,11 +42,11 @@ import net.anfoya.javafx.scene.control.AutoCompComboBoxListener;
 import net.anfoya.mail.browser.mime.MimeMessageHelper;
 import net.anfoya.mail.model.SimpleContact;
 import net.anfoya.mail.model.SimpleMessage;
+import net.anfoya.mail.model.SimpleTag;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.tag.model.SimpleSection;
-import net.anfoya.mail.model.SimpleTag;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -270,7 +270,7 @@ public class MessageComposer<M extends SimpleMessage, C extends SimpleContact> e
 
 		String html;
 		try {
-			html = helper.toHtml(message);
+			html = helper.toHtml(message, draft.getId());
 		} catch (IOException | MessagingException e) {
 			html = "";
 			LOGGER.error("getting body", e);

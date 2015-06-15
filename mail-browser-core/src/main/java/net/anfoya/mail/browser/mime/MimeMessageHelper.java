@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -39,35 +41,35 @@ public class MimeMessageHelper {
 	}
 
 	private final Map<String, String> cidFilenames;
-	private final HashMap<String, MimeBodyPart> nameAttachements;
+	private final List<String> attachNames;
 
 	public MimeMessageHelper() {
 		cidFilenames = new HashMap<String, String>();
-		nameAttachements = new HashMap<String, MimeBodyPart>();
+		attachNames = new ArrayList<String>();
 	}
 
-	public String toHtml(final MimeMessage message) throws IOException, MessagingException {
+	public String toHtml(final MimeMessage message, final String messageId) throws IOException, MessagingException {
 		cidFilenames.clear();
 		String html = toHtml(message, false).toString();
 		html = replaceCids(html, cidFilenames);
-		html = addAttachments(html,  nameAttachements);
+		html = addAttachments(html, messageId, attachNames);
 		return html;
 	}
 
-	private String addAttachments(final String html, final HashMap<String, MimeBodyPart> nameAttachements) {
-		if (nameAttachements.isEmpty()) {
+	private String addAttachments(final String html, final String messageId, final List<String> attachNames) {
+		if (attachNames.isEmpty()) {
 			return html;
 		}
 
 		String attHtml = "";
 		attHtml += "<br>";
 		attHtml += "<table><tr>";
-		for(int i=0, n=nameAttachements.size(); i<n; i++) {
-			attHtml += "<td align='center'><a href><img src='file://" + ATTACH_ICON_PATH + "'></a></td>";
+		for(final String name: attachNames) {
+			attHtml += "<td align='center'><a onClick='attHandler.start(\"" + messageId + "\", \"" + name + "\")'><img src='file://" + ATTACH_ICON_PATH + "'></a></td>";
 		}
 		attHtml += "</tr><tr>";
-		for(final Entry<String, MimeBodyPart> e: nameAttachements.entrySet()) {
-			attHtml += "<td><a href>" + e.getKey() + "</a></td>";
+		for(final String name: attachNames) {
+			attHtml += "<td><a href onClick='attHandler.start(\"" + messageId + "\", \"" + name + "\")'>" + name + "</a></td>";
 		}
 		attHtml += "</tr></table>";
 
@@ -134,7 +136,7 @@ public class MimeMessageHelper {
 			final MimeBodyPart bodyPart = (MimeBodyPart) part;
 			final String filename = MimeUtility.decodeText(bodyPart.getFileName());
 			LOGGER.debug("++++ keep {}", filename);
-			nameAttachements.put(filename, bodyPart);
+			attachNames.add(filename);
 			return new StringBuilder();
 		} else {
 			LOGGER.warn("---- type {}", type);
