@@ -41,22 +41,22 @@ public class MimeMessageHelper {
 	}
 
 	private final Map<String, String> cidFilenames;
-	private final List<String> attachNames;
+	private final List<String> attachments;
 
 	public MimeMessageHelper() {
 		cidFilenames = new HashMap<String, String>();
-		attachNames = new ArrayList<String>();
+		attachments = new ArrayList<String>();
 	}
 
-	public String toHtml(final MimeMessage message, final String messageId) throws IOException, MessagingException {
+	public String toHtml(final MimeMessage message) throws IOException, MessagingException {
 		cidFilenames.clear();
 		String html = toHtml(message, false).toString();
 		html = replaceCids(html, cidFilenames);
-		html = addAttachments(html, messageId, attachNames);
+		html = addAttachments(html, attachments);
 		return html;
 	}
 
-	private String addAttachments(final String html, final String messageId, final List<String> attachNames) {
+	private String addAttachments(final String html, final List<String> attachNames) {
 		if (attachNames.isEmpty()) {
 			return html;
 		}
@@ -65,13 +65,14 @@ public class MimeMessageHelper {
 		attHtml += "<br>";
 		attHtml += "<table><tr>";
 		for(final String name: attachNames) {
-			attHtml += "<td align='center'><a onClick='attHandler.start(\"" + messageId + "\", \"" + name + "\")'><img src='file://" + ATTACH_ICON_PATH + "'></a></td>";
+			attHtml += "<td align='center'><a onClick='attLoader.start(\"" + name + "\")'><img src='file://" + ATTACH_ICON_PATH + "'></a></td>";
 		}
 		attHtml += "</tr><tr>";
 		for(final String name: attachNames) {
-			attHtml += "<td><a href onClick='attHandler.start(\"" + messageId + "\", \"" + name + "\")'>" + name + "</a></td>";
+			attHtml += "<td><a href onClick='attLoader.start(\"" + name + "\")'>" + name + "</a></td>";
 		}
 		attHtml += "</tr></table>";
+		LOGGER.debug(attHtml);
 
 		final String start, end;
 		if (html.contains("</html>")) {
@@ -82,8 +83,6 @@ public class MimeMessageHelper {
 			start = html;
 			end = "";
 		}
-
-		LOGGER.info(attHtml);
 
 		return start + attHtml + end;
 	}
@@ -136,7 +135,7 @@ public class MimeMessageHelper {
 			final MimeBodyPart bodyPart = (MimeBodyPart) part;
 			final String filename = MimeUtility.decodeText(bodyPart.getFileName());
 			LOGGER.debug("++++ keep {}", filename);
-			attachNames.add(filename);
+			attachments.add(filename);
 			return new StringBuilder();
 		} else {
 			LOGGER.warn("---- type {}", type);

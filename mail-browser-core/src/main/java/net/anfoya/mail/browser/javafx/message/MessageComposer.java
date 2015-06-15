@@ -270,7 +270,7 @@ public class MessageComposer<M extends SimpleMessage, C extends SimpleContact> e
 
 		String html;
 		try {
-			html = helper.toHtml(message, draft.getId());
+			html = helper.toHtml(message);
 		} catch (IOException | MessagingException e) {
 			html = "";
 			LOGGER.error("getting body", e);

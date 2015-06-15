@@ -103,7 +103,7 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 			@Override
 			protected String call() throws MailException, MessagingException, IOException, URISyntaxException {
 				message = mailService.getMessage(messageId);
-			    return helper.toHtml(message.getMimeMessage(), message.getId());
+			    return helper.toHtml(message.getMimeMessage());
 			}
 		};
 		loadTask.setOnFailed(event -> {
@@ -112,8 +112,7 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 		loadTask.setOnSucceeded(event -> {
 			refreshTitle();
 			bodyView.getEngine().loadContent(loadTask.getValue());
-			final JSObject jsobj = (JSObject) bodyView.getEngine().executeScript("window");
-			jsobj.setMember("attHandler", new AttHandler());
+			((JSObject) bodyView.getEngine().executeScript("window")).setMember("attLoader", new AttachmentLoader<M>(mailService, messageId));
 		});
 		ThreadPool.getInstance().submitHigh(loadTask);
 	}
