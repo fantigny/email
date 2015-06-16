@@ -11,13 +11,13 @@ public class GmailTest {
 	@Test
 	public void login() throws MailException {
 		final GmailService service = new GmailService();
-		service.login("test");
+		service.connect("test");
 	}
 
 	@Test
 	public void getTags() throws MailException, TagException {
 		final GmailService service = new GmailService();
-		service.login("test");
+		service.connect("test");
 		for(final Tag t: service.getTags()) {
 			System.out.println(t);
 		}

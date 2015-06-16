@@ -4,25 +4,18 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.CountDownLatch;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
-import javafx.application.Platform;
-import javafx.concurrent.Worker.State;
-import javafx.scene.Scene;
-import javafx.scene.web.WebEngine;
-import javafx.scene.web.WebView;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.util.Callback;
 
 import javax.mail.MessagingException;
@@ -48,15 +41,9 @@ import net.anfoya.mail.service.Tag;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.client.googleapis.auth.oauth2.GoogleOAuthConstants;
-import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
@@ -78,16 +65,9 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
     private static final String APP_NAME = "AGARAM";
 	private static final String CLIENT_SECRET_PATH = "client_secret.json";
-	private static final String SCOPE =
-			"https://www.googleapis.com/auth/gmail.modify"
-			+ " https://www.googleapis.com/auth/gmail.labels"
-			+ " https://www.googleapis.com/auth/contacts.readonly";
-	private static final String LOGIN_SUCESS_PREFIX = "Success code=";
     private static final String REFRESH_TOKEN = "%s-refresh-token";
 
 	private static final long PULL_PERIOD_MS = 1000 * 5;
-
-	public static final String TEST_ID = "test";
 
 	private final HttpTransport httpTransport;
 	private final JsonFactory jsonFactory;
@@ -99,17 +79,20 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	private ContactService contactService;
 	private String refreshTokenName;
 
+	private final BooleanProperty connected;
+
 	public GmailService() {
 		httpTransport = new NetHttpTransport();
 		jsonFactory = new JacksonFactory();
+		connected = new SimpleBooleanProperty(false);
 	}
 
 	@Override
-	public void login() throws GMailException {
-		login("main");
+	public void connect() throws GMailException {
+		connect("main");
 	}
 
-	public GmailService login(final String mailId) throws GMailException {
+	public GmailService connect(final String mailId) throws GMailException {
 		Gmail gmail;
 		ContactsService gcontact;
 		try {
@@ -121,42 +104,20 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		    final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
 			final String refreshToken = prefs.get(refreshTokenName, null);
 
-			// Generate Credential using retrieved code.
 			final GoogleCredential credential = new GoogleCredential.Builder()
 					.setClientSecrets(clientSecrets)
 					.setJsonFactory(jsonFactory)
 					.setTransport(httpTransport)
 					.build();
-			if (refreshToken == null || refreshToken.isEmpty()) {
-				// Allow user to authorize via URL.
-				final GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(httpTransport, jsonFactory, clientSecrets, Arrays.asList(SCOPE))
-						.setAccessType("offline")
-						.setApprovalPrompt("auto")
-						.build();
-				final String url = flow
-						.newAuthorizationUrl()
-						.setRedirectUri(GoogleOAuthConstants.OOB_REDIRECT_URI)
-						.build();
-				final String code;
-				if (TEST_ID.equals(mailId)) {
-					code = getTextCode(url);
-				} else {
-					code = getCode(url);
-				}
-				if (code.isEmpty()) {
-					throw new GMailException("no authentication code received from GMail", null);
-				}
-				final GoogleTokenResponse response = flow
-						.newTokenRequest(code)
-						.setRedirectUri(GoogleOAuthConstants.OOB_REDIRECT_URI)
-						.execute();
-				credential.setFromTokenResponse(response);
-			} else {
+			if (refreshToken != null && !refreshToken.isEmpty()) {
+				// Generate Credential using retrieved code.
 				credential.setRefreshToken(refreshToken);
+			} else {
+				credential.setFromTokenResponse(new GmailLogin(mailId, clientSecrets).getTokenResponseCredentials());
 			}
+			credential.refreshToken();
 
 			// Create a new authorized Google Contact service
-			credential.refreshToken();
 			gcontact = new ContactsService(APP_NAME);
 			gcontact.setOAuth2Credentials(credential);
 
@@ -168,7 +129,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			// save refresh token
 			prefs.put(refreshTokenName, credential.getRefreshToken());
 			prefs.flush();
-		} catch (final IOException | BackingStoreException e) {
+		} catch (final IOException | BackingStoreException | InterruptedException e) {
 			throw new GMailException("login", e);
 		}
 
@@ -179,6 +140,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		labelService = new LabelService(gmail, USER);
 
 		historyService = new HistoryService(gmail, USER);
+		historyService.setOnDisconnected(event -> connected.set(false));
 		historyService.addOnLabelUpdate(t -> {
 			if (t == null) {
 				labelService.clearCache();
@@ -187,11 +149,13 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		});
 		historyService.start(PULL_PERIOD_MS);
 
+		connected.set(true);
+
 		return this;
 	}
 
 	@Override
-	public void logout() {
+	public void disconnect() {
 	    final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
 		prefs.remove(refreshTokenName);
 		try {
@@ -201,70 +165,18 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		}
 	}
 
-	private String getCode(final String url) {
-		final StringBuilder code = new StringBuilder();
-		final CountDownLatch countDownLatch = new CountDownLatch(1);
-		Platform.runLater(new Runnable() {
-			@Override
-			public void run() {
-				final WebView webView = new WebView();
-				final Stage stage = new Stage(StageStyle.UNIFIED);
-				stage.setOnHiding(event -> countDownLatch.countDown());
-				stage.setScene(new Scene(webView, 450, 650));
-				stage.show();
-
-				final WebEngine webEngine = webView.getEngine();
-				webEngine.getLoadWorker().stateProperty().addListener((ovState, oldState, newState) -> {
-					if (newState == State.SUCCEEDED) {
-						final String title = getTitle(webEngine);
-						stage.setTitle(title);
-						if (title.length() > LOGIN_SUCESS_PREFIX.length() && title.startsWith(LOGIN_SUCESS_PREFIX)) {
-							code.append(title.substring(LOGIN_SUCESS_PREFIX.length()));
-							stage.close();
-						}
-					}
-				});
-				webEngine.load(url);
-			}
-		});
-
-		try {
-			countDownLatch.await();
-		} catch (final InterruptedException e) {
-			LOGGER.error("wainting for google login", e);
-		}
-
-		return code.toString();
-	}
-
-	private String getTextCode(final String url) {
-		System.out.println("Please open the following URL in your browser then type the authorization code:\n" + url);
-		// Read code entered by user.
-		final BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-		try {
-			return br.readLine();
-		} catch (final IOException e) {
-			return "";
+	@Override
+	public void reconnect() {
+		if (connected.get()) {
+			return;
 		}
 	}
 
-	private String getTitle(final WebEngine webEngine) {
-	    final NodeList heads = webEngine
-	    		.getDocument()
-	    		.getElementsByTagName("head");
-	    return getFirstElement(heads)
-	            .map(h -> h.getElementsByTagName("title"))
-	            .flatMap(this::getFirstElement)
-	            .map(Node::getTextContent)
-	            .orElse("");
+	@Override
+	public ReadOnlyBooleanProperty connected() {
+		return connected;
 	}
 
-	private Optional<Element> getFirstElement(final NodeList nodeList) {
-	    if (nodeList.getLength() > 0 && nodeList.item(0) instanceof Element) {
-	        return Optional.of((Element) nodeList.item(0));
-	    }
-	    return Optional.empty();
-	}
 
 	@Override
 	public Set<GmailThread> findThreads(final Set<GmailTag> includes, final Set<GmailTag> excludes, final String pattern, final int pageMax) throws GMailException {

@@ -61,7 +61,7 @@ public class MailBrowserApp<
 	public void init() {
 		try {
 			@SuppressWarnings("unchecked")
-			final MailService<S, T, H, M, C> mailService = (MailService<S, T, H, M, C>) new GmailService().login("main");
+			final MailService<S, T, H, M, C> mailService = (MailService<S, T, H, M, C>) new GmailService().connect("main");
 			this.mailService = mailService;
 		} catch (final GMailException e) {
 			LOGGER.error("login error", e);

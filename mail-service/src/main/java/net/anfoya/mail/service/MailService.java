@@ -2,6 +2,7 @@ package net.anfoya.mail.service;
 
 import java.util.Set;
 
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.util.Callback;
 import net.anfoya.tag.service.TagService;
 
@@ -13,8 +14,11 @@ public interface MailService<
 		, C extends Contact>
 		extends TagService<S, T> {
 
-	public void login() throws MailException;
-	public void logout();
+	public void connect() throws MailException;
+	public void reconnect();
+	public void disconnect();
+	public ReadOnlyBooleanProperty connected();
+
 	public void clearCache();
 
 	public void addOnUpdate(Callback<Throwable, Void> callback);

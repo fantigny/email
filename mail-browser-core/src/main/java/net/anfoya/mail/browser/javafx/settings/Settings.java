@@ -61,7 +61,7 @@ public class Settings extends Stage {
 	private Tab buildSettingsTab() {
 		final Button logoutButton = new Button("logout and quit");
 		logoutButton.setOnAction(event -> {
-			mailService.logout();
+			mailService.disconnect();
 			System.exit(0);
 		});
 

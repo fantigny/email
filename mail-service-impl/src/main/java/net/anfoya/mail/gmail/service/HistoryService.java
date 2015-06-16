@@ -2,12 +2,15 @@ package net.anfoya.mail.gmail.service;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.ConnectException;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.util.Callback;
 import net.anfoya.java.io.SerializedFile;
 
@@ -31,6 +34,7 @@ public class HistoryService extends TimerTask {
 
 	private Timer timer;
 	private BigInteger historyId;
+	private EventHandler<ActionEvent> disconnectedHandler;
 
 	private enum UpdateType { NONE, LABEL, UPDATE };
 
@@ -121,6 +125,9 @@ public class HistoryService extends TimerTask {
 			}
 			return types;
 		} catch (final Exception e) {
+			if (e instanceof ConnectException) {
+				disconnectedHandler.handle(null);
+			}
 			throw new HistoryException("getting history id", e);
 		} finally {
 			LOGGER.debug("got history id: {} ({}ms)", historyId, System.currentTimeMillis()-start);
@@ -137,5 +144,9 @@ public class HistoryService extends TimerTask {
 
 	public void clearCache() {
 		historyId = null;
+	}
+
+	public void setOnDisconnected(final EventHandler<ActionEvent> handler) {
+		disconnectedHandler = handler;
 	}
 }

@@ -19,7 +19,7 @@ public class ThreadServiceTest {
 	private ThreadService service;
 
 	@Before public void init() throws MailException {
-		service = new GmailService().login("test").getThreadService();
+		service = new GmailService().connect("test").getThreadService();
 	}
 
 	@Test public void find() throws ThreadException {
