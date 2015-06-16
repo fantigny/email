@@ -13,9 +13,8 @@ import java.util.TreeSet;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.util.Callback;
 
 import javax.mail.MessagingException;
@@ -42,6 +41,7 @@ import net.anfoya.mail.service.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.api.client.auth.oauth2.TokenResponse;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.http.HttpTransport;
@@ -65,7 +65,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
     private static final String APP_NAME = "AGARAM";
 	private static final String CLIENT_SECRET_PATH = "client_secret.json";
-    private static final String REFRESH_TOKEN = "%s-refresh-token";
+    private static final String REFRESH_TOKEN_SUFFIX = "%s-refresh-token";
 
 	private static final long PULL_PERIOD_MS = 1000 * 5;
 
@@ -79,12 +79,12 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	private ContactService contactService;
 	private String refreshTokenName;
 
-	private final BooleanProperty connected;
+	private final ReadOnlyBooleanWrapper connected;
 
 	public GmailService() {
 		httpTransport = new NetHttpTransport();
 		jsonFactory = new JacksonFactory();
-		connected = new SimpleBooleanProperty(false);
+		connected = new ReadOnlyBooleanWrapper(false);
 	}
 
 	@Override
@@ -93,27 +93,28 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	public GmailService connect(final String mailId) throws GMailException {
+		refreshTokenName = String.format(REFRESH_TOKEN_SUFFIX, mailId);
+
 		Gmail gmail;
 		ContactsService gcontact;
 		try {
 			final BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(CLIENT_SECRET_PATH)));
 			final GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(jsonFactory, reader);
-
-			// read refresh token
-			refreshTokenName = String.format(REFRESH_TOKEN, mailId);
-		    final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
-			final String refreshToken = prefs.get(refreshTokenName, null);
-
 			final GoogleCredential credential = new GoogleCredential.Builder()
 					.setClientSecrets(clientSecrets)
 					.setJsonFactory(jsonFactory)
 					.setTransport(httpTransport)
 					.build();
-			if (refreshToken != null && !refreshToken.isEmpty()) {
-				// Generate Credential using retrieved code.
+
+		    final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
+			if (prefs.nodeExists(refreshTokenName)) {
+				// Generate Credential using saved token.
+				final String refreshToken = prefs.get(refreshTokenName, null);
 				credential.setRefreshToken(refreshToken);
 			} else {
-				credential.setFromTokenResponse(new GmailLogin(mailId, clientSecrets).getTokenResponseCredentials());
+				// Generate Credential using login token.
+				final TokenResponse tokenResponse = new GmailLogin(mailId, clientSecrets).getTokenResponseCredentials();
+				credential.setFromTokenResponse(tokenResponse);
 			}
 			credential.refreshToken();
 
@@ -140,7 +141,6 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		labelService = new LabelService(gmail, USER);
 
 		historyService = new HistoryService(gmail, USER);
-		historyService.setOnDisconnected(event -> connected.set(false));
 		historyService.addOnLabelUpdate(t -> {
 			if (t == null) {
 				labelService.clearCache();
@@ -149,7 +149,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		});
 		historyService.start(PULL_PERIOD_MS);
 
-		connected.set(true);
+		connected.bind(historyService.connected());
 
 		return this;
 	}
@@ -174,7 +174,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 	@Override
 	public ReadOnlyBooleanProperty connected() {
-		return connected;
+		return connected.getReadOnlyProperty();
 	}
 
 

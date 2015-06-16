@@ -9,8 +9,8 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.util.Callback;
 import net.anfoya.java.io.SerializedFile;
 
@@ -29,18 +29,20 @@ public class HistoryService extends TimerTask {
 
 	private final Gmail gmail;
 	private final String user;
+	private final ReadOnlyBooleanWrapper connected;
 	private final Set<Callback<Throwable, Void>> onUpdateCallBacks;
 	private final Set<Callback<Throwable, Void>> onLabelUpdateCallBacks;
 
 	private Timer timer;
 	private BigInteger historyId;
-	private EventHandler<ActionEvent> disconnectedHandler;
 
 	private enum UpdateType { NONE, LABEL, UPDATE };
 
 	public HistoryService(final Gmail gmail, final String user) {
 		this.gmail = gmail;
 		this.user = user;
+
+		connected = new ReadOnlyBooleanWrapper(true);
 
 		try {
 			historyId = new SerializedFile<BigInteger>(FILE_PREFIX + user).load();
@@ -123,10 +125,15 @@ public class HistoryService extends TimerTask {
 					}
 				}
 			}
+			if (!connected.get()) {
+				connected.set(true);
+			}
 			return types;
 		} catch (final Exception e) {
 			if (e instanceof ConnectException) {
-				disconnectedHandler.handle(null);
+				if (connected.get()) {
+					connected.set(false);
+				}
 			}
 			throw new HistoryException("getting history id", e);
 		} finally {
@@ -146,7 +153,7 @@ public class HistoryService extends TimerTask {
 		historyId = null;
 	}
 
-	public void setOnDisconnected(final EventHandler<ActionEvent> handler) {
-		disconnectedHandler = handler;
+	public ReadOnlyBooleanProperty connected() {
+		return connected.getReadOnlyProperty();
 	}
 }
