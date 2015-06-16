@@ -242,4 +242,8 @@ public class ThreadService {
 			LOGGER.debug("load for ids {} ({}ms)", ids, System.currentTimeMillis()-start);
 		}
 	}
+
+	public void clearCache() {
+		idThreads.clear();
+	}
 }

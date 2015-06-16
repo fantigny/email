@@ -134,4 +134,8 @@ public class HistoryService extends TimerTask {
 	public void addOnLabelUpdate(final Callback<Throwable, Void> callback) {
 		onLabelUpdateCallBacks.add(callback);
 	}
+
+	public void clearCache() {
+		historyId = null;
+	}
 }

@@ -63,7 +63,7 @@ public class MimeMessageHelper {
 
 		String attHtml = "";
 		attHtml += "<br>";
-		attHtml += "<table><tr>";
+		attHtml += "<table style='cursor: hand'><tr>";
 		for(final String name: attachNames) {
 			attHtml += "<td align='center' onClick='attLoader.start(\"" + name + "\")'><img src='file://" + ATTACH_ICON_PATH + "'></td>";
 		}

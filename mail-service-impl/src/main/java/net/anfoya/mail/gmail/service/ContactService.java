@@ -55,4 +55,8 @@ public class ContactService {
 		}
 		return contacts;
 	}
+
+	public void clearCache() {
+		contacts.clear();
+	}
 }

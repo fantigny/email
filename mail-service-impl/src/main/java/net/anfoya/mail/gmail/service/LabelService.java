@@ -120,7 +120,7 @@ public class LabelService {
 		return null;
 	}
 
-	public void update() {
+	public void clearCache() {
 		idLabels.clear();
 	}
 }

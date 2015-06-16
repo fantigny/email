@@ -132,4 +132,8 @@ public class MessageService {
 			throw new MessageException("getting draft " + id, e);
 		}
 	}
+
+	public void clearCache() {
+		idMessages.clear();
+	}
 }

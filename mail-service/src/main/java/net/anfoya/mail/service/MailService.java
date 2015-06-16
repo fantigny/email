@@ -15,6 +15,7 @@ public interface MailService<
 
 	public void login() throws MailException;
 	public void logout();
+	public void clearCache();
 
 	public void addOnUpdate(Callback<Throwable, Void> callback);
 

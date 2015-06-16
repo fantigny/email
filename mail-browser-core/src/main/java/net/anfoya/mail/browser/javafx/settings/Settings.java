@@ -20,10 +20,10 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import net.anfoya.mail.model.SimpleContact;
 import net.anfoya.mail.model.SimpleMessage;
+import net.anfoya.mail.model.SimpleTag;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.tag.model.SimpleSection;
-import net.anfoya.mail.model.SimpleTag;
 
 public class Settings extends Stage {
 
@@ -65,6 +65,11 @@ public class Settings extends Stage {
 			System.exit(0);
 		});
 
+		final Button clearCacheButton = new Button("clear cache");
+		clearCacheButton.setOnAction(event -> {
+			mailService.clearCache();
+		});
+
 		final SwitchButton toolButton = new SwitchButton();
 		toolButton.setSwitchOn(false);
 		toolButton.switchOnProperty().addListener((ov, o, n) -> System.out.println("switch is " + (n? "on": "off")));
@@ -73,8 +78,10 @@ public class Settings extends Stage {
 		gridPane.setPadding(new Insets(5));
 		gridPane.setVgap(5);
 		gridPane.setHgap(10);
-		gridPane.addRow(0, new Label("disconnect your account and close FisherMail"), logoutButton);
-		gridPane.addRow(1, new Label("show tool bar"), toolButton);
+		int i = 0;
+		gridPane.addRow(i++, new Label("disconnect your account and close FisherMail"), logoutButton);
+		gridPane.addRow(i++, new Label("clear cache"), clearCacheButton);
+		gridPane.addRow(i++, new Label("show tool bar"), toolButton);
 
 		return new Tab("settings", gridPane);
 	}

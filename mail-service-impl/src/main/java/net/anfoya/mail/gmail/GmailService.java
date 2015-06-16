@@ -181,7 +181,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		historyService = new HistoryService(gmail, USER);
 		historyService.addOnLabelUpdate(t -> {
 			if (t == null) {
-				labelService.update();
+				labelService.clearCache();
 			}
 			return null;
 		});
@@ -817,5 +817,14 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 	public ThreadService getThreadService() {
 		return threadService;
+	}
+
+	@Override
+	public void clearCache() {
+		labelService.clearCache();
+		messageService.clearCache();
+		threadService.clearCache();
+		historyService.clearCache();
+		contactService.clearCache();
 	}
 }
