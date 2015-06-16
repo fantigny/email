@@ -149,7 +149,7 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		newButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("new.png"))));
 		newButton.setOnAction(event -> {
 			try {
-				new MessageComposer<M, C>(mailService, updateHandler).newMessage();
+				new MessageComposer<M, C>(mailService, updateHandler).newMessage("");
 			} catch (final Exception e) {
 				LOGGER.error("loading new message composer", e);
 			}

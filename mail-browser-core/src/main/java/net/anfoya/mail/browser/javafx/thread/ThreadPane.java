@@ -27,23 +27,23 @@ import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
 import net.anfoya.mail.model.SimpleContact;
 import net.anfoya.mail.model.SimpleMessage;
+import net.anfoya.mail.model.SimpleTag;
 import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.tag.javafx.scene.section.SelectedTagsPane;
 import net.anfoya.tag.model.SimpleSection;
-import net.anfoya.mail.model.SimpleTag;
 
-public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage> extends BorderPane {
+public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage, C extends SimpleContact> extends BorderPane {
 //	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadPane.class);
 
-	private final MailService<? extends SimpleSection, T, H, M, ? extends SimpleContact> mailService;
+	private final MailService<? extends SimpleSection, T, H, M, C> mailService;
 
 	private final TextField subjectField;
 	private final SelectedTagsPane<T> tagsPane;
 	private final VBox messagesBox;
 
-	private EventHandler<ActionEvent> delTagHandler;
+	private EventHandler<ActionEvent> updateHandler;
 
 	private Set<H> threads;
 	private H thread;
@@ -53,7 +53,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 
 	private final ObservableList<Node> msgPanes;
 
-	public ThreadPane(final MailService<? extends SimpleSection, T, H, M, ? extends SimpleContact> mailService) {
+	public ThreadPane(final MailService<? extends SimpleSection, T, H, M, C> mailService) {
 		this.mailService = mailService;
 
 		subjectField = new TextField("select a thread");
@@ -163,7 +163,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 		final Set<String> messageIds = thread.getMessageIds();
 		for (final Iterator<Node> i = msgPanes.iterator(); i.hasNext();) {
 			@SuppressWarnings("unchecked")
-			final String id = ((MessagePane<M>) i.next()).getMessageId();
+			final String id = ((MessagePane<M, C>) i.next()).getMessageId();
 			if (!messageIds.contains(id)) {
 				i.remove();
 			}
@@ -173,10 +173,11 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 		for(final Iterator<String> i=new LinkedList<String>(thread.getMessageIds()).descendingIterator(); i.hasNext();) {
 			final String id = i.next();
 			@SuppressWarnings("unchecked")
-			MessagePane<M> messagePane = index < msgPanes.size()? (MessagePane<M>) msgPanes.get(index): null;
+			MessagePane<M, C> messagePane = index < msgPanes.size()? (MessagePane<M, C>) msgPanes.get(index): null;
 			if (messagePane == null || !id.equals(messagePane.getMessageId())) {
-				messagePane = new MessagePane<M>(id, mailService);
+				messagePane = new MessagePane<M, C>(id, mailService);
 				messagePane.setScrollHandler(webScrollHandler);
+				messagePane.setUpdateHandler(updateHandler);
 				msgPanes.add(index, messagePane);
 				messagePane.load();
 			}
@@ -188,8 +189,9 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 		scrollPane.setVvalue(0);
 		msgPanes.clear();
 		for(final String id: thread.getMessageIds()) {
-			final MessagePane<M> messagePane = new MessagePane<M>(id, mailService);
+			final MessagePane<M, C> messagePane = new MessagePane<M, C>(id, mailService);
 			messagePane.setScrollHandler(webScrollHandler);
+			messagePane.setUpdateHandler(updateHandler);
 			messagePane.load();
 
 			msgPanes.add(0, messagePane);
@@ -205,7 +207,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 				@SuppressWarnings("serial")
 				final Set<H> threads = new HashSet<H>() {{ add(thread); }};
 				mailService.removeTagForThreads(unread, threads);
-				delTagHandler.handle(null);
+				updateHandler.handle(null);
 			}
 		} catch (final MailException e) {
 			// TODO Auto-generated catch block
@@ -214,7 +216,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 	}
 
 	public void setOnUpdateThread(final EventHandler<ActionEvent> handler) {
-		this.delTagHandler = handler;
+		this.updateHandler = handler;
 	}
 
 	public void refreshTags() {
@@ -240,7 +242,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				delTagHandler.handle(null);
+				updateHandler.handle(null);
 				return null;
 			});
 			tagsPane.refresh(tags);

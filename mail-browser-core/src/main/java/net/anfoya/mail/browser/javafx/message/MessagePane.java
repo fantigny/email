@@ -1,11 +1,15 @@
 package net.anfoya.mail.browser.javafx.message;
 
+import java.awt.Desktop;
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
 
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -39,10 +43,10 @@ import netscape.javascript.JSObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MessagePane<M extends SimpleMessage> extends VBox {
+public class MessagePane<M extends SimpleMessage, C extends SimpleContact> extends VBox {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessagePane.class);
 
-	private final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M, ? extends SimpleContact> mailService;
+	private final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M, C> mailService;
 	private final BooleanProperty expanded;
 	private final MimeMessageHelper helper;
 
@@ -55,14 +59,23 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 	private M message;
 	private Task<String> loadTask;
 
-	public MessagePane(final String messageId, final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M, ? extends SimpleContact> mailService) {
+	private EventHandler<ActionEvent> updateHandler;
+
+	public MessagePane(final String messageId, final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M, C> mailService) {
 		this.mailService = mailService;
 		this.messageId = messageId;
 
-		helper = new MimeMessageHelper();
 		collapsible = true;
+		helper = new MimeMessageHelper();
 
 		bodyView = new WebViewFitContent();
+		bodyView.getEngine().setCreatePopupHandler(handler -> null);
+		bodyView.getEngine().locationProperty().addListener((ov, o, n) -> {
+			if (o != null) {
+				Platform.runLater(() -> bodyView.getEngine().getLoadWorker().cancel());
+				handleHyperlink(n);
+			}
+		});
 
 		expanded = new SimpleBooleanProperty(true);
 		expanded.addListener((ov, oldVal, newVal) -> {
@@ -94,9 +107,23 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 		});
 	}
 
+	private void handleHyperlink(final String location) {
+		try {
+			final URI uri = new URI(location);
+			final String scheme = uri.getScheme();
+			if (scheme.equals("mailto")) {
+				new MessageComposer<M, C>(mailService, updateHandler).newMessage(uri.getSchemeSpecificPart());
+			} else {
+				Desktop.getDesktop().browse(uri);
+			}
+		} catch (final Exception e) {
+			LOGGER.error("handling link \"{}\"", location, e);
+		}
+	}
+
 	public synchronized void load() {
 		if (loadTask != null) {
-			//already loaded;
+			//already loading;
 			return;
 		}
 		loadTask = new Task<String>() {
@@ -186,5 +213,9 @@ public class MessagePane<M extends SimpleMessage> extends VBox {
 
 	public boolean isCollapsble() {
 		return collapsible;
+	}
+
+	public void setUpdateHandler(final EventHandler<ActionEvent> handler) {
+		this.updateHandler = handler;
 	}
 }

@@ -65,11 +65,11 @@ public class MimeMessageHelper {
 		attHtml += "<br>";
 		attHtml += "<table><tr>";
 		for(final String name: attachNames) {
-			attHtml += "<td align='center'><a onClick='attLoader.start(\"" + name + "\")'><img src='file://" + ATTACH_ICON_PATH + "'></a></td>";
+			attHtml += "<td align='center' onClick='attLoader.start(\"" + name + "\")'><img src='file://" + ATTACH_ICON_PATH + "'></td>";
 		}
 		attHtml += "</tr><tr>";
 		for(final String name: attachNames) {
-			attHtml += "<td><a href onClick='attLoader.start(\"" + name + "\")'>" + name + "</a></td>";
+			attHtml += "<td align='center' onClick='attLoader.start(\"" + name + "\")'>" + name + "</td>";
 		}
 		attHtml += "</tr></table>";
 		LOGGER.debug(attHtml);

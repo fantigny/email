@@ -177,15 +177,16 @@ public class MessageComposer<M extends SimpleMessage, C extends SimpleContact> e
 		show();
 	}
 
-	public void newMessage() throws MailException {
+	public void newMessage(final String recipient) throws MailException {
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
 				draft = mailService.createDraft(null);
+				toCombo.setValue(recipient);
 				return null;
 			}
 		};
-		task.setOnFailed(event -> LOGGER.error("creting draft", event.getSource().getException()));
+		task.setOnFailed(event -> LOGGER.error("creating draft", event.getSource().getException()));
 		task.setOnSucceeded(event -> updateHandler.handle(null));
 		ThreadPool.getInstance().submitHigh(task);
 	}

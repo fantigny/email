@@ -55,7 +55,7 @@ public class MailBrowserApp<
 	private SectionListPane<S, T> sectionListPane;
 	private MailService<S, T, H, M, C> mailService;
 	private ThreadListPane<S, T, H, M, C> threadListPane;
-	private ThreadPane<T, H, M> threadPane;
+	private ThreadPane<T, H, M, C> threadPane;
 
 	@Override
 	public void init() {
@@ -121,7 +121,7 @@ public class MailBrowserApp<
 		}
 
 		/* thread panel */ {
-			threadPane = new ThreadPane<T, H, M>(mailService);
+			threadPane = new ThreadPane<T, H, M, C>(mailService);
 			threadPane.setPadding(new Insets(5, 3, 5, 0));
 			threadPane.setOnUpdateThread(event -> refreshAfterThreadUpdate());
 			splitPane.getItems().add(threadPane);

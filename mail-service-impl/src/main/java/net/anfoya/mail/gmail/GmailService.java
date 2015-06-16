@@ -48,7 +48,6 @@ import net.anfoya.mail.service.Tag;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -73,7 +72,6 @@ import com.google.gdata.data.extensions.Email;
 
 public class GmailService implements MailService<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GmailService.class);
-    private static final String REFRESH_TOKEN = "%s-refresh-token";
 
 	private static final String USER = "me";
 	private static final String DEFAULT = "default";
@@ -83,9 +81,13 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	private static final String SCOPE =
 			"https://www.googleapis.com/auth/gmail.modify"
 			+ " https://www.googleapis.com/auth/gmail.labels"
-			+ " https://www.google.com/m8/feeds";
+			+ " https://www.googleapis.com/auth/contacts.readonly";
+	private static final String LOGIN_SUCESS_PREFIX = "Success code=";
+    private static final String REFRESH_TOKEN = "%s-refresh-token";
 
-	private static final long PULL_PERIOD = 1000 * 5;
+	private static final long PULL_PERIOD_MS = 1000 * 5;
+
+	public static final String TEST_ID = "test";
 
 	private final HttpTransport httpTransport;
 	private final JsonFactory jsonFactory;
@@ -126,14 +128,17 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 					.setTransport(httpTransport)
 					.build();
 			if (refreshToken == null || refreshToken.isEmpty()) {
-				// Allow user to authorize via url.
-				final GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow
-						.Builder(httpTransport, jsonFactory, clientSecrets, Arrays.asList(SCOPE))
+				// Allow user to authorize via URL.
+				final GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(httpTransport, jsonFactory, clientSecrets, Arrays.asList(SCOPE))
 						.setAccessType("offline")
-						.setApprovalPrompt("auto").build();
-				final String url = flow.newAuthorizationUrl().setRedirectUri(GoogleOAuthConstants.OOB_REDIRECT_URI).build();
+						.setApprovalPrompt("auto")
+						.build();
+				final String url = flow
+						.newAuthorizationUrl()
+						.setRedirectUri(GoogleOAuthConstants.OOB_REDIRECT_URI)
+						.build();
 				final String code;
-				if ("test".equals(mailId)) {
+				if (TEST_ID.equals(mailId)) {
 					code = getTextCode(url);
 				} else {
 					code = getCode(url);
@@ -141,7 +146,8 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 				if (code.isEmpty()) {
 					throw new GMailException("no authentication code received from GMail", null);
 				}
-				final GoogleTokenResponse response = flow.newTokenRequest(code)
+				final GoogleTokenResponse response = flow
+						.newTokenRequest(code)
 						.setRedirectUri(GoogleOAuthConstants.OOB_REDIRECT_URI)
 						.execute();
 				credential.setFromTokenResponse(response);
@@ -154,8 +160,10 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			gcontact = new ContactsService(APP_NAME);
 			gcontact.setOAuth2Credentials(credential);
 
-			// Create a new authorized Gmail Client service
-			gmail = new Gmail.Builder(httpTransport, jsonFactory, credential).setApplicationName(APP_NAME).build();
+			// Create a new authorized Gmail service
+			gmail = new Gmail.Builder(httpTransport, jsonFactory, credential)
+					.setApplicationName(APP_NAME)
+					.build();
 
 			// save refresh token
 			prefs.put(refreshTokenName, credential.getRefreshToken());
@@ -171,16 +179,13 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		labelService = new LabelService(gmail, USER);
 
 		historyService = new HistoryService(gmail, USER);
-		historyService.addOnLabelUpdate(new Callback<Throwable, Void>() {
-			@Override
-			public Void call(final Throwable t) {
-				if (t == null) {
-					labelService.update();
-				}
-				return null;
+		historyService.addOnLabelUpdate(t -> {
+			if (t == null) {
+				labelService.update();
 			}
+			return null;
 		});
-		historyService.start(PULL_PERIOD);
+		historyService.start(PULL_PERIOD_MS);
 
 		return this;
 	}
@@ -203,31 +208,30 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			@Override
 			public void run() {
 				final WebView webView = new WebView();
-				final WebEngine webEngine = webView.getEngine();
 				final Stage stage = new Stage(StageStyle.UNIFIED);
+				stage.setOnHiding(event -> countDownLatch.countDown());
 				stage.setScene(new Scene(webView, 450, 650));
-				stage.setOnCloseRequest(event -> countDownLatch.countDown());
 				stage.show();
 
-				webEngine.load(url);
-				webView.getEngine().getLoadWorker().stateProperty().addListener((ovState, oldState, newState) -> {
+				final WebEngine webEngine = webView.getEngine();
+				webEngine.getLoadWorker().stateProperty().addListener((ovState, oldState, newState) -> {
 					if (newState == State.SUCCEEDED) {
 						final String title = getTitle(webEngine);
-						if (title.length() > 13 && title.startsWith("Success code=")) {
-							code.append(title.substring(13));
+						stage.setTitle(title);
+						if (title.length() > LOGIN_SUCESS_PREFIX.length() && title.startsWith(LOGIN_SUCESS_PREFIX)) {
+							code.append(title.substring(LOGIN_SUCESS_PREFIX.length()));
 							stage.close();
-							countDownLatch.countDown();
 						}
 					}
 				});
+				webEngine.load(url);
 			}
 		});
 
 		try {
 			countDownLatch.await();
 		} catch (final InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.error("wainting for google login", e);
 		}
 
 		return code.toString();
@@ -245,13 +249,14 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	private String getTitle(final WebEngine webEngine) {
-	    final Document doc = webEngine.getDocument();
-	    final NodeList heads = doc.getElementsByTagName("head");
-	    final String titleText = webEngine.getLocation(); // use location if page does not define a title
+	    final NodeList heads = webEngine
+	    		.getDocument()
+	    		.getElementsByTagName("head");
 	    return getFirstElement(heads)
 	            .map(h -> h.getElementsByTagName("title"))
 	            .flatMap(this::getFirstElement)
-	            .map(Node::getTextContent).orElse(titleText);
+	            .map(Node::getTextContent)
+	            .orElse("");
 	}
 
 	private Optional<Element> getFirstElement(final NodeList nodeList) {
@@ -329,7 +334,10 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 			return threads;
 		} catch (final ThreadException | LabelException | IOException e) {
-			throw new GMailException("find threads for includes="+includes+" excludes="+excludes+" pattern="+pattern+" pageMax="+pageMax, e);
+			throw new GMailException("find threads for includes=" + includes
+					+ " excludes=" + excludes
+					+ " pattern=" + pattern
+					+ " pageMax=" + pageMax, e);
 		}
 	}
 
@@ -461,7 +469,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			LOGGER.debug("tags for section({}) tagPattern({}): {}", section == null? "": section.getPath(), tagPattern, tags);
 			return tags;
 		} catch (final LabelException e) {
-			throw new GMailException("getting tags for section " + section.getName() + " and pattern \" + tagPattern + \"", e);
+			throw new GMailException("getting tags for section " + section.getName() + " and pattern \"" + tagPattern + "\"", e);
 		}
 	}
 
