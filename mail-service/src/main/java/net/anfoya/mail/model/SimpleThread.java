@@ -25,7 +25,7 @@ public abstract class SimpleThread implements Thread {
 			} else if (t2.sender == null || PAGE_TOKEN_ID.equals(t1.id)) {
 				return 1;
 			} else {
-				return t2.sender.compareTo(t1.sender);
+				return t1.sender.compareTo(t2.sender);
 			}
 		});
 
