@@ -74,7 +74,7 @@ public class MessageComposer<M extends SimpleMessage, C extends SimpleContact> e
 	public MessageComposer(final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M, C> mailService, final EventHandler<ActionEvent> updateHandler) {
 		super(StageStyle.UNIFIED);
 		setTitle("FisherMail / Agaar / Agamar / Agaram");
-		getIcons().add(new Image(getClass().getResourceAsStream("../entrypoint/Mail.png")));
+		getIcons().add(new Image(getClass().getResourceAsStream("Mail.png")));
 		setScene(new Scene(new BorderPane(), 800, 600));
 
 		this.mailService = mailService;
