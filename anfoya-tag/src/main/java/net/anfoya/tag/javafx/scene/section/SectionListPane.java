@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -87,6 +89,19 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		setTop(patternBox);
 
 		sectionAcc = new Accordion();
+		sectionAcc.expandedPaneProperty().addListener((ov, o, n) -> {
+			if (n == null && !sectionAcc.getPanes().isEmpty()) {
+				new Timer().schedule(new TimerTask() {
+					@Override
+					public void run() {
+						if (sectionAcc.expandedPaneProperty().isNull().get()
+								 && !sectionAcc.getPanes().isEmpty()) {
+							sectionAcc.setExpandedPane(sectionAcc.getPanes().get(0));
+						}
+					}
+				}, 500);
+			}
+		});
 
 		final StackPane stackPane = new StackPane(sectionAcc);
 		stackPane.setAlignment(Pos.BOTTOM_CENTER);
