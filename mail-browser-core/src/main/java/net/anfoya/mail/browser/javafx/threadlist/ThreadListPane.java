@@ -29,7 +29,6 @@ import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.ResetTextField;
-import net.anfoya.javafx.scene.control.Title;
 import net.anfoya.mail.browser.javafx.message.MessageComposer;
 import net.anfoya.mail.model.SimpleContact;
 import net.anfoya.mail.model.SimpleMessage;
@@ -128,22 +127,13 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 				: SortOrder.DATE));
 		dateSortButton.setSelected(true);
 
-		final HBox box = new HBox(new Label("Sort by: "), nameSortButton, dateSortButton);
-		box.setMinHeight(26);
-		box.setAlignment(Pos.CENTER);
-		box.setSpacing(5);
-		setBottom(box);
-		final BorderPane patternPane = new BorderPane();
-		setTop(patternPane);
-
-		final Title title = new Title("Mail");
-		title.setPadding(new Insets(0, 5, 0, 0));
-		patternPane.setLeft(title);
+		final HBox sortBox = new HBox(5, new Label("Sort by: "), nameSortButton, dateSortButton);
+		sortBox.setMinHeight(26);
+		sortBox.setAlignment(Pos.CENTER);
+		setBottom(sortBox);
 
 		namePatternField = new ResetTextField();
-		namePatternField.setPromptText("search");
-		patternPane.setCenter(namePatternField);
-		BorderPane.setMargin(namePatternField, new Insets(0, 5, 0, 0));
+		namePatternField.setPromptText("mails");
 
 		final Button newButton = new Button();
 		newButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("new.png"))));
@@ -154,11 +144,14 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 				LOGGER.error("loading new message composer", e);
 			}
 		});
-		patternPane.setRight(newButton);
 
+		final BorderPane patternPane = new BorderPane(namePatternField, null, newButton, null, null);
+		setTop(patternPane);
+
+		setMargin(namePatternField, new Insets(0, 5, 0, 0));
 		setMargin(patternPane, new Insets(5, 0, 5, 0));
 		setMargin(threadList, new Insets(0, 5, 0, 5));
-		setMargin(box, new Insets(5));
+		setMargin(sortBox, new Insets(5));
 	}
 
 	private void addTagForThreads(final T tag, final Set<H> threads) {

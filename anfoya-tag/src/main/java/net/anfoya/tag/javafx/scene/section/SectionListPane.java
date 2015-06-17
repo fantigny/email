@@ -26,7 +26,6 @@ import javafx.util.Callback;
 import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.ResetTextField;
-import net.anfoya.javafx.scene.control.Title;
 import net.anfoya.tag.javafx.scene.dnd.DndFormat;
 import net.anfoya.tag.javafx.scene.dnd.ExtItemDropPane;
 import net.anfoya.tag.javafx.scene.tag.TagDropPane;
@@ -80,13 +79,11 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 
 		tagPatternField = new ResetTextField();
 		tagPatternField.prefWidthProperty().bind(widthProperty());
-		tagPatternField.setPromptText("search");
+		tagPatternField.setPromptText("labels");
 		tagPatternField.textProperty().addListener((ChangeListener<String>) (ov, oldPattern, newPattern) -> {
 			refreshWithTagPattern();
 		});
-
-		final HBox patternBox = new HBox(5, new Title("Label"), tagPatternField);
-		setTop(patternBox);
+		setTop(new HBox(5, tagPatternField));
 
 		sectionAcc = new Accordion();
 		sectionAcc.expandedPaneProperty().addListener((ov, o, n) -> {
