@@ -69,7 +69,7 @@ public class MessagePane<M extends SimpleMessage, C extends SimpleContact> exten
 		helper = new MimeMessageHelper();
 
 		bodyView = new WebViewFitContent();
-		bodyView.getEngine().setCreatePopupHandler(handler -> null);
+		bodyView.getEngine().setCreatePopupHandler(handler -> bodyView.getEngine());
 		bodyView.getEngine().locationProperty().addListener((ov, o, n) -> {
 			if (o != null) {
 				Platform.runLater(() -> bodyView.getEngine().getLoadWorker().cancel());
