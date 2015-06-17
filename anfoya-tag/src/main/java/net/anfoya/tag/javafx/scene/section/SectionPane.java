@@ -88,12 +88,15 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 					event.acceptTransferModes(TransferMode.ANY);
 					event.consume();
 				}
+			} else if (db.hasContent(extItemDataFormat) && !SectionPane.this.isExpanded()) {
+				SectionPane.this.setOpacity(.5);
 			}
 		});
 		setOnDragExited(event -> {
 			final Dragboard db = event.getDragboard();
 			if (db.hasContent(extItemDataFormat)) {
 				expandDelay = null;
+				SectionPane.this.setOpacity(1);
 				event.consume();
 			} else if (db.hasContent(DndFormat.TAG_DATA_FORMAT)
 					&& !section.getId().startsWith(SimpleSection.NO_ID)) { //TODO improve
@@ -121,6 +124,7 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 
 		setExpanded(false);
 		expandedProperty().addListener((ov, oldVal, newVal) -> {
+			setOpacity(1);
 			if (newVal && lazyCountTask != null) {
 				Platform.runLater(lazyCountTask);
 				lazyCountTask = null;

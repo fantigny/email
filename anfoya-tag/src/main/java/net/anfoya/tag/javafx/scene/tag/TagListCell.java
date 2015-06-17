@@ -26,7 +26,7 @@ class TagListCell<T extends SimpleTag> extends CheckBoxListCell<TagListItem<T>> 
 		this();
 
 		setOnDragDetected(event -> {
-			if (getItem() != null) {
+			if (getItem() != null && !getItem().getTag().isSystem()) {
 		        final ClipboardContent content = new ClipboardContent();
 		        content.put(DndFormat.TAG_DATA_FORMAT, getItem().getTag());
 		        final Dragboard db = startDragAndDrop(TransferMode.ANY);
