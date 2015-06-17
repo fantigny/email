@@ -16,6 +16,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
@@ -60,10 +61,11 @@ public class MessageComposer<M extends SimpleMessage, C extends SimpleContact> e
 
 	private final BorderPane mainPane;
 	private final GridPane headerPane;
-	private final HBox toBox;
+	private final HBox toLabelBox;
 
 	private final HTMLEditor bodyEditor;
 	private final ComboBox<String> fromCombo;
+	private final HBox toBox;
 	private final ComboBox<String> toCombo;
 	private final TextField ccField;
 	private final TextField bccField;
@@ -101,9 +103,9 @@ public class MessageComposer<M extends SimpleMessage, C extends SimpleContact> e
 		fromCombo.getSelectionModel().select(0);
 		fromCombo.setDisable(true);
 
-		toBox = new HBox(new Label("to"), new Label(" ..."));
-		toBox.setAlignment(Pos.CENTER_LEFT);
-		toBox.setOnMouseClicked(event -> {
+		toLabelBox = new HBox(new Label("to"), new Label(" ..."));
+		toLabelBox.setAlignment(Pos.CENTER_LEFT);
+		toLabelBox.setOnMouseClicked(event -> {
 			if (headerPane.getChildren().contains(fromCombo)) {
 				toMiniHeader();
 			} else {
@@ -121,14 +123,28 @@ public class MessageComposer<M extends SimpleMessage, C extends SimpleContact> e
 			e.printStackTrace();
 		}
 
+		subjectField = new TextField("FisherMail - test");
+
 		toCombo = new ComboBox<String>();
 		toCombo.prefWidthProperty().bind(widthProperty());
 		toCombo.setEditable(true);
 		toCombo.getItems().setAll(emailContacts.keySet());
 		toCombo.setCellFactory(listView -> {
 			return new ListCell<String>() {
+				private boolean initialized = false;
+				private void initListView() {
+			        if (initialized) {
+			        	return;
+			        }
+			        initialized = true;
+			        final ListView<String> listView = getListView();
+					listView.setLayoutX(-1 * toCombo.getLayoutX());
+		        	listView.setPrefWidth(subjectField.getWidth());
+				}
+
 				@Override
 			    public void updateItem(final String address, final boolean empty) {
+			        initListView();
 			        super.updateItem(address, empty);
 			        if (!empty) {
 			        	setText(emailContacts.get(address).getFullname() + " <" + emailContacts.get(address).getEmail() + ">");
@@ -141,9 +157,10 @@ public class MessageComposer<M extends SimpleMessage, C extends SimpleContact> e
 			return emailContacts.get(address).getEmail() + " " + emailContacts.get(address).getFullname();
 		});
 
+		toBox = new HBox(5, new Label("test - test"), toCombo);
+
 		ccField = new TextField();
 		bccField = new TextField();
-		subjectField = new TextField("FisherMail - test");
 
 		toMiniHeader();
 
@@ -354,7 +371,7 @@ public class MessageComposer<M extends SimpleMessage, C extends SimpleContact> e
 
 	private void toMiniHeader() {
 		headerPane.getChildren().clear();
-		headerPane.addRow(0, toBox, toCombo);
+		headerPane.addRow(0, toLabelBox, toBox);
 		headerPane.addRow(1, new Label("subject"), subjectField);
 	}
 

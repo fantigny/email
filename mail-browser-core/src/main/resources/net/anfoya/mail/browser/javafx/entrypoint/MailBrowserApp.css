@@ -26,11 +26,13 @@
     -fx-background-insets: 0;
 }
 
-/* 
-http://blog.ngopal.com.np/2012/07/11/customize-scrollbar-via-css/
+/*
+**
+** http://blog.ngopal.com.np/2012/07/11/customize-scrollbar-via-css/
+**
+*/
 
-The main scrollbar **track** CSS class
-  */
+/*The main scrollbar **track** CSS class */
 .scroll-bar:horizontal .track,
 .scroll-bar:vertical .track{
     -fx-background-color:transparent;
