@@ -91,7 +91,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 		sectionAcc = new Accordion();
 		sectionAcc.expandedPaneProperty().addListener((ov, o, n) -> {
 			if (n == null && !sectionAcc.getPanes().isEmpty()) {
-				new Timer().schedule(new TimerTask() {
+				new Timer(true).schedule(new TimerTask() {
 					@Override
 					public void run() {
 						if (sectionAcc.expandedPaneProperty().isNull().get()

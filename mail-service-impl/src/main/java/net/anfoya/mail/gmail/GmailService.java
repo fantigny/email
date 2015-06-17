@@ -107,9 +107,9 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 					.build();
 
 		    final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
-			if (prefs.nodeExists(refreshTokenName)) {
+			final String refreshToken = prefs.get(refreshTokenName, null);
+			if (refreshToken != null) {
 				// Generate Credential using saved token.
-				final String refreshToken = prefs.get(refreshTokenName, null);
 				credential.setRefreshToken(refreshToken);
 			} else {
 				// Generate Credential using login token.
@@ -176,7 +176,6 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	public ReadOnlyBooleanProperty connected() {
 		return connected.getReadOnlyProperty();
 	}
-
 
 	@Override
 	public Set<GmailThread> findThreads(final Set<GmailTag> includes, final Set<GmailTag> excludes, final String pattern, final int pageMax) throws GMailException {

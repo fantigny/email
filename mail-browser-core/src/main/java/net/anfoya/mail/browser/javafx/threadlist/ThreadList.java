@@ -7,7 +7,10 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
@@ -81,6 +84,25 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 		});
 
 		getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+		getSelectionModel().selectedIndexProperty().addListener((ov, o, n) -> {
+			if (n.equals(-1) && !o.equals(-1)) {
+				new Timer(true).schedule(new TimerTask() {
+					@Override
+					public void run() {
+						Platform.runLater(() -> {
+							if (getSelectionModel().selectedItemProperty().isNull().get()) {
+								for(int index=o.intValue(), n=getItems().size(); index<n; index++) {
+									if (!getItems().get(index).isUnread()) {
+										getSelectionModel().select(index);
+										break;
+									}
+								}
+							}
+						});
+					}
+				}, 500);
+			}
+		});
 	}
 
 	private void archive() {
