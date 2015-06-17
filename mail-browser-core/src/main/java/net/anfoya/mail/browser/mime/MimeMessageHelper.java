@@ -63,7 +63,7 @@ public class MimeMessageHelper {
 
 		String attHtml = "";
 		attHtml += "<br>";
-		attHtml += "<table style='cursor: hand'><tr>";
+		attHtml += "<div style='POSITION: absolute; BOTTOM: 0;'><table style='cursor: hand'><tr>";
 		for(final String name: attachNames) {
 			attHtml += "<td align='center' onClick='attLoader.start(\"" + name + "\")'><img src='file://" + ATTACH_ICON_PATH + "'></td>";
 		}
@@ -71,17 +71,17 @@ public class MimeMessageHelper {
 		for(final String name: attachNames) {
 			attHtml += "<td align='center' onClick='attLoader.start(\"" + name + "\")'>" + name + "</td>";
 		}
-		attHtml += "</tr></table>";
+		attHtml += "</tr></table></div>";
 		LOGGER.debug(attHtml);
 
 		final String start, end;
-		if (html.contains("</html>")) {
-			final int pos = html.lastIndexOf("</html>");
-			start = html.substring(0, pos);
-			end = html.substring(pos);
-		} else {
+		final int pos = Math.max(html.lastIndexOf("</body>"), html.lastIndexOf("</BODY>"));
+		if (pos == -1) {
 			start = html;
 			end = "";
+		} else {
+			start = html.substring(0, pos);
+			end = html.substring(pos);
 		}
 
 		return start + attHtml + end;
