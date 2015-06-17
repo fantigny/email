@@ -39,7 +39,6 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 
 	private final MailService<S, T, H, M, C> mailService;
 
-	private boolean refreshing;
 	private Set<H> threads;
 
 	private Set<T> includes;
@@ -48,23 +47,27 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 	private String namePattern;
 	private int pageMax;
 
-	private EventHandler<ActionEvent> loadHandler;
-
 	private long loadTaskId;
 	private Task<Set<H>> loadTask;
 
+	private boolean refreshing;
+	private boolean resetSelection;
+
+	private EventHandler<ActionEvent> loadHandler;
 	private EventHandler<ActionEvent> updateHandler;
 
 	public ThreadList(final MailService<S, T, H, M, C> mailService) {
 		this.mailService = mailService;
 
-		this.refreshing = false;
-		this.threads = new LinkedHashSet<H>();
+		threads = new LinkedHashSet<H>();
 
-		this.includes = new LinkedHashSet<T>();
-		this.excludes = new LinkedHashSet<T>();
-		this.sortOrder = SortOrder.DATE;
-		this.namePattern = "";
+		includes = new LinkedHashSet<T>();
+		excludes = new LinkedHashSet<T>();
+		sortOrder = SortOrder.DATE;
+		namePattern = "";
+
+		refreshing = false;
+		resetSelection = true;
 
 		setCellFactory(param -> new ThreadListCell<H>());
 		setOnKeyPressed(event -> {
@@ -84,25 +87,27 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 		});
 
 		getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-		getSelectionModel().selectedIndexProperty().addListener((ov, o, n) -> {
-			if (n.equals(-1) && !o.equals(-1)) {
-				new Timer(true).schedule(new TimerTask() {
-					@Override
-					public void run() {
-						Platform.runLater(() -> {
-							if (getSelectionModel().selectedItemProperty().isNull().get()) {
-								for(int index=o.intValue(), n=getItems().size(); index<n; index++) {
-									if (!getItems().get(index).isUnread()) {
-										getSelectionModel().select(index);
-										break;
-									}
-								}
-							}
-						});
-					}
-				}, 500);
-			}
-		});
+		getSelectionModel().selectedIndexProperty().addListener((ov, o, n) -> checkForSelection(o.intValue(), n.intValue()));
+	}
+
+	private void checkForSelection(final int prevIndex, final int newIndex) {
+		if (resetSelection) {
+			resetSelection = false;
+			return;
+		}
+		if (prevIndex != -1 && newIndex == -1) {
+			new Timer(true).schedule(new TimerTask() {
+				@Override
+				public void run() {
+					Platform.runLater(() -> {
+						if (getSelectionModel().selectedItemProperty().isNull().get()
+								&& !getItems().get(prevIndex).isUnread()) {
+							getSelectionModel().select(prevIndex);
+						}
+					});
+				}
+			}, 500);
+		}
 	}
 
 	private void archive() {
@@ -183,29 +188,39 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 
 		// display
 		refreshing = true;
+		resetSelection = true;
 		getItems().setAll(sortedThreads);
 
 		// restore selection
 		getSelectionModel().clearSelection();
-		if (!getItems().isEmpty() && !selectedThreads.isEmpty()) {
-			LOGGER.debug("selected threads {}", threads);
-			final int[] indices = new int[selectedThreads.size()];
-			Arrays.fill(indices, -1);
-			if (selectedThreads.size() == 1
-					&& selectedThreads.iterator().next() instanceof GmailMoreThreads) {
-				indices[0] = selectedIndex;
-				scrollTo(indices[0]);
-			} else {
-				int itemIndex = 0, arrayIndex = 0;
-				for (final H t : getItems()) {
-					if (selectedThreads.contains(t) && !t.isUnread()) {
-						indices[arrayIndex] = itemIndex;
-						arrayIndex++;
+		if (!getItems().isEmpty()) {
+			boolean hasSelection = false;
+			if (!selectedThreads.isEmpty()) {
+				LOGGER.debug("selected threads {}", threads);
+				final int[] indices = new int[selectedThreads.size()];
+				Arrays.fill(indices, -1);
+				if (selectedThreads.size() == 1
+						&& selectedThreads.iterator().next() instanceof GmailMoreThreads) {
+					indices[0] = selectedIndex;
+					scrollTo(indices[0]);
+				} else {
+					int itemIndex = 0, arrayIndex = 0;
+					for (final H t : getItems()) {
+						if (selectedThreads.contains(t) && !t.isUnread()) {
+							indices[arrayIndex] = itemIndex;
+							arrayIndex++;
+						}
+						itemIndex++;
 					}
-					itemIndex++;
+				}
+				if (indices[0] != -1) {
+					hasSelection = true;
+					getSelectionModel().selectIndices(indices[0], indices);
 				}
 			}
-			getSelectionModel().selectIndices(indices[0], indices);
+			if (!hasSelection && !getItems().get(0).isUnread()) {
+				getSelectionModel().select(0);
+			}
 		}
 		refreshing = false;
 
@@ -243,12 +258,11 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 	}
 
 	public void setOnSelectThreads(final EventHandler<ActionEvent> handler) {
-		getSelectionModel().selectedItemProperty().addListener(
-				(ov, newVal, oldVal) -> {
-					if (!refreshing) {
-						handler.handle(null);
-					}
-				});
+		getSelectionModel().selectedItemProperty().addListener((ov, newVal, oldVal) -> {
+			if (!refreshing) {
+				handler.handle(null);
+			}
+		});
 	}
 
 	public void setOnLoad(final EventHandler<ActionEvent> handler) {
