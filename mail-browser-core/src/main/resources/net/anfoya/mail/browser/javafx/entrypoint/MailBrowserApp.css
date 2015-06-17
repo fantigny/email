@@ -2,6 +2,16 @@
     -fx-background-color: white;
 }
 
+.address-label {
+    -fx-background-color: linear-gradient(#ff5400, #be1d00);
+    -fx-background-radius: 8;
+    -fx-background-insets: 0;
+    -fx-padding: 0 3 0 3 0;
+    -fx-text-fill: white;
+    -fx-font-size: 10px;
+    -fx-min-height: 20px;
+}
+
 .tag-button {
     -fx-background-color: linear-gradient(#ff5400, #be1d00);
     -fx-background-radius: 8;

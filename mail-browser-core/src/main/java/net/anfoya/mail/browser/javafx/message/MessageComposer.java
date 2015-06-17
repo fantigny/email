@@ -77,7 +77,11 @@ public class MessageComposer<M extends SimpleMessage, C extends SimpleContact> e
 		super(StageStyle.UNIFIED);
 		setTitle("FisherMail / Agaar / Agamar / Agaram");
 		getIcons().add(new Image(getClass().getResourceAsStream("Mail.png")));
-		setScene(new Scene(new BorderPane(), 800, 600));
+
+		final Scene scene = new Scene(new BorderPane(), 800, 600);
+		scene.getStylesheets().add(getClass().getResource("../entrypoint/MailBrowserApp.css").toExternalForm());
+
+		setScene(scene);
 
 		this.mailService = mailService;
 		this.updateHandler = updateHandler;
@@ -126,18 +130,13 @@ public class MessageComposer<M extends SimpleMessage, C extends SimpleContact> e
 		subjectField = new TextField("FisherMail - test");
 
 		toCombo = new ComboBox<String>();
-		toCombo.prefWidthProperty().bind(widthProperty());
 		toCombo.setEditable(true);
 		toCombo.getItems().setAll(emailContacts.keySet());
 		toCombo.setCellFactory(listView -> {
 			return new ListCell<String>() {
-				private boolean initialized = false;
 				private void initListView() {
-			        if (initialized) {
-			        	return;
-			        }
-			        initialized = true;
 			        final ListView<String> listView = getListView();
+			        LOGGER.error("{}, {}", listView.getLayoutX(), toCombo.getLayoutX());
 					listView.setLayoutX(-1 * toCombo.getLayoutX());
 		        	listView.setPrefWidth(subjectField.getWidth());
 				}
@@ -157,7 +156,11 @@ public class MessageComposer<M extends SimpleMessage, C extends SimpleContact> e
 			return emailContacts.get(address).getEmail() + " " + emailContacts.get(address).getFullname();
 		});
 
-		toBox = new HBox(5, new Label("test - test"), toCombo);
+		final Label test = new Label("Frederic Antigny <frederic.antigny@gmail.com> X");
+		test.getStyleClass().add("address-label");
+
+		toBox = new HBox(5, test, toCombo);
+		toBox.setAlignment(Pos.CENTER_LEFT);
 
 		ccField = new TextField();
 		bccField = new TextField();
