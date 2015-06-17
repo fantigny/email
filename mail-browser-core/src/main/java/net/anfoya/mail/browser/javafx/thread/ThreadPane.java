@@ -56,7 +56,8 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 	public ThreadPane(final MailService<? extends SimpleSection, T, H, M, C> mailService) {
 		this.mailService = mailService;
 
-		subjectField = new TextField("select a thread");
+		subjectField = new TextField();
+		subjectField.setPromptText("select a mail");
 		subjectField.prefWidthProperty().bind(widthProperty());
 		subjectField.setEditable(false);
 
@@ -148,13 +149,13 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 	private void refreshSubject() {
 		switch (threads.size()) {
 		case 0:
-			subjectField.setText("select a thread");
+			subjectField.setText("");
 			break;
 		case 1:
 			subjectField.setText(threads.iterator().next().getSubject());
 			break;
 		default:
-			subjectField.setText("multiple thread selected");
+			subjectField.setText("multiple mails selected");
 			break;
 		}
 	}
