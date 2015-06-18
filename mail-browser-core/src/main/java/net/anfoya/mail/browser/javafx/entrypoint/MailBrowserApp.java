@@ -130,7 +130,7 @@ public class MailBrowserApp<
 		splitPane.setDividerPosition(0, .14);
 		splitPane.setDividerPosition(1, .38);
 
-		primaryStage.setTitle("FisherMail / Agaar / Agamar / Agaram");
+		primaryStage.setTitle("FisherMail");
 		primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("Mail.png")));
         primaryStage.setScene(scene);
         primaryStage.show();

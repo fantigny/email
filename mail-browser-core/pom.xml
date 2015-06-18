@@ -28,17 +28,14 @@
 			        </execution>
 			    </executions>
 			    <configuration>
-					<finalName>FisherMail</finalName>
-			    	<outputDirectory>/Volumes/movies/java</outputDirectory>
-			        <shadedArtifactAttached>true</shadedArtifactAttached> <!-- Make the shaded artifact not the main one -->
-							<transformers>
-								<transformer
-									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<manifestEntries>
-										<main-class>net.anfoya.mail.browser.javafx.entrypoint.MailBrowserApp</main-class>
-									</manifestEntries>
-								</transformer>
-							</transformers>
+			        <shadedArtifactAttached>true</shadedArtifactAttached>
+					<transformers>
+						<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+							<manifestEntries>
+								<main-class>net.anfoya.mail.browser.javafx.entrypoint.MailBrowserApp</main-class>
+							</manifestEntries>
+						</transformer>
+					</transformers>
 			    </configuration>
 			</plugin>
 			<plugin>
@@ -63,7 +60,8 @@
 									shortversion="1.0"
 									copyright="ANFOYA.net"
 									mainclassname="net.anfoya.mail.browser.javafx.entrypoint.MailBrowserApp">
-									<classpath file="/Volumes/movies/java/FisherMail.jar" />
+									<classpath file="target/${project.name}-${project.version}-shaded.jar" />
+							        <option value="-Xmx1g"/>
 								</bundleapp>
 							</target>
 						</configuration>
@@ -92,7 +90,7 @@
 			            <configuration>
 			                <headerType>gui</headerType>
 			                <outfile>/Volumes/movies/FisherMail.exe</outfile>
-			                <jar>/Volumes/movies/java/FisherMail.jar</jar> <!-- 'shaded' is the value set on shadedClassifierName above -->
+			                <jar>target/${project.name}-${project.version}-shaded.jar</jar>
 			                <errTitle>FisherMail Err</errTitle>
 			                <classPath>
 			                    <mainClass>net.anfoya.mail.browser.javafx.entrypoint.MailBrowserApp</mainClass>
