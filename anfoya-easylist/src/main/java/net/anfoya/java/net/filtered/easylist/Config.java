@@ -1,8 +1,10 @@
 package net.anfoya.java.net.filtered.easylist;
 
+import java.io.File;
+
 
 public class Config {
-	private static final String TEMP_FOLDER = System.getProperty("java.io.tmpdir") + "/";
+	private static final String TEMP_FOLDER = System.getProperty("java.io.tmpdir") + File.separatorChar;
 	private static final String EASYLIST_EXCEPTIONS_FILEPATH = TEMP_FOLDER + "easylist_exceptions.bin";
 	private static final String EASYLIST_EXCLUSIONS_FILEPATH = TEMP_FOLDER + "easylist_exclusions.bin";
 	private static final String[] EASY_LIST_URLS = {

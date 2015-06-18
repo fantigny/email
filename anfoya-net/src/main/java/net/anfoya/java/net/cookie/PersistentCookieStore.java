@@ -1,5 +1,6 @@
 package net.anfoya.java.net.cookie;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.CookieManager;
 import java.net.CookieStore;
@@ -23,7 +24,7 @@ public class PersistentCookieStore
 		implements CookieStore {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PersistentCookieStore.class);
-	private static final String COOKIE_FILEPATH = System.getProperty("java.io.tmpdir") + "/cookie_store.json";
+	private static final String COOKIE_FILEPATH = System.getProperty("java.io.tmpdir") + File.separatorChar + "cookie_store.json";
 
     private final CookieStore delegate;
 

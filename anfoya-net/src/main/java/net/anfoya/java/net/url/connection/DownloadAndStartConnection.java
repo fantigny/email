@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 public class DownloadAndStartConnection extends GoBackUrlConnection {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DownloadAndStartConnection.class);
-	private static final String TEMP_DIR = System.getProperty("java.io.tmpdir") +"/";
+	private static final String TEMP_DIR = System.getProperty("java.io.tmpdir") + File.separatorChar;
 
 	private final File file;
 

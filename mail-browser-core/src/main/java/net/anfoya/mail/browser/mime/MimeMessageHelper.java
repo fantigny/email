@@ -24,7 +24,7 @@ import com.sun.mail.util.BASE64DecoderStream;
 
 public class MimeMessageHelper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MimeMessageHelper.class);
-	private static final String TEMP = System.getProperty("java.io.tmpdir") + "/";
+	private static final String TEMP = System.getProperty("java.io.tmpdir") + File.separatorChar;
 	private static final String ATTACH_ICON_PATH = TEMP + "fishermail-attachment.png";
 
 	private static boolean copied = false;

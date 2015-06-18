@@ -31,6 +31,14 @@
 					<finalName>FisherMail</finalName>
 			    	<outputDirectory>/Volumes/movies/java</outputDirectory>
 			        <shadedArtifactAttached>true</shadedArtifactAttached> <!-- Make the shaded artifact not the main one -->
+							<transformers>
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<manifestEntries>
+										<main-class>net.anfoya.mail.browser.javafx.entrypoint.MailBrowserApp</main-class>
+									</manifestEntries>
+								</transformer>
+							</transformers>
 			    </configuration>
 			</plugin>
 			<plugin>

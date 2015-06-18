@@ -26,7 +26,7 @@ import com.sun.mail.util.BASE64DecoderStream;
 
 public class AttachmentLoader<M extends Message> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AttachmentLoader.class);
-	private static final String TEMP = System.getProperty("java.io.tmpdir") + "/";
+	private static final String TEMP = System.getProperty("java.io.tmpdir") + File.separatorChar;
 
 	private final MailService<? extends Section, ? extends Tag, ? extends Thread, M, ? extends Contact> mailService;
 	private final String messageId;

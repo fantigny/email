@@ -1,5 +1,6 @@
 package net.anfoya.java.cache;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -15,7 +16,7 @@ import org.slf4j.LoggerFactory;
 public class LocalCache<K, V> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LocalCache.class);
 	private static final String NAME_FORMAT = "<%s, %d>";
-	private static final String FILENAME_FORMAT = System.getProperty("java.io.tmpdir") + "/cache_%s.bin";
+	private static final String FILENAME_FORMAT = System.getProperty("java.io.tmpdir") + File.separatorChar + "cache_%s.bin";
 
 	private static final double DEFAULT_CHUNK_FACTOR = 0.1; // 10%
 	private static final double DEFAULT_COUNT_DIVIDOR = 10;

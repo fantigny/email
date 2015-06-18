@@ -1,5 +1,6 @@
 package net.anfoya.mail.gmail.service;
 
+import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.ConnectException;
@@ -29,7 +30,7 @@ import com.google.api.services.gmail.model.Message;
 
 public class HistoryService extends TimerTask {
 	private static final Logger LOGGER = LoggerFactory.getLogger(HistoryService.class);
-	private static final String FILE_PREFIX = System.getProperty("java.io.tmpdir") + "/fsm-cache-history-id-";
+	private static final String FILE_PREFIX = System.getProperty("java.io.tmpdir") + File.separatorChar + "fsm-cache-history-id-";
 
 	private final Gmail gmail;
 	private final String user;

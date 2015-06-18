@@ -1,6 +1,7 @@
 package net.anfoya.mail.gmail.service;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.Base64;
 import java.util.Map;
@@ -18,7 +19,7 @@ import com.google.api.services.gmail.model.Draft;
 import com.google.api.services.gmail.model.Message;
 
 public class MessageService {
-	private static final String FILE_PREFIX = System.getProperty("java.io.tmpdir") + "/fsm-cache-id-messages-";
+	private static final String FILE_PREFIX = System.getProperty("java.io.tmpdir") + File.separatorChar + "fsm-cache-id-messages-";
 
 	private final Map<String, CacheData<Message>> idMessages;
 	private final Gmail gmail;
