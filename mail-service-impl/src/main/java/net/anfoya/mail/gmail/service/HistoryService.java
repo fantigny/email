@@ -9,10 +9,14 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.util.Callback;
+import javafx.util.Duration;
 import net.anfoya.java.io.SerializedFile;
+import net.anfoya.javafx.scene.control.Notification;
+import net.anfoya.javafx.scene.control.Notification.Notifier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +40,11 @@ public class HistoryService extends TimerTask {
 	private Timer timer;
 	private BigInteger historyId;
 
-	private enum UpdateType { NONE, LABEL, UPDATE };
+	static {
+		Platform.runLater(() -> Notifier.INSTANCE.setPopupLifetime(Duration.seconds(20)));
+	}
+
+	private enum UpdateType { NONE, LABEL, UPDATE, MESSAGE };
 
 	public HistoryService(final Gmail gmail, final String user) {
 		this.gmail = gmail;
@@ -117,9 +125,16 @@ public class HistoryService extends TimerTask {
 						types.add(UpdateType.LABEL);
 					} else {
 						for(final History h: response.getHistory()) {
-							if (h.getLabelsAdded() != null || h.getLabelsRemoved() != null) {
+							if (h.getLabelsAdded() != null && !h.getLabelsAdded().isEmpty()
+									|| h.getLabelsRemoved() != null && !h.getLabelsRemoved().isEmpty()) {
 								types.add(UpdateType.LABEL);
 								break;
+							}
+							if (h.getMessagesAdded() != null && !h.getMessagesAdded().isEmpty()) {
+								types.add(UpdateType.MESSAGE);
+								final int count = h.getMessagesAdded().size();
+								final String message = count + " new message" + (count==1? "": "s");
+								Platform.runLater(() -> Notifier.INSTANCE.notify("FisherMail", message, Notification.SUCCESS_ICON));
 							}
 						}
 					}

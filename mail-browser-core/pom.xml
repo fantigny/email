@@ -16,28 +16,61 @@
 				</configuration>
 			</plugin>
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>2.3</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<finalName>FisherMail</finalName>
-							<outputDirectory>/Volumes/movies/java</outputDirectory>
-							<transformers>
-								<transformer
-									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<manifestEntries>
-										<main-class>net.anfoya.mail.browser.javafx.entrypoint.MailBrowserApp</main-class>
-									</manifestEntries>
-								</transformer>
-							</transformers>
-						</configuration>
-					</execution>
+			    <groupId>org.apache.maven.plugins</groupId>
+			    <artifactId>maven-shade-plugin</artifactId>
+			    <version>1.4</version>
+			    <executions>
+			        <execution>
+			            <phase>package</phase>
+			            <goals>
+			                <goal>shade</goal>
+			            </goals>
+			        </execution>
+			    </executions>
+			    <configuration>
+			        <shadedArtifactAttached>true</shadedArtifactAttached> <!-- Make the shaded artifact not the main one -->
+			        <shadedClassifierName>shaded</shadedClassifierName> <!-- set the suffix to the shaded jar -->
+			    </configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.akathist.maven.plugins.launch4j</groupId>
+				<artifactId>launch4j-maven-plugin</artifactId>
+				<version>1.7.7</version>
+			    <executions>			
+			        <!-- GUI exe -->
+			        <execution>
+			            <id>l4j-gui</id>
+			            <phase>package</phase>
+			            <goals>
+			                <goal>launch4j</goal>
+			            </goals>
+			            <configuration>
+			                <headerType>gui</headerType>
+			                <outfile>/Volumes/movies/FisherMail.exe</outfile>
+			                <jar>target/${artifactId}-${version}-shaded.jar</jar> <!-- 'shaded' is the value set on shadedClassifierName above -->
+			                <errTitle>FisherMail Err</errTitle>
+			                <classPath>
+			                    <mainClass>net.anfoya.mail.browser.javafx.entrypoint.MailBrowserApp</mainClass>
+			                </classPath>
+			                <icon>src/main/resources/net/anfoya/mail/browser/javafx/entrypoint/Mail.ico</icon>
+			                <jre>
+			                    <minVersion>1.8.0</minVersion>
+			                    <initialHeapSize>128</initialHeapSize>
+			                    <maxHeapSize>1024</maxHeapSize>
+			                </jre>
+			                <versionInfo>
+			                    <fileVersion>1.0.0.0</fileVersion>
+			                    <txtFileVersion>1.0.0.0</txtFileVersion>
+			                    <fileDescription>Desc</fileDescription>
+			                    <copyright>C</copyright>
+			                    <productVersion>1.0.0.0</productVersion>
+			                    <txtProductVersion>1.0.0.0</txtProductVersion>
+			                    <productName>FisherMail</productName>
+			                    <internalName>FisherMail</internalName>
+			                    <originalFilename>FisherMail.exe</originalFilename>
+			                </versionInfo>
+			            </configuration>
+			        </execution>
 				</executions>
 			</plugin>
 		</plugins>
