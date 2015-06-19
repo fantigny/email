@@ -32,6 +32,7 @@ import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.ResetTextField;
 import net.anfoya.mail.browser.javafx.message.MessageComposer;
+import net.anfoya.mail.browser.javafx.settings.Setting;
 import net.anfoya.mail.model.SimpleContact;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleSection;
@@ -70,6 +71,9 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		threadListDropPane = new ThreadListDropPane<T, H, M, C>(mailService);
 		threadListDropPane.prefWidthProperty().bind(stackPane.widthProperty());
 
+		final BorderPane threadListPane = new BorderPane();
+		stackPane.getChildren().add(threadListPane);
+
 		threadList = new ThreadList<S, T, H, M, C>(mailService);
 		threadList.setOnDragDetected(event -> {
 			final Set<H> threads = getSelectedThreads();
@@ -100,6 +104,7 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 				event.consume();
 			}
 		});
+		threadListPane.setCenter(threadList);
 
 		final Button replyButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("reply.png"))));
 		replyButton.setOnAction(event -> {
@@ -164,13 +169,16 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 				, starButton, archiveButton, trashButton);
 		toolbar.setPadding(new Insets(0, 0, 3, 0));
 
-		final BorderPane threadListPane;
-		if (true) {
-			threadListPane = new BorderPane(threadList, toolbar, null, null, null);
-		} else {
-			threadListPane = new BorderPane(threadList);
+		if (Setting.INSTANCE.showToolbar().get()) {
+			threadListPane.setTop(toolbar);
 		}
-		stackPane.getChildren().add(threadListPane);
+		Setting.INSTANCE.showToolbar().addListener((ov, o, n) -> {
+			if (n) {
+				threadListPane.setTop(toolbar);
+			} else {
+				threadListPane.getChildren().remove(toolbar);
+			}
+		});
 
 		stackPane.setOnDragEntered(event -> {
 			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)

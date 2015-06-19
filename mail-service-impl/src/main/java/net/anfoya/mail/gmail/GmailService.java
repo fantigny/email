@@ -16,6 +16,7 @@ import java.util.prefs.Preferences;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.util.Callback;
+import javafx.util.Duration;
 
 import javax.mail.MessagingException;
 
@@ -67,7 +68,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	private static final String CLIENT_SECRET_PATH = "client_secret.json";
     private static final String REFRESH_TOKEN_SUFFIX = "%s-refresh-token";
 
-	private static final long PULL_PERIOD_MS = 1000 * 5;
+	private static final Duration PULL_PERIOD = Duration.seconds(5);
 
 	private final HttpTransport httpTransport;
 	private final JsonFactory jsonFactory;
@@ -147,7 +148,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			}
 			return null;
 		});
-		historyService.start(PULL_PERIOD_MS);
+		historyService.start(PULL_PERIOD);
 
 		connected.bind(historyService.connected());
 

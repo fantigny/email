@@ -71,8 +71,8 @@ public class Settings extends Stage {
 		});
 
 		final SwitchButton toolButton = new SwitchButton();
-		toolButton.setSwitchOn(false);
-		toolButton.switchOnProperty().addListener((ov, o, n) -> System.out.println("switch is " + (n? "on": "off")));
+		toolButton.setSwitchOn(Setting.INSTANCE.showToolbar().get());
+		toolButton.switchOnProperty().addListener((ov, o, n) -> Setting.INSTANCE.showToolbar().set(n));
 
 		final GridPane gridPane = new GridPane();
 		gridPane.setPadding(new Insets(5));

@@ -41,10 +41,6 @@ public class HistoryService extends TimerTask {
 	private Timer timer;
 	private BigInteger historyId;
 
-	static {
-		Platform.runLater(() -> Notifier.INSTANCE.setPopupLifetime(Duration.seconds(20)));
-	}
-
 	private enum UpdateType { NONE, LABEL, UPDATE, MESSAGE };
 
 	public HistoryService(final Gmail gmail, final String user) {
@@ -73,7 +69,8 @@ public class HistoryService extends TimerTask {
 		onLabelUpdateCallBacks = new LinkedHashSet<Callback<Throwable, Void>>();
 	}
 
-	public void start(final long period) {
+	public void start(final Duration pullPeriod) {
+		final long period = (long) pullPeriod.toMillis();
 		timer = new Timer(true);
 		timer.schedule(this, period, period);
 	}

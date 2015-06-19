@@ -7,15 +7,13 @@ import java.util.Set;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.SplitPane;
-import javafx.scene.control.ToolBar;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Callback;
+import javafx.util.Duration;
 
 import javax.security.auth.login.LoginException;
 
@@ -49,6 +47,8 @@ public class MailBrowserApp<
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailBrowserApp.class);
 
+	private static final Duration NOTIFIER_LIFETIME = Duration.seconds(20);
+
 	public static void main(final String[] args) {
 		launch(args);
 	}
@@ -77,6 +77,9 @@ public class MailBrowserApp<
 			ThreadPool.getInstance().shutdown();
 			Notifier.INSTANCE.stop();
 		});
+
+		Notifier.INSTANCE.setPopupLifetime(NOTIFIER_LIFETIME);
+
 		initGui(primaryStage);
 		initData();
 	}
@@ -87,6 +90,7 @@ public class MailBrowserApp<
 
 		final Scene scene = new Scene(splitPane, 1400, 800);
 		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/excludebox.css").toExternalForm());
+		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/button_flat.css").toExternalForm());
 		scene.getStylesheets().add(getClass().getResource("MailBrowserApp.css").toExternalForm());
 
 		/* section+tag list */ {
@@ -113,14 +117,6 @@ public class MailBrowserApp<
 			splitPane.getItems().add(threadListPane);
 		}
 
-		/* tool bar */ {
-			final Button refreshButton = new Button("r");
-			refreshButton.setOnAction(event -> refreshAfterRemoteUpdate());
-			final ToolBar toolBar = new ToolBar(refreshButton);
-			toolBar.setOrientation(Orientation.VERTICAL);
-//			centerPane.getChildren().add(toolBar);
-		}
-
 		/* thread panel */ {
 			threadPane = new ThreadPane<T, H, M, C>(mailService);
 			threadPane.setPadding(new Insets(5, 3, 5, 0));
@@ -143,45 +139,34 @@ public class MailBrowserApp<
 
 		sectionListPane.init(GmailSection.SYSTEM.getName(), "Inbox");
 
-		mailService.addOnUpdate(new Callback<Throwable, Void>() {
-			@Override
-			public Void call(final Throwable t) {
-				if (t != null) {
-					// TODO Auto-generated catch block
-					t.printStackTrace();
-					return null;
-				}
-				Platform.runLater(new Runnable() {
-					@Override
-					public void run() {
-						LOGGER.info("update detected");
-						refreshAfterRemoteUpdate();
-					}
-				});
-				return null;
+		mailService.addOnUpdate(t -> {
+			if (t != null) {
+				LOGGER.error("error checking for updates", t);
+			} else {
+				Platform.runLater(() -> refreshAfterRemoteUpdate());
 			}
+			return null;
 		});
 	}
 
 	boolean refreshAfterTagSelected = true;
 	boolean refreshAfterThreadSelected = true;
+	boolean refreshAfterMoreResultsSelected = true;
+
+	boolean refreshAfterThreadListLoad = true;
 
 	boolean refreshAfterTagUpdate = true;
 	boolean refreshAfterSectionUpdate = true;
 	boolean refreshAfterThreadUpdate = true;
-	boolean refreshAfterThreadListLoad = true;
-
-	boolean refreshAfterRemoteUpdate = true;
-
 	boolean refreshAfterPatternUpdate = false;
-
-	boolean refreshAfterMoreResultsSelected = true;
+	boolean refreshAfterRemoteUpdate = true;
 
 	private void refreshAfterRemoteUpdate() {
 		if (!refreshAfterRemoteUpdate) {
 			return;
 		}
 		LOGGER.debug("refreshAfterRemoteUpdate");
+		LOGGER.info("update detected");
 
 		sectionListPane.refreshAsync(v -> {
 			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());

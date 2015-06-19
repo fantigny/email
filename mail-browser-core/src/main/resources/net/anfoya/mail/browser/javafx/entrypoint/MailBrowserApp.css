@@ -24,6 +24,14 @@
 //    -fx-font-weight: bold;
     -fx-font-size: 10px;
 }
+.tag-button:hover {
+    -fx-background-color: linear-gradient(#ff6500, #cf2e00);
+    -fx-background-insets: 0;
+}
+.tag-button:armed {
+    -fx-background-color: linear-gradient(#ef4400, #ad0c00);
+    -fx-background-insets: 0;
+}
 
 .label-bright {
     -fx-font-size: 11px;
