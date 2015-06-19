@@ -154,16 +154,12 @@ public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends 
 		loadTask = new Task<Set<H>>() {
 			@Override
 			protected Set<H> call() throws InterruptedException, MailException {
-				LOGGER.debug(
-						"loading for includes {}, excludes {}, pattern: {}, pageMax: {}",
-						includes, excludes, namePattern, pageMax);
-				return mailService.findThreads(includes, excludes, namePattern,
-						pageMax);
+				LOGGER.debug("loading for includes {}, excludes {}, pattern: {}, pageMax: {}", includes, excludes, namePattern, pageMax);
+				return mailService.findThreads(includes, excludes, namePattern, pageMax);
 			}
 		};
 		loadTask.setOnFailed(event -> {
-			// TODO Auto-generated catch block
-			event.getSource().getException().printStackTrace(System.out);
+			LOGGER.error("loading thread list", event.getSource().getException());
 		});
 		loadTask.setOnSucceeded(event -> {
 			if (taskId != loadTaskId) {

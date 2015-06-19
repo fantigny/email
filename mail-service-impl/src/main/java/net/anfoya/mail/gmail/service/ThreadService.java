@@ -103,7 +103,7 @@ public class ThreadService {
 		} catch (final IOException | CacheException e) {
 			throw new ThreadException("getting threads for query " + query, e);
 		} finally {
-			LOGGER.debug("get threads for query {} ({}=ms)", query, System.currentTimeMillis()-start);
+			LOGGER.debug("get threads in {}ms for query {}", System.currentTimeMillis()-start, query);
 		}
 	}
 
@@ -144,7 +144,7 @@ public class ThreadService {
 		} catch (final IOException e) {
 			throw new ThreadException("counting threads for query " + query, e);
 		} finally {
-			LOGGER.debug("count threads for query {} ({}=ms)", query, System.currentTimeMillis()-start);
+			LOGGER.debug("count threads in {}ms for query {}", System.currentTimeMillis()-start, query);
 		}
 	}
 
@@ -179,11 +179,12 @@ public class ThreadService {
 		} catch (final IOException | InterruptedException e) {
 			throw new ThreadException("update<{" + (add? "add": "del") + "}> labels " + labelIds + " for threads " + threadIds, e);
 		} finally {
-			LOGGER.debug("update<{}> labels {} for threads {} ({}ms)", add? "add": "del", labelIds, threadIds, System.currentTimeMillis()-start);
+			LOGGER.debug("update<{}> labels for threads in {}ms, label ids {}, thread ids {}", add? "add": "del", System.currentTimeMillis()-start, labelIds, threadIds);
 		}
 	}
 
 	public void trash(final Set<String> ids) throws ThreadException {
+		final long start = System.currentTimeMillis();
 		try {
 			final CountDownLatch latch = new CountDownLatch(ids.size());
 			final BatchRequest batch = gmail.batch();
@@ -205,15 +206,17 @@ public class ThreadService {
 			latch.await();
 		} catch (IOException | InterruptedException e) {
 			throw new ThreadException("trashing for ids " + ids, e);
+		} finally {
+			LOGGER.debug("trash threads in {}ms, thread ids", System.currentTimeMillis()-start, ids);
 		}
 	}
 
 	private void load(final Set<String> ids) throws ThreadException {
-		if (ids.isEmpty()) {
-			return;
-		}
 		final long start = System.currentTimeMillis();
-		try{
+		try {
+			if (ids.isEmpty()) {
+				return;
+			}
 			final Set<Thread> threads = new LinkedHashSet<Thread>();
 			final CountDownLatch latch = new CountDownLatch(ids.size());
 			final BatchRequest batch = gmail.batch();
@@ -240,11 +243,12 @@ public class ThreadService {
 		} catch (IOException | InterruptedException e) {
 			throw new ThreadException("loading for ids " + ids, e);
 		} finally {
-			LOGGER.debug("load for ids {} ({}ms)", ids, System.currentTimeMillis()-start);
+			LOGGER.debug("load threads in {}ms, thread ids {}", System.currentTimeMillis()-start, ids);
 		}
 	}
 
 	public void clearCache() {
 		idThreads.clear();
+		LOGGER.debug("cache cleared");
 	}
 }

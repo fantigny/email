@@ -115,25 +115,21 @@ public class HistoryService extends TimerTask {
 				final ListHistoryResponse response = gmail.users().history().list(user).setStartHistoryId(historyId).execute();
 				final BigInteger previous = historyId;
 				historyId = response.getHistoryId();
-				if (historyId.equals(previous)) {
+				if (historyId.equals(previous) || response.getHistory() == null) {
 					types.add(UpdateType.NONE);
 				} else {
 					types.add(UpdateType.UPDATE);
-					if (response.getHistory() == null) {
-						types.add(UpdateType.LABEL);
-					} else {
-						for(final History h: response.getHistory()) {
-							if (h.getLabelsAdded() != null && !h.getLabelsAdded().isEmpty()
-									|| h.getLabelsRemoved() != null && !h.getLabelsRemoved().isEmpty()) {
-								types.add(UpdateType.LABEL);
-								break;
-							}
-							if (h.getMessagesAdded() != null && !h.getMessagesAdded().isEmpty()) {
-								types.add(UpdateType.MESSAGE);
-								final int count = h.getMessagesAdded().size();
-								final String message = count + " new message" + (count==1? "": "s");
-								Platform.runLater(() -> Notifier.INSTANCE.notify("FisherMail", message, Notification.SUCCESS_ICON));
-							}
+					for(final History h: response.getHistory()) {
+						if (h.getLabelsAdded() != null && !h.getLabelsAdded().isEmpty()
+								|| h.getLabelsRemoved() != null && !h.getLabelsRemoved().isEmpty()) {
+							types.add(UpdateType.LABEL);
+							break;
+						}
+						if (h.getMessagesAdded() != null && !h.getMessagesAdded().isEmpty()) {
+							types.add(UpdateType.MESSAGE);
+							final int count = h.getMessagesAdded().size();
+							final String message = count + " new message" + (count==1? "": "s");
+							Platform.runLater(() -> Notifier.INSTANCE.notify("FisherMail", message, Notification.SUCCESS_ICON));
 						}
 					}
 				}
