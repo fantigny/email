@@ -14,7 +14,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.TitledPane;
@@ -102,7 +101,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 
 		final StackPane stackPane = new StackPane(sectionAcc);
 		stackPane.setAlignment(Pos.BOTTOM_CENTER);
-		stackPane.setPadding(new Insets(5, 0, 5, 0));
+//		stackPane.setPadding(new Insets(5, 0, 5, 0));
 
 		final ExtItemDropPane<T> extItemDropPane = new ExtItemDropPane<T>(extItemDataFormat);
 		extItemDropPane.prefWidthProperty().bind(stackPane.widthProperty());

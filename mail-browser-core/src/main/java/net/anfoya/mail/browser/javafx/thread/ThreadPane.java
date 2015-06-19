@@ -9,7 +9,6 @@ import java.util.Set;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -70,7 +69,6 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 
 		final StackPane stackPane = new StackPane();
 		stackPane.setAlignment(Pos.BOTTOM_CENTER);
-		stackPane.setPadding(new Insets(5, 0, 5, 0));
 
 		final ThreadDropPane<H, M> threadDropPane = new ThreadDropPane<H, M>(mailService);
 		threadDropPane.prefWidthProperty().bind(stackPane.widthProperty());
@@ -95,10 +93,12 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 
 		scrollPane = new ScrollPane();
 		scrollPane.setFitToWidth(true);
-//		scrollPane.getStyleClass().add("edge-to-edge");
+		scrollPane.getStyleClass().add("edge-to-edge");
 
 		messagesBox = new VBox();
 		messagesBox.minHeightProperty().bind(scrollPane.heightProperty());
+		messagesBox.maxHeightProperty().bind(scrollPane.heightProperty());
+		messagesBox.prefHeightProperty().bind(scrollPane.heightProperty());
 		scrollPane.setContent(messagesBox);
 		msgPanes = messagesBox.getChildren();
 

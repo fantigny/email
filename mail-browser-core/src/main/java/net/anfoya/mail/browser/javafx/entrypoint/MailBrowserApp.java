@@ -6,7 +6,6 @@ import java.util.Set;
 
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.SplitPane;
 import javafx.scene.image.Image;
@@ -95,8 +94,6 @@ public class MailBrowserApp<
 
 		/* section+tag list */ {
 			sectionListPane = new SectionListPane<S, T>(mailService, DND_THREADS_DATA_FORMAT);
-			sectionListPane.setPadding(new Insets(5, 0, 5, 5));
-			sectionListPane.setMinWidth(150);
 			sectionListPane.prefHeightProperty().bind(sectionListPane.heightProperty());
 			sectionListPane.setSectionDisableWhenZero(false);
 			sectionListPane.setLazyCount(true);
@@ -108,7 +105,6 @@ public class MailBrowserApp<
 
 		/* thread list */ {
 			threadListPane = new ThreadListPane<S, T, H, M, C>(mailService);
-			threadListPane.setMinWidth(250);
 			threadListPane.prefHeightProperty().bind(splitPane.heightProperty());
 			threadListPane.setOnSelectThread(event -> refreshAfterThreadSelected());
 			threadListPane.setOnLoadThreadList(event -> refreshAfterThreadListLoad());
@@ -119,7 +115,6 @@ public class MailBrowserApp<
 
 		/* thread panel */ {
 			threadPane = new ThreadPane<T, H, M, C>(mailService);
-			threadPane.setPadding(new Insets(5, 3, 5, 0));
 			threadPane.setOnUpdateThread(event -> refreshAfterThreadUpdate());
 			splitPane.getItems().add(threadPane);
 		}

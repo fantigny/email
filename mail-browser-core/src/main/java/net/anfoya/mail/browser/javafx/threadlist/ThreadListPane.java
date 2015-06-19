@@ -208,7 +208,6 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		dateSortButton.setSelected(true);
 
 		final HBox sortBox = new HBox(5, new Label("Sort by: "), nameSortButton, dateSortButton);
-		sortBox.setMinHeight(26);
 		sortBox.setAlignment(Pos.CENTER);
 		setBottom(sortBox);
 
@@ -229,7 +228,6 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		setTop(patternPane);
 
 		setMargin(namePatternField, new Insets(0, 5, 0, 0));
-		setMargin(patternPane, new Insets(5, 0, 5, 0));
 		setMargin(sortBox, new Insets(5));
 	}
 

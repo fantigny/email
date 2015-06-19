@@ -1,5 +1,5 @@
 .background {
-    -fx-background-color: white;
+    -fx-background-color: transparent;
 }
 
 .tool-bar {
@@ -40,12 +40,57 @@
     -fx-opacity: 1;
 }
 
-.split-pane *.split-pane-divider {
-    -fx-opacity: 0;
-    -fx-padding: 0 0 0 2;
-    -fx-border-color: transparent transparent transparent transparent;
-    -fx-background-color: transparent, transparent;
+.accordion {
+    -fx-border-width: 0;
     -fx-background-insets: 0;
+    -fx-background-color: transparent;
+}
+
+.text-field {
+    -fx-border-width: 0;
+    -fx-background-insets: 0;
+    -fx-background-color: transparent;
+}
+
+.list-view {
+    -fx-border-width: 0;
+    -fx-background-insets: 0;
+}
+
+.border-pane {
+    -fx-border-width: 0;
+    -fx-background-insets: 0;
+    -fx-background-color: transparent;
+}
+
+.titled-pane > .title {
+    -fx-border-width: 0;
+    -fx-background-insets: 0;
+    -fx-font-weight: bold;
+    -fx-background-color: white;
+}
+
+.titled-pane > *.content {
+    -fx-border-width: 0;
+    -fx-background-insets: 0;
+    -fx-background-color: transparent;
+}
+
+.split-pane *.split-pane-divider {
+    -fx-min-width: 1;
+    -fx-pref-width: 1;
+    -fx-background-color: lightgray;
+    -fx-padding: 0;
+    -fx-border-width: 0;
+    -fx-background-insets: 0;
+}
+
+.scroll-pane > .viewport {
+   -fx-background-color: transparent;
+}
+
+.scroll-pane {
+   -fx-background-color: transparent;
 }
 
 /*

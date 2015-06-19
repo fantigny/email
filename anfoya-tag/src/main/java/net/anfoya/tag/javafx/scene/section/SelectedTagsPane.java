@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.layout.FlowPane;
 import javafx.util.Callback;
@@ -17,8 +18,7 @@ public class SelectedTagsPane<T extends SimpleTag> extends FlowPane {
 	public SelectedTagsPane() {
 		setVgap(3);
 		setHgap(3);
-		setPrefWidth(0);
-		setMinHeight(26);
+		setPadding(new Insets(3));
 	}
 
 	public void refresh(final Set<T> tags) {
