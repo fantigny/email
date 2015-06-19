@@ -63,15 +63,19 @@ public class MimeMessageHelper {
 
 		String attHtml = "";
 		attHtml += "<br>";
-		attHtml += "<div style='position: absolute; bottom: 0;'><table style='cursor: hand'><tr>";
+		attHtml += "<hr>";
+		attHtml += "<br>";
+		attHtml += "<div style='position: absolute; left: 10; bottom: 10;'>";
+		attHtml += "<table cellspacing='5'><tr>";
 		for(final String name: attachNames) {
-			attHtml += "<td align='center' onClick='attLoader.start(\"" + name + "\")'><img src='file://" + ATTACH_ICON_PATH + "'></td>";
+			attHtml += "<td style='cursor: hand' align='center' onClick='attLoader.start(\"" + name + "\")'><img src='file://" + ATTACH_ICON_PATH + "'></td>";
 		}
 		attHtml += "</tr><tr>";
 		for(final String name: attachNames) {
-			attHtml += "<td align='center' onClick='attLoader.start(\"" + name + "\")'>" + name + "</td>";
+			attHtml += "<td style='font-size:12px' align='center' onClick='attLoader.start(\"" + name + "\")'>" + name + "</td>";
 		}
-		attHtml += "</tr></table></div>";
+		attHtml += "</tr></table>";
+		attHtml += "</div>";
 		LOGGER.debug(attHtml);
 
 		final String start, end;

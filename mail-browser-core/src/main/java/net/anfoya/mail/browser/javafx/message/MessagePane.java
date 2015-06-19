@@ -95,13 +95,13 @@ public class MessagePane<M extends SimpleMessage, C extends SimpleContact> exten
 
 		final HBox empty = new HBox();
 		HBox.setHgrow(empty, Priority.ALWAYS);
+
 		final HBox titlePane = new HBox(titleText, empty, dateText);
+		titlePane.getStyleClass().add("message-title-pane");
 		titlePane.setPadding(new Insets(5));
 		titlePane.setAlignment(Pos.CENTER_LEFT);
 		titlePane.setMinHeight(30);
-		titlePane.setOnMouseClicked(event -> {
-			expanded.set(!expanded.get());
-		});
+		titlePane.setOnMouseClicked(event -> expanded.set(!expanded.get()));
 
 		getChildren().addAll(titlePane, bodyView);
 		setOnDragDetected(event -> {

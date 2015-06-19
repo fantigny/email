@@ -24,6 +24,11 @@
 //    -fx-font-weight: bold;
     -fx-font-size: 10px;
 }
+
+.message-title-pane {
+    -fx-background-color: lightgray;
+}
+
 .tag-button:hover {
     -fx-background-color: linear-gradient(#ff6500, #cf2e00);
     -fx-background-insets: 0;
