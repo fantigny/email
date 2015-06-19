@@ -2,6 +2,10 @@
     -fx-background-color: white;
 }
 
+.tool-bar {
+    -fx-background-color: transparent;
+}
+
 .address-label {
     -fx-background-color: linear-gradient(#ff5400, #be1d00);
     -fx-background-radius: 8;

@@ -15,8 +15,10 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
+import javafx.scene.control.Separator;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.ToolBar;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
@@ -98,7 +100,77 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 				event.consume();
 			}
 		});
-		stackPane.getChildren().add(threadList);
+
+		final Button replyButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("reply.png"))));
+		replyButton.setOnAction(event -> {
+			try {
+				for(final H t: threadList.getSelectedThreads()) {
+					final M m = mailService.getMessage(t.getMessageIds().iterator().next());
+					new MessageComposer<M, C>(mailService, updateHandler).reply(m, false);
+				}
+			} catch (final Exception e) {
+				LOGGER.error("loading reply composer", e);
+			}
+		});
+		final Button replyAllButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("replyall.png"))));
+		replyAllButton.setOnAction(event -> {
+			try {
+				for(final H t: threadList.getSelectedThreads()) {
+					final M m = mailService.getMessage(t.getMessageIds().iterator().next());
+					new MessageComposer<M, C>(mailService, updateHandler).reply(m, true);
+				}
+			} catch (final Exception e) {
+				LOGGER.error("loading reply composer", e);
+			}
+		});
+		final Button forwardButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("forward.png"))));
+		forwardButton.setOnAction(event -> {
+			try {
+				for(final H t: threadList.getSelectedThreads()) {
+					final M m = mailService.getMessage(t.getMessageIds().iterator().next());
+					new MessageComposer<M, C>(mailService, updateHandler).forward(m);
+				}
+			} catch (final Exception e) {
+				LOGGER.error("loading transfer composer", e);
+			}
+		});
+		final Button starButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("star.png"))));
+		starButton.setOnAction(event -> {
+			try {
+				mailService.addTagForThreads(mailService.findTag(T.STARRED), threadList.getSelectedThreads());
+			} catch (final Exception e) {
+				LOGGER.error("loading reply composer", e);
+			}
+		});
+		final Button archiveButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("archive.png"))));
+		archiveButton.setOnAction(event -> {
+			try {
+				mailService.archive(threadList.getSelectedThreads());
+			} catch (final Exception e) {
+				LOGGER.error("loading reply composer", e);
+			}
+		});
+		final Button trashButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("trash.png"))));
+		trashButton.setOnAction(event -> {
+			try {
+				mailService.trash(threadList.getSelectedThreads());
+			} catch (final Exception e) {
+				LOGGER.error("loading reply composer", e);
+			}
+		});
+		final ToolBar toolbar = new ToolBar(
+				replyButton, replyAllButton, forwardButton
+				, new Separator()
+				, starButton, archiveButton, trashButton);
+		toolbar.setPadding(new Insets(0, 0, 3, 0));
+
+		final BorderPane threadListPane;
+		if (true) {
+			threadListPane = new BorderPane(threadList, toolbar, null, null, null);
+		} else {
+			threadListPane = new BorderPane(threadList);
+		}
+		stackPane.getChildren().add(threadListPane);
 
 		stackPane.setOnDragEntered(event -> {
 			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)
@@ -150,7 +222,6 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 
 		setMargin(namePatternField, new Insets(0, 5, 0, 0));
 		setMargin(patternPane, new Insets(5, 0, 5, 0));
-		setMargin(threadList, new Insets(0, 5, 0, 5));
 		setMargin(sortBox, new Insets(5));
 	}
 
