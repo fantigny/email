@@ -24,6 +24,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -324,7 +325,7 @@ public class Notification {
                 popups.remove(POPUP);
             }));
 
-            popupContent.setOnMouseClicked(e -> POPUP.hide());
+            popupContent.setOnMouseClicked(e -> ((Node)e.getSource()).getScene().getWindow().hide());
 
             // Move popup to the right during fade out
             POPUP.opacityProperty().addListener((observableValue, oldOpacity, opacity) -> POPUP.setX(POPUP.getX() + (1.0 - opacity.doubleValue()) * POPUP.getWidth()) );

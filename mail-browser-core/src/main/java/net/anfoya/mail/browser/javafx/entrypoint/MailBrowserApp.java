@@ -20,6 +20,7 @@ import javafx.util.Callback;
 import javax.security.auth.login.LoginException;
 
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.javafx.scene.control.Notification.Notifier;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
 import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
 import net.anfoya.mail.gmail.GMailException;
@@ -74,8 +75,8 @@ public class MailBrowserApp<
 		primaryStage.initStyle(StageStyle.UNIFIED);
 		primaryStage.setOnCloseRequest(event -> {
 			ThreadPool.getInstance().shutdown();
+			Notifier.INSTANCE.stop();
 		});
-
 		initGui(primaryStage);
 		initData();
 	}

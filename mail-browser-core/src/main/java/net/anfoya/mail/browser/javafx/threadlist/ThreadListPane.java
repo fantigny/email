@@ -71,7 +71,7 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		threadList = new ThreadList<S, T, H, M, C>(mailService);
 		threadList.setOnDragDetected(event -> {
 			final Set<H> threads = getSelectedThreads();
-			if (threads.size() == 0) {
+			if (threads.isEmpty()) {
 				return;
 			}
 	        final ClipboardContent content = new ClipboardContent();
