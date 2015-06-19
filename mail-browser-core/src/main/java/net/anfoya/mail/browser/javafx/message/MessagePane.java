@@ -18,6 +18,7 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
@@ -30,6 +31,7 @@ import javax.mail.internet.MimeMessage;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.web.WebViewFitContent;
 import net.anfoya.mail.browser.javafx.thread.ThreadDropPane;
+import net.anfoya.mail.browser.mime.DateHelper;
 import net.anfoya.mail.browser.mime.MimeMessageHelper;
 import net.anfoya.mail.model.SimpleContact;
 import net.anfoya.mail.model.SimpleMessage;
@@ -53,6 +55,7 @@ public class MessagePane<M extends SimpleMessage, C extends SimpleContact> exten
 	private boolean collapsible;
 
 	private final Text titleText;
+	private final Text dateText;
 	private final WebViewFitContent bodyView;
 
 	private final String messageId;
@@ -87,16 +90,18 @@ public class MessagePane<M extends SimpleMessage, C extends SimpleContact> exten
 			}
 		});
 
-		final HBox titlePane = new HBox();
+		titleText = new Text("loading...");
+		dateText = new Text();
+
+		final HBox empty = new HBox();
+		HBox.setHgrow(empty, Priority.ALWAYS);
+		final HBox titlePane = new HBox(titleText, empty, dateText);
 		titlePane.setPadding(new Insets(5));
 		titlePane.setAlignment(Pos.CENTER_LEFT);
 		titlePane.setMinHeight(30);
 		titlePane.setOnMouseClicked(event -> {
 			expanded.set(!expanded.get());
 		});
-
-		titleText = new Text("loading...");
-		titlePane.getChildren().add(titleText);
 
 		getChildren().addAll(titlePane, bodyView);
 		setOnDragDetected(event -> {
@@ -149,10 +154,10 @@ public class MessagePane<M extends SimpleMessage, C extends SimpleContact> exten
 			final MimeMessage mimeMessage = message.getMimeMessage();
 
 			final StringBuilder title = new StringBuilder();
-			title.append(mimeMessage.getSentDate());
-			title.append(" from ").append(getMailAddresses(mimeMessage.getFrom()));
-			title.append(" to ").append(getMailAddresses(mimeMessage.getRecipients(Message.RecipientType.TO)));;
+			title.append(getMailAddresses(mimeMessage.getFrom()));
+			title.append(" to ").append(getMailAddresses(mimeMessage.getRecipients(Message.RecipientType.TO)));
 			titleText.setText(title.toString());
+			dateText.setText(new DateHelper(mimeMessage.getSentDate()).format());
 		} catch (final MessagingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

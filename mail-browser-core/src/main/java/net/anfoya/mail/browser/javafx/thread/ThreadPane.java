@@ -97,8 +97,6 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 
 		messagesBox = new VBox();
 		messagesBox.minHeightProperty().bind(scrollPane.heightProperty());
-		messagesBox.maxHeightProperty().bind(scrollPane.heightProperty());
-		messagesBox.prefHeightProperty().bind(scrollPane.heightProperty());
 		scrollPane.setContent(messagesBox);
 		msgPanes = messagesBox.getChildren();
 

@@ -3,10 +3,17 @@ package net.anfoya.mail.browser.javafx.threadlist;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
+import javafx.scene.effect.Effect;
+import javafx.scene.effect.Glow;
+import javafx.scene.effect.Light.Distant;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import net.anfoya.mail.browser.mime.DateHelper;
 import net.anfoya.mail.service.Thread;
 
 class ThreadListCell<H extends Thread> extends ListCell<H> {
@@ -14,8 +21,11 @@ class ThreadListCell<H extends Thread> extends ListCell<H> {
     private static final Image STAR = new Image(ThreadListCell.class.getResourceAsStream("mini_star.png"));
     private static final Image UNREAD = new Image(ThreadListCell.class.getResourceAsStream("mini_unread.png"));
 
+    private static final Effect EFFECT = new Glow(.3);
+
     private final Label sender;
     private final Label subject;
+    private final Label date;
     private final GridPane grid;
     private final VBox iconBox;
 
@@ -24,6 +34,19 @@ class ThreadListCell<H extends Thread> extends ListCell<H> {
         setPadding(new Insets(0));
 
 		sender = new Label();
+		sender.setStyle("-fx-font-size: 13px; -fx-font-weight: bold");
+
+		date = new Label();
+		date.setStyle("-fx-font-size: 11px");
+		date.setMinWidth(Label.USE_PREF_SIZE);
+
+		final HBox empty = new HBox();
+		empty.setMinWidth(5);
+		HBox.setHgrow(empty, Priority.ALWAYS);
+		final HBox senderBox = new HBox(sender, empty, date);
+		senderBox.setPadding(new Insets(0, 0, 2, 0));
+		senderBox.prefWidthProperty().bind(this.widthProperty().add(-20));
+
 		subject = new Label();
 		subject.setStyle("-fx-font-size: 12px");
 
@@ -32,11 +55,15 @@ class ThreadListCell<H extends Thread> extends ListCell<H> {
 		iconBox.setPadding(new Insets(3, 2, 0, 2));
 
 		grid = new GridPane();
-		grid.setPadding(new Insets(3));
 		grid.setHgap(3);
+		grid.setPadding(new Insets(3));
+		grid.prefWidthProperty().bind(this.widthProperty().add(-20));
 		grid.add(iconBox, 0, 0, 1, 2);
-		grid.add(sender, 1, 0);
+		grid.add(senderBox, 1, 0);
 		grid.add(subject, 1, 1);
+
+        final Distant light = new Distant();
+        light.setAzimuth(-135.0f);
 	}
 
 	@Override
@@ -48,15 +75,13 @@ class ThreadListCell<H extends Thread> extends ListCell<H> {
             setGraphic(null);
         } else {
         	sender.setText(thread.getSender());
+        	date.setText(new DateHelper(thread.getDate()).format());
         	subject.setText(thread.getSubject());
 
-        	if (thread.isUnread()) {
-        		sender.setStyle("-fx-font-size: 13px; -fx-font-weight: bold");
-        	} else {
-        		sender.setStyle("-fx-font-size: 13px");
-        	}
+	        sender.setTextFill(thread.isUnread()? Color.FIREBRICK: Color.BLACK);
+	        sender.setEffect(thread.isUnread()? EFFECT: null);
 
-    		iconBox.getChildren().clear();
+	        iconBox.getChildren().clear();
         	if (thread.isUnread()) {
         		iconBox.getChildren().add(new ImageView(UNREAD));
         	}
@@ -67,7 +92,6 @@ class ThreadListCell<H extends Thread> extends ListCell<H> {
         		iconBox.getChildren().add(new ImageView(EMPTY));
         	}
 
-        	grid.setPrefWidth(getListView().getWidth() - getListView().getInsets().getLeft() - getListView().getInsets().getRight());
         	setGraphic(grid);
         }
 	}
