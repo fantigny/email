@@ -1,5 +1,6 @@
 package net.anfoya.mail.gmail;
 
+import java.awt.GraphicsEnvironment;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -63,7 +64,7 @@ public class GmailLogin {
 				.build();
 
 		final String authCode;
-		if (TEST_ID.equals(appName)) { //TODO detect if toolkit is started
+		if (GraphicsEnvironment.isHeadless()) {
 			System.out.println("Please open the following URL in your browser then type the authorization code:\n" + url);
 			// Read code entered by user.
 			final BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
