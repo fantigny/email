@@ -78,7 +78,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 
 		tagPatternField = new ResetTextField();
 		tagPatternField.prefWidthProperty().bind(widthProperty());
-		tagPatternField.setPromptText("labels");
+		tagPatternField.setPromptText("label search");
 		tagPatternField.textProperty().addListener((ChangeListener<String>) (ov, oldPattern, newPattern) -> {
 			refreshWithTagPattern();
 		});

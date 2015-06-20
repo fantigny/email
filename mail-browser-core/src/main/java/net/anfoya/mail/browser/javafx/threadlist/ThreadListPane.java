@@ -15,7 +15,6 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
-import javafx.scene.control.Separator;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.ToolBar;
@@ -27,6 +26,7 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
@@ -163,10 +163,13 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 				LOGGER.error("loading reply composer", e);
 			}
 		});
+		final HBox grow = new HBox();
+		HBox.setHgrow(grow, Priority.ALWAYS);
 		final ToolBar toolbar = new ToolBar(
-				replyButton, replyAllButton, forwardButton
-				, new Separator()
-				, starButton, archiveButton, trashButton);
+				starButton, archiveButton, trashButton
+				, grow
+				, replyButton, replyAllButton, forwardButton
+				);
 		toolbar.setPadding(new Insets(0, 0, 3, 0));
 
 		if (Setting.INSTANCE.showToolbar().get()) {
@@ -212,7 +215,7 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		setBottom(sortBox);
 
 		namePatternField = new ResetTextField();
-		namePatternField.setPromptText("mails");
+		namePatternField.setPromptText("mail search");
 
 		final Button newButton = new Button();
 		newButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("new.png"))));
@@ -224,8 +227,10 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 			}
 		});
 
-		final BorderPane patternPane = new BorderPane(namePatternField, null, newButton, null, null);
-		setTop(patternPane);
+		final HBox patternBox = new HBox(namePatternField, newButton);
+		patternBox.setAlignment(Pos.CENTER_LEFT);
+		HBox.setHgrow(namePatternField, Priority.ALWAYS);
+		setTop(patternBox);
 
 		setMargin(namePatternField, new Insets(0, 5, 0, 0));
 		setMargin(sortBox, new Insets(5));
