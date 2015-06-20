@@ -121,7 +121,7 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		final HBox grow = new HBox();
 		HBox.setHgrow(grow, Priority.ALWAYS);
 		final ToolBar toolbar = new ToolBar(
-				flagButton, archiveButton, trashButton
+				archiveButton, flagButton, trashButton
 				, grow
 				, replyButton, replyAllButton, forwardButton
 				);
