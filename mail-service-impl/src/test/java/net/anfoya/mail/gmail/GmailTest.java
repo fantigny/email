@@ -15,7 +15,7 @@ public class GmailTest {
 
 	@Test
 	public void getTags() throws MailException, TagException {
-		final GmailService service = new GmailService();
+		final GmailService service = new GmailTestService();
 		service.connect();
 		for(final Tag t: service.getTags()) {
 			System.out.println(t);
