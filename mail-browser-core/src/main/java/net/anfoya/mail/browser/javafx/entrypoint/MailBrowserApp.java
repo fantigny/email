@@ -20,7 +20,6 @@ import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.Notification.Notifier;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
 import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
-import net.anfoya.mail.gmail.GMailException;
 import net.anfoya.mail.gmail.GmailService;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
 import net.anfoya.mail.gmail.model.GmailSection;
@@ -61,9 +60,10 @@ public class MailBrowserApp<
 	public void init() {
 		try {
 			@SuppressWarnings("unchecked")
-			final MailService<S, T, H, M, C> mailService = (MailService<S, T, H, M, C>) new GmailService().connect("main");
+			final MailService<S, T, H, M, C> mailService = (MailService<S, T, H, M, C>) new GmailService();
+			mailService.connect();
 			this.mailService = mailService;
-		} catch (final GMailException e) {
+		} catch (final MailException e) {
 			LOGGER.error("login error", e);
 			System.exit(1);
 		}
