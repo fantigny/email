@@ -119,18 +119,23 @@ public class HistoryService extends TimerTask {
 					types.add(UpdateType.NONE);
 				} else {
 					types.add(UpdateType.UPDATE);
+					int newCount = 0;
 					for(final History h: response.getHistory()) {
 						if (h.getLabelsAdded() != null && !h.getLabelsAdded().isEmpty()
 								|| h.getLabelsRemoved() != null && !h.getLabelsRemoved().isEmpty()) {
 							types.add(UpdateType.LABEL);
 							break;
 						}
-						if (h.getMessagesAdded() != null && !h.getMessagesAdded().isEmpty()) {
+						if (h.getMessages() != null && !h.getMessages().isEmpty()) {
 							types.add(UpdateType.MESSAGE);
-							final int count = h.getMessagesAdded().size();
-							final String message = count + " new message" + (count==1? "": "s");
-							Platform.runLater(() -> Notifier.INSTANCE.notify("FisherMail", message, Notification.SUCCESS_ICON));
 						}
+						if (h.getMessagesAdded() != null) {
+							newCount += h.getMessagesAdded().size();
+						}
+					}
+					if (newCount > 0) {
+						final String message = newCount + " new message" + (newCount==1? "": "s");
+						Platform.runLater(() -> Notifier.INSTANCE.notify("FisherMail", message, Notification.SUCCESS_ICON));
 					}
 				}
 			}

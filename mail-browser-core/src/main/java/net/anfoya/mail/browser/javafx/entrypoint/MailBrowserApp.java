@@ -18,6 +18,7 @@ import javax.security.auth.login.LoginException;
 
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.Notification.Notifier;
+import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
 import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
 import net.anfoya.mail.gmail.GmailService;
@@ -61,12 +62,13 @@ public class MailBrowserApp<
 		try {
 			@SuppressWarnings("unchecked")
 			final MailService<S, T, H, M, C> mailService = (MailService<S, T, H, M, C>) new GmailService();
-			mailService.connect();
+			mailService.connect("net.anfoya.mail-browser");
 			this.mailService = mailService;
 		} catch (final MailException e) {
 			LOGGER.error("login error", e);
 			System.exit(1);
 		}
+		Settings.load();
 	}
 
 	@Override

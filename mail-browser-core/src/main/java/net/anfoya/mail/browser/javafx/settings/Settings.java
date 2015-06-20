@@ -1,92 +1,65 @@
 package net.anfoya.mail.browser.javafx.settings;
 
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
-import javafx.scene.control.TabPane.TabClosingPolicy;
-import javafx.scene.control.TextArea;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
-import javafx.scene.text.Text;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
-import net.anfoya.mail.model.SimpleContact;
-import net.anfoya.mail.model.SimpleMessage;
-import net.anfoya.mail.model.SimpleTag;
-import net.anfoya.mail.model.SimpleThread;
-import net.anfoya.mail.service.MailService;
-import net.anfoya.tag.model.SimpleSection;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
-public class Settings extends Stage {
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import net.anfoya.java.io.SerializedFile;
 
-	private final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, ? extends SimpleMessage, ? extends SimpleContact> mailService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-	public Settings(final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, ? extends SimpleMessage, ? extends SimpleContact> mailService) {
-		initStyle(StageStyle.UNIFIED);
-		initModality(Modality.APPLICATION_MODAL);
+@SuppressWarnings("serial")
+public class Settings implements Serializable {
+	private static final Logger LOGGER = LoggerFactory.getLogger(Settings.class);
+	private static final String FILENAME = System.getProperty("java.io.tmpdir") + File.separatorChar + "fsm-settings";
 
-		this.mailService = mailService;
-
-		final TextArea textArea = new TextArea("Take your mail bait and fish some action!");
-		final Tab helpTab = new Tab("help", textArea);
-
-		final TabPane tabPane = new TabPane(buildSettingsTab(), helpTab, buildAboutTab());
-		tabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
-
-		setScene(new Scene(tabPane, 600, 400));
+	private static final Settings SETTINGS = new Settings();
+	public static Settings getSettings() {
+		return SETTINGS;
 	}
 
-	private Tab buildAboutTab() {
+	private final BooleanProperty showToolbar;
 
-		final Text helpText = new Text("FisherMail [1.0] by Frederic Antigny");
-		helpText.setFont(Font.font("Amble Cn", FontWeight.BOLD, 24));
-		helpText.setFill(Color.WHITE);
-		helpText.setStroke(Color.web("#7080A0"));
-
-		final StackPane stack = new StackPane();
-		stack.getChildren().addAll(helpText);
-		stack.setAlignment(Pos.CENTER);     // Right-justify nodes in stack
-
-		HBox.setHgrow(stack, Priority.ALWAYS);    // Give stack any extra space
-		final HBox hbox = new HBox(stack);            // Add to HBox from Example 1-2
-
-		return new Tab("about", hbox);
+	public Settings() {
+		showToolbar = new SimpleBooleanProperty(false);
 	}
 
-	private Tab buildSettingsTab() {
-		final Button logoutButton = new Button("logout and quit");
-		logoutButton.setOnAction(e -> {
-			mailService.clearCache();
-			mailService.disconnect();
-			System.exit(0);
-		});
+	public BooleanProperty showToolbar() {
+		return showToolbar;
+	}
 
-		final Button clearCacheButton = new Button("clear cache");
-		clearCacheButton.setOnAction(e -> mailService.clearCache());
+	public static void load() {
+		final Set<Object> s;
+		try {
+			s = new SerializedFile<Set<Object>>(FILENAME).load();
+		} catch (final FileNotFoundException e) {
+			LOGGER.warn("no settings found {}", FILENAME, e);
+			return;
+		} catch (final Exception e) {
+			LOGGER.error("loading settings {}", FILENAME, e);
+			return;
+		}
 
-		final SwitchButton toolButton = new SwitchButton();
-		toolButton.setSwitchOn(Setting.INSTANCE.showToolbar().get());
-		toolButton.switchOnProperty().addListener((ov, o, n) -> Setting.INSTANCE.showToolbar().set(n));
+		final Iterator<Object> i = s.iterator();
+		SETTINGS.showToolbar.set((boolean) i.next());
+	}
 
-		final GridPane gridPane = new GridPane();
-		gridPane.setPadding(new Insets(5));
-		gridPane.setVgap(5);
-		gridPane.setHgap(10);
-		int i = 0;
-		gridPane.addRow(i++, new Label("disconnect your account and close FisherMail"), logoutButton);
-		gridPane.addRow(i++, new Label("clear cache"), clearCacheButton);
-		gridPane.addRow(i++, new Label("show tool bar"), toolButton);
+	public void save() {
+		final Set<Object> s = new LinkedHashSet<Object>();
 
-		return new Tab("settings", gridPane);
+		s.add(showToolbar.get());
+
+		try {
+			new SerializedFile<Set<Object>>(FILENAME).save(s);
+		} catch (final IOException e) {
+			LOGGER.error("saving settings {}", FILENAME, e);
+		}
 	}
 }

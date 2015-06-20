@@ -37,13 +37,13 @@ public class GmailLogin {
 	private static final String LOGIN_SUCESS_PREFIX = "Success code=";
 	public static final String TEST_ID = "test";
 
-	private final String mailId;
+	private final String appName;
 	private final GoogleClientSecrets clientSecrets;
 	private final HttpTransport httpTransport;
 	private final JsonFactory jsonFactory;
 
-	public GmailLogin(final String mailId, final GoogleClientSecrets clientSecrets) {
-		this.mailId = mailId;
+	public GmailLogin(final String appName, final GoogleClientSecrets clientSecrets) {
+		this.appName = appName;
 		this.clientSecrets = clientSecrets;
 
 		httpTransport = new NetHttpTransport();
@@ -63,7 +63,7 @@ public class GmailLogin {
 				.build();
 
 		final String authCode;
-		if (TEST_ID.equals(mailId)) {
+		if (TEST_ID.equals(appName)) { //TODO detect if toolkit is started
 			System.out.println("Please open the following URL in your browser then type the authorization code:\n" + url);
 			// Read code entered by user.
 			final BufferedReader br = new BufferedReader(new InputStreamReader(System.in));

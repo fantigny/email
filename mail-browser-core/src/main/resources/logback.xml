@@ -11,8 +11,7 @@
 		</encoder>
 	</appender>
 
-  <logger name="net.anfoya.mail.browser.javafx.entrypoint" level="DEBUG"/>
-  <logger name="net.anfoya.mail.browser.javafx.message" level="DEBUG"/>  
+  <logger name="net.anfoya.mail.gmail.service.ThreadService" level="DEBUG"/>  
 
   <!--
   <logger name="net.anfoya.mail.browser.javafx.entrypoint" level="DEBUG"/>

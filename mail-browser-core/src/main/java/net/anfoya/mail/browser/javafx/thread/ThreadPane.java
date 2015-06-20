@@ -22,7 +22,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import net.anfoya.mail.browser.javafx.message.MessagePane;
-import net.anfoya.mail.browser.javafx.settings.Settings;
+import net.anfoya.mail.browser.javafx.settings.SettingsDialog;
 import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
 import net.anfoya.mail.model.SimpleContact;
 import net.anfoya.mail.model.SimpleMessage;
@@ -62,7 +62,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 
 		final Button settingsButton = new Button();
 		settingsButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("settings.png"))));
-		settingsButton.setOnAction(event -> new Settings(mailService).show());
+		settingsButton.setOnAction(event -> new SettingsDialog(mailService).show());
 
 		final HBox subjectBox = new HBox(5, subjectField, settingsButton);
 		setTop(subjectBox);

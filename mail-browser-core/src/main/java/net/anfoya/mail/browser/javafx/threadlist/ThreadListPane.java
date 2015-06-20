@@ -32,7 +32,7 @@ import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.ResetTextField;
 import net.anfoya.mail.browser.javafx.message.MessageComposer;
-import net.anfoya.mail.browser.javafx.settings.Setting;
+import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.model.SimpleContact;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleSection;
@@ -107,75 +107,30 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		threadListPane.setCenter(threadList);
 
 		final Button replyButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("reply.png"))));
-		replyButton.setOnAction(event -> {
-			try {
-				for(final H t: threadList.getSelectedThreads()) {
-					final M m = mailService.getMessage(t.getMessageIds().iterator().next());
-					new MessageComposer<M, C>(mailService, updateHandler).reply(m, false);
-				}
-			} catch (final Exception e) {
-				LOGGER.error("loading reply composer", e);
-			}
-		});
+		replyButton.setOnAction(e -> replySelected(false));
 		final Button replyAllButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("replyall.png"))));
-		replyAllButton.setOnAction(event -> {
-			try {
-				for(final H t: threadList.getSelectedThreads()) {
-					final M m = mailService.getMessage(t.getMessageIds().iterator().next());
-					new MessageComposer<M, C>(mailService, updateHandler).reply(m, true);
-				}
-			} catch (final Exception e) {
-				LOGGER.error("loading reply composer", e);
-			}
-		});
+		replyAllButton.setOnAction(e -> replySelected(true));
 		final Button forwardButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("forward.png"))));
-		forwardButton.setOnAction(event -> {
-			try {
-				for(final H t: threadList.getSelectedThreads()) {
-					final M m = mailService.getMessage(t.getMessageIds().iterator().next());
-					new MessageComposer<M, C>(mailService, updateHandler).forward(m);
-				}
-			} catch (final Exception e) {
-				LOGGER.error("loading transfer composer", e);
-			}
-		});
-		final Button starButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("star.png"))));
-		starButton.setOnAction(event -> {
-			try {
-				mailService.addTagForThreads(mailService.findTag(T.STARRED), threadList.getSelectedThreads());
-			} catch (final Exception e) {
-				LOGGER.error("loading reply composer", e);
-			}
-		});
+		forwardButton.setOnAction(e -> forwardSelected());
+		final Button flagButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("flag.png"))));
+		flagButton.setOnAction(e -> flagSelected());
 		final Button archiveButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("archive.png"))));
-		archiveButton.setOnAction(event -> {
-			try {
-				mailService.archive(threadList.getSelectedThreads());
-			} catch (final Exception e) {
-				LOGGER.error("loading reply composer", e);
-			}
-		});
+		archiveButton.setOnAction(event -> archiveSelected());
 		final Button trashButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("trash.png"))));
-		trashButton.setOnAction(event -> {
-			try {
-				mailService.trash(threadList.getSelectedThreads());
-			} catch (final Exception e) {
-				LOGGER.error("loading reply composer", e);
-			}
-		});
+		trashButton.setOnAction(e -> trashSelected());
 		final HBox grow = new HBox();
 		HBox.setHgrow(grow, Priority.ALWAYS);
 		final ToolBar toolbar = new ToolBar(
-				starButton, archiveButton, trashButton
+				flagButton, archiveButton, trashButton
 				, grow
 				, replyButton, replyAllButton, forwardButton
 				);
 		toolbar.setPadding(new Insets(0, 0, 3, 0));
 
-		if (Setting.INSTANCE.showToolbar().get()) {
+		if (Settings.getSettings().showToolbar().get()) {
 			threadListPane.setTop(toolbar);
 		}
-		Setting.INSTANCE.showToolbar().addListener((ov, o, n) -> {
+		Settings.getSettings().showToolbar().addListener((ov, o, n) -> {
 			if (n) {
 				threadListPane.setTop(toolbar);
 			} else {
@@ -236,6 +191,62 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 		setMargin(sortBox, new Insets(5));
 	}
 
+	private void forwardSelected() {
+		try {
+			for(final H t: threadList.getSelectedThreads()) {
+				final M m = mailService.getMessage(t.getMessageIds().iterator().next());
+				new MessageComposer<M, C>(mailService, updateHandler).forward(m);
+			}
+		} catch (final Exception e) {
+			LOGGER.error("loading transfer composer", e);
+		}
+	}
+
+	private void replySelected(final boolean all) {
+		try {
+			for(final H t: threadList.getSelectedThreads()) {
+				final M m = mailService.getMessage(t.getMessageIds().iterator().next());
+				new MessageComposer<M, C>(mailService, updateHandler).reply(m, all);
+			}
+		} catch (final Exception e) {
+			LOGGER.error("loading reply{} composer", all? " all": "", e);
+		}
+	}
+
+	private void trashSelected() {
+		final Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				mailService.trash(threadList.getSelectedThreads());
+				return null;
+			}
+		};
+		task.setOnFailed(e -> LOGGER.error("trashing threads", e.getSource().getException()));
+		task.setOnSucceeded(e -> updateHandler.handle(null));
+		ThreadPool.getInstance().submitHigh(task);
+	}
+
+	private void archiveSelected() {
+		final Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				mailService.archive(threadList.getSelectedThreads());
+				return null;
+			}
+		};
+		task.setOnFailed(e -> LOGGER.error("archiving threads", e.getSource().getException()));
+		task.setOnSucceeded(e -> updateHandler.handle(null));
+		ThreadPool.getInstance().submitHigh(task);
+	}
+
+	private void flagSelected() {
+		try {
+			addTagForThreads(mailService.findTag(T.STARRED), threadList.getSelectedThreads());
+		} catch (final Exception e) {
+			LOGGER.error("adding flag", e);
+		}
+	}
+
 	private void addTagForThreads(final T tag, final Set<H> threads) {
 		final Task<Void> task = new Task<Void>() {
 			@Override
@@ -244,9 +255,8 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 				return null;
 			}
 		};
-		task.setOnFailed(event -> // TODO Auto-generated catch block
-			event.getSource().getException().printStackTrace(System.out));
-		task.setOnSucceeded(event -> updateHandler.handle(null));
+		task.setOnFailed(e -> LOGGER.error("adding tag", e.getSource().getException()));
+		task.setOnSucceeded(e -> updateHandler.handle(null));
 		ThreadPool.getInstance().submitHigh(task);
 	}
 
@@ -259,9 +269,8 @@ public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H exte
 				return null;
 			}
 		};
-		task.setOnFailed(event -> // TODO Auto-generated catch block
-			event.getSource().getException().printStackTrace(System.out));
-		task.setOnSucceeded(event -> updateHandler.handle(null));
+		task.setOnFailed(e -> LOGGER.error("creating tag {}", name, e.getSource().getException()));
+		task.setOnSucceeded(e -> updateHandler.handle(null));
 		ThreadPool.getInstance().submitHigh(task);
 	}
 

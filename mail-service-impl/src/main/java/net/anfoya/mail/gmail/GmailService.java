@@ -65,7 +65,6 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	private static final String USER = "me";
 	private static final String DEFAULT = "default";
 
-    private static final String APP_NAME = "AGARAM";
 	private static final String CLIENT_SECRET_PATH = "client_secret.json";
     private static final String REFRESH_TOKEN_SUFFIX = "%s-refresh-token";
 
@@ -90,12 +89,8 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	@Override
-	public void connect() throws GMailException {
-		connect("main");
-	}
-
-	protected GmailService connect(final String mailId) throws GMailException {
-		refreshTokenName = String.format(REFRESH_TOKEN_SUFFIX, mailId);
+	public void connect(final String appName) throws GMailException {
+		refreshTokenName = String.format(REFRESH_TOKEN_SUFFIX, appName);
 
 		Gmail gmail;
 		ContactsService gcontact;
@@ -115,18 +110,18 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 				credential.setRefreshToken(refreshToken);
 			} else {
 				// Generate Credential using login token.
-				final TokenResponse tokenResponse = new GmailLogin(mailId, clientSecrets).getTokenResponseCredentials();
+				final TokenResponse tokenResponse = new GmailLogin(appName, clientSecrets).getTokenResponseCredentials();
 				credential.setFromTokenResponse(tokenResponse);
 			}
 			credential.refreshToken();
 
 			// Create a new authorized Google Contact service
-			gcontact = new ContactsService(APP_NAME);
+			gcontact = new ContactsService(appName);
 			gcontact.setOAuth2Credentials(credential);
 
 			// Create a new authorized Gmail service
 			gmail = new Gmail.Builder(httpTransport, jsonFactory, credential)
-					.setApplicationName(APP_NAME)
+					.setApplicationName(appName)
 					.build();
 
 			// save refresh token
@@ -152,8 +147,6 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		historyService.start(PULL_PERIOD);
 
 		connected.bind(historyService.connected());
-
-		return this;
 	}
 
 	@Override
@@ -639,8 +632,6 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	public void trash(final Set<GmailThread> threads) throws GMailException {
 		try {
 			final Set<String> ids = threads.stream().map(GmailThread::getId).collect(Collectors.toSet());
-			final Set<String> labelIds = new HashSet<String>();
-			labelIds.add(GmailTag.INBOX_TAG.getId());
 			threadService.trash(ids);
 		} catch (final ThreadException e) {
 			throw new GMailException("trashing threads " + threads, e);

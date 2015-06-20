@@ -14,7 +14,7 @@ public interface MailService<
 		, C extends Contact>
 		extends TagService<S, T> {
 
-	public void connect() throws MailException;
+	public void connect(String appName) throws MailException;
 	public void reconnect();
 	public void disconnect();
 	public ReadOnlyBooleanProperty connected();
