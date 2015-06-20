@@ -91,12 +91,11 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 	@Override
 	public void connect() throws GMailException {
-		connect("test");
+		connect("main");
 	}
 
 	protected GmailService connect(final String mailId) throws GMailException {
 		refreshTokenName = String.format(REFRESH_TOKEN_SUFFIX, mailId);
-		LOGGER.error(refreshTokenName);
 
 		Gmail gmail;
 		ContactsService gcontact;
@@ -110,9 +109,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 					.build();
 
 		    final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
-			LOGGER.error("{}", prefs.keys().length);
 			final String refreshToken = prefs.get(refreshTokenName, null);
-			LOGGER.error(refreshToken);
 			if (refreshToken != null) {
 				// Generate Credential using saved token.
 				credential.setRefreshToken(refreshToken);
