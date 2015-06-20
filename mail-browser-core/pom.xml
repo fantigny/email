@@ -16,55 +16,21 @@
 				</configuration>
 			</plugin>
 			<plugin>
-			    <groupId>org.apache.maven.plugins</groupId>
-			    <artifactId>maven-shade-plugin</artifactId>
-			    <version>2.3</version>
-			    <executions>
-			        <execution>
-			            <phase>package</phase>
-			            <goals>
-			                <goal>shade</goal>
-			            </goals>
-			        </execution>
-			    </executions>
-			    <configuration>
-			        <shadedArtifactAttached>true</shadedArtifactAttached>
-					<transformers>
-						<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-							<manifestEntries>
-								<main-class>net.anfoya.mail.browser.javafx.entrypoint.MailBrowserApp</main-class>
-							</manifestEntries>
-						</transformer>
-					</transformers>
-			    </configuration>
-			</plugin>
-			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-antrun-plugin</artifactId>
-				<version>1.7</version>
 				<executions>
 					<execution>
 						<phase>package</phase>
+						<configuration>
+							<task>
+								<echo>basedir ${basedir}</echo>
+								<delete dir="dist" />
+								<mkdir dir="dist" />
+							</task>
+						</configuration>
 						<goals>
 							<goal>run</goal>
 						</goals>
-						<configuration>
-							<target>
-								<taskdef name="bundleapp"
-									classname="com.oracle.appbundler.AppBundlerTask"
-									classpathref="maven.plugin.classpath" />
-								<bundleapp outputdirectory="/Volumes/movies"
-									name="FisherMail"
-									displayname="FisherMail"
-									icon="src/main/resources/net/anfoya/mail/browser/javafx/entrypoint/Mail.icns"
-									identifier="FisherMail"
-									shortversion="1.0"
-									copyright="ANFOYA.net"
-									mainclassname="net.anfoya.mail.browser.javafx.entrypoint.MailBrowserApp">
-									<classpath file="target/${project.name}-${project.version}-shaded.jar" />
-							        <option value="-Xmx1g"/>
-								</bundleapp>
-							</target>
-						</configuration>
 					</execution>
 				</executions>
 				<dependencies>
@@ -76,21 +42,74 @@
 				</dependencies>
 			</plugin>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>2.3</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<configuration>
+							<outputFile>dist/FisherMail.jar</outputFile>
+							<shadedArtifactAttached>true</shadedArtifactAttached>
+							<transformers>
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<manifestEntries>
+										<main-class>net.anfoya.mail.browser.javafx.entrypoint.MailBrowserApp</main-class>
+									</manifestEntries>
+								</transformer>
+							</transformers>
+						</configuration>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.7</version>
+				<executions>
+					<execution>
+						<phase>install</phase>
+						<configuration>
+							<target>
+								<taskdef name="bundleapp"
+									classname="com.oracle.appbundler.AppBundlerTask"
+									classpathref="maven.plugin.classpath" />
+								<bundleapp outputdirectory="dist"
+									name="FisherMail"
+									displayname="FisherMail"
+									icon="src/main/resources/net/anfoya/mail/browser/javafx/entrypoint/Mail.icns"
+									identifier="net.anfoya.mail-browser"
+									shortversion="1.0"
+									copyright="ANFOYA.net"
+									mainclassname="net.anfoya.mail.browser.javafx.entrypoint.MailBrowserApp">
+									<classpath file="dist/FisherMail.jar" />
+							        <option value="-Xmx1g"/>
+								</bundleapp>
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>com.akathist.maven.plugins.launch4j</groupId>
 				<artifactId>launch4j-maven-plugin</artifactId>
 				<version>1.7.7</version>
 			    <executions>			
-			        <!-- GUI exe -->
 			        <execution>
-			            <id>l4j-gui</id>
-			            <phase>package</phase>
+			            <phase>install</phase>
 			            <goals>
 			                <goal>launch4j</goal>
 			            </goals>
 			            <configuration>
 			                <headerType>gui</headerType>
-			                <outfile>/Volumes/movies/FisherMail.exe</outfile>
-			                <jar>target/${project.name}-${project.version}-shaded.jar</jar>
+			                <outfile>dist/FisherMail.exe</outfile>
+			                <jar>dist/FisherMail.jar</jar>
 			                <errTitle>FisherMail Err</errTitle>
 			                <classPath>
 			                    <mainClass>net.anfoya.mail.browser.javafx.entrypoint.MailBrowserApp</mainClass>
@@ -105,11 +124,11 @@
 			                    <fileVersion>1.0.0.0</fileVersion>
 			                    <txtFileVersion>1.0.0.0</txtFileVersion>
 			                    <fileDescription>Desc</fileDescription>
-			                    <copyright>C</copyright>
+			                    <copyright>ANFOYA.net</copyright>
 			                    <productVersion>1.0.0.0</productVersion>
 			                    <txtProductVersion>1.0.0.0</txtProductVersion>
 			                    <productName>FisherMail</productName>
-			                    <internalName>FisherMail</internalName>
+			                    <internalName>net.anfoya.mail-browser</internalName>
 			                    <originalFilename>FisherMail.exe</originalFilename>
 			                </versionInfo>
 			            </configuration>
