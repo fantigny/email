@@ -73,21 +73,18 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 		final ThreadDropPane<H, M> threadDropPane = new ThreadDropPane<H, M>(mailService);
 		threadDropPane.prefWidthProperty().bind(stackPane.widthProperty());
 
-		stackPane.setOnDragEntered(event -> {
-			if ((event.getDragboard().hasContent(ThreadListPane.DND_THREADS_DATA_FORMAT) || event.getDragboard().hasContent(ThreadDropPane.MESSAGE_DATA_FORMAT))
+		stackPane.setOnDragEntered(e -> {
+			if ((e.getDragboard().hasContent(ThreadListPane.DND_THREADS_DATA_FORMAT) || e.getDragboard().hasContent(ThreadDropPane.MESSAGE_DATA_FORMAT))
 					&& !stackPane.getChildren().contains(threadDropPane)) {
-				threadDropPane.init(event.getDragboard());
+				threadDropPane.init(e.getDragboard());
 				stackPane.getChildren().add(threadDropPane);
 			}
 		});
-		stackPane.setOnDragExited(event -> {
-			if ((event.getDragboard().hasContent(ThreadListPane.DND_THREADS_DATA_FORMAT) || event.getDragboard().hasContent(ThreadDropPane.MESSAGE_DATA_FORMAT))
+		stackPane.setOnDragExited(e -> {
+			if ((e.getDragboard().hasContent(ThreadListPane.DND_THREADS_DATA_FORMAT) || e.getDragboard().hasContent(ThreadDropPane.MESSAGE_DATA_FORMAT))
 					&& stackPane.getChildren().contains(threadDropPane)) {
 				stackPane.getChildren().remove(threadDropPane);
 			}
-		});
-		stackPane.setOnDragDone(event -> {
-			//TODO
 		});
 		setCenter(stackPane);
 
