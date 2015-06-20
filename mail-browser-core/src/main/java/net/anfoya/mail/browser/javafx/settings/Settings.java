@@ -17,7 +17,9 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import net.anfoya.mail.model.SimpleContact;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleTag;
@@ -30,6 +32,9 @@ public class Settings extends Stage {
 	private final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, ? extends SimpleMessage, ? extends SimpleContact> mailService;
 
 	public Settings(final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, ? extends SimpleMessage, ? extends SimpleContact> mailService) {
+		initStyle(StageStyle.UNIFIED);
+		initModality(Modality.APPLICATION_MODAL);
+
 		this.mailService = mailService;
 
 		final TextArea textArea = new TextArea("Take your mail bait and fish some action!");
@@ -60,15 +65,14 @@ public class Settings extends Stage {
 
 	private Tab buildSettingsTab() {
 		final Button logoutButton = new Button("logout and quit");
-		logoutButton.setOnAction(event -> {
+		logoutButton.setOnAction(e -> {
+			mailService.clearCache();
 			mailService.disconnect();
 			System.exit(0);
 		});
 
 		final Button clearCacheButton = new Button("clear cache");
-		clearCacheButton.setOnAction(event -> {
-			mailService.clearCache();
-		});
+		clearCacheButton.setOnAction(e -> mailService.clearCache());
 
 		final SwitchButton toolButton = new SwitchButton();
 		toolButton.setSwitchOn(Setting.INSTANCE.showToolbar().get());
