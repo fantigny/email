@@ -94,7 +94,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		connect("test");
 	}
 
-	public GmailService connect(final String mailId) throws GMailException {
+	protected GmailService connect(final String mailId) throws GMailException {
 		refreshTokenName = String.format(REFRESH_TOKEN_SUFFIX, mailId);
 		LOGGER.error(refreshTokenName);
 
