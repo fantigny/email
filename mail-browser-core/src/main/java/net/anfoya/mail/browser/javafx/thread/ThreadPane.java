@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
-import java.util.Set; 
+import java.util.Set;
 
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
