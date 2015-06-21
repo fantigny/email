@@ -77,7 +77,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 			if ((e.getDragboard().hasContent(ThreadListPane.DND_THREADS_DATA_FORMAT) || e.getDragboard().hasContent(ThreadDropPane.MESSAGE_DATA_FORMAT))
 					&& !stackPane.getChildren().contains(threadDropPane)) {
 				threadDropPane.init(e.getDragboard());
-				stackPane.getChildren().add(threadDropPane);
+				stackPane.getChildren().add(threadDropPane); 
 			}
 		});
 		stackPane.setOnDragExited(e -> {
