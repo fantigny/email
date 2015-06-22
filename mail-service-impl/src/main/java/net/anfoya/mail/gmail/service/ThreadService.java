@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -41,7 +42,19 @@ public class ThreadService {
 		this.gmail = gmail;
 		this.user = user;
 
-		idThreads = new FileSerieSerializedMap<String, CacheData<Thread>>(FILE_PREFIX + user, 200);
+		idThreads = new FileSerieSerializedMap<String, CacheData<Thread>>(FILE_PREFIX + user, 50);
+	}
+
+	public Thread get(final String id) throws ThreadException {
+		try {
+			final Set<String> ids = new HashSet<String>();
+			ids.add(id);
+			load(ids);
+			return idThreads.get(id).getData();
+		} catch (final CacheException e) {
+			idThreads.remove(id);
+			throw new ThreadException("reading thread id " + id, e);
+		}
 	}
 
 	public Set<Thread> find(final String query, final int pageMax) throws ThreadException {
@@ -67,6 +80,7 @@ public class ThreadService {
 					try {
 						historyId = idThreads.get(id).getData().getHistoryId();
 					} catch (final Exception e) {
+						idThreads.remove(id);
 						historyId = null;
 					}
 					if (!t.getHistoryId().equals(historyId)) {
@@ -89,18 +103,19 @@ public class ThreadService {
 			load(toLoadIds);
 			final Set<Thread> threads = new LinkedHashSet<Thread>();
 			for(final String id: ids) {
-				if (!idThreads.containsKey(id)) {
-					LOGGER.error("missing from cache thread id: {}", id);
-					continue;
+				try {
+					threads.add(idThreads.get(id).getData());
+				} catch (final CacheException e) {
+					idThreads.remove(id);
+					LOGGER.error("getting from cache thread id: {}", id);
 				}
-				threads.add(idThreads.get(id).getData());
 			}
 			if (threadResponse.getNextPageToken() != null) {
 				// special thread for next page
 				threads.add(nextPageThread(page));
 			}
 			return threads;
-		} catch (final IOException | CacheException e) {
+		} catch (final IOException e) {
 			throw new ThreadException("getting threads for query " + query, e);
 		} finally {
 			LOGGER.debug("get threads in {}ms for query {}", System.currentTimeMillis()-start, query);

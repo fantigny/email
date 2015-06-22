@@ -4,26 +4,26 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.ConnectException;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.stream.Collectors;
 
-import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.util.Callback;
 import javafx.util.Duration;
 import net.anfoya.java.io.SerializedFile;
-import net.anfoya.javafx.scene.control.Notification;
-import net.anfoya.javafx.scene.control.Notification.Notifier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.History;
+import com.google.api.services.gmail.model.HistoryMessageAdded;
 import com.google.api.services.gmail.model.ListHistoryResponse;
 import com.google.api.services.gmail.model.ListMessagesResponse;
 import com.google.api.services.gmail.model.Message;
@@ -34,20 +34,19 @@ public class HistoryService extends TimerTask {
 
 	private final Gmail gmail;
 	private final String user;
-	private final ReadOnlyBooleanWrapper connected;
-	private final Set<Callback<Throwable, Void>> onUpdateCallBacks;
-	private final Set<Callback<Throwable, Void>> onLabelUpdateCallBacks;
+	private final ReadOnlyBooleanWrapper disconnected;
+	private final Set<Callback<Set<Message>, Void>> onUpdateMessageCallBacks;
+	private final Set<Callback<Set<Message>, Void>> onAddedMessageCallBacks;
+	private final Set<Callback<Set<String>, Void>> onUpdateLabelCallBacks;
 
 	private Timer timer;
 	private BigInteger historyId;
-
-	private enum UpdateType { NONE, LABEL, UPDATE, MESSAGE };
 
 	public HistoryService(final Gmail gmail, final String user) {
 		this.gmail = gmail;
 		this.user = user;
 
-		connected = new ReadOnlyBooleanWrapper(true);
+		disconnected = new ReadOnlyBooleanWrapper(false);
 
 		try {
 			historyId = new SerializedFile<BigInteger>(FILE_PREFIX + user).load();
@@ -65,8 +64,9 @@ public class HistoryService extends TimerTask {
 			}
 		}));
 
-		onUpdateCallBacks = new LinkedHashSet<Callback<Throwable, Void>>();
-		onLabelUpdateCallBacks = new LinkedHashSet<Callback<Throwable, Void>>();
+		onUpdateMessageCallBacks = new LinkedHashSet<Callback<Set<Message>, Void>>();
+		onAddedMessageCallBacks = new LinkedHashSet<Callback<Set<Message>, Void>>();
+		onUpdateLabelCallBacks = new LinkedHashSet<Callback<Set<String>, Void>>();
 	}
 
 	public void start(final Duration pullPeriod) {
@@ -77,90 +77,96 @@ public class HistoryService extends TimerTask {
 
 	@Override
 	public void run() {
-		Set<UpdateType> types = null;
-		Throwable exception = null;
 		try {
-			types = getUpdateTypes();
-		} catch (final HistoryException e) {
-			exception = e;
-		}
-		if (exception != null) {
-			call(onLabelUpdateCallBacks, exception);
-			call(onUpdateCallBacks, exception);
-		} else if (types.contains(UpdateType.UPDATE)) {
-			if (types.contains(UpdateType.LABEL)) {
-				call(onLabelUpdateCallBacks, null);
+			final List<History> histories = checkForUpdates();
+			if (!histories.isEmpty()) {
+				invokeCallbacks(histories);
 			}
-			call(onUpdateCallBacks, null);
+		} catch (final HistoryException e) {
+			LOGGER.error("checking for updates", e);
 		}
 	}
 
-	private void call(final Set<Callback<Throwable, Void>> callBacks, final Throwable exception) {
-		for(final Callback<Throwable, Void> c: callBacks) {
-			c.call(exception);
-		}
-	}
-
-	public Set<UpdateType> getUpdateTypes() throws HistoryException {
+	public List<History> checkForUpdates() throws HistoryException {
 		final long start = System.currentTimeMillis();
 		try {
-			final Set<UpdateType> types = new HashSet<>();
 			if (historyId == null) {
 				final ListMessagesResponse response = gmail.users().messages().list(user).setMaxResults(1L).execute();
 				final String messageId = response.getMessages().iterator().next().getId();
 				final Message message = gmail.users().messages().get(user, messageId).execute();
 				historyId = message.getHistoryId();
-				types.add(UpdateType.UPDATE);
-			} else {
-				final ListHistoryResponse response = gmail.users().history().list(user).setStartHistoryId(historyId).execute();
-				final BigInteger previous = historyId;
-				historyId = response.getHistoryId();
-				if (historyId.equals(previous) || response.getHistory() == null) {
-					types.add(UpdateType.NONE);
-				} else {
-					types.add(UpdateType.UPDATE);
-					int newCount = 0;
-					for(final History h: response.getHistory()) {
-						if (h.getLabelsAdded() != null && !h.getLabelsAdded().isEmpty()
-								|| h.getLabelsRemoved() != null && !h.getLabelsRemoved().isEmpty()) {
-							types.add(UpdateType.LABEL);
-							break;
-						}
-						if (h.getMessages() != null && !h.getMessages().isEmpty()) {
-							types.add(UpdateType.MESSAGE);
-						}
-						if (h.getMessagesAdded() != null) {
-							newCount += h.getMessagesAdded().size();
-						}
-					}
-					if (newCount > 0) {
-						final String message = newCount + " new message" + (newCount==1? "": "s");
-						Platform.runLater(() -> Notifier.INSTANCE.notify("FisherMail", message, Notification.SUCCESS_ICON));
-					}
-				}
+				onUpdateLabelCallBacks.forEach(c -> c.call(null));
+				onUpdateMessageCallBacks.forEach(c -> c.call(null));
+				return new ArrayList<History>();
 			}
-			if (!connected.get()) {
-				connected.set(true);
+
+			final ListHistoryResponse response = gmail.users().history().list(user).setStartHistoryId(historyId).execute();
+			if (disconnected.get()) {
+				disconnected.set(false);
 			}
-			return types;
+
+			final BigInteger previous = historyId;
+			historyId = response.getHistoryId();
+			if (historyId.equals(previous) || response.getHistory() == null) {
+				return new ArrayList<History>();
+			}
+
+			return response.getHistory();
 		} catch (final Exception e) {
 			if (e instanceof ConnectException) {
-				if (connected.get()) {
-					connected.set(false);
+				if (!disconnected.get()) {
+					disconnected.set(true);
 				}
+				return new ArrayList<History>();
+			} else {
+				throw new HistoryException("getting history id", e);
 			}
-			throw new HistoryException("getting history id", e);
 		} finally {
 			LOGGER.debug("got history id: {} ({}ms)", historyId, System.currentTimeMillis()-start);
 		}
 	}
 
-	public void addOnUpdate(final Callback<Throwable, Void> callback) {
-		onUpdateCallBacks.add(callback);
+	private void invokeCallbacks(final List<History> histories) {
+		final Set<String> updatedLabelIds = new LinkedHashSet<String>();
+		final Set<Message> updatedMessages = new LinkedHashSet<Message>();
+		final Set<Message> addedMessages = new LinkedHashSet<Message>();
+		for(final History h: histories) {
+			if (h.getLabelsAdded() != null) {
+				h.getLabelsAdded().forEach(history -> updatedLabelIds.addAll(history.getLabelIds()));
+			}
+			if (h.getLabelsRemoved() != null) {
+				h.getLabelsRemoved().forEach(history -> updatedLabelIds.addAll(history.getLabelIds()));
+			}
+			if (h.getMessages() != null) {
+				h.getMessages().forEach(m -> updatedMessages.add(m));
+				if (h.getMessagesAdded() != null) {
+					addedMessages.addAll(h.getMessagesAdded().stream().map(HistoryMessageAdded::getMessage).collect(Collectors.toSet()));
+				}
+			}
+		}
+
+		if (!updatedLabelIds.isEmpty()) {
+			onUpdateLabelCallBacks.forEach(c -> c.call(updatedLabelIds));
+		}
+		if (!updatedMessages.isEmpty()) {
+			onUpdateMessageCallBacks.forEach(c -> c.call(updatedMessages));
+		}
+		if (!addedMessages.isEmpty()) {
+			onAddedMessageCallBacks.forEach(c -> c.call(addedMessages));
+		}
+
 	}
 
-	public void addOnLabelUpdate(final Callback<Throwable, Void> callback) {
-		onLabelUpdateCallBacks.add(callback);
+	public void addOnUpdateMessage(final Callback<Set<Message>, Void> callback) {
+		onUpdateMessageCallBacks.add(callback);
+	}
+
+	public void addOnAddedMessage(final Callback<Set<Message>, Void> callback) {
+		onAddedMessageCallBacks.add(callback);
+	}
+
+	public void addOnUpdateLabel(final Callback<Set<String>, Void> callback) {
+		onUpdateLabelCallBacks.add(callback);
 	}
 
 	public void clearCache() {
@@ -168,6 +174,6 @@ public class HistoryService extends TimerTask {
 	}
 
 	public ReadOnlyBooleanProperty connected() {
-		return connected.getReadOnlyProperty();
+		return disconnected.getReadOnlyProperty();
 	}
 }

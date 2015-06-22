@@ -110,7 +110,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 				credential.setRefreshToken(refreshToken);
 			} else {
 				// Generate Credential using login token.
-				final TokenResponse tokenResponse = new GmailLogin(appName, clientSecrets).getTokenResponseCredentials();
+				final TokenResponse tokenResponse = new GmailLogin(clientSecrets).getTokenResponseCredentials();
 				credential.setFromTokenResponse(tokenResponse);
 			}
 			credential.refreshToken();
@@ -138,10 +138,8 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		labelService = new LabelService(gmail, USER);
 
 		historyService = new HistoryService(gmail, USER);
-		historyService.addOnLabelUpdate(t -> {
-			if (t == null) {
-				labelService.clearCache();
-			}
+		historyService.addOnUpdateLabel(lList -> {
+			labelService.clearCache();
 			return null;
 		});
 		historyService.start(PULL_PERIOD);
@@ -652,8 +650,30 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	@Override
-	public void addOnUpdate(final Callback<Throwable, Void> callback) {
-		historyService.addOnUpdate(callback);
+	public void addOnUpdateMessage(final Callback<Void, Void> callback) {
+		historyService.addOnUpdateMessage(mList -> callback.call(null));
+	}
+
+	@Override
+	public void addOnUnreadMessage(final Callback<Set<GmailThread>, Void> callback) {
+		historyService.addOnAddedMessage(mSet -> {
+			final Set<GmailThread> threads = new LinkedHashSet<GmailThread>();
+			mSet.forEach(m -> {
+				try {
+					final Thread t = threadService.get(m.getThreadId());
+					final GmailThread thread = new GmailThread(t);
+					if (thread.isUnread()) {
+						threads.add(thread);
+					}
+				} catch (final Exception e) {
+					LOGGER.error("loading thread id {} for message id {}", m.getThreadId(), m.getId(), e);
+				}
+			});
+			if (!threads.isEmpty()) {
+				callback.call(threads);
+			}
+			return null;
+		});
 	}
 
 	@Override

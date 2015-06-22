@@ -21,7 +21,8 @@ public interface MailService<
 
 	public void clearCache();
 
-	public void addOnUpdate(Callback<Throwable, Void> callback);
+	public void addOnUpdateMessage(Callback<Void, Void> callback);
+	public void addOnUnreadMessage(Callback<Set<H>, Void> callback);
 
 	public T getTag(String id) throws MailException;
 	public T findTag(String name) throws MailException;

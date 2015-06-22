@@ -11,12 +11,12 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javafx.util.Callback;
 import javafx.util.Duration;
 
 import javax.security.auth.login.LoginException;
 
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.javafx.scene.control.Notification;
 import net.anfoya.javafx.scene.control.Notification.Notifier;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
@@ -133,15 +133,17 @@ public class MailBrowserApp<
 	}
 
 	private void initData() {
-
 		sectionListPane.init(GmailSection.SYSTEM.getName(), "Inbox");
 
-		mailService.addOnUpdate(t -> {
-			if (t != null) {
-				LOGGER.error("error checking for updates", t);
-			} else {
-				Platform.runLater(() -> refreshAfterRemoteUpdate());
-			}
+		mailService.addOnUpdateMessage(v -> {
+			Platform.runLater(() -> refreshAfterRemoteUpdate());
+			return null;
+		});
+
+		mailService.addOnUnreadMessage(tList -> {
+			final int count = tList.size();
+			final String message = count + " new message" + (count == 0? "": "s");
+			Platform.runLater(() -> Notifier.INSTANCE.notify("FisherMail", message, Notification.SUCCESS_ICON));
 			return null;
 		});
 	}
@@ -177,12 +179,9 @@ public class MailBrowserApp<
 		}
 		LOGGER.debug("refreshAfterSectionUpdate");
 
-		sectionListPane.refreshAsync(new Callback<Void, Void>() {
-			@Override
-			public Void call(final Void v) {
-				threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
-				return null;
-			}
+		sectionListPane.refreshAsync(v -> {
+			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
+			return null;
 		});
 	}
 
@@ -259,7 +258,7 @@ public class MailBrowserApp<
 		}
 		LOGGER.debug("refreshAfterThreadUpdate");
 
-		sectionListPane.refreshAsync(event -> {
+		sectionListPane.refreshAsync(e -> {
 			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
 			return null;
 		});

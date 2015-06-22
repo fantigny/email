@@ -38,13 +38,11 @@ public class GmailLogin {
 	private static final String LOGIN_SUCESS_PREFIX = "Success code=";
 	public static final String TEST_ID = "test";
 
-	private final String appName;
 	private final GoogleClientSecrets clientSecrets;
 	private final HttpTransport httpTransport;
 	private final JsonFactory jsonFactory;
 
-	public GmailLogin(final String appName, final GoogleClientSecrets clientSecrets) {
-		this.appName = appName;
+	public GmailLogin(final GoogleClientSecrets clientSecrets) {
 		this.clientSecrets = clientSecrets;
 
 		httpTransport = new NetHttpTransport();
