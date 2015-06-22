@@ -1,9 +1,31 @@
+.text{
+	-fx-font-weight: normal;
+} 
+
 .background {
     -fx-background-color: transparent;
 }
 
 .tool-bar {
     -fx-background-color: transparent;
+}
+
+.thread-list-cell *.sender {
+	-fx-font-size: 13px;
+	-fx-text-fill: #444444;
+	-fx-font-weight: bold;
+ }
+
+.thread-list-cell *.unread {
+	-fx-text-fill: firebrick;
+}
+
+.thread-list-cell *.date {
+	-fx-font-size: 11px;
+}
+
+.thread-list-cell *.subject {
+	-fx-font-size: 12px;
 }
 
 .address-label {

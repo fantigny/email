@@ -40,7 +40,7 @@ public class Settings implements Serializable {
 		try {
 			s = new SerializedFile<Set<Object>>(FILENAME).load();
 		} catch (final FileNotFoundException e) {
-			LOGGER.warn("no settings found {}", FILENAME, e);
+			LOGGER.warn("no settings found {}", FILENAME);
 			return;
 		} catch (final Exception e) {
 			LOGGER.error("loading settings {}", FILENAME, e);

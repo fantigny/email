@@ -3,8 +3,6 @@ package net.anfoya.mail.browser.javafx.threadlist;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
-import javafx.scene.effect.Effect;
-import javafx.scene.effect.Glow;
 import javafx.scene.effect.Light.Distant;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -12,7 +10,6 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import net.anfoya.mail.browser.mime.DateHelper;
 import net.anfoya.mail.service.Thread;
 
@@ -20,8 +17,6 @@ class ThreadListCell<H extends Thread> extends ListCell<H> {
     private static final Image EMPTY = new Image(ThreadListCell.class.getResourceAsStream("mini_empty.png"));
     private static final Image STAR = new Image(ThreadListCell.class.getResourceAsStream("mini_star.png"));
     private static final Image UNREAD = new Image(ThreadListCell.class.getResourceAsStream("mini_unread.png"));
-
-    private static final Effect EFFECT = new Glow(.3);
 
     private final Label sender;
     private final Label subject;
@@ -32,13 +27,13 @@ class ThreadListCell<H extends Thread> extends ListCell<H> {
 	public ThreadListCell() {
 		super();
         setPadding(new Insets(0));
+		getStyleClass().add("thread-list-cell");
 
 		sender = new Label();
-		sender.setStyle("-fx-font-size: 13px; -fx-font-weight: bold");
+		sender.getStyleClass().add("sender");
 
 		date = new Label();
-		date.setStyle("-fx-font-size: 11px");
-		date.setMinWidth(Label.USE_PREF_SIZE);
+		date.getStyleClass().add("date");
 
 		final HBox empty = new HBox();
 		empty.setMinWidth(5);
@@ -48,7 +43,7 @@ class ThreadListCell<H extends Thread> extends ListCell<H> {
 		senderBox.prefWidthProperty().bind(this.widthProperty().add(-20));
 
 		subject = new Label();
-		subject.setStyle("-fx-font-size: 12px");
+		subject.getStyleClass().add("subject");
 
 		iconBox = new VBox();
 		iconBox.setSpacing(3);
@@ -78,12 +73,12 @@ class ThreadListCell<H extends Thread> extends ListCell<H> {
         	date.setText(new DateHelper(thread.getDate()).format());
         	subject.setText(thread.getSubject());
 
-	        sender.setTextFill(thread.isUnread()? Color.FIREBRICK: Color.BLACK);
-	        sender.setEffect(thread.isUnread()? EFFECT: null);
-
 	        iconBox.getChildren().clear();
         	if (thread.isUnread()) {
         		iconBox.getChildren().add(new ImageView(UNREAD));
+        		sender.getStyleClass().add("unread");
+        	} else {
+        		sender.getStyleClass().remove("unread");
         	}
         	if (thread.isStarred()) {
         		iconBox.getChildren().add(new ImageView(STAR));
