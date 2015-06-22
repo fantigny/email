@@ -10,6 +10,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import net.anfoya.mail.browser.mime.DateHelper;
 import net.anfoya.mail.service.Thread;
 
@@ -17,6 +18,8 @@ class ThreadListCell<H extends Thread> extends ListCell<H> {
     private static final Image EMPTY = new Image(ThreadListCell.class.getResourceAsStream("mini_empty.png"));
     private static final Image STAR = new Image(ThreadListCell.class.getResourceAsStream("mini_star.png"));
     private static final Image UNREAD = new Image(ThreadListCell.class.getResourceAsStream("mini_unread.png"));
+
+    private static final Color ALMOST_BLACK = Color.web("#444444");
 
     private final Label sender;
     private final Label subject;
@@ -31,9 +34,11 @@ class ThreadListCell<H extends Thread> extends ListCell<H> {
 
 		sender = new Label();
 		sender.getStyleClass().add("sender");
+        sender.setTextFill(ALMOST_BLACK);
 
 		date = new Label();
 		date.getStyleClass().add("date");
+		date.setMinWidth(Label.USE_PREF_SIZE);
 
 		final HBox empty = new HBox();
 		empty.setMinWidth(5);
@@ -73,12 +78,11 @@ class ThreadListCell<H extends Thread> extends ListCell<H> {
         	date.setText(new DateHelper(thread.getDate()).format());
         	subject.setText(thread.getSubject());
 
+	        sender.setTextFill(thread.isUnread()? Color.FIREBRICK: ALMOST_BLACK);
+
 	        iconBox.getChildren().clear();
         	if (thread.isUnread()) {
         		iconBox.getChildren().add(new ImageView(UNREAD));
-        		sender.getStyleClass().add("unread");
-        	} else {
-        		sender.getStyleClass().remove("unread");
         	}
         	if (thread.isStarred()) {
         		iconBox.getChildren().add(new ImageView(STAR));
