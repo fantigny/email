@@ -49,7 +49,7 @@
 								<transformer
 									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 									<manifestEntries>
-										<main-class>net.anfoya.mail.browser.javafx.entrypoint.MailBrowserApp</main-class>
+										<main-class>net.anfoya.mail.client.javafx.entrypoint.MailClient</main-class>
 									</manifestEntries>
 								</transformer>
 							</transformers>
@@ -78,7 +78,7 @@
 									identifier="net.anfoya.mail-browser"
 									shortversion="1.0"
 									copyright="ANFOYA.net"
-									mainclassname="net.anfoya.mail.browser.javafx.entrypoint.MailBrowserApp">
+									mainclassname="net.anfoya.mail.client.javafx.entrypoint.MailClient">
 									<classpath file="distrib/FisherMail.jar" />
 							        <option value="-Xmx1g"/>
 								</bundleapp>
@@ -113,7 +113,7 @@
 			                <jar>distrib/FisherMail.jar</jar>
 			                <errTitle>FisherMail Err</errTitle>
 			                <classPath>
-			                    <mainClass>net.anfoya.mail.browser.javafx.entrypoint.MailBrowserApp</mainClass>
+			                    <mainClass>net.anfoya.mail.client.javafx.entrypoint.MailClient</mainClass>
 			                </classPath>
 			                <icon>../mail-common/src/main/resources/net/anfoya/mail/image/Mail.ico</icon>
 			                <jre>

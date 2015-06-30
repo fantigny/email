@@ -1,9 +1,10 @@
-package net.anfoya.mail.browser.javafx;
+package net.anfoya.mail.client.javafx.entrypoint;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.mail.browser.javafx.MailBrowser;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.gmail.GmailService;
 import net.anfoya.mail.service.Contact;
