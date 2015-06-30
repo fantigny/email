@@ -34,8 +34,7 @@ public class MimeMessageHelper {
 			try {
 				Files.copy(getClass().getResourceAsStream("attachment.png"), new File(ATTACH_ICON_PATH).toPath(), StandardCopyOption.REPLACE_EXISTING);
 			} catch (final IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				LOGGER.error("can't copy attachment icon");
 			}
 		}
 	}
