@@ -1,5 +1,7 @@
 package net.anfoya.mail.browser.javafx.settings;
 
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -29,13 +31,15 @@ import net.anfoya.mail.service.Thread;
 
 public class SettingsDialog extends Stage {
 	private final MailService<? extends Section, ? extends Tag, ? extends Thread, ? extends Message, ? extends Contact> mailService;
+	private final EventHandler<ActionEvent> logoutHandler;
 
-	public SettingsDialog(final MailService<? extends Section, ? extends Tag, ? extends Thread, ? extends Message, ? extends Contact> mailService) {
+	public SettingsDialog(final MailService<? extends Section, ? extends Tag, ? extends Thread, ? extends Message, ? extends Contact> mailService, final EventHandler<ActionEvent> logoutHandler) {
 		initStyle(StageStyle.UNIFIED);
 		initModality(Modality.APPLICATION_MODAL);
 		setOnCloseRequest(e -> Settings.getSettings().save());
 
 		this.mailService = mailService;
+		this.logoutHandler = logoutHandler;
 
 		final TextArea textArea = new TextArea("Take your mail bait and fish some action!");
 		final Tab helpTab = new Tab("help", textArea);
@@ -64,11 +68,10 @@ public class SettingsDialog extends Stage {
 	}
 
 	private Tab buildSettingsTab() {
-		final Button logoutButton = new Button("logout and quit");
+		final Button logoutButton = new Button("logout");
 		logoutButton.setOnAction(e -> {
-			mailService.clearCache();
-			mailService.disconnect();
-			System.exit(0);
+			close();
+			logoutHandler.handle(null);
 		});
 
 		final Button clearCacheButton = new Button("clear cache");
@@ -83,7 +86,7 @@ public class SettingsDialog extends Stage {
 		gridPane.setVgap(5);
 		gridPane.setHgap(10);
 		int i = 0;
-		gridPane.addRow(i++, new Label("disconnect your account and close FisherMail"), logoutButton);
+		gridPane.addRow(i++, new Label("disconnect"), logoutButton);
 		gridPane.addRow(i++, new Label("clear cache"), clearCacheButton);
 		gridPane.addRow(i++, new Label("show tool bar"), toolButton);
 

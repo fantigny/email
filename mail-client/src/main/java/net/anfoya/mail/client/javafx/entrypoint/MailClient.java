@@ -29,24 +29,26 @@ public class MailClient extends Application {
 
 	@Override
 	public void init() {
-		try {
-			mailService = new GmailService();
-			mailService.connect("net.anfoya.mail-client");
-		} catch (final MailException e) {
-			LOGGER.error("login error", e);
-			System.exit(1);
-		}
 		Settings.load();
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public void start(final Stage primaryStage) throws Exception {
 		primaryStage.initStyle(StageStyle.UNIFIED);
 		primaryStage.setOnCloseRequest(e -> ThreadPool.getInstance().shutdown());
 
-		@SuppressWarnings("unchecked")
-		final MailBrowser<? extends Section, ? extends Tag, ? extends Thread, ? extends Message, ? extends Contact> mailBrowser =
-				new MailBrowser<Section, Tag, Thread, Message, Contact>((MailService<Section, Tag, Thread, Message, Contact>) mailService);
-		mailBrowser.showAndWait();
+		MailBrowser<? extends Section, ? extends Tag, ? extends Thread, ? extends Message, ? extends Contact> mailBrowser;
+		do {
+			try {
+				mailService = new GmailService();
+				mailService.connect("net.anfoya.mail-client");
+			} catch (final MailException e) {
+				LOGGER.error("login error", e);
+				System.exit(1);
+			}
+			mailBrowser = new MailBrowser<Section, Tag, Thread, Message, Contact>((MailService<Section, Tag, Thread, Message, Contact>) mailService);
+			mailBrowser.showAndWait();
+		} while (!mailBrowser.isQuit());
 	}
 }

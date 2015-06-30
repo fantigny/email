@@ -40,9 +40,12 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	private ThreadListPane<S, T, H, M, C> threadListPane;
 	private ThreadPane<T, H, M, C> threadPane;
 
+	private boolean quit;
+
 	public MailBrowser(final MailService<S, T, H, M, C> mailService) {
 		initStyle(StageStyle.UNIFIED);
 		setOnCloseRequest(e ->Notifier.INSTANCE.stop());
+		quit = true;
 
 		this.mailService = mailService;
 
@@ -66,25 +69,26 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 			sectionListPane.prefHeightProperty().bind(sectionListPane.heightProperty());
 			sectionListPane.setSectionDisableWhenZero(false);
 			sectionListPane.setLazyCount(true);
-			sectionListPane.setOnSelectTag(event -> refreshAfterTagSelected());
-			sectionListPane.setOnUpdateSection(event -> refreshAfterSectionUpdate());
-			sectionListPane.setOnUpdateTag(event -> refreshAfterTagUpdate());
+			sectionListPane.setOnSelectTag(e ->refreshAfterTagSelected());
+			sectionListPane.setOnUpdateSection(e ->refreshAfterSectionUpdate());
+			sectionListPane.setOnUpdateTag(e ->refreshAfterTagUpdate());
 			splitPane.getItems().add(sectionListPane);
 		}
 
 		/* thread list */ {
 			threadListPane = new ThreadListPane<S, T, H, M, C>(mailService);
 			threadListPane.prefHeightProperty().bind(splitPane.heightProperty());
-			threadListPane.setOnSelectThread(event -> refreshAfterThreadSelected());
-			threadListPane.setOnLoadThreadList(event -> refreshAfterThreadListLoad());
-			threadListPane.setOnUpdatePattern(event -> refreshAfterPatternUpdate());
-			threadListPane.setOnUpdateThread(event -> refreshAfterThreadUpdate());
+			threadListPane.setOnSelectThread(e ->refreshAfterThreadSelected());
+			threadListPane.setOnLoadThreadList(e ->refreshAfterThreadListLoad());
+			threadListPane.setOnUpdatePattern(e ->refreshAfterPatternUpdate());
+			threadListPane.setOnUpdateThread(e ->refreshAfterThreadUpdate());
 			splitPane.getItems().add(threadListPane);
 		}
 
 		/* thread panel */ {
 			threadPane = new ThreadPane<T, H, M, C>(mailService);
-			threadPane.setOnUpdateThread(event -> refreshAfterThreadUpdate());
+			threadPane.setOnUpdateThread(e ->refreshAfterThreadUpdate());
+			threadPane.setOnLogout(e -> logout());
 			splitPane.getItems().add(threadPane);
 		}
 
@@ -96,6 +100,12 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
         setScene(scene);
 
         Platform.runLater(() -> threadListPane.requestFocus());
+	}
+
+	private void logout() {
+		quit = false;
+		mailService.disconnect();
+		close();
 	}
 
 	private void initData() {
@@ -157,7 +167,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		}
 		LOGGER.debug("refreshAfterTagUpdate");
 
-		sectionListPane.refreshAsync(event -> {
+		sectionListPane.refreshAsync(e ->{
 			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
 			return null;
 		});
@@ -228,5 +238,9 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
 			return null;
 		});
+	}
+
+	public boolean isQuit() {
+		return quit;
 	}
 }

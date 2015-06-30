@@ -7,9 +7,7 @@ import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
 
-import javafx.application.Platform;
 import javafx.concurrent.Worker.State;
 import javafx.scene.Scene;
 import javafx.scene.web.WebEngine;
@@ -68,34 +66,25 @@ public class GmailLogin {
 			final BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 			authCode = br.readLine();
 		} else {
-			final CountDownLatch countDownLatch = new CountDownLatch(1);
-			final StringBuilder ac = new StringBuilder();
-			Platform.runLater(new Runnable() {
-				@Override
-				public void run() {
-					final WebView webView = new WebView();
-					final Stage stage = new Stage(StageStyle.UNIFIED);
-					stage.setOnHiding(event -> countDownLatch.countDown());
-					stage.setScene(new Scene(webView, 450, 650));
-					stage.show();
+			final WebView webView = new WebView();
+			final Stage stage = new Stage(StageStyle.UNIFIED);
+			stage.setScene(new Scene(webView, 450, 650));
 
-					final WebEngine webEngine = webView.getEngine();
-					webEngine.getLoadWorker().stateProperty().addListener((ov, o, n) -> {
-						if (n == State.SUCCEEDED) {
-							final String title = getTitle(webEngine);
-							stage.setTitle(title);
-							if (title.length() > LOGIN_SUCESS_PREFIX.length() && title.startsWith(LOGIN_SUCESS_PREFIX)) {
-								ac.append(title.substring(LOGIN_SUCESS_PREFIX.length()));
-								stage.close();
-							}
-						}
-					});
-					webEngine.load(url);
+			final StringBuilder sb = new StringBuilder();
+			final WebEngine webEngine = webView.getEngine();
+			webEngine.getLoadWorker().stateProperty().addListener((ov, o, n) -> {
+				if (n == State.SUCCEEDED) {
+					final String title = getTitle(webEngine);
+					stage.setTitle(title);
+					if (title.length() > LOGIN_SUCESS_PREFIX.length() && title.startsWith(LOGIN_SUCESS_PREFIX)) {
+						sb.append(title.substring(LOGIN_SUCESS_PREFIX.length()));
+						stage.close();
+					}
 				}
 			});
-
-			countDownLatch.await();
-			authCode = ac.toString();
+			webEngine.load(url);
+			stage.showAndWait();
+			authCode = sb.toString();
 		}
 
 		if (authCode.length() == 0) {

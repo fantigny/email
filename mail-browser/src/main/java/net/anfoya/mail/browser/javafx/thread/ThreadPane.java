@@ -42,8 +42,6 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 	private final SelectedTagsPane<T> tagsPane;
 	private final VBox messagesBox;
 
-	private EventHandler<ActionEvent> updateHandler;
-
 	private Set<H> threads;
 	private H thread;
 
@@ -51,6 +49,9 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 	private final EventHandler<ScrollEvent> webScrollHandler;
 
 	private final ObservableList<Node> msgPanes;
+
+	private EventHandler<ActionEvent> updateHandler;
+	private EventHandler<ActionEvent> logoutHandler;
 
 	public ThreadPane(final MailService<? extends Section, T, H, M, C> mailService) {
 		this.mailService = mailService;
@@ -62,7 +63,7 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 
 		final Button settingsButton = new Button();
 		settingsButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("settings.png"))));
-		settingsButton.setOnAction(event -> new SettingsDialog(mailService).show());
+		settingsButton.setOnAction(event -> new SettingsDialog(mailService, logoutHandler).show());
 
 		final HBox subjectBox = new HBox(5, subjectField, settingsButton);
 		setTop(subjectBox);
@@ -243,5 +244,9 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 			});
 			tagsPane.refresh(tags);
 		}
+	}
+
+	public void setOnLogout(final EventHandler<ActionEvent> handler) {
+		logoutHandler = handler;
 	}
 }
