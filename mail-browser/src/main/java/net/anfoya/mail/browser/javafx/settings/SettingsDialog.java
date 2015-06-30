@@ -20,17 +20,17 @@ import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import net.anfoya.mail.model.SimpleContact;
-import net.anfoya.mail.model.SimpleMessage;
-import net.anfoya.mail.model.SimpleTag;
-import net.anfoya.mail.model.SimpleThread;
+import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailService;
-import net.anfoya.tag.model.SimpleSection;
+import net.anfoya.mail.service.Message;
+import net.anfoya.mail.service.Section;
+import net.anfoya.mail.service.Tag;
+import net.anfoya.mail.service.Thread;
 
 public class SettingsDialog extends Stage {
-	private final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, ? extends SimpleMessage, ? extends SimpleContact> mailService;
+	private final MailService<? extends Section, ? extends Tag, ? extends Thread, ? extends Message, ? extends Contact> mailService;
 
-	public SettingsDialog(final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, ? extends SimpleMessage, ? extends SimpleContact> mailService) {
+	public SettingsDialog(final MailService<? extends Section, ? extends Tag, ? extends Thread, ? extends Message, ? extends Contact> mailService) {
 		initStyle(StageStyle.UNIFIED);
 		initModality(Modality.APPLICATION_MODAL);
 		setOnCloseRequest(e -> Settings.getSettings().save());

@@ -14,11 +14,11 @@ import javafx.scene.layout.GridPane;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.dnd.DropArea;
 import net.anfoya.tag.javafx.scene.dnd.DndFormat;
-import net.anfoya.tag.model.SimpleSection;
-import net.anfoya.tag.model.SimpleTag;
+import net.anfoya.tag.service.Section;
+import net.anfoya.tag.service.Tag;
 import net.anfoya.tag.service.TagService;
 
-public class TagDropPane<S extends SimpleSection, T extends SimpleTag> extends GridPane {
+public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 	private final TagService<S, T> tagService;
 	private EventHandler<ActionEvent> onUpdateHandler;
 

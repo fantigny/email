@@ -14,16 +14,16 @@ import javafx.scene.layout.GridPane;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.dnd.DropArea;
 import net.anfoya.tag.javafx.scene.dnd.DndFormat;
-import net.anfoya.tag.model.SimpleSection;
-import net.anfoya.tag.model.SimpleTag;
+import net.anfoya.tag.service.Section;
+import net.anfoya.tag.service.Tag;
 import net.anfoya.tag.service.TagService;
 
-public class SectionDropPane<S extends SimpleSection> extends GridPane {
+public class SectionDropPane<S extends Section> extends GridPane {
 
-	private final TagService<S, ? extends SimpleTag> tagService;
+	private final TagService<S, ? extends Tag> tagService;
 	private EventHandler<ActionEvent> updateHandler;
 
-	public SectionDropPane(final TagService<S, ? extends SimpleTag> tagService) {
+	public SectionDropPane(final TagService<S, ? extends Tag> tagService) {
 		this.tagService = tagService;
 
 		setVgap(2);

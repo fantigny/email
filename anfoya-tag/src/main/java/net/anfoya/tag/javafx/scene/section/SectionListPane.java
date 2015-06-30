@@ -29,15 +29,15 @@ import net.anfoya.tag.javafx.scene.dnd.DndFormat;
 import net.anfoya.tag.javafx.scene.dnd.ExtItemDropPane;
 import net.anfoya.tag.javafx.scene.tag.TagDropPane;
 import net.anfoya.tag.javafx.scene.tag.TagList;
-import net.anfoya.tag.model.SimpleSection;
-import net.anfoya.tag.model.SimpleTag;
+import net.anfoya.tag.service.Section;
+import net.anfoya.tag.service.Tag;
 import net.anfoya.tag.service.TagException;
 import net.anfoya.tag.service.TagService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SectionListPane<S extends SimpleSection, T extends SimpleTag> extends BorderPane {
+public class SectionListPane<S extends Section, T extends Tag> extends BorderPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SectionListPane.class);
 
 	private final TagService<S, T> tagService;
@@ -150,7 +150,7 @@ public class SectionListPane<S extends SimpleSection, T extends SimpleTag> exten
 
 	private void refreshSections() {
 		// delete sections
-		final Set<SimpleSection> existingSections = new LinkedHashSet<SimpleSection>();
+		final Set<Section> existingSections = new LinkedHashSet<Section>();
 		for(final Iterator<TitledPane> i = sectionAcc.getPanes().iterator(); i.hasNext();) {
 			@SuppressWarnings("unchecked")
 			final TagList<S, T> tagList = (TagList<S, T>) i.next().getContent();

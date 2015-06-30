@@ -11,9 +11,9 @@ import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
 import javafx.scene.layout.GridPane;
 import net.anfoya.javafx.scene.dnd.DropArea;
-import net.anfoya.tag.model.SimpleTag;
+import net.anfoya.tag.service.Tag;
 
-public class ExtItemDropPane<T extends SimpleTag> extends GridPane {
+public class ExtItemDropPane<T extends Tag> extends GridPane {
 	public ExtItemDropPane(final DataFormat extItemDataFormat) {
 		setVgap(2);
 		setHgap(2);

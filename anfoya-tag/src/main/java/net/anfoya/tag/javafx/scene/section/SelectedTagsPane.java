@@ -8,9 +8,9 @@ import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.layout.FlowPane;
 import javafx.util.Callback;
-import net.anfoya.tag.model.SimpleTag;
+import net.anfoya.tag.service.Tag;
 
-public class SelectedTagsPane<T extends SimpleTag> extends FlowPane {
+public class SelectedTagsPane<T extends Tag> extends FlowPane {
 
 	protected static final String CROSS = " X";
 	private Callback<T, Void> clearTagCallBack;

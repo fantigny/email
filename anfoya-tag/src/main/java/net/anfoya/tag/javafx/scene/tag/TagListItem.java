@@ -8,9 +8,9 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
-import net.anfoya.tag.model.SimpleTag;
+import net.anfoya.tag.service.Tag;
 
-public class TagListItem<T extends SimpleTag> {
+public class TagListItem<T extends Tag> {
 	private static final String COUNT_STRING = " (%d)";
 
 	private final T tag;

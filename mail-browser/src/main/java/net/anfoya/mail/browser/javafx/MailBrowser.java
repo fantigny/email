@@ -1,10 +1,9 @@
-package net.anfoya.mail.browser.javafx.entrypoint;
+package net.anfoya.mail.browser.javafx;
 
 import static net.anfoya.mail.browser.javafx.threadlist.ThreadListPane.DND_THREADS_DATA_FORMAT;
 
 import java.util.Set;
 
-import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.SplitPane;
@@ -12,80 +11,48 @@ import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
-
-import javax.security.auth.login.LoginException;
-
-import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.Notification;
 import net.anfoya.javafx.scene.control.Notification.Notifier;
-import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
 import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
-import net.anfoya.mail.gmail.GmailService;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
 import net.anfoya.mail.gmail.model.GmailSection;
-import net.anfoya.mail.model.SimpleContact;
-import net.anfoya.mail.model.SimpleMessage;
-import net.anfoya.mail.model.SimpleSection;
-import net.anfoya.mail.model.SimpleTag;
-import net.anfoya.mail.model.SimpleThread;
-import net.anfoya.mail.service.MailException;
+import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailService;
+import net.anfoya.mail.service.Message;
+import net.anfoya.mail.service.Section;
+import net.anfoya.mail.service.Tag;
+import net.anfoya.mail.service.Thread;
 import net.anfoya.tag.javafx.scene.section.SectionListPane;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MailBrowserApp<
-		S extends SimpleSection
-		, T extends SimpleTag
-		, H extends SimpleThread
-		, M extends SimpleMessage
-		, C extends SimpleContact>
-		extends Application {
+public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends Stage {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(MailBrowserApp.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(MailBrowser.class);
 
 	private static final Duration NOTIFIER_LIFETIME = Duration.seconds(20);
 
-	public static void main(final String[] args) {
-		launch(args);
-	}
+	private final MailService<S, T, H, M, C> mailService;
 
 	private SectionListPane<S, T> sectionListPane;
-	private MailService<S, T, H, M, C> mailService;
 	private ThreadListPane<S, T, H, M, C> threadListPane;
 	private ThreadPane<T, H, M, C> threadPane;
 
-	@Override
-	public void init() {
-		try {
-			@SuppressWarnings("unchecked")
-			final MailService<S, T, H, M, C> mailService = (MailService<S, T, H, M, C>) new GmailService();
-			mailService.connect("net.anfoya.mail-browser");
-			this.mailService = mailService;
-		} catch (final MailException e) {
-			LOGGER.error("login error", e);
-			System.exit(1);
-		}
-		Settings.load();
-	}
+	public MailBrowser(final MailService<S, T, H, M, C> mailService) {
+		initStyle(StageStyle.UNIFIED);
+		setOnCloseRequest(e ->Notifier.INSTANCE.stop());
 
-	@Override
-	public void start(final Stage primaryStage) throws Exception {
-		primaryStage.initStyle(StageStyle.UNIFIED);
-		primaryStage.setOnCloseRequest(event -> {
-			ThreadPool.getInstance().shutdown();
-			Notifier.INSTANCE.stop();
-		});
+		this.mailService = mailService;
 
 		Notifier.INSTANCE.setPopupLifetime(NOTIFIER_LIFETIME);
 
-		initGui(primaryStage);
+		initGui();
 		initData();
 	}
 
-	private void initGui(final Stage primaryStage) throws MailException, LoginException {
+	private void initGui() {
 		final SplitPane splitPane = new SplitPane();
 		splitPane.getStyleClass().add("background");
 
@@ -124,10 +91,10 @@ public class MailBrowserApp<
 		splitPane.setDividerPosition(0, .14);
 		splitPane.setDividerPosition(1, .38);
 
-		primaryStage.setTitle("FisherMail");
-		primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png")));
-        primaryStage.setScene(scene);
-        primaryStage.show();
+		setTitle("FisherMail");
+		getIcons().add(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png")));
+        setScene(scene);
+        show();
 
 		sectionListPane.requestFocus();
 	}

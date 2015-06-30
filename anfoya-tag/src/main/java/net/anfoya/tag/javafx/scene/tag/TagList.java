@@ -18,8 +18,8 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.input.DataFormat;
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.tag.model.SimpleSection;
-import net.anfoya.tag.model.SimpleTag;
+import net.anfoya.tag.service.Section;
+import net.anfoya.tag.service.Tag;
 import net.anfoya.tag.service.TagException;
 import net.anfoya.tag.service.TagService;
 
@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 //TODO use tag id instead of tag name
 
-public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListView<TagListItem<T>> {
+public class TagList<S extends Section, T extends Tag> extends ListView<TagListItem<T>> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TagList.class);
 
 	private final TagService<S, T> tagService;
@@ -108,7 +108,7 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 		final TagListItem<T> selectedItem = getSelectionModel().getSelectedItem();
 
 		// check if "this" tag is in the list
-		final boolean hasThisTag = getItems().contains(nameTags.get(SimpleTag.THIS_NAME));
+		final boolean hasThisTag = getItems().contains(nameTags.get(Tag.THIS_NAME));
 
 		// build items map and restore selection
 		refreshing = true;
@@ -129,7 +129,7 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 			if (countedItemMap.containsKey(tag.getName())) {
 				item.countProperty().set(countedItemMap.get(tag.getName()).countProperty().get());
 			}
-			if (item.getTag().getName().equals(SimpleTag.THIS_NAME)) {
+			if (item.getTag().getName().equals(Tag.THIS_NAME)) {
 				if (hasThisTag) {
 					items.add(0, item);
 				}
@@ -161,7 +161,7 @@ public class TagList<S extends SimpleSection, T extends SimpleTag> extends ListV
 			showThisTask.cancel();
 		}
 
-		final TagListItem<T> item = nameTags.get(SimpleTag.THIS_NAME);
+		final TagListItem<T> item = nameTags.get(Tag.THIS_NAME);
 		if (item == null) {
 			return;
 		}

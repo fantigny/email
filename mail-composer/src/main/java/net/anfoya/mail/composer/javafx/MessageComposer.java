@@ -1,4 +1,4 @@
-package net.anfoya.mail.composer.javafx.message;
+package net.anfoya.mail.composer.javafx;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -41,24 +41,24 @@ import javax.mail.internet.MimeUtility;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.AutoCompComboBoxListener;
 import net.anfoya.javafx.scene.control.ComboField;
-import net.anfoya.mail.mime.MimeMessageHelper;
-import net.anfoya.mail.model.SimpleContact;
-import net.anfoya.mail.model.SimpleMessage;
-import net.anfoya.mail.model.SimpleTag;
-import net.anfoya.mail.model.SimpleThread;
+import net.anfoya.mail.mime.MessageHelper;
+import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
-import net.anfoya.tag.model.SimpleSection;
+import net.anfoya.mail.service.Message;
+import net.anfoya.mail.service.Section;
+import net.anfoya.mail.service.Tag;
+import net.anfoya.mail.service.Thread;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MessageComposer<M extends SimpleMessage, C extends SimpleContact> extends Stage {
+public class MessageComposer<M extends Message, C extends Contact> extends Stage {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessageComposer.class);
 
-	private final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M, C> mailService;
+	private final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService;
 	private final EventHandler<ActionEvent> updateHandler;
-	private final MimeMessageHelper helper;
+	private final MessageHelper helper;
 
 	private final BorderPane mainPane;
 	private final GridPane headerPane;
@@ -74,7 +74,7 @@ public class MessageComposer<M extends SimpleMessage, C extends SimpleContact> e
 
 	private M draft;
 
-	public MessageComposer(final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M, C> mailService, final EventHandler<ActionEvent> updateHandler) {
+	public MessageComposer(final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService, final EventHandler<ActionEvent> updateHandler) {
 		super(StageStyle.UNIFIED);
 		setTitle("FisherMail / Agaar / Agamar / Agaram");
 		getIcons().add(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png")));
@@ -87,7 +87,7 @@ public class MessageComposer<M extends SimpleMessage, C extends SimpleContact> e
 		this.mailService = mailService;
 		this.updateHandler = updateHandler;
 
-		helper = new MimeMessageHelper();
+		helper = new MessageHelper();
 		mainPane = (BorderPane) getScene().getRoot();
 
 		final ColumnConstraints widthConstraints = new ColumnConstraints(80);

@@ -9,12 +9,12 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import net.anfoya.javafx.scene.control.ExcludeBox;
 import net.anfoya.tag.javafx.scene.dnd.DndFormat;
-import net.anfoya.tag.model.SimpleTag;
+import net.anfoya.tag.service.Tag;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class TagListCell<T extends SimpleTag> extends CheckBoxListCell<TagListItem<T>> {
+class TagListCell<T extends Tag> extends CheckBoxListCell<TagListItem<T>> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TagListCell.class);
 
 	public TagListCell() {

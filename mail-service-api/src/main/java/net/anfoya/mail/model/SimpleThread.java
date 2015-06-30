@@ -11,30 +11,30 @@ import net.anfoya.mail.service.Thread;
 public abstract class SimpleThread implements Thread {
 	public enum SortOrder {
 		DATE((t1, t2) -> {
-			if (t1.date == null || PAGE_TOKEN_ID.equals(t2.id)) {
+			if (t1.getDate() == null || PAGE_TOKEN_ID.equals(t2.getId())) {
 				return -1;
-			} else if (t2.date == null || PAGE_TOKEN_ID.equals(t1.id)) {
+			} else if (t2.getDate() == null || PAGE_TOKEN_ID.equals(t1.getId())) {
 				return 1;
 			} else {
-				return t2.date.compareTo(t1.date);
+				return t2.getDate().compareTo(t1.getDate());
 			}
 		}),
 		SENDER((t1, t2) -> {
-			if (t1.sender == null || PAGE_TOKEN_ID.equals(t2.id)) {
+			if (t1.getSender() == null || PAGE_TOKEN_ID.equals(t2.getId())) {
 				return -1;
-			} else if (t2.sender == null || PAGE_TOKEN_ID.equals(t1.id)) {
+			} else if (t2.getSender() == null || PAGE_TOKEN_ID.equals(t1.getId())) {
 				return 1;
 			} else {
-				return t1.sender.compareTo(t2.sender);
+				return t1.getSender().compareTo(t2.getSender());
 			}
 		});
 
-		private Comparator<SimpleThread> comparator;
-		private SortOrder(final Comparator<SimpleThread> comparator) {
+		private Comparator<Thread> comparator;
+		private SortOrder(final Comparator<Thread> comparator) {
 			this.comparator = comparator;
 		}
 
-		public Comparator<SimpleThread> getComparator() {
+		public Comparator<Thread> getComparator() {
 			return comparator;
 		}
 	}

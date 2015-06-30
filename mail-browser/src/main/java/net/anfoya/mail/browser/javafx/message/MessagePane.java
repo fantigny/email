@@ -23,7 +23,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
 import javax.mail.Address;
-import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
@@ -31,27 +30,27 @@ import javax.mail.internet.MimeMessage;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.web.WebViewFitContent;
 import net.anfoya.mail.browser.javafx.thread.ThreadDropPane;
-import net.anfoya.mail.composer.javafx.message.MessageComposer;
+import net.anfoya.mail.composer.javafx.MessageComposer;
 import net.anfoya.mail.mime.DateHelper;
-import net.anfoya.mail.mime.MimeMessageHelper;
-import net.anfoya.mail.model.SimpleContact;
-import net.anfoya.mail.model.SimpleMessage;
-import net.anfoya.mail.model.SimpleTag;
-import net.anfoya.mail.model.SimpleThread;
+import net.anfoya.mail.mime.MessageHelper;
+import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
-import net.anfoya.tag.model.SimpleSection;
+import net.anfoya.mail.service.Message;
+import net.anfoya.mail.service.Section;
+import net.anfoya.mail.service.Tag;
+import net.anfoya.mail.service.Thread;
 import netscape.javascript.JSObject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MessagePane<M extends SimpleMessage, C extends SimpleContact> extends VBox {
+public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessagePane.class);
 
-	private final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M, C> mailService;
+	private final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService;
 	private final BooleanProperty expanded;
-	private final MimeMessageHelper helper;
+	private final MessageHelper helper;
 
 	private boolean collapsible;
 
@@ -65,12 +64,12 @@ public class MessagePane<M extends SimpleMessage, C extends SimpleContact> exten
 
 	private EventHandler<ActionEvent> updateHandler;
 
-	public MessagePane(final String messageId, final MailService<? extends SimpleSection, ? extends SimpleTag, ? extends SimpleThread, M, C> mailService) {
+	public MessagePane(final String messageId, final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService) {
 		this.mailService = mailService;
 		this.messageId = messageId;
 
 		collapsible = true;
-		helper = new MimeMessageHelper();
+		helper = new MessageHelper();
 
 		bodyView = new WebViewFitContent();
 		bodyView.getEngine().setCreatePopupHandler(handler -> bodyView.getEngine());
@@ -156,7 +155,7 @@ public class MessagePane<M extends SimpleMessage, C extends SimpleContact> exten
 
 			final StringBuilder title = new StringBuilder();
 			title.append(getMailAddresses(mimeMessage.getFrom()));
-			title.append(" to ").append(getMailAddresses(mimeMessage.getRecipients(Message.RecipientType.TO)));
+			title.append(" to ").append(getMailAddresses(mimeMessage.getRecipients(MimeMessage.RecipientType.TO)));
 			titleText.setText(title.toString());
 			dateText.setText(new DateHelper(mimeMessage.getSentDate()).format());
 		} catch (final MessagingException e) {

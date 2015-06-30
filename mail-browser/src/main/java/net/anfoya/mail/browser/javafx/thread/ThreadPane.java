@@ -24,19 +24,19 @@ import javafx.scene.layout.VBox;
 import net.anfoya.mail.browser.javafx.message.MessagePane;
 import net.anfoya.mail.browser.javafx.settings.SettingsDialog;
 import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
-import net.anfoya.mail.model.SimpleContact;
-import net.anfoya.mail.model.SimpleMessage;
-import net.anfoya.mail.model.SimpleTag;
-import net.anfoya.mail.model.SimpleThread;
+import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
+import net.anfoya.mail.service.Message;
+import net.anfoya.mail.service.Section;
+import net.anfoya.mail.service.Tag;
+import net.anfoya.mail.service.Thread;
 import net.anfoya.tag.javafx.scene.section.SelectedTagsPane;
-import net.anfoya.tag.model.SimpleSection;
 
-public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage, C extends SimpleContact> extends BorderPane {
+public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C extends Contact> extends BorderPane {
 //	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadPane.class);
 
-	private final MailService<? extends SimpleSection, T, H, M, C> mailService;
+	private final MailService<? extends Section, T, H, M, C> mailService;
 
 	private final TextField subjectField;
 	private final SelectedTagsPane<T> tagsPane;
@@ -52,7 +52,7 @@ public class ThreadPane<T extends SimpleTag, H extends SimpleThread, M extends S
 
 	private final ObservableList<Node> msgPanes;
 
-	public ThreadPane(final MailService<? extends SimpleSection, T, H, M, C> mailService) {
+	public ThreadPane(final MailService<? extends Section, T, H, M, C> mailService) {
 		this.mailService = mailService;
 
 		subjectField = new TextField();

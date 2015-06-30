@@ -19,22 +19,21 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.input.KeyCode;
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.mail.composer.javafx.message.MessageComposer;
+import net.anfoya.mail.composer.javafx.MessageComposer;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
-import net.anfoya.mail.model.SimpleContact;
-import net.anfoya.mail.model.SimpleMessage;
-import net.anfoya.mail.model.SimpleSection;
-import net.anfoya.mail.model.SimpleTag;
-import net.anfoya.mail.model.SimpleThread;
 import net.anfoya.mail.model.SimpleThread.SortOrder;
+import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
+import net.anfoya.mail.service.Message;
+import net.anfoya.mail.service.Section;
+import net.anfoya.mail.service.Tag;
+import net.anfoya.mail.service.Thread;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ThreadList<S extends SimpleSection, T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage, C extends SimpleContact>
-		extends ListView<H> {
+public class ThreadList<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends ListView<H> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadList.class);
 
 	private final MailService<S, T, H, M, C> mailService;

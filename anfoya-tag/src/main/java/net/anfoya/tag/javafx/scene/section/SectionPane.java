@@ -21,12 +21,13 @@ import net.anfoya.javafx.scene.control.IncExcBox;
 import net.anfoya.tag.javafx.scene.dnd.DndFormat;
 import net.anfoya.tag.javafx.scene.tag.TagList;
 import net.anfoya.tag.javafx.scene.tag.TagListItem;
-import net.anfoya.tag.model.SimpleSection;
 import net.anfoya.tag.model.SimpleTag;
+import net.anfoya.tag.service.Section;
+import net.anfoya.tag.service.Tag;
 import net.anfoya.tag.service.TagException;
 import net.anfoya.tag.service.TagService;
 
-public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends TitledPane {
+public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 //	private static final Logger LOGGER = LoggerFactory.getLogger(SectionPane.class);
 
 	private long sectionTaskId;
@@ -37,7 +38,7 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 	private Labeled titleNode;
 
 	private boolean isTag;
-	private TagListItem<SimpleTag> sectionItem;
+	private TagListItem<Tag> sectionItem;
 
 	private boolean lazyCount;
 	private Runnable lazyCountTask;
@@ -51,7 +52,7 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 	@SuppressWarnings("unchecked")
 	public SectionPane(final TagService<S, T> tagService, final S section) {
 		this.tagService = tagService;
-		this.sectionItem = new TagListItem<SimpleTag>(new SimpleTag(section.getId(), section.getName(), section.isSystem()));
+		this.sectionItem = new TagListItem<Tag>(new SimpleTag(section.getId(), section.getName(), section.isSystem()));
 
 		tagList = new TagList<S, T>(tagService, section);
 		setContent(tagList);
@@ -81,7 +82,7 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 		setOnDragOver(event -> {
 			final Dragboard db = event.getDragboard();
 			if (db.hasContent(DndFormat.TAG_DATA_FORMAT)
-					&& !section.getId().startsWith(SimpleSection.NO_ID)) { //TODO improve
+					&& !section.getId().startsWith(Section.NO_ID)) { //TODO improve
 				final T tag = (T) db.getContent(DndFormat.TAG_DATA_FORMAT);
 				if (!tagList.contains(tag)) {
 					SectionPane.this.setOpacity(.5);
@@ -99,7 +100,7 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 				SectionPane.this.setOpacity(1);
 				event.consume();
 			} else if (db.hasContent(DndFormat.TAG_DATA_FORMAT)
-					&& !section.getId().startsWith(SimpleSection.NO_ID)) { //TODO improve
+					&& !section.getId().startsWith(Section.NO_ID)) { //TODO improve
 				SectionPane.this.setOpacity(1);
 				event.consume();
 			}
@@ -194,7 +195,7 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 		}
 
 		if (isTag) {
-			TagListItem<? extends SimpleTag> sectionItem = tagList.getSectionItem();
+			TagListItem<? extends Tag> sectionItem = tagList.getSectionItem();
 			if (sectionItem == null) {
 				sectionItem = this.sectionItem;
 			}
@@ -213,7 +214,7 @@ public class SectionPane<S extends SimpleSection, T extends SimpleTag> extends T
 			}
 			incExcBox.includedProperty().bindBidirectional(sectionItem.includedProperty());
 			incExcBox.excludedProperty().bindBidirectional(sectionItem.excludedProperty());
-			this.sectionItem = new TagListItem<SimpleTag>(new SimpleTag(sectionItem.getTag().getId(), sectionItem.getTag().getName(), true));
+			this.sectionItem = new TagListItem<Tag>(new SimpleTag(sectionItem.getTag().getId(), sectionItem.getTag().getName(), true));
 		}
 	}
 

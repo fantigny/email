@@ -11,25 +11,25 @@ import javafx.geometry.Pos;
 import javafx.scene.layout.GridPane;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.dnd.DropArea;
-import net.anfoya.mail.composer.javafx.message.MessageComposer;
-import net.anfoya.mail.model.SimpleContact;
-import net.anfoya.mail.model.SimpleMessage;
-import net.anfoya.mail.model.SimpleTag;
-import net.anfoya.mail.model.SimpleThread;
+import net.anfoya.mail.composer.javafx.MessageComposer;
+import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
-import net.anfoya.tag.model.SimpleSection;
+import net.anfoya.mail.service.Message;
+import net.anfoya.mail.service.Section;
+import net.anfoya.mail.service.Tag;
+import net.anfoya.mail.service.Thread;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ThreadListDropPane<T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage, C extends SimpleContact> extends GridPane {
+public class ThreadListDropPane<T extends Tag, H extends Thread, M extends Message, C extends Contact> extends GridPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadListDropPane.class);
 
-	private final MailService<? extends SimpleSection, T, H, M, C> mailService;
+	private final MailService<? extends Section, T, H, M, C> mailService;
 	private EventHandler<ActionEvent> updateHandler;
 
-	public ThreadListDropPane(final MailService<? extends SimpleSection, T, H, M, C> mailService) {
+	public ThreadListDropPane(final MailService<? extends Section, T, H, M, C> mailService) {
 		this.mailService = mailService;
 
 		setVgap(2);

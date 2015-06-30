@@ -22,8 +22,8 @@ import org.slf4j.LoggerFactory;
 
 import com.sun.mail.util.BASE64DecoderStream;
 
-public class MimeMessageHelper {
-	private static final Logger LOGGER = LoggerFactory.getLogger(MimeMessageHelper.class);
+public class MessageHelper {
+	private static final Logger LOGGER = LoggerFactory.getLogger(MessageHelper.class);
 	private static final String TEMP = System.getProperty("java.io.tmpdir") + File.separatorChar;
 	private static final String ATTACH_ICON_PATH = TEMP + "fishermail-attachment.png";
 
@@ -42,7 +42,7 @@ public class MimeMessageHelper {
 	private final Map<String, String> cidFilenames;
 	private final List<String> attachments;
 
-	public MimeMessageHelper() {
+	public MessageHelper() {
 		cidFilenames = new HashMap<String, String>();
 		attachments = new ArrayList<String>();
 	}

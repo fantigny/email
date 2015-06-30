@@ -32,24 +32,24 @@ import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.ResetTextField;
 import net.anfoya.mail.browser.javafx.settings.Settings;
-import net.anfoya.mail.composer.javafx.message.MessageComposer;
-import net.anfoya.mail.model.SimpleContact;
-import net.anfoya.mail.model.SimpleMessage;
-import net.anfoya.mail.model.SimpleSection;
-import net.anfoya.mail.model.SimpleTag;
-import net.anfoya.mail.model.SimpleThread;
+import net.anfoya.mail.composer.javafx.MessageComposer;
 import net.anfoya.mail.model.SimpleThread.SortOrder;
+import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
+import net.anfoya.mail.service.Message;
+import net.anfoya.mail.service.Section;
+import net.anfoya.mail.service.Tag;
+import net.anfoya.mail.service.Thread;
 import net.anfoya.tag.javafx.scene.dnd.DndFormat;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ThreadListPane<S extends SimpleSection, T extends SimpleTag, H extends SimpleThread, M extends SimpleMessage, C extends SimpleContact> extends BorderPane {
+public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends BorderPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadListPane.class);
 
-	public static final DataFormat DND_THREADS_DATA_FORMAT = new DataFormat("Set<" + SimpleThread.class.getName() + ">");
+	public static final DataFormat DND_THREADS_DATA_FORMAT = new DataFormat("Set<" + Thread.class.getName() + ">");
 
 	private final MailService<S, T, H, M, C> mailService;
 	private final ThreadList<S, T, H, M, C> threadList;

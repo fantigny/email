@@ -12,21 +12,21 @@ import javafx.scene.layout.GridPane;
 import javax.mail.internet.MimeMessage;
 
 import net.anfoya.javafx.scene.dnd.DropArea;
-import net.anfoya.mail.model.SimpleContact;
-import net.anfoya.mail.model.SimpleMessage;
-import net.anfoya.mail.model.SimpleThread;
+import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailService;
-import net.anfoya.tag.model.SimpleSection;
-import net.anfoya.mail.model.SimpleTag;
+import net.anfoya.mail.service.Message;
+import net.anfoya.mail.service.Section;
+import net.anfoya.mail.service.Tag;
+import net.anfoya.mail.service.Thread;
 
-public class ThreadDropPane<H extends SimpleThread, M extends SimpleMessage> extends GridPane {
+public class ThreadDropPane<H extends Thread, M extends Message> extends GridPane {
 	public static final DataFormat MESSAGE_DATA_FORMAT = new DataFormat(MimeMessage.class.getCanonicalName());
 	@SuppressWarnings("unused")
-	private final MailService<? extends SimpleSection, ? extends SimpleTag, H, M, ? extends SimpleContact> mailService;
+	private final MailService<? extends Section, ? extends Tag, H, M, ? extends Contact> mailService;
 	private final DropArea newThreadArea;
 	private final DropArea addThreadArea;
 
-	public ThreadDropPane(final MailService<? extends SimpleSection, ? extends SimpleTag, H, M, ? extends SimpleContact> tagService) {
+	public ThreadDropPane(final MailService<? extends Section, ? extends Tag, H, M, ? extends Contact> tagService) {
 		this.mailService = tagService;
 
 		setVgap(2);
