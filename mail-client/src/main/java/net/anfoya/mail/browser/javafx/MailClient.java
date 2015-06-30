@@ -43,6 +43,9 @@ public class MailClient extends Application {
 		primaryStage.initStyle(StageStyle.UNIFIED);
 		primaryStage.setOnCloseRequest(e -> ThreadPool.getInstance().shutdown());
 
-		final MailBrowser<? extends Section, ? extends Tag, ? extends Thread, ? extends Message, ? extends Contact> m = new MailBrowser(mailService);
+		@SuppressWarnings("unchecked")
+		final MailBrowser<? extends Section, ? extends Tag, ? extends Thread, ? extends Message, ? extends Contact> mailBrowser =
+				new MailBrowser<Section, Tag, Thread, Message, Contact>((MailService<Section, Tag, Thread, Message, Contact>) mailService);
+		mailBrowser.showAndWait();
 	}
 }

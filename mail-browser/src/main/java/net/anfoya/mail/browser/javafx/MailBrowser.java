@@ -94,9 +94,8 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		setTitle("FisherMail");
 		getIcons().add(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png")));
         setScene(scene);
-        show();
 
-		sectionListPane.requestFocus();
+        Platform.runLater(() -> threadListPane.requestFocus());
 	}
 
 	private void initData() {
