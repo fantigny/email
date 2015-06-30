@@ -18,6 +18,40 @@
 	<build>
 		<plugins>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>2.3</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<configuration>
+							<outputFile>distrib/FisherMail.jar</outputFile>
+							<shadedArtifactAttached>true</shadedArtifactAttached>
+							<transformers>
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<manifestEntries>
+										<main-class>net.anfoya.mail.browser.javafx.entrypoint.MailBrowserApp</main-class>
+									</manifestEntries>
+								</transformer>
+							</transformers>
+						</configuration>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<artifactId>maven-antrun-plugin</artifactId>
 				<version>1.7</version>
 				<executions>
@@ -25,19 +59,18 @@
 						<phase>install</phase>
 						<configuration>
 							<target>
-								<copy file="../mail-browser/target/FisherMail.jar" todir="target"/>
 								<taskdef name="bundleapp"
 									classname="com.oracle.appbundler.AppBundlerTask"
 									classpathref="maven.plugin.classpath" />
-								<bundleapp outputdirectory="target"
+								<bundleapp outputdirectory="distrib"
 									name="FisherMail"
 									displayname="FisherMail"
-									icon="../mail-browser/src/main/resources/net/anfoya/mail/browser/javafx/entrypoint/Mail.icns"
+									icon="../mail-common/src/main/resources/net/anfoya/mail/image/Mail.icns"
 									identifier="net.anfoya.mail-browser"
 									shortversion="1.0"
 									copyright="ANFOYA.net"
 									mainclassname="net.anfoya.mail.browser.javafx.entrypoint.MailBrowserApp">
-									<classpath file="target/FisherMail.jar" />
+									<classpath file="distrib/FisherMail.jar" />
 							        <option value="-Xmx1g"/>
 								</bundleapp>
 							</target>
@@ -67,13 +100,13 @@
 			            </goals>
 			            <configuration>
 			                <headerType>gui</headerType>
-			                <outfile>target/FisherMail.exe</outfile>
-			                <jar>target/FisherMail.jar</jar>
+			                <outfile>distrib/FisherMail.exe</outfile>
+			                <jar>distrib/FisherMail.jar</jar>
 			                <errTitle>FisherMail Err</errTitle>
 			                <classPath>
 			                    <mainClass>net.anfoya.mail.browser.javafx.entrypoint.MailBrowserApp</mainClass>
 			                </classPath>
-			                <icon>../mail-browser/src/main/resources/net/anfoya/mail/browser/javafx/entrypoint/Mail.ico</icon>
+			                <icon>../mail-common/src/main/resources/net/anfoya/mail/image/Mail.ico</icon>
 			                <jre>
 			                    <minVersion>1.8.0</minVersion>
 			                    <initialHeapSize>128</initialHeapSize>
@@ -96,4 +129,36 @@
 			</plugin>
 		</plugins>
 	</build>
+	<dependencies>
+		<dependency>
+			<groupId>net.anfoya</groupId>
+			<artifactId>mail-common</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>	
+		<dependency>
+			<groupId>net.anfoya</groupId>
+			<artifactId>mail-composer</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>	
+		<dependency>
+			<groupId>net.anfoya</groupId>
+			<artifactId>mail-browser</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>	
+	
+		<!-- compile -->
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.1.2</version>
+		</dependency>
+
+		<!-- test -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.8.1</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 </project>

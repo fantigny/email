@@ -92,7 +92,7 @@ public class MailBrowserApp<
 		final Scene scene = new Scene(splitPane, 1400, 800);
 		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/excludebox.css").toExternalForm());
 		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/button_flat.css").toExternalForm());
-		scene.getStylesheets().add(getClass().getResource("MailBrowserApp.css").toExternalForm());
+		scene.getStylesheets().add(getClass().getResource("/net/anfoya/mail/css/Mail.css").toExternalForm());
 
 		/* section+tag list */ {
 			sectionListPane = new SectionListPane<S, T>(mailService, DND_THREADS_DATA_FORMAT);
@@ -125,7 +125,7 @@ public class MailBrowserApp<
 		splitPane.setDividerPosition(1, .38);
 
 		primaryStage.setTitle("FisherMail");
-		primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("Mail.png")));
+		primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png")));
         primaryStage.setScene(scene);
         primaryStage.show();
 
