@@ -75,7 +75,7 @@
 									name="FisherMail"
 									displayname="FisherMail"
 									icon="../mail-common/src/main/resources/net/anfoya/mail/image/Mail.icns"
-									identifier="net.anfoya.mail-browser"
+									identifier="net.anfoya.mail-client"
 									shortversion="1.0"
 									copyright="ANFOYA.net"
 									mainclassname="net.anfoya.mail.client.javafx.entrypoint.MailClient">
@@ -129,7 +129,7 @@
 			                    <productVersion>1.0.0.0</productVersion>
 			                    <txtProductVersion>1.0.0.0</txtProductVersion>
 			                    <productName>FisherMail</productName>
-			                    <internalName>net.anfoya.mail-browser</internalName>
+			                    <internalName>net.anfoya.mail-client</internalName>
 			                    <originalFilename>FisherMail.exe</originalFilename>
 			                </versionInfo>
 			            </configuration>
