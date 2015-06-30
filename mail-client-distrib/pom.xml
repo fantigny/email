@@ -1,0 +1,102 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>net.anfoya</groupId>
+	<artifactId>mail-client-distrib</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+	<modules>
+		<module>../anfoya-tools</module>
+		<module>../anfoya-tag</module>
+		<module>../anfoya-javafx</module>
+		<module>../mail-service-api</module>
+		<module>../mail-service-impl</module>
+		<module>../mail-common</module>
+		<module>../mail-composer</module>
+		<module>../mail-browser</module>
+		<module>../mail-client</module>
+	</modules>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.7</version>
+				<executions>
+					<execution>
+						<phase>install</phase>
+						<configuration>
+							<target>
+								<taskdef name="bundleapp"
+									classname="com.oracle.appbundler.AppBundlerTask"
+									classpathref="maven.plugin.classpath" />
+								<bundleapp outputdirectory="distrib"
+									name="FisherMail"
+									displayname="FisherMail"
+									icon="../mail-common/src/main/resources/net/anfoya/mail/image/Mail.icns"
+									identifier="net.anfoya.mail-client"
+									shortversion="1.0"
+									copyright="ANFOYA.net"
+									mainclassname="net.anfoya.mail.client.javafx.entrypoint.MailClient">
+									<classpath file="distrib/FisherMail.jar" />
+							        <option value="-Xmx1g"/>
+								</bundleapp>
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>com.oracle.appbundler</groupId>
+						<artifactId>appbundler</artifactId>
+						<version>1.0</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+			<plugin>
+				<groupId>com.akathist.maven.plugins.launch4j</groupId>
+				<artifactId>launch4j-maven-plugin</artifactId>
+				<version>1.7.7</version>
+			    <executions>			
+			        <execution>
+			            <phase>install</phase>
+			            <goals>
+			                <goal>launch4j</goal>
+			            </goals>
+			            <configuration>
+			                <headerType>gui</headerType>
+			                <outfile>distrib/FisherMail.exe</outfile>
+			                <jar>distrib/FisherMail.jar</jar>
+			                <errTitle>FisherMail Err</errTitle>
+			                <classPath>
+			                    <mainClass>net.anfoya.mail.client.javafx.entrypoint.MailClient</mainClass>
+			                </classPath>
+			                <icon>../mail-common/src/main/resources/net/anfoya/mail/image/Mail.ico</icon>
+			                <jre>
+			                    <minVersion>1.8.0</minVersion>
+			                    <initialHeapSize>128</initialHeapSize>
+			                    <maxHeapSize>1024</maxHeapSize>
+			                </jre>
+			                <versionInfo>
+			                    <fileVersion>1.0.0.0</fileVersion>
+			                    <txtFileVersion>1.0.0.0</txtFileVersion>
+			                    <fileDescription>Desc</fileDescription>
+			                    <copyright>ANFOYA.net</copyright>
+			                    <productVersion>1.0.0.0</productVersion>
+			                    <txtProductVersion>1.0.0.0</txtProductVersion>
+			                    <productName>FisherMail</productName>
+			                    <internalName>net.anfoya.mail-client</internalName>
+			                    <originalFilename>FisherMail.exe</originalFilename>
+			                </versionInfo>
+			            </configuration>
+			        </execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

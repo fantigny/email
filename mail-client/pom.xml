@@ -3,18 +3,8 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.anfoya</groupId>
 	<artifactId>mail-client</artifactId>
-	<packaging>pom</packaging>
+	<packaging>jar</packaging>
 	<version>0.0.1-SNAPSHOT</version>
-	<modules>
-		<module>../anfoya-tools</module>
-		<module>../anfoya-tag</module>
-		<module>../anfoya-javafx</module>
-		<module>../mail-service-api</module>
-		<module>../mail-service-impl</module>
-		<module>../mail-common</module>
-		<module>../mail-composer</module>
-		<module>../mail-browser</module>
-	</modules>
 	<build>
 		<plugins>
 			<plugin>
@@ -28,26 +18,16 @@
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.1</version>
-				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
-				<version>2.3</version>
+				<version>2.4</version>
 				<executions>
 					<execution>
-						<phase>package</phase>
+						<phase>install</phase>
 						<configuration>
-							<outputFile>distrib/FisherMail.jar</outputFile>
-							<minimizeJar>true</minimizeJar>
+							<outputFile>../mail-client-distrib/distrib/FisherMail.jar</outputFile>
+							<shadedArtifactAttached>true</shadedArtifactAttached>
 							<transformers>
-								<transformer
-									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 									<manifestEntries>
 										<main-class>net.anfoya.mail.client.javafx.entrypoint.MailClient</main-class>
 									</manifestEntries>
@@ -58,82 +38,6 @@
 							<goal>shade</goal>
 						</goals>
 					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<artifactId>maven-antrun-plugin</artifactId>
-				<version>1.7</version>
-				<executions>
-					<execution>
-						<phase>install</phase>
-						<configuration>
-							<target>
-								<taskdef name="bundleapp"
-									classname="com.oracle.appbundler.AppBundlerTask"
-									classpathref="maven.plugin.classpath" />
-								<bundleapp outputdirectory="distrib"
-									name="FisherMail"
-									displayname="FisherMail"
-									icon="../mail-common/src/main/resources/net/anfoya/mail/image/Mail.icns"
-									identifier="net.anfoya.mail-client"
-									shortversion="1.0"
-									copyright="ANFOYA.net"
-									mainclassname="net.anfoya.mail.client.javafx.entrypoint.MailClient">
-									<classpath file="distrib/FisherMail.jar" />
-							        <option value="-Xmx1g"/>
-								</bundleapp>
-							</target>
-						</configuration>
-						<goals>
-							<goal>run</goal>
-						</goals>
-					</execution>
-				</executions>
-				<dependencies>
-					<dependency>
-						<groupId>com.oracle.appbundler</groupId>
-						<artifactId>appbundler</artifactId>
-						<version>1.0</version>
-					</dependency>
-				</dependencies>
-			</plugin>
-			<plugin>
-				<groupId>com.akathist.maven.plugins.launch4j</groupId>
-				<artifactId>launch4j-maven-plugin</artifactId>
-				<version>1.7.7</version>
-			    <executions>			
-			        <execution>
-			            <phase>install</phase>
-			            <goals>
-			                <goal>launch4j</goal>
-			            </goals>
-			            <configuration>
-			                <headerType>gui</headerType>
-			                <outfile>distrib/FisherMail.exe</outfile>
-			                <jar>distrib/FisherMail.jar</jar>
-			                <errTitle>FisherMail Err</errTitle>
-			                <classPath>
-			                    <mainClass>net.anfoya.mail.client.javafx.entrypoint.MailClient</mainClass>
-			                </classPath>
-			                <icon>../mail-common/src/main/resources/net/anfoya/mail/image/Mail.ico</icon>
-			                <jre>
-			                    <minVersion>1.8.0</minVersion>
-			                    <initialHeapSize>128</initialHeapSize>
-			                    <maxHeapSize>1024</maxHeapSize>
-			                </jre>
-			                <versionInfo>
-			                    <fileVersion>1.0.0.0</fileVersion>
-			                    <txtFileVersion>1.0.0.0</txtFileVersion>
-			                    <fileDescription>Desc</fileDescription>
-			                    <copyright>ANFOYA.net</copyright>
-			                    <productVersion>1.0.0.0</productVersion>
-			                    <txtProductVersion>1.0.0.0</txtProductVersion>
-			                    <productName>FisherMail</productName>
-			                    <internalName>net.anfoya.mail-client</internalName>
-			                    <originalFilename>FisherMail.exe</originalFilename>
-			                </versionInfo>
-			            </configuration>
-			        </execution>
 				</executions>
 			</plugin>
 		</plugins>
