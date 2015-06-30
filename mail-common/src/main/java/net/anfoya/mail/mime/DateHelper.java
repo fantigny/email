@@ -1,4 +1,4 @@
-package net.anfoya.mail.browser.mime;
+package net.anfoya.mail.mime;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;

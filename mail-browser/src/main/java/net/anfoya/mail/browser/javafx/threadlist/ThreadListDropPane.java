@@ -11,7 +11,7 @@ import javafx.geometry.Pos;
 import javafx.scene.layout.GridPane;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.dnd.DropArea;
-import net.anfoya.mail.browser.javafx.message.MessageComposer;
+import net.anfoya.mail.composer.javafx.message.MessageComposer;
 import net.anfoya.mail.model.SimpleContact;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleTag;

@@ -1,4 +1,4 @@
-package net.anfoya.mail.browser.javafx.message;
+package net.anfoya.mail.composer.javafx.message;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -41,7 +41,7 @@ import javax.mail.internet.MimeUtility;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.AutoCompComboBoxListener;
 import net.anfoya.javafx.scene.control.ComboField;
-import net.anfoya.mail.browser.mime.MimeMessageHelper;
+import net.anfoya.mail.mime.MimeMessageHelper;
 import net.anfoya.mail.model.SimpleContact;
 import net.anfoya.mail.model.SimpleMessage;
 import net.anfoya.mail.model.SimpleTag;

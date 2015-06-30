@@ -19,7 +19,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.input.KeyCode;
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.mail.browser.javafx.message.MessageComposer;
+import net.anfoya.mail.composer.javafx.message.MessageComposer;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
 import net.anfoya.mail.model.SimpleContact;
 import net.anfoya.mail.model.SimpleMessage;

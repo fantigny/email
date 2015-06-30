@@ -9,11 +9,11 @@
 		<module>../anfoya-tools</module>
 		<module>../anfoya-tag</module>
 		<module>../anfoya-javafx</module>
-		<module>../mail-service</module>
+		<module>../mail-service-api</module>
 		<module>../mail-service-impl</module>
 		<module>../mail-common</module>
-		<module>../mail-browser</module>
 		<module>../mail-composer</module>
+		<module>../mail-browser</module>
 	</modules>
 	<build>
 		<plugins>

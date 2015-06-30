@@ -2,7 +2,7 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.anfoya</groupId>
-	<artifactId>mail-browser-core</artifactId>
+	<artifactId>mail-browser</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<build>
 		<plugins>
@@ -57,19 +57,24 @@
 			<groupId>net.anfoya</groupId>
 			<artifactId>mail-service</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
-		</dependency>	
+		</dependency>
 		<dependency>
 			<groupId>net.anfoya</groupId>
 			<artifactId>mail-service-impl</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>net.anfoya</groupId>
+			<artifactId>mail-common</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>	
+		<dependency>
+			<groupId>net.anfoya</groupId>
+			<artifactId>mail-composer</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
 		</dependency>	
 	
 		<!-- compile -->
-		<dependency>
-			<groupId>com.google.apis</groupId>
-			<artifactId>google-api-services-gmail</artifactId>
-			<version>v1-rev28-1.20.0</version>
-		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>

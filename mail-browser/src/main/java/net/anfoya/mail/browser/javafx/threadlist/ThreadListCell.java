@@ -11,13 +11,13 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import net.anfoya.mail.browser.mime.DateHelper;
+import net.anfoya.mail.mime.DateHelper;
 import net.anfoya.mail.service.Thread;
 
 class ThreadListCell<H extends Thread> extends ListCell<H> {
     private static final Image EMPTY = new Image(ThreadListCell.class.getResourceAsStream("mini_empty.png"));
     private static final Image STAR = new Image(ThreadListCell.class.getResourceAsStream("mini_star.png"));
-    private static final Image UNREAD = new Image(ThreadListCell.class.getResourceAsStream("mini_unread.png"));
+//    private static final Image UNREAD = new Image(ThreadListCell.class.getResourceAsStream("mini_unread.png"));
 
     private static final Color ALMOST_BLACK = Color.web("#444444");
 
@@ -81,9 +81,9 @@ class ThreadListCell<H extends Thread> extends ListCell<H> {
 	        sender.setTextFill(thread.isUnread()? Color.FIREBRICK: ALMOST_BLACK);
 
 	        iconBox.getChildren().clear();
-        	if (thread.isUnread()) {
-        		iconBox.getChildren().add(new ImageView(UNREAD));
-        	}
+//        	if (thread.isUnread()) {
+//        		iconBox.getChildren().add(new ImageView(UNREAD));
+//        	}
         	if (thread.isStarred()) {
         		iconBox.getChildren().add(new ImageView(STAR));
         	}
