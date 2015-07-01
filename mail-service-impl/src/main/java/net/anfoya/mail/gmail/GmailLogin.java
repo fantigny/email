@@ -10,6 +10,7 @@ import java.util.Optional;
 
 import javafx.concurrent.Worker.State;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
@@ -68,6 +69,8 @@ public class GmailLogin {
 		} else {
 			final WebView webView = new WebView();
 			final Stage stage = new Stage(StageStyle.UNIFIED);
+			stage.setTitle("loading...");
+			stage.getIcons().add(new Image(getClass().getResourceAsStream("googlemail-16.png")));
 			stage.setScene(new Scene(webView, 450, 650));
 
 			final StringBuilder sb = new StringBuilder();
