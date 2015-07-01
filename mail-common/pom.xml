@@ -4,6 +4,20 @@
 	<groupId>net.anfoya</groupId>
 	<artifactId>mail-common</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
+	
+	<repositories>
+		<repository>
+		    <id>lib</id>
+		    <releases>
+		        <enabled>true</enabled>
+		        <checksumPolicy>ignore</checksumPolicy>
+		    </releases>
+		    <snapshots>
+		        <enabled>false</enabled>
+		    </snapshots>
+		    <url>file://${project.basedir}/lib</url>
+		</repository>
+	</repositories>
 
 	<build>
 		<plugins>
@@ -27,11 +41,15 @@
 			<artifactId>mail</artifactId>
 			<version>1.4.7</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<version>1.7.10</version>
+		</dependency>
+		<dependency>
+			<groupId>arnaudnouard</groupId>
+			<artifactId>undecorator</artifactId>
+			<version>1.0</version>
 		</dependency>
 
 		<!-- test -->

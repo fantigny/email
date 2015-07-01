@@ -1,3 +1,10 @@
+.decoration-background{
+	-fx-fill: radial-gradient(focus-angle 45deg, focus-distance 20%, center 25% 25%, radius 50%, reflect, #eeeeee88, #aaaaaa88 75%, gray);
+	-fx-stroke-width: 0;
+	-fx-arc-width:20px;
+	-fx-arc-height:20px;
+}
+
 .background {
     -fx-background-color: transparent;
 }
