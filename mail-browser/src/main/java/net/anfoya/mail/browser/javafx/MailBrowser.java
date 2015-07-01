@@ -49,8 +49,6 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 
 		this.mailService = mailService;
 
-		Notifier.INSTANCE.setPopupLifetime(NOTIFIER_LIFETIME);
-
 		initGui();
 		initData();
 	}
@@ -59,7 +57,8 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		final SplitPane splitPane = new SplitPane();
 		splitPane.getStyleClass().add("background");
 
-		final Scene scene = new Scene(splitPane, 1400, 800);
+//		final UndecoratorScene scene = new UndecoratorScene(this, splitPane);
+		final Scene scene = new Scene(splitPane);
 		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/excludebox.css").toExternalForm());
 		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/button_flat.css").toExternalForm());
 		scene.getStylesheets().add(getClass().getResource("/net/anfoya/mail/css/Mail.css").toExternalForm());
@@ -97,7 +96,11 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 
 		setTitle("FisherMail");
 		getIcons().add(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png")));
+		setMinWidth(1400);
+		setMinHeight(800);
         setScene(scene);
+
+		Notifier.INSTANCE.setPopupLifetime(NOTIFIER_LIFETIME);
 
         Platform.runLater(() -> threadListPane.requestFocus());
 	}
