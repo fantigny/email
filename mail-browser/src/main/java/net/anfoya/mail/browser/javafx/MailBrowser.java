@@ -1,15 +1,13 @@
 package net.anfoya.mail.browser.javafx;
 
 import static net.anfoya.mail.browser.javafx.threadlist.ThreadListPane.DND_THREADS_DATA_FORMAT;
-import insidefx.undecorator.UndecoratorScene;
 
 import java.util.Set;
 
 import javafx.application.Platform;
-import javafx.scene.control.Label;
+import javafx.scene.Scene;
 import javafx.scene.control.SplitPane;
 import javafx.scene.image.Image;
-import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
@@ -55,20 +53,18 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	}
 
 	private void initGui() {
+		setMinWidth(1400);
+		setMinHeight(800);
 		setTitle("FisherMail");
 		initStyle(StageStyle.UNIFIED);
 		getIcons().add(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png")));
 
 		final SplitPane splitPane = new SplitPane();
 		splitPane.getStyleClass().add("background");
+		splitPane.setDividerPosition(0, .14);
+		splitPane.setDividerPosition(1, .38);
 
-		final Label title = new Label(" ");
-		title.setMinHeight(30);
-
-		final BorderPane borderPane = new BorderPane(splitPane, title, null, null, null);
-		final UndecoratorScene scene = new UndecoratorScene(this, borderPane);
-//		final Scene scene = new Scene(splitPane);
-		scene.addStylesheet(getClass().getResource("/net/anfoya/mail/css/Mail.css").toExternalForm());
+		final Scene scene = new Scene(splitPane);
 		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/excludebox.css").toExternalForm());
 		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/button_flat.css").toExternalForm());
 		scene.getStylesheets().add(getClass().getResource("/net/anfoya/mail/css/Mail.css").toExternalForm());
@@ -106,12 +102,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		Notifier.INSTANCE.setPopupLifetime(NOTIFIER_LIFETIME);
 
         Platform.runLater(() -> {
-    		setMinWidth(1400);
-    		setMinHeight(800);
-    		centerOnScreen();
         	threadListPane.requestFocus();
-    		splitPane.setDividerPosition(0, .14);
-    		splitPane.setDividerPosition(1, .38);
     		toFront();
         });
 	}

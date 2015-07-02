@@ -7,20 +7,6 @@
 	<packaging>jar</packaging>
 	<version>0.0.1-SNAPSHOT</version>
 	
-	<repositories>
-		<repository>
-		    <id>lib</id>
-		    <releases>
-		        <enabled>true</enabled>
-		        <checksumPolicy>ignore</checksumPolicy>
-		    </releases>
-		    <snapshots>
-		        <enabled>false</enabled>
-		    </snapshots>
-		    <url>file://${project.basedir}/../mail-common/lib</url>
-		</repository>
-	</repositories>
-	
 	<build>
 		<plugins>
 			<plugin>
