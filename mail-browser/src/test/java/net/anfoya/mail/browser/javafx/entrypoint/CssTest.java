@@ -9,6 +9,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -23,36 +24,44 @@ public class CssTest extends Application {
 		launch(args);
 	}
 
+
+	private Stage stage;
+
 	@Override
-	public void start(final Stage primaryStage) throws Exception {
-		primaryStage.initStyle(StageStyle.UNDECORATED);
+	public void start(final Stage stage) throws Exception {
+		this.stage = stage;
+
+		stage.initStyle(StageStyle.UNDECORATED);
 		final BorderPane mainPane = new BorderPane();
 		final Scene scene = new Scene(mainPane, 800, 600);
 
 		final Button minButton = new Button("_");
-		minButton.setOnAction(e -> primaryStage.setIconified(true));
-		
+		minButton.setOnAction(e -> stage.setIconified(true));
+
 		final Button maxButton = new Button("+");
-		maxButton.setOnAction(e -> primaryStage.setMaximized(!primaryStage.isMaximized()));
-		primaryStage.maximizedProperty().addListener((ov, o, n) -> maxButton.setText(n? "-": "+"));
-		
+		maxButton.setOnAction(e -> stage.setMaximized(!stage.isMaximized()));
+		stage.maximizedProperty().addListener((ov, o, n) -> maxButton.setText(n? "-": "+"));
+
 		final Button closeButton = new Button("x");
-		closeButton.setOnAction(e -> primaryStage.close());
+		closeButton.setOnAction(e -> stage.close());
 
 		final ImageView icon = new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png")));
 		icon.setFitHeight(16);
 		icon.setFitWidth(icon.getFitHeight());
-		
+
 		final Label title = new Label("title");
 		title.setGraphic(icon);
-		
+		title.setOnMouseClicked(e -> doubleClickMax(e));
+		title.setOnMouseDragged(e -> dragMove(e));
+
 		final HBox filler = new HBox();
+		filler.setOnMouseClicked(e -> doubleClickMax(e));
 		HBox.setHgrow(filler, Priority.ALWAYS);
-		
+
 		final HBox sysTools = new HBox(title, filler, minButton, maxButton, closeButton);
 		sysTools.setAlignment(Pos.CENTER);
 		mainPane.setTop(sysTools);
-		
+
 		final WebView view = new WebView();
 
 		final SplitPane splitPane = new SplitPane();
@@ -61,10 +70,36 @@ public class CssTest extends Application {
 
 //		splitPane.setOpacity(0);
 
-
-		primaryStage.setScene(scene);
-		primaryStage.show();
+		stage.setScene(scene);
+		stage.show();
 
 		view.getEngine().load("http://www.dvdrip-fr.com/Site/fiche.php?id=4867");
+	}
+
+	private void dragMove(final MouseEvent e) {
+        if (!e.isPrimaryButtonDown()) {
+            return;
+        }
+        if (stage.isFullScreen()) {
+            return;
+        }
+        /*
+         * Long press generates drag event!
+         */
+        if (e.isStillSincePress()) {
+            return;
+        }
+        if (stage.isMaximized()) {
+            // Remove maximized state
+            stage.setMaximized(false);
+            return;
+        }
+
+	}
+
+	private void doubleClickMax(final MouseEvent e) {
+		if (e.getClickCount() > 1) {
+			stage.setMaximized(!stage.isMaximized());
+		}
 	}
 }
