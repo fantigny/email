@@ -6,7 +6,6 @@ import insidefx.undecorator.UndecoratorScene;
 import java.util.Set;
 
 import javafx.application.Platform;
-import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.SplitPane;
 import javafx.scene.image.Image;
@@ -46,7 +45,6 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	private boolean quit;
 
 	public MailBrowser(final MailService<S, T, H, M, C> mailService) {
-		initStyle(StageStyle.UNIFIED);
 		setOnCloseRequest(e ->Notifier.INSTANCE.stop());
 		quit = true;
 
@@ -57,12 +55,15 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	}
 
 	private void initGui() {
+		setTitle("FisherMail");
+		initStyle(StageStyle.UNIFIED);
+		getIcons().add(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png")));
+
 		final SplitPane splitPane = new SplitPane();
 		splitPane.getStyleClass().add("background");
 
-		final Label title = new Label("              FisherMail");
+		final Label title = new Label(" ");
 		title.setMinHeight(30);
-		title.setAlignment(Pos.CENTER_LEFT);
 
 		final BorderPane borderPane = new BorderPane(splitPane, title, null, null, null);
 		final UndecoratorScene scene = new UndecoratorScene(this, borderPane);
@@ -100,8 +101,6 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 			splitPane.getItems().add(threadPane);
 		}
 
-		setTitle("FisherMail");
-		getIcons().add(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png")));
         setScene(scene);
 
 		Notifier.INSTANCE.setPopupLifetime(NOTIFIER_LIFETIME);
@@ -113,6 +112,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
         	threadListPane.requestFocus();
     		splitPane.setDividerPosition(0, .14);
     		splitPane.setDividerPosition(1, .38);
+    		toFront();
         });
 	}
 

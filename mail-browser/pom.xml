@@ -4,7 +4,7 @@
 	<groupId>net.anfoya</groupId>
 	<artifactId>mail-browser</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-
+	
 	<build>
 		<plugins>
 			<plugin>
@@ -57,6 +57,11 @@
 			<artifactId>slf4j-api</artifactId>
 			<version>1.7.10</version>
 		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.10</version>
+		</dependency>
 
 		<!-- test -->
 		<dependency>
@@ -70,6 +75,11 @@
 			<artifactId>logback-classic</artifactId>
 			<version>1.1.2</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>UndecoratorBis</groupId>
+			<artifactId>UndecoratorBis</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 </project>
