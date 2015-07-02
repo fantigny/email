@@ -43,13 +43,14 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	private boolean quit;
 
 	public MailBrowser(final MailService<S, T, H, M, C> mailService) {
-		setOnCloseRequest(e ->Notifier.INSTANCE.stop());
-		quit = true;
-
 		this.mailService = mailService;
 
+		quit = true;
+
 		initGui();
-		initData();
+
+		setOnShowing(e -> initData());
+		setOnCloseRequest(e ->Notifier.INSTANCE.stop());
 	}
 
 	private void initGui() {
