@@ -102,13 +102,14 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 
 		setTitle("FisherMail");
 		getIcons().add(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png")));
-		setMinWidth(1400);
-		setMinHeight(800);
         setScene(scene);
 
 		Notifier.INSTANCE.setPopupLifetime(NOTIFIER_LIFETIME);
 
         Platform.runLater(() -> {
+    		setMinWidth(1400);
+    		setMinHeight(800);
+    		centerOnScreen();
         	threadListPane.requestFocus();
     		splitPane.setDividerPosition(0, .14);
     		splitPane.setDividerPosition(1, .38);
