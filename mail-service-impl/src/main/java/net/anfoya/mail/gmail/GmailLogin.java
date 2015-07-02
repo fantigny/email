@@ -70,7 +70,7 @@ public class GmailLogin {
 			final WebView webView = new WebView();
 			final Stage stage = new Stage(StageStyle.UNIFIED);
 			stage.setTitle("loading...");
-			stage.getIcons().add(new Image(getClass().getResourceAsStream("googlemail-16.png")));
+			stage.getIcons().add(new Image(getClass().getResourceAsStream("googlemail-64.png")));
 			stage.setScene(new Scene(webView, 450, 650));
 
 			final StringBuilder sb = new StringBuilder();
