@@ -13,13 +13,9 @@ import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.gmail.model.GmailTag;
 import net.anfoya.mail.gmail.model.GmailThread;
 import net.anfoya.mail.service.MailException;
-import net.anfoya.mail.service.MailService;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class MailClient extends Application {
-	private static final Logger LOGGER = LoggerFactory.getLogger(MailClient.class);
+//	private static final Logger LOGGER = LoggerFactory.getLogger(MailClient.class);
 
 	public static void main(final String[] args) {
 		launch(args);
@@ -35,19 +31,18 @@ public class MailClient extends Application {
 		primaryStage.initStyle(StageStyle.UNIFIED);
 		primaryStage.setOnCloseRequest(e -> ThreadPool.getInstance().shutdown());
 
-		MailBrowser<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact> mailBrowser;
+		final GmailService gmail = new GmailService();
+		MailBrowser<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact> mailBrowser = null;
 		do {
-			MailService<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact> mailService = null;
 			try {
-				mailService = new GmailService();
-				mailService.connect("net.anfoya.mail-client");
+				gmail.connect("net.anfoya.mail-client");
 			} catch (final MailException e) {
-				LOGGER.error("login failed, {}", e.getMessage());
-				LOGGER.debug("full stack", e);
-				System.exit(0);
+				throw new Exception("login failed", e);
 			}
-			mailBrowser = new MailBrowser<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact>(mailService);
-			mailBrowser.showAndWait();
-		} while (!mailBrowser.isQuit());
+			if (!gmail.disconnected().get()) {
+				mailBrowser = new MailBrowser<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact>(gmail);
+				mailBrowser.showAndWait();
+			}
+		} while (!gmail.disconnected().get() && !mailBrowser.isQuit());
 	}
 }

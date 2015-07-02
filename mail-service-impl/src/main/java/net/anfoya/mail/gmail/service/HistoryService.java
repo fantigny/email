@@ -173,7 +173,7 @@ public class HistoryService extends TimerTask {
 		historyId = null;
 	}
 
-	public ReadOnlyBooleanProperty connected() {
+	public ReadOnlyBooleanProperty disconnected() {
 		return disconnected.getReadOnlyProperty();
 	}
 }

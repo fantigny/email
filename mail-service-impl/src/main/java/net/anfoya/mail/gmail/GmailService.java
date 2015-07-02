@@ -80,12 +80,12 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	private ContactService contactService;
 	private String refreshTokenName;
 
-	private final ReadOnlyBooleanWrapper connected;
+	private final ReadOnlyBooleanWrapper disconnected;
 
 	public GmailService() {
 		httpTransport = new NetHttpTransport();
 		jsonFactory = new JacksonFactory();
-		connected = new ReadOnlyBooleanWrapper(false);
+		disconnected = new ReadOnlyBooleanWrapper(false);
 	}
 
 	@Override
@@ -144,7 +144,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		});
 		historyService.start(PULL_PERIOD);
 
-		connected.bind(historyService.connected());
+		disconnected.bind(historyService.disconnected());
 	}
 
 	@Override
@@ -160,14 +160,16 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 	@Override
 	public void reconnect() {
-		if (connected.get()) {
+		if (!disconnected.get()) {
 			return;
 		}
+		
+		//TODO: reconnect
 	}
 
 	@Override
-	public ReadOnlyBooleanProperty connected() {
-		return connected.getReadOnlyProperty();
+	public ReadOnlyBooleanProperty disconnected() {
+		return disconnected.getReadOnlyProperty();
 	}
 
 	@Override
