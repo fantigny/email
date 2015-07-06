@@ -2,6 +2,7 @@ package net.anfoya.mail.browser.javafx.entrypoint;
 
 
 import javafx.application.Application;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -11,6 +12,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.web.WebView;
@@ -33,7 +35,10 @@ public class CssTest extends Application {
 
 		stage.initStyle(StageStyle.UNDECORATED);
 		final BorderPane mainPane = new BorderPane();
+		mainPane.setPadding(new Insets(3));
+
 		final Scene scene = new Scene(mainPane, 800, 600);
+		scene.getStylesheets().add(getClass().getResource("/net/anfoya/mail/css/Mail.css").toExternalForm());
 
 		final Button minButton = new Button("_");
 		minButton.setOnAction(e -> stage.setIconified(true));
@@ -68,12 +73,26 @@ public class CssTest extends Application {
 		splitPane.getItems().add(view);
 		mainPane.setCenter(splitPane);
 
+		final Label a = new Label("frederic.antigny@gmail.com X");
+		a.getStyleClass().add("address-label");
+		a.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
+
+		final Label b = new Label("All mail X");
+		b.getStyleClass().add("address-label");
+		b.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
+
+		final Label c = new Label("my label X");
+		c.getStyleClass().add("address-label");
+		c.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
+
+		mainPane.setBottom(new FlowPane(3, 3, a, b, c));
+
 //		splitPane.setOpacity(0);
 
 		stage.setScene(scene);
 		stage.show();
 
-		view.getEngine().load("http://www.dvdrip-fr.com/Site/fiche.php?id=4867");
+//		view.getEngine().load("http://www.dvdrip-fr.com/Site/fiche.php?id=4867");
 	}
 
 	private void dragMove(final MouseEvent e) {

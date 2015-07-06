@@ -2,6 +2,7 @@ package net.anfoya.mail.composer.javafx;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -33,7 +34,6 @@ import javafx.util.Callback;
 
 import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
-import javax.mail.Multipart;
 import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
@@ -236,6 +236,12 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 		label.getStyleClass().add("address-label");
 		label.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
 		label.setOnMouseClicked(e -> pane.getChildren().remove(label));
+		for(final Iterator<Node> i = pane.getChildren().iterator(); i.hasNext();) {
+			final Node n = i.next();
+			if (n instanceof Label && ((Label) n).getText().equals(label.getText())) {
+				i.remove();
+			}
+		}
 		LOGGER.debug("elements in flow pane: {}", pane.getChildren().size());
 		pane.getChildren().add(pane.getChildren().size() - 1, label);
 	}
@@ -261,7 +267,7 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 				edit(draft);
 			} else {
 				final M message = mailService.getMessage(id);
-				reply(message, true);
+				reply(message, false);
 			}
 		} catch (final MailException e) {
 			LOGGER.error("loading draft or message", e);
@@ -281,7 +287,7 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 			protected Void call() throws Exception {
 				draft = mailService.createDraft(message);
 				final MimeMessage reply = (MimeMessage) message.getMimeMessage().reply(all);
-				reply.setContent((Multipart) draft.getMimeMessage().getContent());
+				reply.setContent(draft.getMimeMessage().getContent(), draft.getMimeMessage().getContentType());
 				reply.saveChanges();
 				draft.setMimeDraft(reply);
 				return null;
@@ -365,6 +371,10 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 			html = sb.toString();
 		}
 		bodyEditor.setHtmlText(html);
+
+		if (quote) {
+			bodyEditor.requestFocus();
+		}
 	}
 
 	private MimeMessage buildMessage() throws MessagingException {
