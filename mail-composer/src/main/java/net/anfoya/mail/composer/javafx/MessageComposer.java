@@ -74,9 +74,9 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 	private final FlowPane toBox;
 	private final ComboField<String> toCombo;
 	private final FlowPane ccBox;
-	private ComboField<String> ccCombo;
-	private FlowPane bccBox;
-	private ComboField<String> bccCombo;
+	private final ComboField<String> ccCombo;
+	private final FlowPane bccBox;
+	private final ComboField<String> bccCombo;
 
 	private Button sendButton;
 
@@ -133,8 +133,7 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 				emailContacts.put(c.getEmail(), c);
 			}
 		} catch (final MailException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.error("loading contacts", e);
 		}
 
 		subjectField = new TextField("FisherMail - test");
@@ -156,43 +155,42 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 			return emailContacts.get(address).getEmail() + " " + emailContacts.get(address).getFullname();
 		};
 
-		toBox = new FlowPane(3, 2);
-		toBox.setAlignment(Pos.CENTER_LEFT);
-
 		toCombo = new ComboField<String>();
 		toCombo.setEditable(true);
 		toCombo.getItems().setAll(emailContacts.keySet());
-		toCombo.setOnFieldAction(e -> addContact(toBox, toCombo));
 		toCombo.setCellFactory(addressCellFactory);
-		toBox.getChildren().add(toCombo);
 		new AutoCompComboBoxListener(toCombo, addressAutoComp);
 
-		ccBox = new FlowPane(3, 2);
-		ccBox.setAlignment(Pos.CENTER_LEFT);
+		toBox = new FlowPane(3, 2);
+		toBox.getChildren().add(toCombo);
+		toCombo.setOnFieldAction(e -> addContact(toBox, toCombo));
+
 
 		ccCombo = new ComboField<String>();
 		ccCombo.setEditable(true);
 		ccCombo.getItems().setAll(emailContacts.keySet());
-		ccCombo.setOnFieldAction(e -> addContact(ccBox, ccCombo));
 		ccCombo.setCellFactory(addressCellFactory);
-		ccBox.getChildren().add(ccCombo);
 		new AutoCompComboBoxListener(ccCombo, addressAutoComp);
 
-		bccBox = new FlowPane(3, 2);
-		bccBox.setAlignment(Pos.CENTER_LEFT);
+		ccBox = new FlowPane(3, 2);
+		ccBox.getChildren().add(ccCombo);
+		ccCombo.setOnFieldAction(e -> addContact(ccBox, ccCombo));
+
 
 		bccCombo = new ComboField<String>();
 		bccCombo.setEditable(true);
 		bccCombo.getItems().setAll(emailContacts.keySet());
-		bccCombo.setOnFieldAction(e -> addContact(bccBox, bccCombo));
 		bccCombo.setCellFactory(addressCellFactory);
-		bccBox.getChildren().add(bccCombo);
 		new AutoCompComboBoxListener(bccCombo, addressAutoComp);
+
+		bccBox = new FlowPane(3, 2);
+		bccBox.getChildren().add(bccCombo);
+		bccCombo.setOnFieldAction(e -> addContact(bccBox, bccCombo));
 
 		toMiniHeader();
 
 		bodyEditor = new HTMLEditor();
-		bodyEditor.setPadding(new Insets(0, 3, 0, 3));
+		bodyEditor.setPadding(new Insets(0, 0, 0, 5));
 		mainPane.setCenter(bodyEditor);
 
 		final Button discardButton = new Button("discard");
