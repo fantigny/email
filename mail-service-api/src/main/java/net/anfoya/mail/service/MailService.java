@@ -25,6 +25,7 @@ public interface MailService<
 	public void addOnUnreadMessage(Callback<Set<H>, Void> callback);
 
 	public T getTag(String id) throws MailException;
+	public T getSpecialTag(SpecialTag specialTag) throws MailException;
 	public T findTag(String name) throws MailException;
 	public void addTagForThreads(T tag, Set<H> threads) throws MailException;
 	public void removeTagForThreads(T tag, Set<H> thread) throws MailException;

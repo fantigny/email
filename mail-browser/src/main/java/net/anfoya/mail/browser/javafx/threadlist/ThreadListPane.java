@@ -39,6 +39,7 @@ import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.Message;
 import net.anfoya.mail.service.Section;
+import net.anfoya.mail.service.SpecialTag;
 import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
 import net.anfoya.tag.javafx.scene.dnd.DndFormat;
@@ -61,7 +62,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 
 	protected Timeline expandDelay;
 
-	public ThreadListPane(final MailService<S, T, H, M, C> mailService) {
+	public ThreadListPane(final MailService<S, T, H, M, C> mailService) throws MailException {
 		this.mailService = mailService;
 
 		final StackPane stackPane = new StackPane();
@@ -241,7 +242,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 
 	private void flagSelected() {
 		try {
-			addTagForThreads(mailService.findTag(T.STARRED), threadList.getSelectedThreads());
+			addTagForThreads(mailService.getSpecialTag(SpecialTag.FLAGGED), threadList.getSelectedThreads());
 		} catch (final Exception e) {
 			LOGGER.error("adding flag", e);
 		}

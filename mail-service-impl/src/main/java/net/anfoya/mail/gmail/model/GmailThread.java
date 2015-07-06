@@ -94,4 +94,14 @@ public class GmailThread extends SimpleThread {
 
 		return headers;
 	}
+
+	@Override
+	public boolean isUnread() {
+		return getTagIds().contains(GmailTag.UNREAD_TAG.getId());
+	}
+
+	@Override
+	public boolean isFlagged() {
+		return getTagIds().contains(GmailTag.STARRED_TAG.getId());
+	}
 }

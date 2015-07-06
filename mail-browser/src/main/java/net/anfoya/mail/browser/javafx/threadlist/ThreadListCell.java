@@ -16,7 +16,7 @@ import net.anfoya.mail.service.Thread;
 
 class ThreadListCell<H extends Thread> extends ListCell<H> {
     private static final Image EMPTY = new Image(ThreadListCell.class.getResourceAsStream("mini_empty.png"));
-    private static final Image STAR = new Image(ThreadListCell.class.getResourceAsStream("mini_star.png"));
+    private static final Image FLAG = new Image(ThreadListCell.class.getResourceAsStream("mini_flag.png"));
 //    private static final Image UNREAD = new Image(ThreadListCell.class.getResourceAsStream("mini_unread.png"));
 
     private static final Color ALMOST_BLACK = Color.web("#444444");
@@ -84,8 +84,8 @@ class ThreadListCell<H extends Thread> extends ListCell<H> {
 //        	if (thread.isUnread()) {
 //        		iconBox.getChildren().add(new ImageView(UNREAD));
 //        	}
-        	if (thread.isStarred()) {
-        		iconBox.getChildren().add(new ImageView(STAR));
+        	if (thread.isFlagged()) {
+        		iconBox.getChildren().add(new ImageView(FLAG));
         	}
         	if (iconBox.getChildren().isEmpty()) {
         		iconBox.getChildren().add(new ImageView(EMPTY));

@@ -18,5 +18,5 @@ public interface Thread extends Serializable {
 	public Set<String> getMessageIds();
 
 	public boolean isUnread();
-	public boolean isStarred();
+	public boolean isFlagged();
 }

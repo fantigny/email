@@ -230,8 +230,7 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 				try {
 					tags.add(mailService.getTag(id));
 				} catch (final MailException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					LOGGER.error("loading tag", e);
 				}
 			}
 		}
@@ -240,14 +239,12 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 	}
 
 	public Set<H> getSelectedThreads() {
-		final ObservableList<H> selectedList = getSelectionModel()
-				.getSelectedItems();
+		final ObservableList<H> selectedList = getSelectionModel().getSelectedItems();
 		Set<H> selectedSet;
 		if (selectedList.isEmpty()) {
 			selectedSet = new HashSet<H>();
 		} else {
-			selectedSet = Collections.unmodifiableSet(new LinkedHashSet<H>(
-					selectedList));
+			selectedSet = Collections.unmodifiableSet(new LinkedHashSet<H>(selectedList));
 		}
 		return Collections.unmodifiableSet(selectedSet);
 	}

@@ -18,6 +18,7 @@ import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
 import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.service.Contact;
+import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.Message;
 import net.anfoya.mail.service.Section;
@@ -42,7 +43,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 
 	private boolean quit;
 
-	public MailBrowser(final MailService<S, T, H, M, C> mailService) {
+	public MailBrowser(final MailService<S, T, H, M, C> mailService) throws MailException {
 		this.mailService = mailService;
 
 		quit = true;
@@ -53,7 +54,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		setOnCloseRequest(e ->Notifier.INSTANCE.stop());
 	}
 
-	private void initGui() {
+	private void initGui() throws MailException {
 		setMinWidth(1400);
 		setMinHeight(800);
 		setTitle("FisherMail");

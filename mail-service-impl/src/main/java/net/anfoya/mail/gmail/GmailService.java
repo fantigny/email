@@ -38,6 +38,7 @@ import net.anfoya.mail.gmail.service.ThreadException;
 import net.anfoya.mail.gmail.service.ThreadService;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
+import net.anfoya.mail.service.SpecialTag;
 import net.anfoya.mail.service.Tag;
 
 import org.slf4j.Logger;
@@ -321,7 +322,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			if (GmailSection.SYSTEM.equals(section)) {
 				final Set<GmailTag> alphaTags = new TreeSet<GmailTag>();
 				alphaTags.add(GmailTag.ALL_TAG);
-				for(final Label label:labels) {
+				for(final Label label: labels) {
 					final String name = label.getName();
 					if (!GmailTag.isHidden(label)) {
 						if (GmailTag.isSystem(label) && GmailTag.getName(label).toLowerCase().contains(pattern)) {
@@ -744,5 +745,17 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		threadService.clearCache();
 		historyService.clearCache();
 		contactService.clearCache();
+	}
+
+	@Override
+	public GmailTag getSpecialTag(final SpecialTag specialTag) throws MailException {
+		switch (specialTag) {
+		case ALL:		return GmailTag.ALL_TAG;
+		case FLAGGED:	return GmailTag.STARRED_TAG;
+		case INBOX:		return GmailTag.INBOX_TAG;
+		case SENT:		return GmailTag.SENT_TAG;
+		case UNREAD:	return GmailTag.UNREAD_TAG;
+		}
+		return null;
 	}
 }
