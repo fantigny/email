@@ -22,9 +22,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
-import javax.mail.Address;
 import javax.mail.MessagingException;
-import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 import net.anfoya.java.util.concurrent.ThreadPool;
@@ -154,42 +152,14 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 			final MimeMessage mimeMessage = message.getMimeMessage();
 
 			final StringBuilder title = new StringBuilder();
-			title.append(getMailAddresses(mimeMessage.getFrom()));
-			title.append(" to ").append(getMailAddresses(mimeMessage.getRecipients(MimeMessage.RecipientType.TO)));
+			title.append(String.join(", ", helper.getMailAddresses(mimeMessage.getFrom())));
+			title.append(" to ").append(String.join(", ", helper.getMailAddresses(mimeMessage.getRecipients(MimeMessage.RecipientType.TO))));
 			titleText.setText(title.toString());
 			dateText.setText(new DateHelper(mimeMessage.getSentDate()).format());
 		} catch (final MessagingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}
-
-	private String getMailAddresses(final Address[] addresses) {
-		final StringBuilder sb = new StringBuilder();
-		if (addresses == null || addresses.length == 0) {
-			sb.append("");
-		} else {
-			boolean first = true;
-			for(final Address address: addresses) {
-				if (!first) {
-					sb.append(", ");
-				}
-				first = false;
-
-				if (address.getType().equalsIgnoreCase("rfc822")) {
-					final InternetAddress mailAddress = (InternetAddress) address;
-					if (mailAddress.getPersonal() != null) {
-						sb.append(mailAddress.getPersonal());
-					} else {
-						sb.append(mailAddress.getAddress());
-					}
-				} else {
-					sb.append("");
-				}
-			}
-		}
-
-		return sb.toString();
 	}
 
 	public void setScrollHandler(final EventHandler<ScrollEvent> handler) {

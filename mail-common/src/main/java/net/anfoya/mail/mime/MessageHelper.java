@@ -10,9 +10,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.mail.Address;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.Part;
+import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeUtility;
@@ -45,6 +47,24 @@ public class MessageHelper {
 	public MessageHelper() {
 		cidFilenames = new HashMap<String, String>();
 		attachments = new ArrayList<String>();
+	}
+
+	public String[] getMailAddresses(final Address[] addresses) {
+		final List<String> list = new ArrayList<String>();
+		if (addresses != null) {
+			for(final Address address: addresses) {
+				if (address.getType().equalsIgnoreCase("rfc822")) {
+					final InternetAddress mailAddress = (InternetAddress) address;
+					if (mailAddress.getPersonal() != null) {
+						list.add(mailAddress.getPersonal());
+					} else {
+						list.add(mailAddress.getAddress());
+					}
+				}
+			}
+		}
+
+		return list.toArray(new String[list.size()]);
 	}
 
 	public String toHtml(final MimeMessage message) throws IOException, MessagingException {

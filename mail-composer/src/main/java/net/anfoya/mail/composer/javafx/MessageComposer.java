@@ -11,11 +11,13 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
@@ -27,6 +29,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.web.HTMLEditor;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.util.Callback;
 
 import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
@@ -66,13 +69,19 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 
 	private final HTMLEditor bodyEditor;
 	private final ComboBox<String> fromCombo;
-	private final FlowPane toBox;
-	private final ComboField<String> toCombo;
-	private final TextField ccField;
-	private final TextField bccField;
 	private final TextField subjectField;
 
+	private final FlowPane toBox;
+	private final ComboField<String> toCombo;
+	private final FlowPane ccBox;
+	private ComboField<String> ccCombo;
+	private FlowPane bccBox;
+	private ComboField<String> bccCombo;
+
+	private Button sendButton;
+
 	private M draft;
+
 
 	public MessageComposer(final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService, final EventHandler<ActionEvent> updateHandler) {
 		super(StageStyle.UNIFIED);
@@ -130,24 +139,10 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 
 		subjectField = new TextField("FisherMail - test");
 
-		toBox = new FlowPane();
-		toBox.setAlignment(Pos.CENTER_LEFT);
-
-		toCombo = new ComboField<String>();
-		toCombo.setEditable(true);
-		toCombo.getItems().setAll(emailContacts.keySet());
-		toCombo.setOnFieldAction(e -> addContact(toBox, toCombo));
-		toCombo.setCellFactory(listView -> {
+		final Callback<ListView<String>, ListCell<String>> addressCellFactory = listView -> {
 			return new ListCell<String>() {
-				private void initListView() {
-//			        final ListView<String> listView = getListView();
-//					listView.setLayoutX(-1 * toCombo.getLayoutX());
-//		        	listView.setPrefWidth(subjectField.getWidth());
-				}
-
 				@Override
 			    public void updateItem(final String address, final boolean empty) {
-			        initListView();
 			        super.updateItem(address, empty);
 		        	listView.setPrefWidth(toCombo.getPrefWidth());
 			        if (!empty) {
@@ -155,19 +150,49 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 			        }
 				}
 			};
-		});
-		toBox.getChildren().add(toCombo);
+		};
 
-		new AutoCompComboBoxListener(toCombo, address -> {
+		final Callback<String, String> addressAutoComp = address -> {
 			return emailContacts.get(address).getEmail() + " " + emailContacts.get(address).getFullname();
-		});
+		};
 
-		ccField = new TextField();
-		bccField = new TextField();
+		toBox = new FlowPane(3, 2);
+		toBox.setAlignment(Pos.CENTER_LEFT);
+
+		toCombo = new ComboField<String>();
+		toCombo.setEditable(true);
+		toCombo.getItems().setAll(emailContacts.keySet());
+		toCombo.setOnFieldAction(e -> addContact(toBox, toCombo));
+		toCombo.setCellFactory(addressCellFactory);
+		toBox.getChildren().add(toCombo);
+		new AutoCompComboBoxListener(toCombo, addressAutoComp);
+
+		ccBox = new FlowPane(3, 2);
+		ccBox.setAlignment(Pos.CENTER_LEFT);
+
+		ccCombo = new ComboField<String>();
+		ccCombo.setEditable(true);
+		ccCombo.getItems().setAll(emailContacts.keySet());
+		ccCombo.setOnFieldAction(e -> addContact(ccBox, ccCombo));
+		ccCombo.setCellFactory(addressCellFactory);
+		ccBox.getChildren().add(ccCombo);
+		new AutoCompComboBoxListener(ccCombo, addressAutoComp);
+
+		bccBox = new FlowPane(3, 2);
+		bccBox.setAlignment(Pos.CENTER_LEFT);
+
+		bccCombo = new ComboField<String>();
+		bccCombo.setEditable(true);
+		bccCombo.getItems().setAll(emailContacts.keySet());
+		bccCombo.setOnFieldAction(e -> addContact(bccBox, bccCombo));
+		bccCombo.setCellFactory(addressCellFactory);
+		bccBox.getChildren().add(bccCombo);
+		new AutoCompComboBoxListener(bccCombo, addressAutoComp);
 
 		toMiniHeader();
 
 		bodyEditor = new HTMLEditor();
+		bodyEditor.setPadding(new Insets(0, 3, 0, 3));
 		mainPane.setCenter(bodyEditor);
 
 		final Button discardButton = new Button("discard");
@@ -183,7 +208,7 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 			close();
 		});
 
-		final Button sendButton = new Button("send");
+		sendButton = new Button("send");
 		sendButton.setOnAction(event -> {
 			send();
 			close();
@@ -202,11 +227,19 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 		if (contact == null || contact.isEmpty()) {
 			return;
 		}
+		addContact(pane, contact);
+
+		combo.setFieldValue("");
+		combo.hide();
+	}
+
+	private void addContact(final FlowPane pane, final String contact) {
 		final Label label = new Label(contact + " X");
 		label.getStyleClass().add("address-label");
 		label.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
+		label.setOnMouseClicked(e -> pane.getChildren().remove(label));
+		LOGGER.debug("elements in flow pane: {}", pane.getChildren().size());
 		pane.getChildren().add(pane.getChildren().size() - 1, label);
-		combo.setFieldValue("");
 	}
 
 	public void newMessage(final String recipient) throws MailException {
@@ -243,6 +276,8 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 	}
 
 	public void reply(final M message, final boolean all) {
+		sendButton.setText("reply");
+
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
@@ -263,6 +298,8 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 	}
 
 	public void forward(final M message) {
+		sendButton.setText("forward");
+
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
@@ -283,14 +320,29 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 	private void initComposer(final boolean quote) {
 		final MimeMessage message = draft.getMimeMessage();
 
-		String to;
 		try {
-			to = InternetAddress.toString(draft.getMimeMessage().getRecipients(RecipientType.TO)).split(",")[0];
-			to = MimeUtility.decodeText(to);
-		} catch(final Exception e) {
-			to = "";
+			for(final String c: helper.getMailAddresses(message.getRecipients(MimeMessage.RecipientType.TO))) {
+				addContact(toBox, c);
+			}
+		} catch (final MessagingException e) {
+			LOGGER.error("reading recipients");
 		}
-		toCombo.setValue(to);
+
+		try {
+			for(final String c: helper.getMailAddresses(message.getRecipients(MimeMessage.RecipientType.CC))) {
+				addContact(ccBox, c);
+			}
+		} catch (final MessagingException e) {
+			LOGGER.error("reading cc list");
+		}
+
+		try {
+			for(final String c: helper.getMailAddresses(message.getRecipients(MimeMessage.RecipientType.BCC))) {
+				addContact(bccBox, c);
+			}
+		} catch (final MessagingException e) {
+			LOGGER.error("reading bcc list");
+		}
 
 		String subject;
 		try {
@@ -324,21 +376,38 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 		final MimeMultipart multipart = new MimeMultipart();
 		multipart.addBodyPart(bodyPart);
 
-		InternetAddress to;
-		try {
-			to = new InternetAddress(toCombo.getValue().toString());
-		} catch (final Exception e) {
-			to = null;
-			LOGGER.info("no recipient for draft");
-		}
-
 		final MimeMessage message = new MimeMessage(Session.getDefaultInstance(new Properties()));
 //		message.setFrom(new InternetAddress("frederic.antigny@gmail.com"));
 		message.setSubject(subjectField.getText());
 		message.setContent(multipart);
-		if (to != null) {
-			message.addRecipient(RecipientType.TO, to);
+
+		for(final Node n: toBox.getChildren()) {
+			if (n instanceof Label) {
+				final String t = ((Label) n).getText();
+				final String a = t.substring(0, t.length() - 2);
+				final InternetAddress to = new InternetAddress(a);
+				message.addRecipient(RecipientType.TO, to);
+			}
 		}
+
+		for(final Node n: ccBox.getChildren()) {
+			if (n instanceof Label) {
+				final String t = ((Label) n).getText();
+				final String a = t.substring(0, t.length() - 2);
+				final InternetAddress to = new InternetAddress(a);
+				message.addRecipient(RecipientType.CC, to);
+			}
+		}
+
+		for(final Node n: bccBox.getChildren()) {
+			if (n instanceof Label) {
+				final String t = ((Label) n).getText();
+				final String a = t.substring(0, t.length() - 2);
+				final InternetAddress to = new InternetAddress(a);
+				message.addRecipient(RecipientType.BCC, to);
+			}
+		}
+
 		return message;
 	}
 
@@ -392,9 +461,9 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 	private void toFullHeader() {
 		headerPane.getChildren().clear();
 //		headerPane.addRow(0, new Label("from"), fromCombo);
-		headerPane.addRow(0, new Label("to"), toCombo);
-		headerPane.addRow(1, new Label("cc"), ccField);
-		headerPane.addRow(2, new Label("bcc"), bccField);
+		headerPane.addRow(0, new Label("to"), toBox);
+		headerPane.addRow(1, new Label("cc"), ccBox);
+		headerPane.addRow(2, new Label("bcc"), bccBox);
 		headerPane.addRow(3, new Label("subject"), subjectField);
 	}
 }

@@ -5,6 +5,7 @@ import javafx.stage.Stage;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.browser.javafx.MailBrowser;
 import net.anfoya.mail.browser.javafx.settings.Settings;
+import net.anfoya.mail.client.App;
 import net.anfoya.mail.gmail.GmailService;
 import net.anfoya.mail.gmail.model.GmailContact;
 import net.anfoya.mail.gmail.model.GmailMessage;
@@ -34,7 +35,7 @@ public class MailClient extends Application {
 				new MailBrowser<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact>(gmail);
 		do {
 			try {
-				gmail.connect("net.anfoya.mail-client");
+				gmail.connect(App.MAIL_CLIENT);
 			} catch (final MailException e) {
 				throw new Exception("login failed", e);
 			}

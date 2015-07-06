@@ -163,7 +163,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		if (!disconnected.get()) {
 			return;
 		}
-		
+
 		//TODO: reconnect
 	}
 
@@ -719,7 +719,11 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public GmailMessage getDraft(final String messageId) throws MailException {
 		try {
-			return new GmailMessage(messageService.getDraftForMessage(messageId));
+			final Draft draft = messageService.getDraftForMessage(messageId);
+			if (draft == null) {
+				return null;
+			}
+			return new GmailMessage(draft);
 		} catch (final MessageException | MessagingException e) {
 			throw new GMailException("getting draft", e);
 		}
