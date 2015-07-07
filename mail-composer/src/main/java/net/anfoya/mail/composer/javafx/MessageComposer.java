@@ -42,7 +42,7 @@ import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeUtility;
 
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.javafx.scene.control.AutoCompComboBoxListener;
+import net.anfoya.javafx.scene.control.AutoShowComboBoxListener;
 import net.anfoya.javafx.scene.control.ComboField;
 import net.anfoya.mail.mime.MessageHelper;
 import net.anfoya.mail.service.Contact;
@@ -81,7 +81,6 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 	private Button sendButton;
 
 	private M draft;
-
 
 	public MessageComposer(final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService, final EventHandler<ActionEvent> updateHandler) {
 		super(StageStyle.UNIFIED);
@@ -138,54 +137,53 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 
 		subjectField = new TextField("FisherMail - test");
 
+		final Callback<String, String> contactDisplay = email -> {
+			return emailContacts.get(email).getFullname() + " <" + email + ">";
+		};
+
 		final Callback<ListView<String>, ListCell<String>> addressCellFactory = listView -> {
 			return new ListCell<String>() {
 				@Override
-			    public void updateItem(final String address, final boolean empty) {
-			        super.updateItem(address, empty);
-		        	listView.setPrefWidth(toCombo.getPrefWidth());
+			    public void updateItem(final String email, final boolean empty) {
+			        super.updateItem(email, empty);
 			        if (!empty) {
-			        	setText(emailContacts.get(address).getFullname() + " <" + emailContacts.get(address).getEmail() + ">");
+			        	setText(contactDisplay.call(email));
 			        }
 				}
 			};
-		};
-
-		final Callback<String, String> addressAutoComp = address -> {
-			return emailContacts.get(address).getEmail() + " " + emailContacts.get(address).getFullname();
 		};
 
 		toCombo = new ComboField<String>();
 		toCombo.setEditable(true);
 		toCombo.getItems().setAll(emailContacts.keySet());
 		toCombo.setCellFactory(addressCellFactory);
-		new AutoCompComboBoxListener(toCombo, addressAutoComp);
 
 		toBox = new FlowPane(3, 2);
 		toBox.getChildren().add(toCombo);
 		toCombo.setOnFieldAction(e -> addContact(toBox, toCombo));
+		new AutoShowComboBoxListener(toCombo, email -> contains(toBox, email)? "": contactDisplay.call(email));
 
 
 		ccCombo = new ComboField<String>();
 		ccCombo.setEditable(true);
 		ccCombo.getItems().setAll(emailContacts.keySet());
 		ccCombo.setCellFactory(addressCellFactory);
-		new AutoCompComboBoxListener(ccCombo, addressAutoComp);
 
 		ccBox = new FlowPane(3, 2);
 		ccBox.getChildren().add(ccCombo);
 		ccCombo.setOnFieldAction(e -> addContact(ccBox, ccCombo));
+		new AutoShowComboBoxListener(ccCombo, email -> contains(ccBox, email)? "": contactDisplay.call(email));
 
 
 		bccCombo = new ComboField<String>();
 		bccCombo.setEditable(true);
 		bccCombo.getItems().setAll(emailContacts.keySet());
 		bccCombo.setCellFactory(addressCellFactory);
-		new AutoCompComboBoxListener(bccCombo, addressAutoComp);
 
 		bccBox = new FlowPane(3, 2);
 		bccBox.getChildren().add(bccCombo);
 		bccCombo.setOnFieldAction(e -> addContact(bccBox, bccCombo));
+		new AutoShowComboBoxListener(bccCombo, email -> contains(bccBox, email)? "": contactDisplay.call(email));
 
 		toMiniHeader();
 
@@ -220,6 +218,20 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 		show();
 	}
 
+	private boolean contains(final FlowPane pane, final String contact) {
+		final String l = getLabel(contact);
+		for (final Node n : pane.getChildren()) {
+			if (n instanceof Label && ((Label) n).getText().equals(l)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private String getLabel(final String contact) {
+		return contact + " X";
+	}
+
 	private void addContact(final FlowPane pane, final ComboField<String> combo) {
 		final String contact = combo.getFieldValue();
 		if (contact == null || contact.isEmpty()) {
@@ -229,16 +241,18 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 
 		combo.setFieldValue("");
 		combo.hide();
+		pane.requestLayout();
 	}
 
 	private void addContact(final FlowPane pane, final String contact) {
-		final Label label = new Label(contact + " X");
+		final Label label = new Label(getLabel(contact));
 		label.getStyleClass().add("address-label");
 		label.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
 		label.setOnMouseClicked(e -> pane.getChildren().remove(label));
 		for(final Iterator<Node> i = pane.getChildren().iterator(); i.hasNext();) {
 			final Node n = i.next();
 			if (n instanceof Label && ((Label) n).getText().equals(label.getText())) {
+				// remove address if already in the list
 				i.remove();
 			}
 		}
@@ -293,7 +307,7 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 				return null;
 			}
 		};
-		task.setOnFailed(event -> LOGGER.error("creting draft", event.getSource().getException()));
+		task.setOnFailed(event -> LOGGER.error("creating draft", event.getSource().getException()));
 		task.setOnSucceeded(event -> {
 			updateHandler.handle(null);
 			initComposer(true);

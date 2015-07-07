@@ -7,12 +7,12 @@ import javafx.scene.control.ComboBox;
 import javafx.util.Callback;
 
 
-public class AutoCompComboBoxListener {
+public class AutoShowComboBoxListener {
     private final ComboBox<String> comboBox;
 	private final ObservableList<String> items;
 	private final Callback<String, String> callback;
 
-    public AutoCompComboBoxListener(final ComboBox<String> toCombo, final Callback<String, String> callback) {
+    public AutoShowComboBoxListener(final ComboBox<String> toCombo, final Callback<String, String> callback) {
         this.comboBox = toCombo;
         this.callback = callback;
 

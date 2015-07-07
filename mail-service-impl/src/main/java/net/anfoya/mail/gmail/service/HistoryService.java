@@ -113,6 +113,7 @@ public class HistoryService extends TimerTask {
 
 			return response.getHistory();
 		} catch (final Exception e) {
+			historyId = null;
 			if (e instanceof ConnectException) {
 				if (!disconnected.get()) {
 					disconnected.set(true);

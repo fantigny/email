@@ -10,13 +10,12 @@ import net.anfoya.mail.gmail.model.GmailMessage;
 
 public class Ecrire extends Application {
 
-	public static void main(String[] args) {
+	public static void main(final String[] args) {
 		launch(args);
 	}
-	
+
 	@Override
 	public void start(final Stage primaryStage) throws Exception {
-
 
 		final GmailService mailService = new GmailService();
 		mailService.connect(App.MAIL_CLIENT);
