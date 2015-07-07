@@ -97,11 +97,13 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 
 		helper = new MessageHelper();
 		mainPane = (BorderPane) getScene().getRoot();
+		mainPane.setStyle("-fx-background-color: transparent");
 
 		final ColumnConstraints widthConstraints = new ColumnConstraints(80);
 		final ColumnConstraints growConstraints = new ColumnConstraints();
 		growConstraints.setHgrow(Priority.ALWAYS);
 		headerPane = new GridPane();
+		headerPane.setStyle("-fx-background-color: transparent");
 		headerPane.setVgap(5);
 		headerPane.setHgap(5);
 		headerPane.setPadding(new Insets(5));
@@ -136,6 +138,7 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 		}
 
 		subjectField = new TextField("FisherMail - test");
+//		subjectField.setStyle("-fx-background-color: #cccccc");
 
 		final Callback<String, String> contactDisplay = email -> {
 			return emailContacts.get(email).getFullname() + " <" + email + ">";
