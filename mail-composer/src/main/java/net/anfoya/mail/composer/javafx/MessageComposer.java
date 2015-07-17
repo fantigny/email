@@ -79,6 +79,7 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 
 		final Scene scene = new Scene(new BorderPane(), 800, 600);
 		scene.getStylesheets().add(getClass().getResource("/net/anfoya/mail/css/Mail.css").toExternalForm());
+		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/combo_noarrow.css").toExternalForm());
 		setScene(scene);
 
 		this.mailService = mailService;
