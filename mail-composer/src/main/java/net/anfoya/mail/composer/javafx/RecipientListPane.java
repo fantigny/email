@@ -1,6 +1,5 @@
 package net.anfoya.mail.composer.javafx;
 
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -11,7 +10,6 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.layout.FlowPane;
-import javafx.util.Callback;
 
 import javax.mail.Address;
 import javax.mail.internet.AddressException;
@@ -31,6 +29,8 @@ public class RecipientListPane<C extends Contact> extends FlowPane {
 	private static final String RECIPIENT_LABEL_SUFFIX = " X";
 
 	private final ComboField<String> combo;
+	final Map<String, C> addressContacts;
+	final Set<String> selectedAdresses;
 
 	private Task<Double> organiseTask;
 	private long organiseTaskId;
@@ -42,31 +42,28 @@ public class RecipientListPane<C extends Contact> extends FlowPane {
 		organiseTask = null;
 		organiseTaskId = -1;
 
-		final Map<String, C> emailContacts = new LinkedHashMap<String, C>();
+		addressContacts = new LinkedHashMap<String, C>();
 		for(final C c: contacts) {
-			emailContacts.put(c.getEmail(), c);
+			addressContacts.put(c.getEmail(), c);
 		}
 
-		final Callback<String, String> contactDisplay = email -> {
-			return emailContacts.get(email).getFullname() + " <" + email + ">";
-		};
+		selectedAdresses = new LinkedHashSet<String>();
 
 		combo = new ComboField<String>();
-		combo.getItems().addAll(emailContacts.keySet());
+		combo.getItems().addAll(addressContacts.keySet());
 		combo.setOnFieldAction(e -> add(combo.getFieldValue()));
 		combo.setCellFactory(listView -> {
 			return new ListCell<String>() {
 				@Override
-			    public void updateItem(final String email, final boolean empty) {
-			        super.updateItem(email, empty);
+			    public void updateItem(final String address, final boolean empty) {
+			        super.updateItem(address, empty);
 			        if (!empty) {
-			        	final String display = contactDisplay.call(email);
-			        	setText(display);
+			        	setText(createRecipientText(address));
 			        }
 				}
 			};
 		});
-		new AutoShowComboBoxListener(combo, email -> isSelected(email)? "": contactDisplay.call(email));
+		new AutoShowComboBoxListener(combo, address -> selectedAdresses.contains(address)? "": createRecipientText(address));
 		organise();
 
 		getChildren().add(combo);
@@ -74,43 +71,13 @@ public class RecipientListPane<C extends Contact> extends FlowPane {
 		widthProperty().addListener((ov, o, n) -> organise());
 	}
 
-	public void add(final String recipient) {
-		if (recipient == null || recipient.isEmpty()) {
-			return;
-		}
-		final Label label = createLabel(recipient);
-		label.getStyleClass().add("address-label");
-		label.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
-		label.setOnMouseClicked(e -> remove(label));
-		for(final Iterator<Node> i = getChildren().iterator(); i.hasNext();) {
-			final Node n = i.next();
-			if (n instanceof Label && ((Label) n).getText().equals(label.getText())) {
-				// remove address if already in the list
-				i.remove();
-			}
-		}
-		LOGGER.debug("elements in flow pane: {}", getChildren().size());
-		try {
-			// add address in penultimate position
-			getChildren().add(getChildren().size() - 1, label);
-		} catch(final Exception e) {
-			// seems sometime children list is empty (should contain the combo field at least)
-			// add address in first position then...
-			getChildren().add(0, label);
-		}
-
-		organise(label);
-	}
-
 	public Set<Address> getRecipients() {
 		final Set<Address> addresses = new LinkedHashSet<Address>();
-		for(final Node n: getChildren()) {
-			if (n instanceof Label) {
-				try {
-					addresses.add(getAddress((Label) n));
-				} catch (final AddressException e) {
-					LOGGER.error("error parsing address {}", ((Label) n).getText());
-				}
+		for(final String address: selectedAdresses) {
+			try {
+				addresses.add(new InternetAddress(address));
+			} catch (final AddressException e) {
+				LOGGER.error("error parsing address {}", address);
 			}
 		}
 		if (!combo.getValue().isEmpty()) {
@@ -124,8 +91,33 @@ public class RecipientListPane<C extends Contact> extends FlowPane {
 		return addresses;
 	}
 
+	public void add(final String address) {
+		if (address == null || address.isEmpty()) {
+			return;
+		}
+		final Label label = createRecipientLabel(address);
+		label.getStyleClass().add("address-label");
+		label.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
+		label.setOnMouseClicked(e -> remove(label));
+
+		LOGGER.debug("elements in flow pane: {}", getChildren().size());
+		try {
+			// add address in penultimate position
+			getChildren().add(getChildren().size() - 1, label);
+		} catch(final Exception e) {
+			// seems sometime children list is empty (should contain the combo field at least)
+			// add address in first position then...
+			getChildren().add(0, label);
+		}
+
+		selectedAdresses.add(address);
+
+		organise(label);
+	}
+
 	private void remove(final Label label) {
 		getChildren().remove(label);
+		selectedAdresses.remove(getRecipientAddress(label));
 		organise();
 	}
 
@@ -186,29 +178,32 @@ public class RecipientListPane<C extends Contact> extends FlowPane {
 
 			final double availableWidth = (double) e.getSource().getValue();
 			combo.setPrefWidth(availableWidth < 150? getWidth(): availableWidth);
-//			final double labelWidth = availableWidth < 150? 0: getWidth() - availableWidth;
-//			combo.prefWidthProperty().bind(widthProperty().add(-1 * labelWidth));
 		});
 		ThreadPool.getInstance().submitHigh(organiseTask);
 	}
 
-	private Label createLabel(final String recipient) {
-		return new Label(recipient + RECIPIENT_LABEL_SUFFIX);
-	}
-
-	private Address getAddress(final Label label) throws AddressException {
-		final String text = label.getText();
-		final String address = text.substring(0, text.length() - RECIPIENT_LABEL_SUFFIX.length());
-		return new InternetAddress(address);
-	}
-
-	private boolean isSelected(final String recipient) {
-		final String l = recipient + RECIPIENT_LABEL_SUFFIX;
-		for (final Node n : getChildren()) {
-			if (n instanceof Label && ((Label) n).getText().equals(l)) {
-				return true;
-			}
+	private String createRecipientText(final String address) {
+		final C contact = addressContacts.get(address);
+		if (contact == null) {
+			return address;
+		} else {
+			return contact.getFullname() + " (" + contact.getEmail() + ")";
 		}
-		return false;
+	}
+
+	private Label createRecipientLabel(final String address) {
+		final String text = createRecipientText(address);
+		return new Label(text + RECIPIENT_LABEL_SUFFIX);
+	}
+
+	private String getRecipientAddress(final Label label) {
+		final String text = label.getText();
+		String address;
+		if (text.contains("(")) {
+			address = text.substring(text.indexOf("(") + 1, text.indexOf(")"));
+		} else {
+			address = text.substring(0, text.length() - RECIPIENT_LABEL_SUFFIX.length());
+		}
+		return address;
 	}
 }
