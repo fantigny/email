@@ -55,8 +55,8 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	}
 
 	private void initGui() throws MailException {
-		setMinWidth(1400);
-		setMinHeight(800);
+		setWidth(1400);
+		setHeight(800);
 		setTitle("FisherMail");
 		initStyle(StageStyle.UNIFIED);
 		getIcons().add(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png")));
