@@ -14,23 +14,26 @@ import javafx.util.Callback;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.AutoShowComboBoxListener;
 import net.anfoya.javafx.scene.control.ComboField;
+import net.anfoya.javafx.util.LabelHelper;
 import net.anfoya.mail.service.Contact;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sun.javafx.tk.FontLoader;
-import com.sun.javafx.tk.Toolkit;
-
 public class ContactListPane<C extends Contact> extends FlowPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ContactListPane.class);
-	private static final FontLoader FONT_LOADER = Toolkit.getToolkit().getFontLoader();
 
 	private final ComboField<String> combo;
+
+	private Task<Double> organiseTask;
+	private long organiseTaskId;
 
 	public ContactListPane(final Set<C> contacts) {
 		super(3, 2);
 		setMinWidth(150);
+
+		organiseTask = null;
+		organiseTaskId = -1;
 
 		final Map<String, C> emailContacts = new LinkedHashMap<String, C>();
 		for(final C c: contacts) {
@@ -52,32 +55,23 @@ public class ContactListPane<C extends Contact> extends FlowPane {
 			        if (!empty) {
 			        	final String display = contactDisplay.call(email);
 			        	setText(display);
-
-			        	final double listPrefWidth = FONT_LOADER.computeStringWidth(display, getFont());
-			        	if (listView.getPrefWidth() < listPrefWidth) {
-			        		listView.setPrefWidth(listPrefWidth);
-			        	}
 			        }
 				}
 			};
 		});
 		new AutoShowComboBoxListener(combo, email -> isSelected(email)? "": contactDisplay.call(email));
-		organize();
+		organise();
 
 		getChildren().add(combo);
-		heightProperty().addListener((ov, o, n) -> organize());
-		widthProperty().addListener((ov, o, n) -> {
-			if (combo.getWidth() < 150) {
-				organize();
-			}
-		});
+		heightProperty().addListener((ov, o, n) -> organise());
+		widthProperty().addListener((ov, o, n) -> organise());
 	}
 
-	public void add(final String contact) {
-		if (contact == null || contact.isEmpty()) {
+	public void add(final String contactEmail) {
+		if (contactEmail == null || contactEmail.isEmpty()) {
 			return;
 		}
-		final Label label = new Label(getLabel(contact));
+		final Label label = new Label(getLabel(contactEmail));
 		label.getStyleClass().add("address-label");
 		label.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
 		label.setOnMouseClicked(e -> removeContact(label));
@@ -94,20 +88,41 @@ public class ContactListPane<C extends Contact> extends FlowPane {
 			getChildren().add(getChildren().size() - 1, label);
 		} catch(final Exception e) {
 			// seems sometime children list is empty (should contain the combo field at least)
-			// add in first position then...
+			// add address in first position then...
 			getChildren().add(0, label);
 		}
 
-		organize();
+		organise(label);
 	}
 
 	private void removeContact(final Label label) {
 		getChildren().remove(label);
-		organize();
+		organise();
 	}
 
-	private void organize() {
-		final Task<Double> task = new Task<Double>() {
+	private synchronized void organise() {
+		organise(null);
+	}
+
+	private synchronized void organise(final Label lastAdded) {
+		final long taskId = ++organiseTaskId;
+		if (organiseTask != null && organiseTask.isRunning()) {
+			organiseTask.cancel();
+		}
+
+		final double comboWidth = combo.getWidth();
+		LOGGER.debug("combo width {}", comboWidth);
+
+		combo.setFieldValue("");
+		combo.hide();
+
+		if (lastAdded != null) {
+			final double tempWidth = comboWidth - LabelHelper.computeWidth(lastAdded) - getHgap();
+			LOGGER.debug("combo temp width {}", comboWidth);
+			combo.setPrefWidth(tempWidth);
+		}
+
+		organiseTask = new Task<Double>() {
 			@Override
 			protected Double call() throws Exception {
 				final double paneWidth = getWidth();
@@ -134,14 +149,18 @@ public class ContactListPane<C extends Contact> extends FlowPane {
 				return availableWidth;
 			}
 		};
-		task.setOnSucceeded(e -> {
+		organiseTask.setOnFailed(event -> LOGGER.error("organizing labels and combo", event.getSource().getException()));
+		organiseTask.setOnSucceeded(e -> {
+			if (taskId != organiseTaskId) {
+				return;
+			}
+
 			final double availableWidth = (double) e.getSource().getValue();
-			final double labelWidth = availableWidth < 150? 0: getWidth() - availableWidth;
-			combo.setFieldValue("");
-			combo.hide();
-			combo.prefWidthProperty().bind(widthProperty().add(-1 * labelWidth));
+			combo.setPrefWidth(availableWidth < 150? getWidth(): availableWidth);
+//			final double labelWidth = availableWidth < 150? 0: getWidth() - availableWidth;
+//			combo.prefWidthProperty().bind(widthProperty().add(-1 * labelWidth));
 		});
-		ThreadPool.getInstance().submitHigh(task);
+		ThreadPool.getInstance().submitHigh(organiseTask);
 	}
 
 	private String getLabel(final String contact) {
