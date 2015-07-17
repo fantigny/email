@@ -11,7 +11,6 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -26,10 +25,10 @@ import javafx.scene.web.HTMLEditor;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
+import javax.mail.Address;
 import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
 import javax.mail.Session;
-import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
@@ -62,9 +61,9 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 	private final HTMLEditor bodyEditor;
 	private final TextField subjectField;
 
-	private final ContactListPane<C> toListPane;
-	private final ContactListPane<C> ccListPane;
-	private final ContactListPane<C> bccListPane;
+	private final RecipientListPane<C> toListPane;
+	private final RecipientListPane<C> ccListPane;
+	private final RecipientListPane<C> bccListPane;
 
 	private final Button sendButton;
 
@@ -118,9 +117,9 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 		subjectField = new TextField("FisherMail - test");
 		subjectField.setStyle("-fx-background-color: #cccccc");
 
-		toListPane = new ContactListPane<C>(emailContacts);
-		ccListPane = new ContactListPane<C>(emailContacts);
-		bccListPane = new ContactListPane<C>(emailContacts);
+		toListPane = new RecipientListPane<C>(emailContacts);
+		ccListPane = new RecipientListPane<C>(emailContacts);
+		bccListPane = new RecipientListPane<C>(emailContacts);
 
 		toMiniHeader();
 
@@ -129,23 +128,14 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 		mainPane.setCenter(bodyEditor);
 
 		final Button discardButton = new Button("discard");
-		discardButton.setOnAction(event -> {
-			discard();
-			close();
-		});
+		discardButton.setOnAction(event -> discardAndClose());
 
 		final Button saveButton = new Button("save");
 		saveButton.setCancelButton(true);
-		saveButton.setOnAction(event -> {
-			save();
-			close();
-		});
+		saveButton.setOnAction(event -> saveAndClose());
 
 		sendButton = new Button("send");
-		sendButton.setOnAction(event -> {
-			send();
-			close();
-		});
+		sendButton.setOnAction(e -> sendAndClose());
 
 		final HBox buttonBox = new HBox(5, discardButton, saveButton, sendButton);
 		buttonBox.setAlignment(Pos.CENTER_RIGHT);
@@ -298,37 +288,14 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 		message.setSubject(subjectField.getText());
 		message.setContent(multipart);
 
-		for(final Node n: toListPane.getChildren()) {
-			if (n instanceof Label) {
-				final String t = ((Label) n).getText();
-				final String a = t.substring(0, t.length() - 2);
-				final InternetAddress to = new InternetAddress(a);
-				message.addRecipient(RecipientType.TO, to);
-			}
-		}
-
-		for(final Node n: ccListPane.getChildren()) {
-			if (n instanceof Label) {
-				final String t = ((Label) n).getText();
-				final String a = t.substring(0, t.length() - 2);
-				final InternetAddress to = new InternetAddress(a);
-				message.addRecipient(RecipientType.CC, to);
-			}
-		}
-
-		for(final Node n: bccListPane.getChildren()) {
-			if (n instanceof Label) {
-				final String t = ((Label) n).getText();
-				final String a = t.substring(0, t.length() - 2);
-				final InternetAddress to = new InternetAddress(a);
-				message.addRecipient(RecipientType.BCC, to);
-			}
-		}
+		message.addRecipients(RecipientType.TO, toListPane.getRecipients().toArray(new Address[0]));
+		message.addRecipients(RecipientType.CC, ccListPane.getRecipients().toArray(new Address[0]));
+		message.addRecipients(RecipientType.BCC, bccListPane.getRecipients().toArray(new Address[0]));
 
 		return message;
 	}
 
-	private void send() {
+	private void sendAndClose() {
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
@@ -340,9 +307,11 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 		task.setOnFailed(event -> LOGGER.error("sending draft", event.getSource().getException()));
 		task.setOnSucceeded(event -> updateHandler.handle(null));
 		ThreadPool.getInstance().submitHigh(task);
+
+		close();
 	}
 
-	private void save() {
+	private void saveAndClose() {
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
@@ -354,9 +323,11 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 		task.setOnFailed(event -> LOGGER.error("saving draft", event.getSource().getException()));
 		task.setOnSucceeded(event -> updateHandler.handle(null));
 		ThreadPool.getInstance().submitHigh(task);
+
+		close();
 	}
 
-	private void discard() {
+	private void discardAndClose() {
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
@@ -367,6 +338,8 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 		task.setOnFailed(event -> LOGGER.error("deleting draft", event.getSource().getException()));
 		task.setOnSucceeded(event -> updateHandler.handle(null));
 		ThreadPool.getInstance().submitHigh(task);
+
+		close();
 	}
 
 	private void toMiniHeader() {

@@ -2,6 +2,7 @@ package net.anfoya.mail.composer.javafx;
 
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -11,6 +12,11 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.layout.FlowPane;
 import javafx.util.Callback;
+
+import javax.mail.Address;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.AutoShowComboBoxListener;
 import net.anfoya.javafx.scene.control.ComboField;
@@ -20,15 +26,16 @@ import net.anfoya.mail.service.Contact;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ContactListPane<C extends Contact> extends FlowPane {
-	private static final Logger LOGGER = LoggerFactory.getLogger(ContactListPane.class);
+public class RecipientListPane<C extends Contact> extends FlowPane {
+	private static final Logger LOGGER = LoggerFactory.getLogger(RecipientListPane.class);
+	private static final String RECIPIENT_LABEL_SUFFIX = " X";
 
 	private final ComboField<String> combo;
 
 	private Task<Double> organiseTask;
 	private long organiseTaskId;
 
-	public ContactListPane(final Set<C> contacts) {
+	public RecipientListPane(final Set<C> contacts) {
 		super(3, 2);
 		setMinWidth(150);
 
@@ -67,14 +74,14 @@ public class ContactListPane<C extends Contact> extends FlowPane {
 		widthProperty().addListener((ov, o, n) -> organise());
 	}
 
-	public void add(final String contactEmail) {
-		if (contactEmail == null || contactEmail.isEmpty()) {
+	public void add(final String recipient) {
+		if (recipient == null || recipient.isEmpty()) {
 			return;
 		}
-		final Label label = new Label(getLabel(contactEmail));
+		final Label label = createLabel(recipient);
 		label.getStyleClass().add("address-label");
 		label.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
-		label.setOnMouseClicked(e -> removeContact(label));
+		label.setOnMouseClicked(e -> remove(label));
 		for(final Iterator<Node> i = getChildren().iterator(); i.hasNext();) {
 			final Node n = i.next();
 			if (n instanceof Label && ((Label) n).getText().equals(label.getText())) {
@@ -95,7 +102,29 @@ public class ContactListPane<C extends Contact> extends FlowPane {
 		organise(label);
 	}
 
-	private void removeContact(final Label label) {
+	public Set<Address> getRecipients() {
+		final Set<Address> addresses = new LinkedHashSet<Address>();
+		for(final Node n: getChildren()) {
+			if (n instanceof Label) {
+				try {
+					addresses.add(getAddress((Label) n));
+				} catch (final AddressException e) {
+					LOGGER.error("error parsing address {}", ((Label) n).getText());
+				}
+			}
+		}
+		if (!combo.getValue().isEmpty()) {
+			try {
+				addresses.add(new InternetAddress(combo.getValue()));
+			} catch (final AddressException e) {
+				LOGGER.error("error parsing address {}", combo.getValue());
+			}
+		}
+
+		return addresses;
+	}
+
+	private void remove(final Label label) {
 		getChildren().remove(label);
 		organise();
 	}
@@ -163,12 +192,18 @@ public class ContactListPane<C extends Contact> extends FlowPane {
 		ThreadPool.getInstance().submitHigh(organiseTask);
 	}
 
-	private String getLabel(final String contact) {
-		return contact + " X";
+	private Label createLabel(final String recipient) {
+		return new Label(recipient + RECIPIENT_LABEL_SUFFIX);
 	}
 
-	private boolean isSelected(final String contact) {
-		final String l = getLabel(contact);
+	private Address getAddress(final Label label) throws AddressException {
+		final String text = label.getText();
+		final String address = text.substring(0, text.length() - RECIPIENT_LABEL_SUFFIX.length());
+		return new InternetAddress(address);
+	}
+
+	private boolean isSelected(final String recipient) {
+		final String l = recipient + RECIPIENT_LABEL_SUFFIX;
 		for (final Node n : getChildren()) {
 			if (n instanceof Label && ((Label) n).getText().equals(l)) {
 				return true;
