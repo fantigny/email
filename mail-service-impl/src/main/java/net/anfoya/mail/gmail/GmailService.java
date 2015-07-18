@@ -45,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.api.client.auth.oauth2.TokenResponse;
+import com.google.api.client.auth.oauth2.TokenResponseException;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.http.HttpTransport;
@@ -105,22 +106,27 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 					.build();
 
 		    final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
-			final String refreshToken = prefs.get(refreshTokenName, null);
+			String refreshToken = prefs.get(refreshTokenName, null);
 			if (refreshToken != null) {
 				// Generate Credential using saved token.
 				credential.setRefreshToken(refreshToken);
-			} else {
+				try {
+					credential.refreshToken();
+				} catch (TokenResponseException e) {
+					refreshToken = null;
+				}
+			}
+			if (refreshToken == null) {
 				// Generate Credential using login token.
 				final TokenResponse tokenResponse = new GmailLogin(clientSecrets).getTokenResponseCredentials();
 				credential.setFromTokenResponse(tokenResponse);
 			}
-			credential.refreshToken();
 
-			// Create a new authorized Google Contact service
+			// Create a new authorised Google Contact service
 			gcontact = new ContactsService(appName);
 			gcontact.setOAuth2Credentials(credential);
 
-			// Create a new authorized Gmail service
+			// Create a new authorised GMail service
 			gmail = new Gmail.Builder(httpTransport, jsonFactory, credential)
 					.setApplicationName(appName)
 					.build();
