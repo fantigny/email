@@ -16,7 +16,7 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.javafx.scene.control.AutoShowComboBoxListener;
+import net.anfoya.javafx.scene.control.AutoShowComboBoxHelper;
 import net.anfoya.javafx.scene.control.ComboField;
 import net.anfoya.javafx.util.LabelHelper;
 import net.anfoya.mail.service.Contact;
@@ -29,8 +29,8 @@ public class RecipientListPane<C extends Contact> extends FlowPane {
 	private static final String RECIPIENT_LABEL_SUFFIX = " X";
 
 	private final ComboField<String> combo;
-	final Map<String, C> addressContacts;
-	final Set<String> selectedAdresses;
+	private final Map<String, C> addressContacts;
+	private final Set<String> selectedAdresses;
 
 	private Task<Double> organiseTask;
 	private long organiseTaskId;
@@ -63,8 +63,7 @@ public class RecipientListPane<C extends Contact> extends FlowPane {
 				}
 			};
 		});
-		new AutoShowComboBoxListener(combo, address -> selectedAdresses.contains(address)? "": createRecipientText(address));
-		organise();
+		new AutoShowComboBoxHelper(combo, address -> selectedAdresses.contains(address)? "": createRecipientText(address));
 
 		getChildren().add(combo);
 		heightProperty().addListener((ov, o, n) -> organise());
