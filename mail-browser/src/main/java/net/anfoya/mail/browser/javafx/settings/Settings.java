@@ -28,7 +28,7 @@ public class Settings implements Serializable {
 	private final BooleanProperty showToolbar;
 
 	public Settings() {
-		showToolbar = new SimpleBooleanProperty(false);
+		showToolbar = new SimpleBooleanProperty(true);
 	}
 
 	public BooleanProperty showToolbar() {
