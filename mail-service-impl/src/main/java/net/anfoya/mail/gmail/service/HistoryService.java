@@ -17,6 +17,7 @@ import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.util.Callback;
 import javafx.util.Duration;
 import net.anfoya.java.io.SerializedFile;
+import net.anfoya.mail.gmail.model.GmailTag;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,9 +36,9 @@ public class HistoryService extends TimerTask {
 	private final Gmail gmail;
 	private final String user;
 	private final ReadOnlyBooleanWrapper disconnected;
-	private final Set<Callback<Set<Message>, Void>> onUpdateMessageCallBacks;
-	private final Set<Callback<Set<Message>, Void>> onAddedMessageCallBacks;
-	private final Set<Callback<Set<String>, Void>> onUpdateLabelCallBacks;
+	private final Set<Callback<Set<Message>, Void>> updateMessageCallBacks;
+	private final Set<Callback<Set<Message>, Void>> addedMessageCallBacks;
+	private final Set<Callback<Set<String>, Void>> updateLabelCallBacks;
 
 	private Timer timer;
 	private BigInteger historyId;
@@ -64,9 +65,9 @@ public class HistoryService extends TimerTask {
 			}
 		}));
 
-		onUpdateMessageCallBacks = new LinkedHashSet<Callback<Set<Message>, Void>>();
-		onAddedMessageCallBacks = new LinkedHashSet<Callback<Set<Message>, Void>>();
-		onUpdateLabelCallBacks = new LinkedHashSet<Callback<Set<String>, Void>>();
+		updateMessageCallBacks = new LinkedHashSet<Callback<Set<Message>, Void>>();
+		addedMessageCallBacks = new LinkedHashSet<Callback<Set<Message>, Void>>();
+		updateLabelCallBacks = new LinkedHashSet<Callback<Set<String>, Void>>();
 	}
 
 	public void start(final Duration pullPeriod) {
@@ -95,8 +96,8 @@ public class HistoryService extends TimerTask {
 				final String messageId = response.getMessages().iterator().next().getId();
 				final Message message = gmail.users().messages().get(user, messageId).execute();
 				historyId = message.getHistoryId();
-				onUpdateLabelCallBacks.forEach(c -> c.call(null));
-				onUpdateMessageCallBacks.forEach(c -> c.call(null));
+				updateLabelCallBacks.forEach(c -> c.call(null));
+				updateMessageCallBacks.forEach(c -> c.call(null));
 				return new ArrayList<History>();
 			}
 
@@ -141,33 +142,38 @@ public class HistoryService extends TimerTask {
 			if (h.getMessages() != null) {
 				h.getMessages().forEach(m -> updatedMessages.add(m));
 				if (h.getMessagesAdded() != null) {
-					addedMessages.addAll(h.getMessagesAdded().stream().map(HistoryMessageAdded::getMessage).collect(Collectors.toSet()));
+					addedMessages.addAll(h.getMessagesAdded()
+							.stream()
+							.filter(a -> a.getMessage().getLabelIds() != null)
+							.filter(a -> !a.getMessage().getLabelIds().contains(GmailTag.DRAFT_TAG.getId()))
+							.map(HistoryMessageAdded::getMessage)
+							.collect(Collectors.toSet()));
 				}
 			}
 		}
 
 		if (!updatedLabelIds.isEmpty()) {
-			onUpdateLabelCallBacks.forEach(c -> c.call(updatedLabelIds));
+			updateLabelCallBacks.forEach(c -> c.call(updatedLabelIds));
 		}
 		if (!updatedMessages.isEmpty()) {
-			onUpdateMessageCallBacks.forEach(c -> c.call(updatedMessages));
+			updateMessageCallBacks.forEach(c -> c.call(updatedMessages));
 		}
 		if (!addedMessages.isEmpty()) {
-			onAddedMessageCallBacks.forEach(c -> c.call(addedMessages));
+			addedMessageCallBacks.forEach(c -> c.call(addedMessages));
 		}
 
 	}
 
 	public void addOnUpdateMessage(final Callback<Set<Message>, Void> callback) {
-		onUpdateMessageCallBacks.add(callback);
+		updateMessageCallBacks.add(callback);
 	}
 
 	public void addOnAddedMessage(final Callback<Set<Message>, Void> callback) {
-		onAddedMessageCallBacks.add(callback);
+		addedMessageCallBacks.add(callback);
 	}
 
 	public void addOnUpdateLabel(final Callback<Set<String>, Void> callback) {
-		onUpdateLabelCallBacks.add(callback);
+		updateLabelCallBacks.add(callback);
 	}
 
 	public void clearCache() {

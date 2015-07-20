@@ -126,7 +126,7 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 
 		subjectField = new TextField("FisherMail - test");
 		subjectField.setStyle("-fx-background-color: #cccccc");
-		subjectField.textProperty().addListener((ov, o, n) -> editedProperty.set(editedProperty.get() && n.equals(o)));
+		subjectField.textProperty().addListener((ov, o, n) -> editedProperty.set(editedProperty.get() || !n.equals(o)));
 
 		toListPane = new RecipientListPane<C>(emailContacts);
 		toListPane.setOnUpdateList(e -> editedProperty.set(true));
@@ -247,9 +247,11 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 			LOGGER.error("reading recipients");
 		}
 
+		boolean displayCC = false;
 		try {
 			for(final String a: helper.getMailAddresses(message.getRecipients(MimeMessage.RecipientType.CC))) {
 				ccListPane.add(a);
+				displayCC = true;
 			}
 		} catch (final MessagingException e) {
 			LOGGER.error("reading cc list");
@@ -258,9 +260,14 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 		try {
 			for(final String a: helper.getMailAddresses(message.getRecipients(MimeMessage.RecipientType.BCC))) {
 				bccListPane.add(a);
+				displayCC = true;
 			}
 		} catch (final MessagingException e) {
 			LOGGER.error("reading bcc list");
+		}
+
+		if (displayCC) {
+			toFullHeader();
 		}
 
 		String subject;

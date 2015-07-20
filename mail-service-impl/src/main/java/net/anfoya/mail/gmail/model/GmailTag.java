@@ -7,6 +7,7 @@ import com.google.api.services.gmail.model.Label;
 
 @SuppressWarnings("serial")
 public class GmailTag extends SimpleTag implements Tag {
+	public static final GmailTag DRAFT_TAG = new GmailTag("DRAFT", "Draft", "DRAFT", true);
 	public static final GmailTag ALL_TAG = new GmailTag("ALL", "All mail", "ALL", true);
 	public static final GmailTag UNREAD_TAG = new GmailTag("UNREAD", "Unread", "UNREAD", true);
 	public static final GmailTag INBOX_TAG = new GmailTag("INBOX", "Inbox", "INBOX", true);
