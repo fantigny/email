@@ -5,7 +5,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashSet;
 import java.util.Properties;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 
+import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -58,7 +63,7 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 	private final GridPane headerPane;
 	private final HBox toLabelBox;
 
-	private final HTMLEditor bodyEditor;
+	private final HTMLEditor editor;
 	private final TextField subjectField;
 
 	private final RecipientListPane<C> toListPane;
@@ -68,10 +73,15 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 	private final Button sendButton;
 
 	private M draft;
+	private String htmlRef;
+
+	private final BooleanProperty editedProperty;
 
 	public MessageComposer(final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService, final EventHandler<ActionEvent> updateHandler) {
 		super(StageStyle.UNIFIED);
 		setTitle("FisherMail / Agaar / Agamar / Agaram");
+
+		editedProperty = new SimpleBooleanProperty(false);
 
 		final Image icon = new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png"));
 		getIcons().add(icon);
@@ -116,23 +126,29 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 
 		subjectField = new TextField("FisherMail - test");
 		subjectField.setStyle("-fx-background-color: #cccccc");
+		subjectField.textProperty().addListener((ov, o, n) -> editedProperty.set(editedProperty.get() && n.equals(o)));
 
 		toListPane = new RecipientListPane<C>(emailContacts);
+		toListPane.setOnUpdateList(e -> editedProperty.set(true));
+
 		ccListPane = new RecipientListPane<C>(emailContacts);
+		ccListPane.setOnUpdateList(e -> editedProperty.set(true));
+
 		bccListPane = new RecipientListPane<C>(emailContacts);
+		bccListPane.setOnUpdateList(e -> editedProperty.set(true));
 
 		toMiniHeader();
 
-		bodyEditor = new HTMLEditor();
-		bodyEditor.setPadding(new Insets(0, 0, 0, 5));
-		mainPane.setCenter(bodyEditor);
+		editor = new HTMLEditor();
+		editor.setPadding(new Insets(0, 0, 0, 5));
+		mainPane.setCenter(editor);
 
 		final Button discardButton = new Button("discard");
 		discardButton.setOnAction(event -> discardAndClose());
 
 		final Button saveButton = new Button("save");
-		saveButton.setCancelButton(true);
-		saveButton.setOnAction(event -> saveAndClose());
+		saveButton.setOnAction(event -> save());
+		saveButton.disableProperty().bind(editedProperty.not());
 
 		sendButton = new Button("send");
 		sendButton.setOnAction(e -> sendAndClose());
@@ -142,40 +158,42 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 		buttonBox.setPadding(new Insets(5));
 		mainPane.setBottom(buttonBox);
 
-		show();
+		editedProperty.addListener((ov, o, n) -> saveButton.setText(n? "save": "saved"));
 	}
 
 	public void newMessage(final String recipient) throws MailException {
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
+				final MimeMessage message = new MimeMessage(Session.getDefaultInstance(new Properties()));
+				message.setContent("", "text/html");
+				message.saveChanges();
 				draft = mailService.createDraft(null);
-				toListPane.add(recipient);
+				draft.setMimeDraft(message);
 				return null;
 			}
 		};
-		task.setOnFailed(event -> LOGGER.error("creating draft", event.getSource().getException()));
-		task.setOnSucceeded(event -> updateHandler.handle(null));
+		task.setOnFailed(e -> LOGGER.error("creating draft", e.getSource().getException()));
+		task.setOnSucceeded(e -> initComposer(false));
 		ThreadPool.getInstance().submitHigh(task);
 	}
 
 	public void editOrReply(final String id) {
 		try {
-			final M draft = mailService.getDraft(id);
-			if (draft != null) {
-				edit(draft);
-			} else {
+			draft = mailService.getDraft(id);
+		} catch (final MailException e) {
+			LOGGER.error("loading draft for id {}", id, e);
+		}
+		if (draft != null) {
+			initComposer(false);
+		} else {
+			try {
 				final M message = mailService.getMessage(id);
 				reply(message, false);
+			} catch (final MailException e) {
+				LOGGER.error("loading message for id {}", id, e);
 			}
-		} catch (final MailException e) {
-			LOGGER.error("loading draft or message", e);
 		}
-	}
-
-	public void edit(final M draft) {
-		this.draft = draft;
-		initComposer(false);
 	}
 
 	public void reply(final M message, final boolean all) {
@@ -184,19 +202,16 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
-				draft = mailService.createDraft(message);
 				final MimeMessage reply = (MimeMessage) message.getMimeMessage().reply(all);
-				reply.setContent(draft.getMimeMessage().getContent(), draft.getMimeMessage().getContentType());
+				reply.setContent(message.getMimeMessage().getContent(), message.getMimeMessage().getContentType());
 				reply.saveChanges();
+				draft = mailService.createDraft(message);
 				draft.setMimeDraft(reply);
 				return null;
 			}
 		};
-		task.setOnFailed(event -> LOGGER.error("creating draft", event.getSource().getException()));
-		task.setOnSucceeded(event -> {
-			updateHandler.handle(null);
-			initComposer(true);
-		});
+		task.setOnFailed(event -> LOGGER.error("creating reply message", event.getSource().getException()));
+		task.setOnSucceeded(e -> initComposer(false));
 		ThreadPool.getInstance().submitHigh(task);
 	}
 
@@ -206,22 +221,23 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
+				final MimeMessage forward = new MimeMessage(Session.getDefaultInstance(new Properties()));
+				forward.setSubject("Fwd: " + message.getMimeMessage().getSubject());
+				forward.setContent(message.getMimeMessage().getContent(), message.getMimeMessage().getContentType());
+				forward.saveChanges();
 				draft = mailService.createDraft(message);
-				draft.setMimeDraft(message.getMimeMessage());
+				draft.setMimeDraft(forward);
 				return null;
 			}
 		};
-		task.setOnFailed(event -> LOGGER.error("creting draft", event.getSource().getException()));
-		task.setOnSucceeded(event -> {
-			updateHandler.handle(null);
-			initComposer(true);
-			subjectField.setText("Fwd: " + subjectField.getText());
-		});
+		task.setOnFailed(event -> LOGGER.error("creating forward message", event.getSource().getException()));
+		task.setOnSucceeded(e -> initComposer(true));
 		ThreadPool.getInstance().submitHigh(task);
 	}
 
 	private void initComposer(final boolean quote) {
 		final MimeMessage message = draft.getMimeMessage();
+		updateHandler.handle(null);
 
 		try {
 			for(final String a: helper.getMailAddresses(message.getRecipients(MimeMessage.RecipientType.TO))) {
@@ -260,7 +276,7 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 			html = helper.toHtml(message);
 		} catch (IOException | MessagingException e) {
 			html = "";
-			LOGGER.error("getting body", e);
+			LOGGER.error("getting html content", e);
 		}
 		if (!html.isEmpty() && quote) {
 			final StringBuffer sb = new StringBuffer("<br><br>");
@@ -269,16 +285,33 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 			sb.append("</blockquote>");
 			html = sb.toString();
 		}
-		bodyEditor.setHtmlText(html);
+		htmlRef = html;
+		editor.setHtmlText(html);
+
+		show();
 
 		if (quote) {
-			bodyEditor.requestFocus();
+			Platform.runLater(() -> editor.requestFocus());
 		}
+
+		new Timer(true).schedule(new TimerTask() {
+			@Override
+			public void run() {
+				if (editedProperty.get()) {
+					save();
+				} else {
+					final String html = editor.getHtmlText();
+					if (htmlRef.length() != html.length() || htmlRef.equals(html)) {
+						save();
+					}
+				}
+			}
+		}, 0, 60 * 1000);
 	}
 
 	private MimeMessage buildMessage() throws MessagingException {
 		final MimeBodyPart bodyPart = new MimeBodyPart();
-		bodyPart.setText(bodyEditor.getHtmlText(), StandardCharsets.UTF_8.name(), "html");
+		bodyPart.setText(editor.getHtmlText(), StandardCharsets.UTF_8.name(), "html");
 
 		final MimeMultipart multipart = new MimeMultipart();
 		multipart.addBodyPart(bodyPart);
@@ -304,14 +337,14 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 				return null;
 			}
 		};
-		task.setOnFailed(event -> LOGGER.error("sending draft", event.getSource().getException()));
-		task.setOnSucceeded(event -> updateHandler.handle(null));
+		task.setOnFailed(e -> LOGGER.error("sending draft", e.getSource().getException()));
+		task.setOnSucceeded(e -> updateHandler.handle(null));
 		ThreadPool.getInstance().submitHigh(task);
 
 		close();
 	}
 
-	private void saveAndClose() {
+	private void save() {
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
@@ -320,11 +353,11 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 				return null;
 			}
 		};
-		task.setOnFailed(event -> LOGGER.error("saving draft", event.getSource().getException()));
-		task.setOnSucceeded(event -> updateHandler.handle(null));
+		task.setOnFailed(e -> LOGGER.error("saving draft", e.getSource().getException()));
+		task.setOnSucceeded(e -> {
+			editedProperty.set(false);
+		});
 		ThreadPool.getInstance().submitHigh(task);
-
-		close();
 	}
 
 	private void discardAndClose() {
@@ -335,8 +368,8 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 				return null;
 			}
 		};
-		task.setOnFailed(event -> LOGGER.error("deleting draft", event.getSource().getException()));
-		task.setOnSucceeded(event -> updateHandler.handle(null));
+		task.setOnFailed(e -> LOGGER.error("deleting draft", e.getSource().getException()));
+		task.setOnSucceeded(e -> updateHandler.handle(null));
 		ThreadPool.getInstance().submitHigh(task);
 
 		close();

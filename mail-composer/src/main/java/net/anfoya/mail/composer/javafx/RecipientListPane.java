@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.Set;
 
 import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -16,7 +18,7 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.javafx.scene.control.AutoShowComboBoxListener;
+import net.anfoya.javafx.scene.control.AutoShowComboBoxHelper;
 import net.anfoya.javafx.scene.control.ComboField;
 import net.anfoya.javafx.util.LabelHelper;
 import net.anfoya.mail.service.Contact;
@@ -29,11 +31,13 @@ public class RecipientListPane<C extends Contact> extends FlowPane {
 	private static final String RECIPIENT_LABEL_SUFFIX = " X";
 
 	private final ComboField<String> combo;
-	final Map<String, C> addressContacts;
-	final Set<String> selectedAdresses;
+	private final Map<String, C> addressContacts;
+	private final Set<String> selectedAdresses;
 
 	private Task<Double> organiseTask;
 	private long organiseTaskId;
+
+	private EventHandler<ActionEvent> updateHandler;
 
 	public RecipientListPane(final Set<C> contacts) {
 		super(3, 2);
@@ -63,8 +67,7 @@ public class RecipientListPane<C extends Contact> extends FlowPane {
 				}
 			};
 		});
-		new AutoShowComboBoxListener(combo, address -> selectedAdresses.contains(address)? "": createRecipientText(address));
-		organise();
+		new AutoShowComboBoxHelper(combo, address -> selectedAdresses.contains(address)? "": createRecipientText(address));
 
 		getChildren().add(combo);
 		heightProperty().addListener((ov, o, n) -> organise());
@@ -80,7 +83,7 @@ public class RecipientListPane<C extends Contact> extends FlowPane {
 				LOGGER.error("error parsing address {}", address);
 			}
 		}
-		if (!combo.getValue().isEmpty()) {
+		if (combo.getValue() != null && !combo.getValue().isEmpty()) {
 			try {
 				addresses.add(new InternetAddress(combo.getValue()));
 			} catch (final AddressException e) {
@@ -95,22 +98,20 @@ public class RecipientListPane<C extends Contact> extends FlowPane {
 		if (address == null || address.isEmpty()) {
 			return;
 		}
-		final Label label = createRecipientLabel(address);
-		label.getStyleClass().add("address-label");
-		label.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
-		label.setOnMouseClicked(e -> remove(label));
 
-		LOGGER.debug("elements in flow pane: {}", getChildren().size());
+		final Label label = createRecipientLabel(address);
 		try {
 			// add address in penultimate position
 			getChildren().add(getChildren().size() - 1, label);
 		} catch(final Exception e) {
 			// seems sometime children list is empty (should contain the combo field at least)
 			// add address in first position then...
+			LOGGER.debug("elements in flow pane: {}", getChildren().size());
 			getChildren().add(0, label);
 		}
 
 		selectedAdresses.add(address);
+		updateHandler.handle(null);
 
 		organise(label);
 	}
@@ -118,6 +119,7 @@ public class RecipientListPane<C extends Contact> extends FlowPane {
 	private void remove(final Label label) {
 		getChildren().remove(label);
 		selectedAdresses.remove(getRecipientAddress(label));
+		updateHandler.handle(null);
 		organise();
 	}
 
@@ -193,7 +195,13 @@ public class RecipientListPane<C extends Contact> extends FlowPane {
 
 	private Label createRecipientLabel(final String address) {
 		final String text = createRecipientText(address);
-		return new Label(text + RECIPIENT_LABEL_SUFFIX);
+
+		final Label label = new Label(text + RECIPIENT_LABEL_SUFFIX);
+		label.getStyleClass().add("address-label");
+		label.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
+		label.setOnMouseClicked(e -> remove(label));
+
+		return label;
 	}
 
 	private String getRecipientAddress(final Label label) {
@@ -205,5 +213,9 @@ public class RecipientListPane<C extends Contact> extends FlowPane {
 			address = text.substring(0, text.length() - RECIPIENT_LABEL_SUFFIX.length());
 		}
 		return address;
+	}
+
+	public void setOnUpdateList(final EventHandler<ActionEvent> handler) {
+		updateHandler = handler;
 	}
 }
