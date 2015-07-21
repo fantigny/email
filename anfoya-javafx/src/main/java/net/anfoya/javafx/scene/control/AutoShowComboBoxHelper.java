@@ -13,6 +13,7 @@ public class AutoShowComboBoxHelper {
 
 		comboBox.getEditor().textProperty().addListener((ov, o, n) -> {
 			if (n.equals(comboBox.getSelectionModel().getSelectedItem())) {
+				// user is going through the list
 				return;
 			}
 

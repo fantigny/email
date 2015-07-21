@@ -40,6 +40,7 @@ import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeUtility;
 
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.javafx.scene.control.HtmlEditorListener;
 import net.anfoya.mail.mime.MessageHelper;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
@@ -70,6 +71,7 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 	private final RecipientListPane<C> ccListPane;
 	private final RecipientListPane<C> bccListPane;
 
+	private final Button saveButton;
 	private final Button sendButton;
 
 	private M draft;
@@ -143,10 +145,13 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 		editor.setPadding(new Insets(0, 0, 0, 5));
 		mainPane.setCenter(editor);
 
+		final HtmlEditorListener editorListener = new HtmlEditorListener(editor);
+		editorListener.editedProperty().addListener((ov, o, n) -> editedProperty.set(editedProperty.get() || n));
+
 		final Button discardButton = new Button("discard");
 		discardButton.setOnAction(event -> discardAndClose());
 
-		final Button saveButton = new Button("save");
+		saveButton = new Button("save");
 		saveButton.setOnAction(event -> save());
 		saveButton.disableProperty().bind(editedProperty.not());
 
@@ -158,7 +163,10 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 		buttonBox.setPadding(new Insets(5));
 		mainPane.setBottom(buttonBox);
 
-		editedProperty.addListener((ov, o, n) -> saveButton.setText(n? "save": "saved"));
+		editedProperty.addListener((ov, o, n) -> {
+			saveButton.setText(n? "save": "saved");
+			editorListener.editedProperty().set(n);
+		});
 	}
 
 	public void newMessage(final String recipient) throws MailException {
@@ -352,6 +360,8 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 	}
 
 	private void save() {
+		Platform.runLater(() -> saveButton.setText("saving"));
+
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
@@ -361,9 +371,7 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 			}
 		};
 		task.setOnFailed(e -> LOGGER.error("saving draft", e.getSource().getException()));
-		task.setOnSucceeded(e -> {
-			editedProperty.set(false);
-		});
+		task.setOnSucceeded(e -> editedProperty.set(false));
 		ThreadPool.getInstance().submitHigh(task);
 	}
 
