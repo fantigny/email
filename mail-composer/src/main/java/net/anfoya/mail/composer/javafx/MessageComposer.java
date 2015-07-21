@@ -120,25 +120,27 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 		ccListBox = new RecipientListPane<C>("cc/bcc:", emailContacts);
 		ccListBox.setOnUpdateList(e -> editedProperty.set(true));
 
-		bccListBox = new RecipientListPane<C>("bcc", emailContacts);
+		bccListBox = new RecipientListPane<C>("bcc:", emailContacts);
 		bccListBox.setOnUpdateList(e -> editedProperty.set(true));
 
+		final Label subject = new Label("subject:");
+		subject.setStyle("-fx-text-fill: gray");
 		subjectField = new TextField("FisherMail - test");
 		subjectField.setStyle("-fx-background-color: transparent");
 		subjectField.textProperty().addListener((ov, o, n) -> editedProperty.set(editedProperty.get() || !n.equals(o)));
-		final HBox subjectBox = new HBox(3, new Label("subject:"), subjectField);
+		final HBox subjectBox = new HBox(0, subject, subjectField);
 		subjectBox.setAlignment(Pos.CENTER_LEFT);
 		subjectBox.getStyleClass().add("box-underline");
 		HBox.setHgrow(subjectField, Priority.ALWAYS);
 
-		headerBox = new VBox(3, toListBox, ccListBox, subjectBox);
-		headerBox.setPadding(new Insets(3));
+		headerBox = new VBox(0, toListBox, ccListBox, subjectBox);
+		headerBox.setPadding(new Insets(3, 10, 5, 10));
 		mainPane.setTop(headerBox);
 
 		ccListBox.textfocusedProperty().addListener((ov, o, n) -> showBcc());
 
 		editor = new HTMLEditor();
-		editor.setStyle("-fx-background-color: transparent; -fx-border-width: 0;");
+		editor.setStyle("-fx-background-color: transparent; -fx-border-width: 0 0 1 0; -fx-border-color: lightgray;");
 		mainPane.setCenter(editor);
 
 		editorListener = new HtmlEditorListener(editor);
@@ -154,9 +156,9 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 		sendButton = new Button("send");
 		sendButton.setOnAction(e -> sendAndClose());
 
-		final HBox buttonBox = new HBox(5, discardButton, saveButton, sendButton);
+		final HBox buttonBox = new HBox(10, discardButton, saveButton, sendButton);
 		buttonBox.setAlignment(Pos.CENTER_RIGHT);
-		buttonBox.setPadding(new Insets(5));
+		buttonBox.setPadding(new Insets(8, 5, 5, 5));
 		mainPane.setBottom(buttonBox);
 
 		editedProperty.addListener((ov, o, n) -> {

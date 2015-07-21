@@ -45,7 +45,7 @@ public class RecipientListPane<C extends Contact> extends HBox {
 	private EventHandler<ActionEvent> updateHandler;
 
 	public RecipientListPane(final String title, final Set<C> contacts) {
-		super(3);
+		super(0);
 		setAlignment(Pos.CENTER_LEFT);
 		getStyleClass().add("box-underline");
 
@@ -55,6 +55,8 @@ public class RecipientListPane<C extends Contact> extends HBox {
 		}
 
 		this.title = new Label(title);
+		this.title.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
+		this.title.setStyle("-fx-text-fill: gray");
 		getChildren().add(this.title);
 
 		flowPane = new FlowPane(3,  2);
