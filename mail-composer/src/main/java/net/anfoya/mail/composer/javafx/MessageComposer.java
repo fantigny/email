@@ -22,10 +22,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.scene.web.HTMLEditor;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -61,11 +60,11 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 	private final MessageHelper helper;
 
 	private final BorderPane mainPane;
-	private final GridPane headerPane;
-	private final HBox toLabelBox;
 
-	private final HTMLEditor editor;
+	private final VBox headerBox;
+	private final Label ccLabel;
 	private final TextField subjectField;
+	private final HTMLEditor editor;
 
 	private final RecipientListPane<C> toListPane;
 	private final RecipientListPane<C> ccListPane;
@@ -96,28 +95,6 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 		this.mailService = mailService;
 		this.updateHandler = updateHandler;
 
-		helper = new MessageHelper();
-		mainPane = (BorderPane) getScene().getRoot();
-		mainPane.setPadding(new Insets(3));
-//		mainPane.setStyle("-fx-background-color: green");
-
-		final ColumnConstraints widthConstraints = new ColumnConstraints(80);
-		final ColumnConstraints growConstraints = new ColumnConstraints();
-		growConstraints.setHgrow(Priority.ALWAYS);
-		headerPane = new GridPane();
-//		headerPane.setStyle("-fx-background-color: red");
-		headerPane.setVgap(5);
-		headerPane.setHgap(5);
-		headerPane.setPadding(new Insets(5));
-		headerPane.prefWidthProperty().bind(widthProperty());
-		headerPane.getColumnConstraints().add(widthConstraints);
-		headerPane.getColumnConstraints().add(growConstraints);
-		mainPane.setTop(headerPane);
-
-		toLabelBox = new HBox(new Label("to"), new Label(" ..."));
-		toLabelBox.setAlignment(Pos.CENTER_LEFT);
-		toLabelBox.setOnMouseClicked(event -> toFullHeader());
-
 		// load contacts from server
 		final Set<C> emailContacts = new LinkedHashSet<C>();
 		try {
@@ -126,20 +103,36 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 			LOGGER.error("loading contacts", e);
 		}
 
-		subjectField = new TextField("FisherMail - test");
-		subjectField.setStyle("-fx-background-color: #cccccc");
-		subjectField.textProperty().addListener((ov, o, n) -> editedProperty.set(editedProperty.get() || !n.equals(o)));
+		helper = new MessageHelper();
+		mainPane = (BorderPane) getScene().getRoot();
+		mainPane.setPadding(new Insets(3));
 
 		toListPane = new RecipientListPane<C>(emailContacts);
 		toListPane.setOnUpdateList(e -> editedProperty.set(true));
+		final HBox toBox = new HBox(3, new Label("to:"), toListPane);
+		toBox.setAlignment(Pos.CENTER_LEFT);
+		HBox.setHgrow(toListPane, Priority.ALWAYS);
 
 		ccListPane = new RecipientListPane<C>(emailContacts);
 		ccListPane.setOnUpdateList(e -> editedProperty.set(true));
+		ccLabel = new Label("cc/bcc:");
+		final HBox ccBox = new HBox(3, ccLabel, ccListPane);
+		ccBox.setAlignment(Pos.CENTER_LEFT);
+		HBox.setHgrow(ccListPane, Priority.ALWAYS);
 
 		bccListPane = new RecipientListPane<C>(emailContacts);
 		bccListPane.setOnUpdateList(e -> editedProperty.set(true));
 
-		toMiniHeader();
+		subjectField = new TextField("FisherMail - test");
+		subjectField.setStyle("-fx-background-color: transparent");
+		subjectField.textProperty().addListener((ov, o, n) -> editedProperty.set(editedProperty.get() || !n.equals(o)));
+		final HBox subjectBox = new HBox(3, new Label("subject:"), subjectField);
+		subjectBox.setAlignment(Pos.CENTER_LEFT);
+		HBox.setHgrow(subjectField, Priority.ALWAYS);
+
+		headerBox = new VBox(3, toBox, ccBox, subjectBox);
+		ccListPane.textfocusedProperty().addListener((ov, o, n) -> showBcc());
+		mainPane.setTop(headerBox);
 
 		editor = new HTMLEditor();
 		editor.setPadding(new Insets(0, 0, 0, 5));
@@ -275,7 +268,7 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 		}
 
 		if (displayCC) {
-			toFullHeader();
+			showBcc();
 		}
 
 		String subject;
@@ -360,7 +353,10 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 	}
 
 	private void save() {
-		Platform.runLater(() -> saveButton.setText("saving"));
+		Platform.runLater(() -> {
+			editedProperty.set(false);
+			saveButton.setText("saving");
+		});
 
 		final Task<Void> task = new Task<Void>() {
 			@Override
@@ -370,8 +366,13 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 				return null;
 			}
 		};
-		task.setOnFailed(e -> LOGGER.error("saving draft", e.getSource().getException()));
-		task.setOnSucceeded(e -> editedProperty.set(false));
+		task.setOnFailed(e -> {
+			editedProperty.set(true);
+			LOGGER.error("saving draft", e.getSource().getException());
+		});
+		task.setOnSucceeded(e -> {
+			saveButton.setText("saved");
+		});
 		ThreadPool.getInstance().submitHigh(task);
 	}
 
@@ -390,18 +391,14 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 		close();
 	}
 
-	private void toMiniHeader() {
-		headerPane.getChildren().clear();
-		headerPane.addRow(0, toLabelBox, toListPane);
-		headerPane.addRow(1, new Label("subject"), subjectField);
-	}
-
-	private void toFullHeader() {
-		headerPane.getChildren().clear();
-//		headerPane.addRow(0, new Label("from"), fromCombo);
-		headerPane.addRow(0, new Label("to"), toListPane);
-		headerPane.addRow(1, new Label("cc"), ccListPane);
-		headerPane.addRow(2, new Label("bcc"), bccListPane);
-		headerPane.addRow(3, new Label("subject"), subjectField);
+	private void showBcc() {
+		final String cc = "cc:";
+		if (!cc.equals(ccLabel.getText())) {
+			ccLabel.setText(cc);
+			final HBox bccBox = new HBox(3, new Label("bcc:"), bccListPane);
+			bccBox.setAlignment(Pos.CENTER_LEFT);
+			HBox.setHgrow(bccListPane, Priority.ALWAYS);
+			headerBox.getChildren().add(2, bccBox);
+		}
 	}
 }

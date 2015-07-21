@@ -118,7 +118,7 @@ public class FileSerieSerializedMap<K extends Serializable, V extends Serializab
 				final Map<K, V> map = new SerializedFile<Map<K, V>>(filename).load();
 				delegate.putAll(map);
 				// mark all objects in this file as loaded and saved
-				for (final K k: map.keySet()) {
+				for(final K k: map.keySet()) {
 					final int kIndex = dico.indexOf(k);
 					if (kIndex == -1) {
 						LOGGER.error("missing in dico: {}", k);

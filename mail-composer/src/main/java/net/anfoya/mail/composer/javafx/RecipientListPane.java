@@ -5,6 +5,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -70,8 +71,8 @@ public class RecipientListPane<C extends Contact> extends FlowPane {
 		new AutoShowComboBoxHelper(combo, address -> selectedAdresses.contains(address)? "": createRecipientText(address));
 
 		getChildren().add(combo);
-		heightProperty().addListener((ov, o, n) -> organise());
-		widthProperty().addListener((ov, o, n) -> organise());
+		heightProperty().addListener((ov, o, n) -> organise(null));
+		widthProperty().addListener((ov, o, n) -> organise(null));
 	}
 
 	public Set<Address> getRecipients() {
@@ -95,24 +96,10 @@ public class RecipientListPane<C extends Contact> extends FlowPane {
 	}
 
 	public void add(final String address) {
-		if (address == null || address.isEmpty()) {
-			return;
-		}
-
 		final Label label = createRecipientLabel(address);
-		try {
-			// add address in penultimate position
-			getChildren().add(getChildren().size() - 1, label);
-		} catch(final Exception e) {
-			// seems sometime children list is empty (should contain the combo field at least)
-			// add address in first position then...
-			LOGGER.debug("elements in flow pane: {}", getChildren().size());
-			getChildren().add(0, label);
-		}
-
+		getChildren().add(getChildren().size() - 1, label);
 		selectedAdresses.add(address);
 		updateHandler.handle(null);
-
 		organise(label);
 	}
 
@@ -120,10 +107,6 @@ public class RecipientListPane<C extends Contact> extends FlowPane {
 		getChildren().remove(label);
 		selectedAdresses.remove(getRecipientAddress(label));
 		updateHandler.handle(null);
-		organise();
-	}
-
-	private synchronized void organise() {
 		organise(null);
 	}
 
@@ -217,5 +200,9 @@ public class RecipientListPane<C extends Contact> extends FlowPane {
 
 	public void setOnUpdateList(final EventHandler<ActionEvent> handler) {
 		updateHandler = handler;
+	}
+
+	public ReadOnlyBooleanProperty textfocusedProperty() {
+		return combo.getEditor().focusedProperty();
 	}
 }

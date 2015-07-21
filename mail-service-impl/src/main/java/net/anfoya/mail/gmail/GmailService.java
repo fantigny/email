@@ -21,6 +21,7 @@ import javafx.util.Duration;
 
 import javax.mail.MessagingException;
 
+import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.gmail.model.GmailContact;
 import net.anfoya.mail.gmail.model.GmailMessage;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
@@ -112,7 +113,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 				credential.setRefreshToken(refreshToken);
 				try {
 					credential.refreshToken();
-				} catch (TokenResponseException e) {
+				} catch (final TokenResponseException e) {
 					refreshToken = null;
 				}
 			}
@@ -139,6 +140,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		}
 
 		contactService = new ContactService(gcontact, DEFAULT).init();
+		ThreadPool.getInstance().submitLow(() -> contactService.getAll());
 
 		messageService = new MessageService(gmail, USER);
 		threadService = new ThreadService(gmail, USER);
