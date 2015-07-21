@@ -10,14 +10,18 @@ import net.anfoya.java.lang.StringHelper;
 public class AutoShowComboBoxHelper {
 	public AutoShowComboBoxHelper(final ComboBox<String> comboBox, final Callback<String, String> textBuilder) {
 		final ObservableList<String> items = FXCollections.observableArrayList(comboBox.getItems());
+
 		comboBox.getEditor().textProperty().addListener((ov, o, n) -> {
-			final FilteredList<String> filteredItems = new FilteredList<String>(items,
-					s -> StringHelper.containsIgnoreCase(textBuilder.call(s), n));
-			if (filteredItems.isEmpty()) {
-				comboBox.hide();
+			if (n.equals(comboBox.getSelectionModel().getSelectedItem())) {
+				return;
+			}
+
+			comboBox.hide();
+			final FilteredList<String> filtered = items.filtered(s -> StringHelper.containsIgnoreCase(textBuilder.call(s), n));
+			if (filtered.isEmpty()) {
 				comboBox.getItems().setAll(items);
 			} else {
-				comboBox.getItems().setAll(filteredItems);
+				comboBox.getItems().setAll(filtered);
 				comboBox.show();
 			}
 		});
