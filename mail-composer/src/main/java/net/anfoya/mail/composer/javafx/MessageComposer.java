@@ -86,7 +86,7 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 
 	public MessageComposer(final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService, final EventHandler<ActionEvent> updateHandler) {
 		super(StageStyle.UNIFIED);
-		setTitle("FisherMail / Agaar / Agamar / Agaram");
+		setTitle("FisherMail");
 
 		editedProperty = new SimpleBooleanProperty(false);
 
