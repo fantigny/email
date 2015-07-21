@@ -1,3 +1,9 @@
+
+.box-underline {
+    -fx-border-color: lightgray;
+	-fx-border-width: 0 0 1 0;
+}
+
 .decoration-background{
 	-fx-fill: radial-gradient(focus-angle 45deg, focus-distance 20%, center 25% 25%, radius 50%, reflect, #eeeeee88, #aaaaaa88 75%, gray);
 	-fx-stroke-width: 0;

@@ -21,11 +21,15 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.HTMLEditor;
+import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
@@ -52,6 +56,8 @@ import net.anfoya.mail.service.Thread;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sun.javafx.scene.web.skin.HTMLEditorSkin;
+
 public class MessageComposer<M extends Message, C extends Contact> extends Stage {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessageComposer.class);
 
@@ -62,19 +68,19 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 	private final BorderPane mainPane;
 
 	private final VBox headerBox;
-	private final Label ccLabel;
 	private final TextField subjectField;
-	private final HTMLEditor editor;
 
-	private final RecipientListPane<C> toListPane;
-	private final RecipientListPane<C> ccListPane;
-	private final RecipientListPane<C> bccListPane;
+	private final HTMLEditor editor;
+	private final HtmlEditorListener editorListener;
+
+	private final RecipientListPane<C> toListBox;
+	private final RecipientListPane<C> ccListBox;
+	private final RecipientListPane<C> bccListBox;
 
 	private final Button saveButton;
 	private final Button sendButton;
 
 	private M draft;
-	private String htmlRef;
 
 	private final BooleanProperty editedProperty;
 
@@ -107,38 +113,35 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 		mainPane = (BorderPane) getScene().getRoot();
 		mainPane.setPadding(new Insets(3));
 
-		toListPane = new RecipientListPane<C>(emailContacts);
-		toListPane.setOnUpdateList(e -> editedProperty.set(true));
-		final HBox toBox = new HBox(3, new Label("to:"), toListPane);
-		toBox.setAlignment(Pos.CENTER_LEFT);
-		HBox.setHgrow(toListPane, Priority.ALWAYS);
+		toListBox = new RecipientListPane<C>("to: ", emailContacts);
+		toListBox.setOnUpdateList(e -> editedProperty.set(true));
+		HBox.setHgrow(toListBox, Priority.ALWAYS);
 
-		ccListPane = new RecipientListPane<C>(emailContacts);
-		ccListPane.setOnUpdateList(e -> editedProperty.set(true));
-		ccLabel = new Label("cc/bcc:");
-		final HBox ccBox = new HBox(3, ccLabel, ccListPane);
-		ccBox.setAlignment(Pos.CENTER_LEFT);
-		HBox.setHgrow(ccListPane, Priority.ALWAYS);
+		ccListBox = new RecipientListPane<C>("cc/bcc:", emailContacts);
+		ccListBox.setOnUpdateList(e -> editedProperty.set(true));
 
-		bccListPane = new RecipientListPane<C>(emailContacts);
-		bccListPane.setOnUpdateList(e -> editedProperty.set(true));
+		bccListBox = new RecipientListPane<C>("bcc", emailContacts);
+		bccListBox.setOnUpdateList(e -> editedProperty.set(true));
 
 		subjectField = new TextField("FisherMail - test");
 		subjectField.setStyle("-fx-background-color: transparent");
 		subjectField.textProperty().addListener((ov, o, n) -> editedProperty.set(editedProperty.get() || !n.equals(o)));
 		final HBox subjectBox = new HBox(3, new Label("subject:"), subjectField);
 		subjectBox.setAlignment(Pos.CENTER_LEFT);
+		subjectBox.getStyleClass().add("box-underline");
 		HBox.setHgrow(subjectField, Priority.ALWAYS);
 
-		headerBox = new VBox(3, toBox, ccBox, subjectBox);
-		ccListPane.textfocusedProperty().addListener((ov, o, n) -> showBcc());
+		headerBox = new VBox(3, toListBox, ccListBox, subjectBox);
+		headerBox.setPadding(new Insets(3));
 		mainPane.setTop(headerBox);
 
+		ccListBox.textfocusedProperty().addListener((ov, o, n) -> showBcc());
+
 		editor = new HTMLEditor();
-		editor.setPadding(new Insets(0, 0, 0, 5));
+		editor.setStyle("-fx-background-color: transparent; -fx-border-width: 0;");
 		mainPane.setCenter(editor);
 
-		final HtmlEditorListener editorListener = new HtmlEditorListener(editor);
+		editorListener = new HtmlEditorListener(editor);
 		editorListener.editedProperty().addListener((ov, o, n) -> editedProperty.set(editedProperty.get() || n));
 
 		final Button discardButton = new Button("discard");
@@ -242,7 +245,7 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 
 		try {
 			for(final String a: helper.getMailAddresses(message.getRecipients(MimeMessage.RecipientType.TO))) {
-				toListPane.add(a);
+				toListBox.add(a);
 			}
 		} catch (final MessagingException e) {
 			LOGGER.error("reading recipients");
@@ -251,7 +254,7 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 		boolean displayCC = false;
 		try {
 			for(final String a: helper.getMailAddresses(message.getRecipients(MimeMessage.RecipientType.CC))) {
-				ccListPane.add(a);
+				ccListBox.add(a);
 				displayCC = true;
 			}
 		} catch (final MessagingException e) {
@@ -260,7 +263,7 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 
 		try {
 			for(final String a: helper.getMailAddresses(message.getRecipients(MimeMessage.RecipientType.BCC))) {
-				bccListPane.add(a);
+				bccListBox.add(a);
 				displayCC = true;
 			}
 		} catch (final MessagingException e) {
@@ -293,25 +296,28 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 			sb.append("</blockquote>");
 			html = sb.toString();
 		}
-		htmlRef = html;
 		editor.setHtmlText(html);
 
 		show();
 
-		if (quote) {
-			Platform.runLater(() -> editor.requestFocus());
-		}
+		Platform.runLater(() -> {
+			// send focus to html editor
+			final WebView view = (WebView) ((GridPane)((HTMLEditorSkin)editor.getSkin()).getChildren().get(0)).getChildren().get(2);
+			view.fireEvent(new MouseEvent(MouseEvent.MOUSE_PRESSED, 100, 100, 200, 200, MouseButton.PRIMARY, 1, false, false, false, false, false, false, false, false, false, false, null));
+			editor.requestFocus();
+			view.fireEvent(new MouseEvent(MouseEvent.MOUSE_RELEASED, 100, 100, 200, 200, MouseButton.PRIMARY, 1, false, false, false, false, false, false, false, false, false, false, null));
 
+			// start auto save
+			autosave();
+		});
+	}
+
+	private void autosave() {
 		new Timer(true).schedule(new TimerTask() {
 			@Override
 			public void run() {
 				if (editedProperty.get()) {
 					save();
-				} else {
-					final String html = editor.getHtmlText();
-					if (htmlRef.length() != html.length() || htmlRef.equals(html)) {
-						save();
-					}
 				}
 			}
 		}, 0, 60 * 1000);
@@ -329,9 +335,9 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 		message.setSubject(subjectField.getText());
 		message.setContent(multipart);
 
-		message.addRecipients(RecipientType.TO, toListPane.getRecipients().toArray(new Address[0]));
-		message.addRecipients(RecipientType.CC, ccListPane.getRecipients().toArray(new Address[0]));
-		message.addRecipients(RecipientType.BCC, bccListPane.getRecipients().toArray(new Address[0]));
+		message.addRecipients(RecipientType.TO, toListBox.getRecipients().toArray(new Address[0]));
+		message.addRecipients(RecipientType.CC, ccListBox.getRecipients().toArray(new Address[0]));
+		message.addRecipients(RecipientType.BCC, bccListBox.getRecipients().toArray(new Address[0]));
 
 		return message;
 	}
@@ -393,12 +399,9 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 
 	private void showBcc() {
 		final String cc = "cc:";
-		if (!cc.equals(ccLabel.getText())) {
-			ccLabel.setText(cc);
-			final HBox bccBox = new HBox(3, new Label("bcc:"), bccListPane);
-			bccBox.setAlignment(Pos.CENTER_LEFT);
-			HBox.setHgrow(bccListPane, Priority.ALWAYS);
-			headerBox.getChildren().add(2, bccBox);
+		if (!cc.equals(ccListBox.getTitle())) {
+			ccListBox.setTitle(cc);
+			headerBox.getChildren().add(2, bccListBox);
 		}
 	}
 }

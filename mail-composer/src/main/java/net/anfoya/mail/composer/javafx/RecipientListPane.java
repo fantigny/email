@@ -9,10 +9,12 @@ import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
 
 import javax.mail.Address;
 import javax.mail.internet.AddressException;
@@ -27,10 +29,12 @@ import net.anfoya.mail.service.Contact;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RecipientListPane<C extends Contact> extends FlowPane {
+public class RecipientListPane<C extends Contact> extends HBox {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RecipientListPane.class);
 	private static final String RECIPIENT_LABEL_SUFFIX = " X";
 
+	private final Label title;
+	private final FlowPane flowPane;
 	private final ComboField<String> combo;
 	private final Map<String, C> addressContacts;
 	private final Set<String> selectedAdresses;
@@ -40,17 +44,25 @@ public class RecipientListPane<C extends Contact> extends FlowPane {
 
 	private EventHandler<ActionEvent> updateHandler;
 
-	public RecipientListPane(final Set<C> contacts) {
-		super(3, 2);
-		setMinWidth(150);
-
-		organiseTask = null;
-		organiseTaskId = -1;
+	public RecipientListPane(final String title, final Set<C> contacts) {
+		super(3);
+		setAlignment(Pos.CENTER_LEFT);
+		getStyleClass().add("box-underline");
 
 		addressContacts = new LinkedHashMap<String, C>();
 		for(final C c: contacts) {
 			addressContacts.put(c.getEmail(), c);
 		}
+
+		this.title = new Label(title);
+		getChildren().add(this.title);
+
+		flowPane = new FlowPane(3,  2);
+		flowPane.setMinWidth(150);
+		getChildren().add(flowPane);
+
+		organiseTask = null;
+		organiseTaskId = -1;
 
 		selectedAdresses = new LinkedHashSet<String>();
 
@@ -70,7 +82,7 @@ public class RecipientListPane<C extends Contact> extends FlowPane {
 		});
 		new AutoShowComboBoxHelper(combo, address -> selectedAdresses.contains(address)? "": createRecipientText(address));
 
-		getChildren().add(combo);
+		flowPane.getChildren().add(combo);
 		heightProperty().addListener((ov, o, n) -> organise(null));
 		widthProperty().addListener((ov, o, n) -> organise(null));
 	}
@@ -97,14 +109,14 @@ public class RecipientListPane<C extends Contact> extends FlowPane {
 
 	public void add(final String address) {
 		final Label label = createRecipientLabel(address);
-		getChildren().add(getChildren().size() - 1, label);
+		flowPane.getChildren().add(flowPane.getChildren().size() - 1, label);
 		selectedAdresses.add(address);
 		updateHandler.handle(null);
 		organise(label);
 	}
 
 	private void remove(final Label label) {
-		getChildren().remove(label);
+		flowPane.getChildren().remove(label);
 		selectedAdresses.remove(getRecipientAddress(label));
 		updateHandler.handle(null);
 		organise(null);
@@ -123,7 +135,7 @@ public class RecipientListPane<C extends Contact> extends FlowPane {
 		combo.hide();
 
 		if (lastAdded != null) {
-			final double tempWidth = comboWidth - LabelHelper.computeWidth(lastAdded) - getHgap();
+			final double tempWidth = comboWidth - LabelHelper.computeWidth(lastAdded) - flowPane.getHgap();
 			LOGGER.debug("combo temp width {}", comboWidth);
 			combo.setPrefWidth(tempWidth);
 		}
@@ -131,14 +143,14 @@ public class RecipientListPane<C extends Contact> extends FlowPane {
 		organiseTask = new Task<Double>() {
 			@Override
 			protected Double call() throws Exception {
-				final double paneWidth = getWidth();
+				final double paneWidth = flowPane.getWidth();
 				LOGGER.debug("pane width {}", paneWidth);
 				if (paneWidth == 0) {
 					return 0d;
 				}
 
 				double availableWidth = paneWidth;
-				for(final Node node: getChildren()) {
+				for(final Node node: flowPane.getChildren()) {
 					if (node instanceof Label) {
 						final Label l = (Label) node;
 						while(l.getWidth() == 0) {
@@ -148,7 +160,7 @@ public class RecipientListPane<C extends Contact> extends FlowPane {
 						if (l.getWidth() > availableWidth) {
 							availableWidth = paneWidth;
 						}
-						availableWidth -= l.getWidth() + getHgap();
+						availableWidth -= l.getWidth() + flowPane.getHgap();
 					}
 				}
 				LOGGER.debug("available width {}", availableWidth);
@@ -162,7 +174,7 @@ public class RecipientListPane<C extends Contact> extends FlowPane {
 			}
 
 			final double availableWidth = (double) e.getSource().getValue();
-			combo.setPrefWidth(availableWidth < 150? getWidth(): availableWidth);
+			combo.setPrefWidth(availableWidth < 150? flowPane.getWidth(): availableWidth);
 		});
 		ThreadPool.getInstance().submitHigh(organiseTask);
 	}
@@ -204,5 +216,13 @@ public class RecipientListPane<C extends Contact> extends FlowPane {
 
 	public ReadOnlyBooleanProperty textfocusedProperty() {
 		return combo.getEditor().focusedProperty();
+	}
+
+	public String getTitle() {
+		return title.getText();
+	}
+
+	public void setTitle(final String title) {
+		this.title.setText(title);
 	}
 }
