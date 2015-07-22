@@ -14,6 +14,8 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -34,7 +36,6 @@ import org.slf4j.LoggerFactory;
 
 public class RecipientListPane<C extends Contact> extends HBox {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RecipientListPane.class);
-	private static final String RECIPIENT_LABEL_SUFFIX = "";
 
 	private final Label title;
 	private final FlowPane flowPane;
@@ -82,16 +83,43 @@ public class RecipientListPane<C extends Contact> extends HBox {
 			    public void updateItem(final String address, final boolean empty) {
 			        super.updateItem(address, empty);
 			        if (!empty) {
-			        	setText(createRecipientText(address));
+			        	setText(addressContacts.get(address).getFullname() + " (" + addressContacts.get(address).getEmail() + ")");
 			        }
 				}
 			};
 		});
-		new AutoShowComboBoxHelper(combo, address -> selectedAdresses.contains(address)? "": createRecipientText(address));
+		combo.addEventFilter(KeyEvent.KEY_RELEASED, e -> {
+			if (combo.getValue() == null
+					|| combo.getValue().isEmpty()
+					&& e.getCode() == KeyCode.BACK_SPACE
+					&& flowPane.getChildren().size() > 1) {
+				flowPane.getChildren().remove(flowPane.getChildren().size()-2);
+			}
+		});
+		new AutoShowComboBoxHelper(combo, address -> selectedAdresses.contains(address)
+				? ""
+				: addressContacts.get(address).getFullname() + " " + addressContacts.get(address).getEmail());
 
 		flowPane.getChildren().add(combo);
 		heightProperty().addListener((ov, o, n) -> organise(null));
 		widthProperty().addListener((ov, o, n) -> organise(null));
+	}
+
+	public void add(final String address) {
+		final RemoveLabel label = new RemoveLabel(addressContacts.get(address).getFullname(), address);
+		label.getStyleClass().add("address-label");
+
+		flowPane.getChildren().add(flowPane.getChildren().size() - 1, label);
+		selectedAdresses.add(address);
+		updateHandler.handle(null);
+		organise(label);
+
+		label.setOnRemove(e -> {
+			flowPane.getChildren().remove(label);
+			selectedAdresses.remove(label.getUserId());
+			updateHandler.handle(null);
+			organise(null);
+		});
 	}
 
 	public Set<Address> getRecipients() {
@@ -114,19 +142,20 @@ public class RecipientListPane<C extends Contact> extends HBox {
 		return addresses;
 	}
 
-	public void add(final String address) {
-		final Label label = createRecipientLabel(address);
-		flowPane.getChildren().add(flowPane.getChildren().size() - 1, label);
-		selectedAdresses.add(address);
-		updateHandler.handle(null);
-		organise(label);
+	public void setOnUpdateList(final EventHandler<ActionEvent> handler) {
+		updateHandler = handler;
 	}
 
-	private void remove(final Label label) {
-		flowPane.getChildren().remove(label);
-		selectedAdresses.remove(getRecipientAddress(label));
-		updateHandler.handle(null);
-		organise(null);
+	public ReadOnlyBooleanProperty textfocusedProperty() {
+		return combo.getEditor().focusedProperty();
+	}
+
+	public String getTitle() {
+		return title.getText();
+	}
+
+	public void setTitle(final String title) {
+		this.title.setText(title);
 	}
 
 	private synchronized void organise(final Label lastAdded) {
@@ -184,52 +213,5 @@ public class RecipientListPane<C extends Contact> extends HBox {
 			combo.setPrefWidth(availableWidth < 150? flowPane.getWidth(): availableWidth);
 		});
 		ThreadPool.getInstance().submitHigh(organiseTask);
-	}
-
-	private String createRecipientText(final String address) {
-		final C contact = addressContacts.get(address);
-		if (contact == null) {
-			return address;
-		} else {
-			return contact.getFullname() + " (" + contact.getEmail() + ")";
-		}
-	}
-
-	private Label createRecipientLabel(final String address) {
-		final String text = createRecipientText(address);
-
-		final Label label = new RemoveLabel(text + RECIPIENT_LABEL_SUFFIX);
-		label.getStyleClass().add("address-label");
-		label.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
-		label.setOnMouseClicked(e -> remove(label));
-
-		return label;
-	}
-
-	private String getRecipientAddress(final Label label) {
-		final String text = label.getText();
-		String address;
-		if (text.contains("(")) {
-			address = text.substring(text.indexOf("(") + 1, text.indexOf(")"));
-		} else {
-			address = text.substring(0, text.length() - RECIPIENT_LABEL_SUFFIX.length());
-		}
-		return address;
-	}
-
-	public void setOnUpdateList(final EventHandler<ActionEvent> handler) {
-		updateHandler = handler;
-	}
-
-	public ReadOnlyBooleanProperty textfocusedProperty() {
-		return combo.getEditor().focusedProperty();
-	}
-
-	public String getTitle() {
-		return title.getText();
-	}
-
-	public void setTitle(final String title) {
-		this.title.setText(title);
 	}
 }
