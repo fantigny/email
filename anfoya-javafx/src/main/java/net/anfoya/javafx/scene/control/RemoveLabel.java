@@ -4,6 +4,7 @@ import javafx.event.EventHandler;
 import javafx.scene.Group;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -11,10 +12,9 @@ import javafx.scene.shape.Rectangle;
 public class RemoveLabel extends Label {
 	private static final Color REGULAR_CROSS = Color.DARKGRAY;
 	private static final Color HIGHLIGHT_CROSS = Color.BLACK;
-	private final String userId;
 
-	public RemoveLabel(final String text, final String userId) {
-		this.userId = userId;
+	public RemoveLabel(final String text, final String toolTip) {
+		setTooltip(new Tooltip(toolTip));
 
 		final Rectangle r1 = getCard(-45, REGULAR_CROSS);
 		final Rectangle r2 = getCard(45, REGULAR_CROSS);
@@ -40,10 +40,6 @@ public class RemoveLabel extends Label {
 		card.setFill(fill);
 		card.setRotate(rotate);
 		return card;
-	}
-
-	public String getUserId() {
-		return userId;
 	}
 
 	public void setOnRemove(final EventHandler<MouseEvent> handler) {

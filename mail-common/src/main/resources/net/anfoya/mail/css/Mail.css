@@ -28,8 +28,13 @@
 	-fx-font-size: 11px;
 }
 
-.thread-list-cell .subject {
-	-fx-font-size: 12px;
+.combo-box-base .text-input {
+    -fx-padding: 2;
+}
+
+.address-combo {
+    -fx-background-color: red;
+    -fx-padding: 0;
 }
 
 .address-label {
@@ -39,7 +44,7 @@
     -fx-border-radius: 5,4,3,5;
     -fx-text-fill: black;
     -fx-font-size: 11px;
-    -fx-padding: 0 5 0 3;
+    -fx-padding: 2 5 2 5;
 }
 
 .address-label:hover {
