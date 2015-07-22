@@ -86,12 +86,15 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 	private M draft;
 
 	private final BooleanProperty editedProperty;
+	private final Timer autosaveTimer;
 
 	public MessageComposer(final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService, final EventHandler<ActionEvent> updateHandler) {
 		super(StageStyle.UNIFIED);
 		setTitle("FisherMail");
+		setOnCloseRequest(e -> stopAutosave());
 
 		editedProperty = new SimpleBooleanProperty(false);
+		autosaveTimer = new Timer(true);
 
 		final Image icon = new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png"));
 		getIcons().add(icon);
@@ -334,12 +337,12 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 			view.fireEvent(new MouseEvent(MouseEvent.MOUSE_RELEASED, 100, 100, 200, 200, MouseButton.PRIMARY, 1, false, false, false, false, false, false, false, false, false, false, null));
 
 			// start auto save
-			autosave();
+			startAutosave();
 		});
 	}
 
-	private void autosave() {
-		new Timer(true).schedule(new TimerTask() {
+	private void startAutosave() {
+		autosaveTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
 				if (editedProperty.get()) {
@@ -347,6 +350,10 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 				}
 			}
 		}, 0, 60 * 1000);
+	}
+
+	private void stopAutosave() {
+		autosaveTimer.cancel();
 	}
 
 	private MimeMessage buildMessage() throws MessagingException {
