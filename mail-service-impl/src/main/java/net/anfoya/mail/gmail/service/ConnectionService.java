@@ -7,6 +7,7 @@ import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import javafx.application.Platform;
+import net.anfoya.javafx.application.PlatformHelper;
 import net.anfoya.mail.gmail.GMailException;
 import net.anfoya.mail.gmail.GmailService;
 import net.anfoya.mail.gmail.javafx.ConnectionProgress;
@@ -28,6 +29,7 @@ import com.google.gdata.client.contacts.ContactsService;
 
 public class ConnectionService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GmailService.class);
+	private static final boolean HL = PlatformHelper.isHeadless();
 
 	private static final String CLIENT_SECRET_PATH = "client_secret.json";
     private static final String REFRESH_TOKEN_SUFFIX = "%s-refresh-token";
@@ -55,11 +57,11 @@ public class ConnectionService {
 
 		credential = null;
 
-		Platform.runLater(() -> progress = new ConnectionProgress());
+		if (!HL) Platform.runLater(() -> progress = new ConnectionProgress());
 	}
 
 	public ConnectionService connect() throws GMailException {
-		Platform.runLater(() -> progress.setValue(1/3d, "connecting to Google service"));
+		if (!HL) Platform.runLater(() -> progress.setValue(1/3d, "connecting to Google service"));
 		try {
 			final BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(CLIENT_SECRET_PATH)));
 			final GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(jsonFactory, reader);
@@ -81,7 +83,7 @@ public class ConnectionService {
 				}
 			}
 			if (refreshToken == null) {
-				Platform.runLater(() -> progress.hide());
+				if (!HL) Platform.runLater(() -> progress.hide());
 
 				// Generate Credential using login token.
 				final TokenResponse tokenResponse = new GmailLogin(clientSecrets).getTokenResponseCredentials();
@@ -92,18 +94,18 @@ public class ConnectionService {
 			prefs.put(refreshTokenName, credential.getRefreshToken());
 			prefs.flush();
 
-			Platform.runLater(() -> progress.setValue(2/3d, "connecting to Google Contact"));
+			if (!HL) Platform.runLater(() -> progress.setValue(2/3d, "connecting to Google Contact"));
 			gcontact = new ContactsService(appName);
 			gcontact.setOAuth2Credentials(credential);
 
-			Platform.runLater(() -> progress.setValue(1, "connecting to GMail"));
+			if (!HL) Platform.runLater(() -> progress.setValue(1, "connecting to GMail"));
 			gmail = new Gmail.Builder(httpTransport, jsonFactory, credential)
 				.setApplicationName(appName)
 				.build();
 		} catch (final IOException | BackingStoreException | InterruptedException e) {
 			throw new GMailException("connection", e);
 		} finally {
-			Platform.runLater(() -> progress.hide());
+			if (!HL) Platform.runLater(() -> progress.hide());
 		}
 
 		return this;

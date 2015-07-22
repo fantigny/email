@@ -1,6 +1,5 @@
 package net.anfoya.mail.gmail.javafx;
 
-import java.awt.GraphicsEnvironment;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -17,6 +16,7 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import net.anfoya.javafx.application.PlatformHelper;
 import net.anfoya.mail.gmail.GMailException;
 
 import org.w3c.dom.Element;
@@ -64,7 +64,7 @@ public class GmailLogin {
 				.build();
 
 		final String authCode;
-		if (GraphicsEnvironment.isHeadless()) {
+		if (PlatformHelper.isHeadless()) {
 			System.out.println("Please open the following URL in your browser then type the authorization code:\n" + url);
 			// Read code entered by user.
 			final BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
