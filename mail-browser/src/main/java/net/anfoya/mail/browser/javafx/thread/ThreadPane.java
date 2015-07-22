@@ -92,6 +92,7 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 		scrollPane = new ScrollPane();
 		scrollPane.setFitToWidth(true);
 		scrollPane.getStyleClass().add("edge-to-edge");
+		scrollPane.getStyleClass().add("box-underline");
 
 		messagesBox = new VBox();
 		messagesBox.minHeightProperty().bind(scrollPane.heightProperty());

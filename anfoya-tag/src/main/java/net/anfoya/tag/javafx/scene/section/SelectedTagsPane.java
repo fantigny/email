@@ -25,7 +25,7 @@ public class SelectedTagsPane<T extends Tag> extends FlowPane {
 		final List<Button> buttons = new ArrayList<Button>();
 		for(final T tag: tags) {
 			final Button button = new Button(tag.getName() + CROSS);
-			button.getStyleClass().add("tag-button");
+			button.getStyleClass().add("tag-label");
 			button.setOnAction(event -> {
 				if (clearTagCallBack != null) {
 					SelectedTagsPane.this.getChildren().remove(button);
