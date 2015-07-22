@@ -11,6 +11,8 @@ public class PlatformHelper {
 			new Stage();
 		} catch (final ExceptionInInitializerError e) {
 			headless = true;
+		} catch (final RuntimeException e) {
+			// nothing to do
 		}
 		HEADLESS = headless;
 	}
