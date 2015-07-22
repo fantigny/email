@@ -4,13 +4,14 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -48,9 +49,11 @@ public class RecipientListPane<C extends Contact> extends HBox {
 
 	private EventHandler<ActionEvent> updateHandler;
 
+	private Timer emptyComboTimer;
+	private volatile boolean comboIsEmpty;
+
 	public RecipientListPane(final String title, final Set<C> contacts) {
 		super(0);
-		setAlignment(Pos.CENTER_LEFT);
 		getStyleClass().add("box-underline");
 
 		addressContacts = new LinkedHashMap<String, C>();
@@ -60,7 +63,7 @@ public class RecipientListPane<C extends Contact> extends HBox {
 
 		this.title = new Label(title);
 		this.title.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
-		this.title.setStyle("-fx-text-fill: gray");
+		this.title.setStyle("-fx-text-fill: gray; -fx-padding: 5 0 0 0");
 		getChildren().add(this.title);
 
 		flowPane = new FlowPane(3,  2);
@@ -88,9 +91,25 @@ public class RecipientListPane<C extends Contact> extends HBox {
 				}
 			};
 		});
-		combo.addEventFilter(KeyEvent.KEY_RELEASED, e -> {
-			if (combo.getValue() == null
-					|| combo.getValue().isEmpty()
+		combo.getEditor().textProperty().addListener((ov, o, n) -> {
+			if (n == null || n.isEmpty()
+					&& o != null && ! o.isEmpty()) {
+				emptyComboTimer = new Timer();
+				emptyComboTimer.schedule(new TimerTask() {
+					@Override
+					public void run() {
+						comboIsEmpty = true;
+					}
+				}, 100);
+			} else {
+				if (emptyComboTimer != null) {
+					emptyComboTimer.cancel();
+				}
+				comboIsEmpty = n == null || n.isEmpty();
+			}
+		});
+		combo.getEditor().addEventHandler(KeyEvent.KEY_RELEASED, e -> {
+			if (comboIsEmpty
 					&& e.getCode() == KeyCode.BACK_SPACE
 					&& flowPane.getChildren().size() > 1) {
 				flowPane.getChildren().remove(flowPane.getChildren().size()-2);
@@ -106,7 +125,8 @@ public class RecipientListPane<C extends Contact> extends HBox {
 	}
 
 	public void add(final String address) {
-		final RemoveLabel label = new RemoveLabel(addressContacts.get(address).getFullname(), address);
+		final String text = addressContacts.containsKey(address)? addressContacts.get(address).getFullname(): address;
+		final RemoveLabel label = new RemoveLabel(text, address);
 		label.getStyleClass().add("address-label");
 
 		flowPane.getChildren().add(flowPane.getChildren().size() - 1, label);
@@ -116,7 +136,7 @@ public class RecipientListPane<C extends Contact> extends HBox {
 
 		label.setOnRemove(e -> {
 			flowPane.getChildren().remove(label);
-			selectedAdresses.remove(label.getUserId());
+			selectedAdresses.remove(label.getTooltip());
 			updateHandler.handle(null);
 			organise(null);
 		});
