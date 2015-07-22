@@ -54,11 +54,22 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		setOnCloseRequest(e ->Notifier.INSTANCE.stop());
 	}
 
+	@Override
+	public void hide() {
+		//TODO
+		super.hide();
+//		if (OperatingSystem.getInstance().getFamily().equals(Family.MAC)) {
+//			setIconified(true);
+//		} else {
+//			super.hide();
+//		}
+	}
+
 	private void initGui() throws MailException {
+		initStyle(StageStyle.UNIFIED);
 		setWidth(1400);
 		setHeight(800);
 		setTitle("FisherMail");
-		initStyle(StageStyle.UNIFIED);
 		getIcons().add(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png")));
 
 		final SplitPane splitPane = new SplitPane();
