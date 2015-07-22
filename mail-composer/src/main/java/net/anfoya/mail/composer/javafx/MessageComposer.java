@@ -1,5 +1,6 @@
 package net.anfoya.mail.composer.javafx;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashSet;
@@ -21,8 +22,10 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
+import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -141,6 +144,23 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 
 		editor = new HTMLEditor();
 		editor.setStyle("-fx-background-color: transparent; -fx-border-width: 0 0 1 0; -fx-border-color: lightgray;");
+		editor.setOnDragOver(e -> {
+            if (e.getDragboard().hasFiles()) {
+                e.acceptTransferModes(TransferMode.COPY);
+            } else {
+                e.consume();
+            }
+        });
+		editor.setOnDragDropped(e -> {
+            final Dragboard dragboard = e.getDragboard();
+            if (dragboard.hasFiles()) {
+	            for (final File file: dragboard.getFiles()) {
+	            	addAttachment(file);
+	            }
+            }
+            e.setDropCompleted(dragboard.hasFiles());
+            e.consume();
+        });
 		mainPane.setCenter(editor);
 
 		editorListener = new HtmlEditorListener(editor);
@@ -165,6 +185,10 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 			saveButton.setText(n? "save": "saved");
 			editorListener.editedProperty().set(n);
 		});
+	}
+
+	private void addAttachment(final File file) {
+
 	}
 
 	public void newMessage(final String recipient) throws MailException {
