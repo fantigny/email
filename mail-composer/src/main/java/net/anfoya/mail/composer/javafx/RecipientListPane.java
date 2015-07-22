@@ -9,6 +9,7 @@ import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
@@ -24,6 +25,7 @@ import javax.mail.internet.InternetAddress;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.AutoShowComboBoxHelper;
 import net.anfoya.javafx.scene.control.ComboField;
+import net.anfoya.javafx.scene.control.RemoveLabel;
 import net.anfoya.javafx.util.LabelHelper;
 import net.anfoya.mail.service.Contact;
 
@@ -32,7 +34,7 @@ import org.slf4j.LoggerFactory;
 
 public class RecipientListPane<C extends Contact> extends HBox {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RecipientListPane.class);
-	private static final String RECIPIENT_LABEL_SUFFIX = " X";
+	private static final String RECIPIENT_LABEL_SUFFIX = "";
 
 	private final Label title;
 	private final FlowPane flowPane;
@@ -71,6 +73,7 @@ public class RecipientListPane<C extends Contact> extends HBox {
 		selectedAdresses = new LinkedHashSet<String>();
 
 		combo = new ComboField<String>();
+		combo.setPadding(new Insets(0));
 		combo.getItems().addAll(addressContacts.keySet());
 		combo.setOnFieldAction(e -> add(combo.getFieldValue()));
 		combo.setCellFactory(listView -> {
@@ -195,7 +198,7 @@ public class RecipientListPane<C extends Contact> extends HBox {
 	private Label createRecipientLabel(final String address) {
 		final String text = createRecipientText(address);
 
-		final Label label = new Label(text + RECIPIENT_LABEL_SUFFIX);
+		final Label label = new RemoveLabel(text + RECIPIENT_LABEL_SUFFIX);
 		label.getStyleClass().add("address-label");
 		label.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
 		label.setOnMouseClicked(e -> remove(label));
