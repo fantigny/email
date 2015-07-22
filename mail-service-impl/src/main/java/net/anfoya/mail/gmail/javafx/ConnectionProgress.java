@@ -42,7 +42,7 @@ public class ConnectionProgress extends Stage {
 		if (!isShowing()) {
 			show();
 		}
-		progressBar.setPrefWidth( ( 300 - 2 * 20 ) * progress );
+		progressBar.setPrefWidth( 300 * progress );
 		progressText.setText(text);
 
 		return this;
