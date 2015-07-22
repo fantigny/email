@@ -21,26 +21,38 @@ public class MailClient extends Application {
 		launch(args);
 	}
 
+	private GmailService gmail;
+
 	@Override
-	public void init() {
+	public void init() throws Exception {
 		Settings.load();
+		gmail = new GmailService();
+		try {
+			gmail.connect(App.MAIL_CLIENT);
+		} catch (final MailException e) {
+			throw new Exception("login failed", e);
+		}
+		if (gmail.disconnected().get()) {
+			System.exit(0);
+		}
 	}
 
 	@Override
 	public void start(final Stage primaryStage) throws Exception {
 		primaryStage.setOnCloseRequest(e -> ThreadPool.getInstance().shutdown());
 
-		final GmailService gmail = new GmailService();
 		final MailBrowser<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact> mailBrowser =
 				new MailBrowser<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact>(gmail);
 		do {
-			try {
-				gmail.connect(App.MAIL_CLIENT);
-			} catch (final MailException e) {
-				throw new Exception("login failed", e);
-			}
 			if (!gmail.disconnected().get()) {
 				mailBrowser.showAndWait();
+			}
+			if (!mailBrowser.isQuit()) {
+				try {
+					gmail.connect(App.MAIL_CLIENT);
+				} catch (final MailException e) {
+					throw new Exception("login failed", e);
+				}
 			}
 		} while (!gmail.disconnected().get() && !mailBrowser.isQuit());
 	}

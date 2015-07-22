@@ -15,6 +15,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 
 import javax.mail.Address;
 import javax.mail.internet.AddressException;
@@ -62,6 +63,7 @@ public class RecipientListPane<C extends Contact> extends HBox {
 		flowPane = new FlowPane(3,  2);
 		flowPane.setMinWidth(150);
 		getChildren().add(flowPane);
+		HBox.setHgrow(flowPane, Priority.ALWAYS);
 
 		organiseTask = null;
 		organiseTaskId = -1;

@@ -1,4 +1,4 @@
-package net.anfoya.mail.gmail;
+package net.anfoya.mail.gmail.javafx;
 
 import java.awt.GraphicsEnvironment;
 import java.io.BufferedReader;
@@ -7,7 +7,9 @@ import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
 
+import javafx.application.Platform;
 import javafx.concurrent.Worker.State;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -15,6 +17,7 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import net.anfoya.mail.gmail.GMailException;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -67,13 +70,31 @@ public class GmailLogin {
 			final BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 			authCode = br.readLine();
 		} else {
+			authCode = getCredentialsFx(url);
+		}
+
+		if (authCode.length() == 0) {
+			throw new GMailException("no authentication code received from GMail", null);
+		}
+
+		// Generate credential
+		return flow
+				.newTokenRequest(authCode)
+				.setRedirectUri(GoogleOAuthConstants.OOB_REDIRECT_URI)
+				.execute();
+	}
+
+	private String getCredentialsFx(final String url) {
+		final CountDownLatch fxLock = new CountDownLatch(1);
+		final StringBuilder sb = new StringBuilder();
+
+		final Runnable loginRequest = () -> {
 			final WebView webView = new WebView();
 			final Stage stage = new Stage(StageStyle.UNIFIED);
 			stage.setTitle("loading...");
 			stage.getIcons().add(new Image(getClass().getResourceAsStream("googlemail-64.png")));
 			stage.setScene(new Scene(webView, 450, 650));
 
-			final StringBuilder sb = new StringBuilder();
 			final WebEngine webEngine = webView.getEngine();
 			webEngine.getLoadWorker().stateProperty().addListener((ov, o, n) -> {
 				if (n == State.SUCCEEDED) {
@@ -87,18 +108,22 @@ public class GmailLogin {
 			});
 			webEngine.load(url);
 			stage.showAndWait();
-			authCode = sb.toString();
+			fxLock.countDown();
+		};
+
+		if (Platform.isFxApplicationThread()) {
+			loginRequest.run();
+		} else {
+			Platform.runLater(loginRequest);
 		}
 
-		if (authCode.length() == 0) {
-			throw new GMailException("no authentication code received from GMail", null);
+		try {
+			fxLock.await();
+		} catch (final InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-
-		// Generate credential
-		return flow
-				.newTokenRequest(authCode)
-				.setRedirectUri(GoogleOAuthConstants.OOB_REDIRECT_URI)
-				.execute();
+		return sb.toString();
 	}
 
 	private String getTitle(final WebEngine webEngine) {

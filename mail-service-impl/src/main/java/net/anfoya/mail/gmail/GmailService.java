@@ -1,8 +1,6 @@
 package net.anfoya.mail.gmail;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -10,8 +8,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.prefs.BackingStoreException;
-import java.util.prefs.Preferences;
 import java.util.stream.Collectors;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
@@ -28,6 +24,7 @@ import net.anfoya.mail.gmail.model.GmailMoreThreads;
 import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.gmail.model.GmailTag;
 import net.anfoya.mail.gmail.model.GmailThread;
+import net.anfoya.mail.gmail.service.ConnectionService;
 import net.anfoya.mail.gmail.service.ContactException;
 import net.anfoya.mail.gmail.service.ContactService;
 import net.anfoya.mail.gmail.service.HistoryService;
@@ -45,14 +42,6 @@ import net.anfoya.mail.service.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.api.client.auth.oauth2.TokenResponse;
-import com.google.api.client.auth.oauth2.TokenResponseException;
-import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Draft;
 import com.google.api.services.gmail.model.Label;
@@ -68,76 +57,26 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	private static final String USER = "me";
 	private static final String DEFAULT = "default";
 
-	private static final String CLIENT_SECRET_PATH = "client_secret.json";
-    private static final String REFRESH_TOKEN_SUFFIX = "%s-refresh-token";
-
 	private static final Duration PULL_PERIOD = Duration.seconds(5);
 
-	private final HttpTransport httpTransport;
-	private final JsonFactory jsonFactory;
-
+	private ConnectionService connectionService;
 	private LabelService labelService;
 	private MessageService messageService;
 	private ThreadService threadService;
 	private HistoryService historyService;
 	private ContactService contactService;
-	private String refreshTokenName;
 
 	private final ReadOnlyBooleanWrapper disconnected;
 
 	public GmailService() {
-		httpTransport = new NetHttpTransport();
-		jsonFactory = new JacksonFactory();
 		disconnected = new ReadOnlyBooleanWrapper(false);
 	}
 
 	@Override
 	public void connect(final String appName) throws GMailException {
-		refreshTokenName = String.format(REFRESH_TOKEN_SUFFIX, appName);
-
-		Gmail gmail;
-		ContactsService gcontact;
-		try {
-			final BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(CLIENT_SECRET_PATH)));
-			final GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(jsonFactory, reader);
-			final GoogleCredential credential = new GoogleCredential.Builder()
-					.setClientSecrets(clientSecrets)
-					.setJsonFactory(jsonFactory)
-					.setTransport(httpTransport)
-					.build();
-
-		    final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
-			String refreshToken = prefs.get(refreshTokenName, null);
-			if (refreshToken != null) {
-				// Generate Credential using saved token.
-				credential.setRefreshToken(refreshToken);
-				try {
-					credential.refreshToken();
-				} catch (final TokenResponseException e) {
-					refreshToken = null;
-				}
-			}
-			if (refreshToken == null) {
-				// Generate Credential using login token.
-				final TokenResponse tokenResponse = new GmailLogin(clientSecrets).getTokenResponseCredentials();
-				credential.setFromTokenResponse(tokenResponse);
-			}
-
-			// Create a new authorised Google Contact service
-			gcontact = new ContactsService(appName);
-			gcontact.setOAuth2Credentials(credential);
-
-			// Create a new authorised GMail service
-			gmail = new Gmail.Builder(httpTransport, jsonFactory, credential)
-					.setApplicationName(appName)
-					.build();
-
-			// save refresh token
-			prefs.put(refreshTokenName, credential.getRefreshToken());
-			prefs.flush();
-		} catch (final IOException | BackingStoreException | InterruptedException e) {
-			throw new GMailException("login", e);
-		}
+		connectionService = new ConnectionService(appName).connect();
+		final ContactsService gcontact = connectionService.getGcontactService();
+		final Gmail gmail = connectionService.getGmailService();
 
 		contactService = new ContactService(gcontact, DEFAULT).init();
 		ThreadPool.getInstance().submitLow(() -> contactService.getAll());
@@ -158,13 +97,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 	@Override
 	public void disconnect() {
-	    final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
-		prefs.remove(refreshTokenName);
-		try {
-			prefs.flush();
-		} catch (final BackingStoreException e) {
-			LOGGER.error("removing refresh token", e);
-		}
+	    connectionService.disconnect();
 	}
 
 	@Override
@@ -173,7 +106,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			return;
 		}
 
-		//TODO: reconnect
+		connectionService.reconnect();
 	}
 
 	@Override
