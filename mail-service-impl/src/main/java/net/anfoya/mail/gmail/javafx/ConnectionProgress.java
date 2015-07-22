@@ -34,7 +34,7 @@ public class ConnectionProgress extends Stage {
 		final BorderPane borderPane = new BorderPane(progressText, null, null, progressBar, image);
 		borderPane.setPadding(new Insets(5));
 
-		setScene(new Scene(borderPane, 300, 120));
+		setScene(new Scene(borderPane, 300, 110));
 		sizeToScene();
 	}
 
