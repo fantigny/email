@@ -54,7 +54,7 @@ public class RecipientListPane<C extends Contact> extends HBox {
 
 	public RecipientListPane(final String title, final Set<C> contacts) {
 		super(0);
-		setPadding(new Insets(0, 0, 2, 0));
+		setPadding(new Insets(3, 0, 3, 0));
 		getStyleClass().add("box-underline");
 
 		addressContacts = new LinkedHashMap<String, C>();

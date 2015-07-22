@@ -123,10 +123,10 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 		toListBox.setOnUpdateList(e -> editedProperty.set(true));
 		HBox.setHgrow(toListBox, Priority.ALWAYS);
 
-		ccListBox = new RecipientListPane<C>("cc/bcc:", emailContacts);
+		ccListBox = new RecipientListPane<C>("cc/bcc: ", emailContacts);
 		ccListBox.setOnUpdateList(e -> editedProperty.set(true));
 
-		bccListBox = new RecipientListPane<C>("bcc:", emailContacts);
+		bccListBox = new RecipientListPane<C>("bcc: ", emailContacts);
 		bccListBox.setOnUpdateList(e -> editedProperty.set(true));
 
 		final Label subject = new Label("subject:");
@@ -431,7 +431,7 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 	}
 
 	private void showBcc() {
-		final String cc = "cc:";
+		final String cc = "cc: ";
 		if (!cc.equals(ccListBox.getTitle())) {
 			ccListBox.setTitle(cc);
 			headerBox.getChildren().add(2, bccListBox);

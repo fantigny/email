@@ -33,6 +33,7 @@ public class ConnectionProgress extends Stage {
 		progressBar.setPrefSize(0, 3);
 
 		final BorderPane borderPane = new BorderPane(progressText, null, null, progressBar, image);
+		borderPane.setStyle("-fx-background-color: white");
 
 		setScene(new Scene(borderPane, 300, 110));
 		sizeToScene();
