@@ -94,14 +94,15 @@ public class ConnectionService {
 			prefs.put(refreshTokenName, credential.getRefreshToken());
 			prefs.flush();
 
-			if (!HL) Platform.runLater(() -> progress.setValue(2/3d, "connecting to Google Contact"));
-			gcontact = new ContactsService(appName);
-			gcontact.setOAuth2Credentials(credential);
-
-			if (!HL) Platform.runLater(() -> progress.setValue(1, "connecting to GMail"));
+			if (!HL) Platform.runLater(() -> progress.setValue(2/3d, "connecting to GMail"));
 			gmail = new Gmail.Builder(httpTransport, jsonFactory, credential)
 				.setApplicationName(appName)
 				.build();
+
+			if (!HL) Platform.runLater(() -> progress.setValue(1, "connecting to Google Contact"));
+			gcontact = new ContactsService(appName);
+			gcontact.setOAuth2Credentials(credential);
+
 		} catch (final IOException | BackingStoreException | InterruptedException e) {
 			throw new GMailException("connection", e);
 		} finally {
