@@ -3,6 +3,7 @@ package net.anfoya.tag.model;
 import net.anfoya.tag.service.Section;
 
 
+@SuppressWarnings("serial")
 public class SimpleSection implements Section, Comparable<SimpleSection> {
 	public static final String NO_SECTION_NAME = "[to sort]";
 	public static final String NO_ID = "section-with-no-id-";

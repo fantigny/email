@@ -2,6 +2,7 @@ package net.anfoya.mail.model;
 
 import net.anfoya.mail.service.Section;
 
+@SuppressWarnings("serial")
 public class SimpleSection extends net.anfoya.tag.model.SimpleSection implements Section {
 
 	public SimpleSection(final String name) {
