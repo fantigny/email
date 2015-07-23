@@ -207,6 +207,14 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 					getSelectionModel().selectIndices(indices[0], indices);
 				}
 			}
+			if (!hasSelection && selectedThreads.size() == 1) {
+				hasSelection = true;
+				final H newSelection = getItems().get(Math.min(selectedIndex, getItems().size()-1));
+				if (!(newSelection instanceof GmailMoreThreads)
+						&& !newSelection.isUnread()) {
+					getSelectionModel().select(newSelection);
+				}
+			}
 			if (!hasSelection && !getItems().get(0).isUnread()) {
 				getSelectionModel().select(0);
 			}
