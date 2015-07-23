@@ -32,7 +32,7 @@ import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.ResetTextField;
 import net.anfoya.mail.browser.javafx.settings.Settings;
-import net.anfoya.mail.composer.javafx.MessageComposer;
+import net.anfoya.mail.composer.javafx.MailComposer;
 import net.anfoya.mail.model.SimpleThread.SortOrder;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
@@ -177,7 +177,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		newButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("new.png"))));
 		newButton.setOnAction(event -> {
 			try {
-				new MessageComposer<M, C>(mailService, updateHandler).newMessage("");
+				new MailComposer<M, C>(mailService, updateHandler).newMessage("");
 			} catch (final Exception e) {
 				LOGGER.error("loading new message composer", e);
 			}
@@ -196,7 +196,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		try {
 			for(final H t: threadList.getSelectedThreads()) {
 				final M m = mailService.getMessage(t.getMessageIds().iterator().next());
-				new MessageComposer<M, C>(mailService, updateHandler).forward(m);
+				new MailComposer<M, C>(mailService, updateHandler).forward(m);
 			}
 		} catch (final Exception e) {
 			LOGGER.error("loading transfer composer", e);
@@ -207,7 +207,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		try {
 			for(final H t: threadList.getSelectedThreads()) {
 				final M m = mailService.getMessage(t.getMessageIds().iterator().next());
-				new MessageComposer<M, C>(mailService, updateHandler).reply(m, all);
+				new MailComposer<M, C>(mailService, updateHandler).reply(m, all);
 			}
 		} catch (final Exception e) {
 			LOGGER.error("loading reply{} composer", all? " all": "", e);

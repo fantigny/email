@@ -11,7 +11,7 @@ import javafx.geometry.Pos;
 import javafx.scene.layout.GridPane;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.dnd.DropArea;
-import net.anfoya.mail.composer.javafx.MessageComposer;
+import net.anfoya.mail.composer.javafx.MailComposer;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
@@ -133,7 +133,7 @@ public class ThreadListDropPane<T extends Tag, H extends Thread, M extends Messa
 	private void forward(final Set<H> threads) {
 		try {
 			final M message = mailService.getMessage(threads.iterator().next().getLastMessageId());
-			new MessageComposer<M, C>(mailService, updateHandler).forward(message);
+			new MailComposer<M, C>(mailService, updateHandler).forward(message);
 		} catch (final MailException e) {
 			LOGGER.error("forwarding message", e);
 		}
@@ -142,7 +142,7 @@ public class ThreadListDropPane<T extends Tag, H extends Thread, M extends Messa
 	private void reply(final Set<H> threads, final boolean all) {
 		try {
 			final M message = mailService.getMessage(threads.iterator().next().getLastMessageId());
-			new MessageComposer<M, C>(mailService, updateHandler).reply(message, all);
+			new MailComposer<M, C>(mailService, updateHandler).reply(message, all);
 		} catch (final MailException e) {
 			LOGGER.error("replying message", e);
 		}

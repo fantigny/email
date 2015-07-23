@@ -61,7 +61,7 @@ public class ConnectionService {
 	}
 
 	public ConnectionService connect() throws GMailException {
-		if (!HL) Platform.runLater(() -> progress.setValue(1/3d, "connecting to Google service"));
+		if (!HL) Platform.runLater(() -> progress.setValue(1/3d, "Google sign in..."));
 		try {
 			final BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(CLIENT_SECRET_PATH)));
 			final GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(jsonFactory, reader);
@@ -94,12 +94,12 @@ public class ConnectionService {
 			prefs.put(refreshTokenName, credential.getRefreshToken());
 			prefs.flush();
 
-			if (!HL) Platform.runLater(() -> progress.setValue(2/3d, "connecting to GMail"));
+			if (!HL) Platform.runLater(() -> progress.setValue(2/3d, "connect to GMail..."));
 			gmail = new Gmail.Builder(httpTransport, jsonFactory, credential)
 				.setApplicationName(appName)
 				.build();
 
-			if (!HL) Platform.runLater(() -> progress.setValue(1, "connecting to Google Contact"));
+			if (!HL) Platform.runLater(() -> progress.setValue(1, "connect to Google Contact..."));
 			gcontact = new ContactsService(appName);
 			gcontact.setOAuth2Credentials(credential);
 

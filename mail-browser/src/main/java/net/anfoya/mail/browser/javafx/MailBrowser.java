@@ -69,7 +69,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		initStyle(StageStyle.UNIFIED);
 		setWidth(1400);
 		setHeight(800);
-		setTitle("FisherMail");
+		setTitle("FisherMail ... lire");
 		getIcons().add(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png")));
 
 		final SplitPane splitPane = new SplitPane();

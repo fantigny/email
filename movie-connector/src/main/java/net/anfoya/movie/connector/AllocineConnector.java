@@ -41,9 +41,9 @@ public class AllocineConnector extends SuggestedMovieConnector implements MovieC
 
 	private MovieVo buildVo(final JsonObject json) {
 		final String id = getValue(json, "id");
-		final String director = getMetadata(json, "director");
-		final String activity = getMetadata(json, "activity");
-		final String creator = getMetadata(json, "creator");
+		final String director = getMetadata(json, "director", "n/d");
+		final String activity = getMetadata(json, "activity", "n/d");
+		final String creator = getMetadata(json, "creator", "n/d");
 
 		final Type type;
 		final String entityType = getValue(json, "entitytype");

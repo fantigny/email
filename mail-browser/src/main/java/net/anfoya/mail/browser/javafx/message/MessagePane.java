@@ -28,7 +28,7 @@ import javax.mail.internet.MimeMessage;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.web.WebViewFitContent;
 import net.anfoya.mail.browser.javafx.thread.ThreadDropPane;
-import net.anfoya.mail.composer.javafx.MessageComposer;
+import net.anfoya.mail.composer.javafx.MailComposer;
 import net.anfoya.mail.mime.DateHelper;
 import net.anfoya.mail.mime.MessageHelper;
 import net.anfoya.mail.service.Contact;
@@ -115,7 +115,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 			final URI uri = new URI(location);
 			final String scheme = uri.getScheme();
 			if (scheme.equals("mailto")) {
-				new MessageComposer<M, C>(mailService, updateHandler).newMessage(uri.getSchemeSpecificPart());
+				new MailComposer<M, C>(mailService, updateHandler).newMessage(uri.getSchemeSpecificPart());
 			} else {
 				Desktop.getDesktop().browse(uri);
 			}

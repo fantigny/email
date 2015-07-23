@@ -4,8 +4,6 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.concurrent.Task;
@@ -15,8 +13,6 @@ import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -49,9 +45,6 @@ public class RecipientListPane<C extends Contact> extends HBox {
 
 	private EventHandler<ActionEvent> updateHandler;
 
-	private Timer emptyComboTimer;
-	private volatile boolean comboIsEmpty;
-
 	public RecipientListPane(final String title, final Set<C> contacts) {
 		super(0);
 		setPadding(new Insets(3, 0, 3, 0));
@@ -79,8 +72,6 @@ public class RecipientListPane<C extends Contact> extends HBox {
 
 		combo = new ComboField<String>();
 		combo.setPadding(new Insets(0));
-		combo.getItems().addAll(addressContacts.keySet());
-		combo.setOnFieldAction(e -> add(combo.getFieldValue()));
 		combo.setCellFactory(listView -> {
 			return new ListCell<String>() {
 				@Override
@@ -92,35 +83,19 @@ public class RecipientListPane<C extends Contact> extends HBox {
 				}
 			};
 		});
-		combo.getEditor().textProperty().addListener((ov, o, n) -> {
-			if (n == null || n.isEmpty()
-					&& o != null && ! o.isEmpty()) {
-				emptyComboTimer = new Timer();
-				emptyComboTimer.schedule(new TimerTask() {
-					@Override
-					public void run() {
-						comboIsEmpty = true;
-					}
-				}, 100);
-			} else {
-				if (emptyComboTimer != null) {
-					emptyComboTimer.cancel();
-				}
-				comboIsEmpty = n == null || n.isEmpty();
+		combo.setOnFieldAction(e -> add(combo.getFieldValue()));
+		combo.setOnBackspaceAction(e -> {
+			final int lastAddressIndex = flowPane.getChildren().size() - 2;
+			if (lastAddressIndex >= 0) {
+				flowPane.getChildren().remove(lastAddressIndex);
 			}
 		});
-		combo.getEditor().addEventHandler(KeyEvent.KEY_RELEASED, e -> {
-			if (comboIsEmpty
-					&& e.getCode() == KeyCode.BACK_SPACE
-					&& flowPane.getChildren().size() > 1) {
-				flowPane.getChildren().remove(flowPane.getChildren().size()-2);
-			}
-		});
+		combo.getItems().addAll(addressContacts.keySet());
 		new AutoShowComboBoxHelper(combo, address -> selectedAdresses.contains(address)
 				? ""
 				: addressContacts.get(address).getFullname() + " " + addressContacts.get(address).getEmail());
-
 		flowPane.getChildren().add(combo);
+
 		heightProperty().addListener((ov, o, n) -> organise(null));
 		widthProperty().addListener((ov, o, n) -> organise(null));
 	}

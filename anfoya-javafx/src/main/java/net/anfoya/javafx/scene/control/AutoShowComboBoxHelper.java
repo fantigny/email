@@ -18,6 +18,11 @@ public class AutoShowComboBoxHelper {
 			}
 
 			comboBox.hide();
+			if (n.isEmpty()) {
+				// text is empty
+				return;
+			}
+
 			final FilteredList<String> filtered = items.filtered(s -> StringHelper.containsIgnoreCase(textBuilder.call(s), n));
 			if (filtered.isEmpty()) {
 				comboBox.getItems().setAll(items);

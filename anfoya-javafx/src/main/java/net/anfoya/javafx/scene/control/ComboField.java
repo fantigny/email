@@ -1,13 +1,14 @@
 package net.anfoya.javafx.scene.control;
 
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.ComboBox;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import net.anfoya.java.util.concurrent.ThreadPool;
 
@@ -26,12 +27,16 @@ public class ComboField<T> extends ComboBox<T> {
 	private volatile T currentValue;
 	private volatile T progSetValue;
 
-	private final AtomicLong delayedActionTime;
-
 	private EventHandler<ActionEvent> fieldActionHandler;
 	private EventHandler<ActionEvent> listRequestHandler;
+	private EventHandler<ActionEvent> emptyBackspaceHandler;
 
-	private volatile boolean upHideArmed;
+	private final AtomicLong delayedActionTime;
+
+	private volatile boolean upHideReady;
+
+	private Timer emptyComboTimer;
+	private volatile boolean comboIsEmpty;
 
 	public ComboField() {
 		setEditable(true);
@@ -41,19 +46,17 @@ public class ComboField<T> extends ComboBox<T> {
 		progSetValue = null;
 		delayedActionTime = new AtomicLong(0);
 
-		upHideArmed = false;
+		upHideReady = false;
+		comboIsEmpty = false;
 
 		// fire <fieldActionHandler> on ENTER key released
-		addEventFilter(KeyEvent.KEY_RELEASED, new EventHandler<KeyEvent>() {
-			@Override
-			public void handle(final KeyEvent event) {
-				switch(event.getCode()) {
-				case ENTER:
-					LOGGER.debug("filter KEY_RELEASED ENTER");
-					fireFieldAction(new ActionEvent(event.getSource(), event.getTarget()));
-					break;
-				default:
-				}
+		addEventFilter(KeyEvent.KEY_RELEASED, e -> {
+			switch(e.getCode()) {
+			case ENTER:
+				LOGGER.debug("filter KEY_RELEASED ENTER");
+				fireFieldAction(new ActionEvent(e.getSource(), e.getTarget()));
+				break;
+			default:
 			}
 		});
 
@@ -66,6 +69,15 @@ public class ComboField<T> extends ComboBox<T> {
 					LOGGER.debug("handle onAction and showing");
 					fireDelayedFieldAction(event);
 				}
+			}
+		});
+
+		// call handler when input is empty and the user hit backspace
+		getEditor().addEventHandler(KeyEvent.KEY_RELEASED, e -> {
+			if (comboIsEmpty
+					&& e.getCode() == KeyCode.BACK_SPACE
+					&& emptyBackspaceHandler != null) {
+				emptyBackspaceHandler.handle(null);
 			}
 		});
 
@@ -87,13 +99,13 @@ public class ComboField<T> extends ComboBox<T> {
 							LOGGER.debug("editor filter KEY_RELEASED UP and showing no selection");
 							hide();
 						} else {
-							if (!upHideArmed) {
+							if (!upHideReady) {
 								LOGGER.debug("editor filter KEY_RELEASED UP and showing");
 							} else {
-								LOGGER.debug("editor filter KEY_RELEASED UP and showing again");
+								LOGGER.debug("editor filter KEY_RELEASED UP again and showing");
 								hide();
 							}
-							upHideArmed = true;
+							upHideReady = true;
 						}
 					}
 					break;
@@ -114,12 +126,24 @@ public class ComboField<T> extends ComboBox<T> {
 		});
 
 		// keep track of the latest text input
-		getEditor().textProperty().addListener(new ChangeListener<String>() {
-			@Override
-			public void changed(final ObservableValue<? extends String> ov, final String oldVal, final String newVal) {
-				LOGGER.debug("handle text changed from \"{}\" to \"{}\"", oldVal, newVal);
-				currentValue = getConverter().fromString(newVal);
-				upHideArmed = false;
+		getEditor().textProperty().addListener((ov, o, n) -> {
+			LOGGER.debug("handle text changed from \"{}\" to \"{}\"", o, n);
+			currentValue = getConverter().fromString(n);
+			upHideReady = false;
+			if (n == null || n.isEmpty()
+					&& o != null && ! o.isEmpty()) {
+				emptyComboTimer = new Timer(true);
+				emptyComboTimer.schedule(new TimerTask() {
+					@Override
+					public void run() {
+						comboIsEmpty = true;
+					}
+				}, 100);
+			} else {
+				if (emptyComboTimer != null) {
+					emptyComboTimer.cancel();
+				}
+				comboIsEmpty = n == null || n.isEmpty();
 			}
 		});
 	}
@@ -160,22 +184,16 @@ public class ComboField<T> extends ComboBox<T> {
 		final long delayedActionTime = System.nanoTime();
 		this.delayedActionTime.set(delayedActionTime);
 		LOGGER.debug("delayed field action   {}", delayedActionTime);
-		ThreadPool.getInstance().submitHigh(new Runnable() {
-			@Override
-			public void run() {
-				try { Thread.sleep(500); }
-				catch(final Exception e) { return; }
-				if (delayedActionTime == ComboField.this.delayedActionTime.get()) {
-					Platform.runLater(new Runnable() {
-						@Override
-						public void run() {
-							if (delayedActionTime == ComboField.this.delayedActionTime.get()) {
-								LOGGER.debug("fire delayed field action {} after {}ms", delayedActionTime, (System.nanoTime()-delayedActionTime)/1000000);
-								fireFieldAction(event);
-							}
-						}
-					});
-				}
+		ThreadPool.getInstance().submitHigh(() -> {
+			try { Thread.sleep(500); }
+			catch(final Exception e) { return; }
+			if (delayedActionTime == ComboField.this.delayedActionTime.get()) {
+				Platform.runLater(() -> {
+					if (delayedActionTime == ComboField.this.delayedActionTime.get()) {
+						LOGGER.debug("fire delayed field action {} after {}ms", delayedActionTime, (System.nanoTime()-delayedActionTime)/1000000);
+						fireFieldAction(event);
+					}
+				});
 			}
 		});
 	}
@@ -201,5 +219,9 @@ public class ComboField<T> extends ComboBox<T> {
 			LOGGER.debug("call field action handler");
 			fieldActionHandler.handle(event);
 		}
+	}
+
+	public void setOnBackspaceAction(final EventHandler<ActionEvent> handler) {
+		emptyBackspaceHandler = handler;
 	}
 }

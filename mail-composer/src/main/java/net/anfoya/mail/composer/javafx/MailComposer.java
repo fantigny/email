@@ -61,8 +61,8 @@ import org.slf4j.LoggerFactory;
 
 import com.sun.javafx.scene.web.skin.HTMLEditorSkin;
 
-public class MessageComposer<M extends Message, C extends Contact> extends Stage {
-	private static final Logger LOGGER = LoggerFactory.getLogger(MessageComposer.class);
+public class MailComposer<M extends Message, C extends Contact> extends Stage {
+	private static final Logger LOGGER = LoggerFactory.getLogger(MailComposer.class);
 
 	private final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService;
 	private final EventHandler<ActionEvent> updateHandler;
@@ -88,9 +88,9 @@ public class MessageComposer<M extends Message, C extends Contact> extends Stage
 	private final BooleanProperty editedProperty;
 	private final Timer autosaveTimer;
 
-	public MessageComposer(final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService, final EventHandler<ActionEvent> updateHandler) {
+	public MailComposer(final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService, final EventHandler<ActionEvent> updateHandler) {
 		super(StageStyle.UNIFIED);
-		setTitle("FisherMail");
+		setTitle("FisherMail ... écrire");
 		setOnCloseRequest(e -> stopAutosave());
 
 		editedProperty = new SimpleBooleanProperty(false);
