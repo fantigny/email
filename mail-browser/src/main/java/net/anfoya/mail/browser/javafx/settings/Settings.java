@@ -27,10 +27,12 @@ public class Settings implements Serializable {
 
 	private final BooleanProperty showToolbar;
 	private final BooleanProperty showExcludeBox;
+	private final BooleanProperty archiveOnDrop;
 
 	public Settings() {
 		showToolbar = new SimpleBooleanProperty(true);
 		showExcludeBox = new SimpleBooleanProperty(false);
+		archiveOnDrop = new SimpleBooleanProperty(true);
 	}
 
 	public BooleanProperty showToolbar() {
@@ -39,6 +41,10 @@ public class Settings implements Serializable {
 
 	public BooleanProperty showExcludeBox() {
 		return showExcludeBox;
+	}
+
+	public BooleanProperty archiveOnDrop() {
+		return archiveOnDrop;
 	}
 
 	public static void load() {
@@ -60,6 +66,9 @@ public class Settings implements Serializable {
 		if (i.hasNext()) {
 			SETTINGS.showExcludeBox.set((boolean) i.next());
 		}
+		if (i.hasNext()) {
+			SETTINGS.archiveOnDrop.set((boolean) i.next());
+		}
 	}
 
 	public void save() {
@@ -67,6 +76,7 @@ public class Settings implements Serializable {
 
 		s.add(showToolbar.get());
 		s.add(showExcludeBox.get());
+		s.add(archiveOnDrop.get());
 
 		try {
 			new SerializedFile<List<Object>>(FILENAME).save(s);

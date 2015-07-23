@@ -4,6 +4,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -49,6 +50,7 @@ import org.slf4j.LoggerFactory;
 
 public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends BorderPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadListPane.class);
+	private static final ReadOnlyBooleanProperty ARCHIVE_ON_DROP = Settings.getSettings().archiveOnDrop();
 
 	public static final DataFormat DND_THREADS_DATA_FORMAT = new DataFormat("Set<" + Thread.class.getName() + ">");
 
@@ -115,7 +117,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		final Button forwardButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("forward.png"))));
 		forwardButton.setOnAction(e -> forwardSelected());
 		final Button flagButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("flag.png"))));
-		flagButton.setOnAction(e -> flagSelected());
+		flagButton.setOnAction(e -> toggleFlag());
 		final Button archiveButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("archive.png"))));
 		archiveButton.setOnAction(e -> archiveSelected());
 		final Button trashButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("trash.png"))));
@@ -242,9 +244,17 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		ThreadPool.getInstance().submitHigh(task);
 	}
 
-	private void flagSelected() {
+	private void toggleFlag() {
+		final Set<H> threads = threadList.getSelectedThreads();
+		if (threads.isEmpty()) {
+			return;
+		}
 		try {
-			addTagForThreads(mailService.getSpecialTag(SpecialTag.FLAGGED), threadList.getSelectedThreads());
+			if (threads.iterator().next().isFlagged()) {
+				removeTagForThreads(mailService.getSpecialTag(SpecialTag.FLAGGED), threads);
+			} else {
+				addTagForThreads(mailService.getSpecialTag(SpecialTag.FLAGGED), threads);
+			}
 		} catch (final Exception e) {
 			LOGGER.error("adding flag", e);
 		}
@@ -255,10 +265,26 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 			@Override
 			protected Void call() throws Exception {
 				mailService.addTagForThreads(tag, threads);
+				if (ARCHIVE_ON_DROP.get() && !tag.isSystem()) {
+					mailService.archive(threads);
+				}
 				return null;
 			}
 		};
 		task.setOnFailed(e -> LOGGER.error("adding tag", e.getSource().getException()));
+		task.setOnSucceeded(e -> updateHandler.handle(null));
+		ThreadPool.getInstance().submitHigh(task);
+	}
+
+	private void removeTagForThreads(final T tag, final Set<H> threads) {
+		final Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				mailService.removeTagForThreads(tag, threads);
+				return null;
+			}
+		};
+		task.setOnFailed(e -> LOGGER.error("removing tag", e.getSource().getException()));
 		task.setOnSucceeded(e -> updateHandler.handle(null));
 		ThreadPool.getInstance().submitHigh(task);
 	}
@@ -269,6 +295,9 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 			protected Void call() throws Exception {
 				final T tag = mailService.addTag(name);
 				mailService.addTagForThreads(tag, threads);
+				if (ARCHIVE_ON_DROP.get()) {
+					mailService.archive(threads);
+				}
 				return null;
 			}
 		};

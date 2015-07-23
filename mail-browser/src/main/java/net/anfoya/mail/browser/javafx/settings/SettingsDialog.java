@@ -85,6 +85,11 @@ public class SettingsDialog extends Stage {
 		showExcButton.setSwitchOn(Settings.getSettings().showExcludeBox().get());
 		showExcButton.switchOnProperty().addListener((ov, o, n) -> Settings.getSettings().showExcludeBox().set(n));
 
+		final SwitchButton archOnDropButton = new SwitchButton();
+		archOnDropButton.setSwitchOn(Settings.getSettings().showExcludeBox().get());
+		archOnDropButton.switchOnProperty().addListener((ov, o, n) -> Settings.getSettings().archiveOnDrop().set(n));
+
+
 		final GridPane gridPane = new GridPane();
 		gridPane.setPadding(new Insets(5));
 		gridPane.setVgap(5);
@@ -94,6 +99,7 @@ public class SettingsDialog extends Stage {
 		gridPane.addRow(i++, new Label("clear cache"), clearCacheButton);
 		gridPane.addRow(i++, new Label("show tool bar"), toolButton);
 		gridPane.addRow(i++, new Label("show exclude box (restart needed)"), showExcButton);
+		gridPane.addRow(i++, new Label("archive on drop"), archOnDropButton);
 
 		return new Tab("settings", gridPane);
 	}
