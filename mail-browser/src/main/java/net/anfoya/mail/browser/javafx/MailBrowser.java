@@ -13,6 +13,7 @@ import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import net.anfoya.javafx.scene.control.Notification;
 import net.anfoya.javafx.scene.control.Notification.Notifier;
+import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
 import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
@@ -30,10 +31,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends Stage {
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailBrowser.class);
 
 	private static final Duration NOTIFIER_LIFETIME = Duration.seconds(20);
+	private static final boolean SHOW_EXCLUDE_BOX = Settings.getSettings().showExcludeBox().get();
 
 	private final MailService<S, T, H, M, C> mailService;
 
@@ -74,8 +75,13 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 
 		final SplitPane splitPane = new SplitPane();
 		splitPane.getStyleClass().add("background");
-		splitPane.setDividerPosition(0, .14);
-		splitPane.setDividerPosition(1, .38);
+		if (SHOW_EXCLUDE_BOX) {
+			splitPane.setDividerPosition(0, .10);
+			splitPane.setDividerPosition(1, .34);
+		} else {
+			splitPane.setDividerPosition(0, .08);
+			splitPane.setDividerPosition(1, .32);
+		}
 
 		final Scene scene = new Scene(splitPane);
 		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/excludebox.css").toExternalForm());
@@ -83,7 +89,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		scene.getStylesheets().add(getClass().getResource("/net/anfoya/mail/css/Mail.css").toExternalForm());
 
 		/* section+tag list */ {
-			sectionListPane = new SectionListPane<S, T>(mailService, DND_THREADS_DATA_FORMAT);
+			sectionListPane = new SectionListPane<S, T>(mailService, DND_THREADS_DATA_FORMAT, SHOW_EXCLUDE_BOX);
 			sectionListPane.prefHeightProperty().bind(sectionListPane.heightProperty());
 			sectionListPane.setSectionDisableWhenZero(false);
 			sectionListPane.setLazyCount(true);

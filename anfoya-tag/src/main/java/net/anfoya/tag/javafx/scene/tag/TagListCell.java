@@ -16,14 +16,16 @@ import org.slf4j.LoggerFactory;
 
 class TagListCell<T extends Tag> extends CheckBoxListCell<TagListItem<T>> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TagListCell.class);
+	private boolean showExcludeBox;
 
-	public TagListCell() {
+	public TagListCell(final boolean showExcludeBox) {
 		super();
+		this.showExcludeBox = showExcludeBox;
 		setSelectedStateCallback(item -> item.includedProperty());
 	}
 
-	public TagListCell(final DataFormat dataFormat) {
-		this();
+	public TagListCell(final DataFormat dataFormat, final boolean withExcludeBox) {
+		this(withExcludeBox);
 
 		setOnDragDetected(event -> {
 			if (getItem() != null && !getItem().getTag().isSystem()) {
@@ -80,7 +82,9 @@ class TagListCell<T extends Tag> extends CheckBoxListCell<TagListItem<T>> {
 
         	final BorderPane pane = new BorderPane();
         	pane.setCenter(getGraphic());
-        	pane.setRight(excludeBox);
+        	if (showExcludeBox) {
+        		pane.setRight(excludeBox);
+        	}
 
 	        item.textProperty().addListener((ov, oldVal, newVal) -> updateItem(item, empty));
 

@@ -64,13 +64,16 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 	private SectionDropPane<S> sectionDropPane;
 	private TagDropPane<S, T> tagDropPane;
 
+	private boolean showExcludeBox;
+
 	public SectionListPane(final TagService<S, T> tagService) {
-		this(tagService, null);
+		this(tagService, null, false);
 	}
 
-	public SectionListPane(final TagService<S, T> tagService, final DataFormat extItemDataFormat) {
+	public SectionListPane(final TagService<S, T> tagService, final DataFormat extItemDataFormat, final boolean withExcludeBox) {
 		this.tagService = tagService;
 		this.extItemDataFormat = extItemDataFormat;
+		this.showExcludeBox = withExcludeBox;
 
 		lazyCount = true;
 		sectionDisableWhenZero = true;
@@ -163,7 +166,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 		int index = 0;
 		for(final S section: sections) {
 			if (!existingSections.contains(section)) {
-				final SectionPane<S, T> sectionPane = new SectionPane<S, T>(tagService, section);
+				final SectionPane<S, T> sectionPane = new SectionPane<S, T>(tagService, section, showExcludeBox);
 				sectionPane.setDisableWhenZero(sectionDisableWhenZero);
 				sectionPane.setLazyCount(lazyCount);
 				sectionPane.setOnSelectTag(selectTagHandler);

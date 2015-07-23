@@ -4,9 +4,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.List;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -26,19 +26,25 @@ public class Settings implements Serializable {
 	}
 
 	private final BooleanProperty showToolbar;
+	private final BooleanProperty showExcludeBox;
 
 	public Settings() {
 		showToolbar = new SimpleBooleanProperty(true);
+		showExcludeBox = new SimpleBooleanProperty(false);
 	}
 
 	public BooleanProperty showToolbar() {
 		return showToolbar;
 	}
 
+	public BooleanProperty showExcludeBox() {
+		return showExcludeBox;
+	}
+
 	public static void load() {
-		final Set<Object> s;
+		final List<Object> s;
 		try {
-			s = new SerializedFile<Set<Object>>(FILENAME).load();
+			s = new SerializedFile<List<Object>>(FILENAME).load();
 		} catch (final FileNotFoundException e) {
 			LOGGER.warn("no settings found {}", FILENAME);
 			return;
@@ -48,16 +54,22 @@ public class Settings implements Serializable {
 		}
 
 		final Iterator<Object> i = s.iterator();
-		SETTINGS.showToolbar.set((boolean) i.next());
+		if (i.hasNext()) {
+			SETTINGS.showToolbar.set((boolean) i.next());
+		}
+		if (i.hasNext()) {
+			SETTINGS.showExcludeBox.set((boolean) i.next());
+		}
 	}
 
 	public void save() {
-		final Set<Object> s = new LinkedHashSet<Object>();
+		final List<Object> s = new ArrayList<Object>();
 
 		s.add(showToolbar.get());
+		s.add(showExcludeBox.get());
 
 		try {
-			new SerializedFile<Set<Object>>(FILENAME).save(s);
+			new SerializedFile<List<Object>>(FILENAME).save(s);
 		} catch (final IOException e) {
 			LOGGER.error("saving settings {}", FILENAME, e);
 		}

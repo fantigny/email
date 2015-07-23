@@ -50,11 +50,11 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 	private EventHandler<ActionEvent> updateHandler;
 
 	@SuppressWarnings("unchecked")
-	public SectionPane(final TagService<S, T> tagService, final S section) {
+	public SectionPane(final TagService<S, T> tagService, final S section, final boolean showExcludeBox) {
 		this.tagService = tagService;
 		this.sectionItem = new TagListItem<Tag>(new SimpleTag(section.getId(), section.getName(), section.isSystem()));
 
-		tagList = new TagList<S, T>(tagService, section);
+		tagList = new TagList<S, T>(tagService, section, showExcludeBox);
 		setContent(tagList);
 
 		isTag = false;

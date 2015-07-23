@@ -1,15 +1,11 @@
 package net.anfoya.javafx.scene.control;
 
-import java.util.concurrent.atomic.AtomicLong;
-
-import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.ComboBox;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.util.Duration;
-import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.animation.DelayTimeline;
 
 import org.slf4j.Logger;
@@ -31,12 +27,12 @@ public class ComboField<T> extends ComboBox<T> {
 	private EventHandler<ActionEvent> listRequestHandler;
 	private EventHandler<ActionEvent> emptyBackspaceHandler;
 
-	private final AtomicLong delayedActionTime;
-
 	private volatile boolean upHideReady;
 
 	private DelayTimeline emptyTextDelay;
 	private volatile boolean textIsEmpty;
+
+	private DelayTimeline fieldActionDelay;
 
 	public ComboField() {
 		setEditable(true);
@@ -44,7 +40,6 @@ public class ComboField<T> extends ComboBox<T> {
 
 		currentValue = null;
 		progSetValue = null;
-		delayedActionTime = new AtomicLong(0);
 
 		upHideReady = false;
 		textIsEmpty = false;
@@ -178,27 +173,18 @@ public class ComboField<T> extends ComboBox<T> {
 	}
 
 	private void fireDelayedFieldAction(final ActionEvent event) {
-		final long delayedActionTime = System.nanoTime();
-		this.delayedActionTime.set(delayedActionTime);
-		LOGGER.debug("delayed field action   {}", delayedActionTime);
-		ThreadPool.getInstance().submitHigh(() -> {
-			try { Thread.sleep(500); }
-			catch(final Exception e) { return; }
-			if (delayedActionTime == ComboField.this.delayedActionTime.get()) {
-				Platform.runLater(() -> {
-					if (delayedActionTime == ComboField.this.delayedActionTime.get()) {
-						LOGGER.debug("fire delayed field action {} after {}ms", delayedActionTime, (System.nanoTime()-delayedActionTime)/1000000);
-						fireFieldAction(event);
-					}
-				});
-			}
+		cancelDelayedFieldAction();
+
+		fieldActionDelay = new DelayTimeline(Duration.millis(500), e -> {
+			LOGGER.debug("fire delayed field action");
+			fireFieldAction(event);
 		});
+		fieldActionDelay.play();
 	}
 
 	private void cancelDelayedFieldAction() {
-		if (delayedActionTime.get() != 0) {
-			final long actionTime = delayedActionTime.getAndSet(0);
-			LOGGER.debug("cancelled field action {}", actionTime);
+		if (fieldActionDelay != null) {
+			fieldActionDelay.stop();
 		}
 	}
 

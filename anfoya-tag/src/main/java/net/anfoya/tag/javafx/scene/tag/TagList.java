@@ -35,7 +35,9 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 	private final TagService<S, T> tagService;
 
 	private final S section;
-	private final Map<String, TagListItem<T>> nameTags = new HashMap<String, TagListItem<T>>();
+	private final boolean withExcludeBox;
+
+	private final Map<String, TagListItem<T>> nameTags;
 
 	private boolean refreshing;
 
@@ -47,14 +49,17 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 
 	private ChangeListener<? super Boolean> incExcListener;
 
-	public TagList(final TagService<S, T> tagService, final S section) {
+
+	public TagList(final TagService<S, T> tagService, final S section, final boolean showExcludeBox) {
 		this.tagService = tagService;
 		this.section = section;
+		this.withExcludeBox = showExcludeBox;
 
+		nameTags = new HashMap<String, TagListItem<T>>();
 		updateCountTasks = new HashSet<Task<Integer>>();
 
 		getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-		setCellFactory(list -> new TagListCell<T>());
+		setCellFactory(list -> new TagListCell<T>(showExcludeBox));
 	}
 
 	public T getSelectedTag() {
@@ -297,7 +302,7 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 	}
 
 	public void setExtItemDataFormat(final DataFormat dataFormat) {
-		setCellFactory(l -> new TagListCell<T>(dataFormat));
+		setCellFactory(l -> new TagListCell<T>(dataFormat, withExcludeBox));
 	}
 
 	public boolean hasCheckedTag() {
