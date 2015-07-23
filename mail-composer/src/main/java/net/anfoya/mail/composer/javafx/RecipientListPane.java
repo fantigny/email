@@ -22,7 +22,7 @@ import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.javafx.scene.control.AutoShowComboBoxHelper;
+import net.anfoya.javafx.scene.control.ComboBoxAutoShow;
 import net.anfoya.javafx.scene.control.ComboField;
 import net.anfoya.javafx.scene.control.RemoveLabel;
 import net.anfoya.javafx.util.LabelHelper;
@@ -91,7 +91,7 @@ public class RecipientListPane<C extends Contact> extends HBox {
 			}
 		});
 		combo.getItems().addAll(addressContacts.keySet());
-		new AutoShowComboBoxHelper(combo, address -> selectedAdresses.contains(address)
+		new ComboBoxAutoShow(combo, address -> selectedAdresses.contains(address)
 				? ""
 				: addressContacts.get(address).getFullname() + " " + addressContacts.get(address).getEmail());
 		flowPane.getChildren().add(combo);
