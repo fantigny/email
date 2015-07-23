@@ -90,7 +90,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 
 	public MailComposer(final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService, final EventHandler<ActionEvent> updateHandler) {
 		super(StageStyle.UNIFIED);
-		setTitle("FisherMail ... écrire");
+		setTitle("FisherMail");
 		setOnCloseRequest(e -> stopAutosave());
 
 		editedProperty = new SimpleBooleanProperty(false);

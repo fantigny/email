@@ -5,6 +5,7 @@ import java.util.Set;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -54,13 +55,14 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 
 	private final MailService<S, T, H, M, C> mailService;
 	private final ThreadList<S, T, H, M, C> threadList;
-	private final ResetTextField namePatternField;
+	private final ResetTextField patternField;
 
-	private EventHandler<ActionEvent> updateHandler;
+	private Timeline patternDelay;
 
 	private ThreadListDropPane<T, H, M, C> threadListDropPane;
 
-	protected Timeline expandDelay;
+	private EventHandler<ActionEvent> updateHandler;
+
 
 	public ThreadListPane(final MailService<S, T, H, M, C> mailService) throws MailException {
 		this.mailService = mailService;
@@ -116,7 +118,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		final Button flagButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("flag.png"))));
 		flagButton.setOnAction(e -> flagSelected());
 		final Button archiveButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("archive.png"))));
-		archiveButton.setOnAction(event -> archiveSelected());
+		archiveButton.setOnAction(e -> archiveSelected());
 		final Button trashButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("trash.png"))));
 		trashButton.setOnAction(e -> trashSelected());
 		final HBox grow = new HBox();
@@ -128,10 +130,11 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 				);
 		toolbar.setPadding(new Insets(0, 0, 3, 0));
 
-		if (Settings.getSettings().showToolbar().get()) {
+		final BooleanProperty showToolbar = Settings.getSettings().showToolbar();
+		if (showToolbar.get()) {
 			threadListPane.setTop(toolbar);
 		}
-		Settings.getSettings().showToolbar().addListener((ov, o, n) -> {
+		showToolbar.addListener((ov, o, n) -> {
 			if (n) {
 				threadListPane.setTop(toolbar);
 			} else {
@@ -170,8 +173,8 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		sortBox.setAlignment(Pos.CENTER);
 		setBottom(sortBox);
 
-		namePatternField = new ResetTextField();
-		namePatternField.setPromptText("mail search");
+		patternField = new ResetTextField();
+		patternField.setPromptText("mail search");
 
 		final Button newButton = new Button();
 		newButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("new.png"))));
@@ -183,12 +186,12 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 			}
 		});
 
-		final HBox patternBox = new HBox(namePatternField, newButton);
+		final HBox patternBox = new HBox(patternField, newButton);
 		patternBox.setAlignment(Pos.CENTER_LEFT);
-		HBox.setHgrow(namePatternField, Priority.ALWAYS);
+		HBox.setHgrow(patternField, Priority.ALWAYS);
 		setTop(patternBox);
 
-		setMargin(namePatternField, new Insets(0, 5, 0, 0));
+		setMargin(patternField, new Insets(0, 5, 0, 0));
 		setMargin(sortBox, new Insets(5));
 	}
 
@@ -276,11 +279,11 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	}
 
 	public String getNamePattern() {
-		return namePatternField.getText();
+		return patternField.getText();
 	}
 
 	public void refreshWithTags(final Set<T> includes, final Set<T> excludes) {
-		threadList.refresh(includes, excludes);
+		threadList.refresh(includes, excludes, patternField.getText());
 	}
 
 	public void refreshWithPage(final int page) {
@@ -328,20 +331,13 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	}
 
 	public void setOnUpdatePattern(final EventHandler<ActionEvent> handler) {
-		namePatternField.textProperty().addListener((ov, oldVal, newVal) -> {
-			if (expandDelay != null) {
-				expandDelay.stop();
+		patternField.textProperty().addListener((ov, oldVal, newVal) -> {
+			if (patternDelay != null) {
+				patternDelay.stop();
 			}
-			expandDelay = new Timeline(new KeyFrame(Duration.millis(500), new EventHandler<ActionEvent>() {
-				@Override
-			    public void handle(final ActionEvent event) {
-					threadList.refreshWithPattern(newVal);
-					handler.handle(null);
-		    		return;
-			    }
-			}));
-			expandDelay.setCycleCount(1);
-			expandDelay.play();
+			patternDelay = new Timeline(new KeyFrame(Duration.millis(500), e -> handler.handle(null)));
+			patternDelay.setCycleCount(1);
+			patternDelay.play();
 		});
 	}
 

@@ -1,15 +1,16 @@
 package net.anfoya.javafx.scene.control;
 
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.ComboBox;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
 
 import org.slf4j.Logger;
@@ -35,8 +36,8 @@ public class ComboField<T> extends ComboBox<T> {
 
 	private volatile boolean upHideReady;
 
-	private Timer emptyComboTimer;
-	private volatile boolean comboIsEmpty;
+	private Timeline emptyTextDelay;
+	private volatile boolean textIsEmpty;
 
 	public ComboField() {
 		setEditable(true);
@@ -47,7 +48,7 @@ public class ComboField<T> extends ComboBox<T> {
 		delayedActionTime = new AtomicLong(0);
 
 		upHideReady = false;
-		comboIsEmpty = false;
+		textIsEmpty = false;
 
 		// fire <fieldActionHandler> on ENTER key released
 		addEventFilter(KeyEvent.KEY_RELEASED, e -> {
@@ -74,7 +75,7 @@ public class ComboField<T> extends ComboBox<T> {
 
 		// call handler when input is empty and the user hit backspace
 		getEditor().addEventHandler(KeyEvent.KEY_RELEASED, e -> {
-			if (comboIsEmpty
+			if (textIsEmpty
 					&& e.getCode() == KeyCode.BACK_SPACE
 					&& emptyBackspaceHandler != null) {
 				emptyBackspaceHandler.handle(null);
@@ -130,20 +131,18 @@ public class ComboField<T> extends ComboBox<T> {
 			LOGGER.debug("handle text changed from \"{}\" to \"{}\"", o, n);
 			currentValue = getConverter().fromString(n);
 			upHideReady = false;
-			if (n == null || n.isEmpty()
-					&& o != null && ! o.isEmpty()) {
-				emptyComboTimer = new Timer(true);
-				emptyComboTimer.schedule(new TimerTask() {
-					@Override
-					public void run() {
-						comboIsEmpty = true;
-					}
-				}, 100);
-			} else {
-				if (emptyComboTimer != null) {
-					emptyComboTimer.cancel();
+			if (getEditor().getText().isEmpty() && !o.isEmpty()) {
+				if (emptyTextDelay != null) {
+					emptyTextDelay.stop();
 				}
-				comboIsEmpty = n == null || n.isEmpty();
+				emptyTextDelay = new Timeline(new KeyFrame(Duration.millis(200), e -> textIsEmpty = getEditor().getText().isEmpty()));
+				emptyTextDelay.setCycleCount(1);
+				emptyTextDelay.play();
+			} else {
+				if (emptyTextDelay != null) {
+					emptyTextDelay.stop();
+				}
+				textIsEmpty = getEditor().getText().isEmpty();
 			}
 		});
 	}

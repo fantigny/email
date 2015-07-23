@@ -43,7 +43,7 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 	private Set<T> includes;
 	private Set<T> excludes;
 	private SortOrder sortOrder;
-	private String namePattern;
+	private String pattern;
 	private int pageMax;
 
 	private long loadTaskId;
@@ -63,7 +63,7 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 		includes = new LinkedHashSet<T>();
 		excludes = new LinkedHashSet<T>();
 		sortOrder = SortOrder.DATE;
-		namePattern = "";
+		pattern = "";
 
 		refreshing = false;
 		resetSelection = true;
@@ -123,11 +123,6 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 		ThreadPool.getInstance().submitHigh(task);
 	}
 
-	public void refreshWithPattern(final String pattern) {
-		namePattern = pattern.toLowerCase();
-		load();
-	}
-
 	public void refreshWithOrder(final SortOrder order) {
 		sortOrder = order;
 		load();
@@ -138,9 +133,10 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 		load();
 	}
 
-	public void refresh(final Set<T> includes, final Set<T> excludes) {
+	public void refresh(final Set<T> includes, final Set<T> excludes, final String pattern) {
 		this.includes = includes;
 		this.excludes = excludes;
+		this.pattern = pattern;
 		this.pageMax = 1;
 		load();
 	}
@@ -153,14 +149,12 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 		loadTask = new Task<Set<H>>() {
 			@Override
 			protected Set<H> call() throws InterruptedException, MailException {
-				LOGGER.debug("loading for includes {}, excludes {}, pattern: {}, pageMax: {}", includes, excludes, namePattern, pageMax);
-				return mailService.findThreads(includes, excludes, namePattern, pageMax);
+				LOGGER.debug("loading for includes {}, excludes {}, pattern: {}, pageMax: {}", includes, excludes, pattern, pageMax);
+				return mailService.findThreads(includes, excludes, pattern, pageMax);
 			}
 		};
-		loadTask.setOnFailed(event -> {
-			LOGGER.error("loading thread list", event.getSource().getException());
-		});
-		loadTask.setOnSucceeded(event -> {
+		loadTask.setOnFailed(e -> LOGGER.error("loading thread list", e.getSource().getException()));
+		loadTask.setOnSucceeded(e -> {
 			if (taskId != loadTaskId) {
 				return;
 			}

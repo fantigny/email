@@ -17,6 +17,7 @@ import javafx.util.Duration;
 
 import javax.mail.MessagingException;
 
+import net.anfoya.java.lang.StringHelper;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.gmail.model.GmailContact;
 import net.anfoya.mail.gmail.model.GmailMessage;
@@ -118,7 +119,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	public Set<GmailThread> findThreads(final Set<GmailTag> includes, final Set<GmailTag> excludes, final String pattern, final int pageMax) throws GMailException {
 		try {
 			final Set<GmailThread> threads = new LinkedHashSet<GmailThread>();
-			if (includes.isEmpty()) { //TODO && excludes.isEmpty() && pattern.isEmpty()) {
+			if (includes.isEmpty() && pattern.isEmpty()) { //TODO && excludes.isEmpty()) {
 				return threads;
 			}
 			final StringBuilder query = new StringBuilder("");
@@ -258,32 +259,40 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	public Set<GmailTag> getTags(final GmailSection section, final String tagPattern) throws GMailException {
 		try {
 			final Set<GmailTag> tags;
-			final String pattern = tagPattern.trim().toLowerCase();
+			final String pattern = tagPattern.trim();
 			final Collection<Label> labels = labelService.getAll();
 			if (GmailSection.SYSTEM.equals(section)) {
 				final Set<GmailTag> alphaTags = new TreeSet<GmailTag>();
-				alphaTags.add(GmailTag.ALL_TAG);
+				if (StringHelper.containsIgnoreCase(GmailTag.ALL_TAG.getName(), pattern)) {
+					alphaTags.add(GmailTag.ALL_TAG);
+				}
 				for(final Label label: labels) {
 					final String name = label.getName();
-					if (!GmailTag.isHidden(label)) {
-						if (GmailTag.isSystem(label) && GmailTag.getName(label).toLowerCase().contains(pattern)) {
-							// GMail system tags
+					if (GmailTag.isHidden(label)) {
+						continue;
+					}
+					if (!StringHelper.containsIgnoreCase(GmailTag.getName(label), pattern)) {
+						continue;
+					}
+					if (GmailTag.isSystem(label)) {
+						// GMail system tags
+						alphaTags.add(new GmailTag(label));
+						continue;
+					}
+					if (!name.contains("/")) {
+						// root tags, put them here if no sub-tag
+						boolean hasSubTag = false;
+						for(final Label l: labels) {
+							final String n = l.getName();
+							if (!n.equals(name)
+									&& n.contains(name + "/")
+									&& name.indexOf("/") == name.lastIndexOf("/")) {
+								hasSubTag = true;
+								break;
+							}
+						}
+						if (!hasSubTag) {
 							alphaTags.add(new GmailTag(label));
-						} else if (!name.contains("/")) {
-							// root tags, put them here if no sub-tag
-							boolean hasSubTag = false;
-							for(final Label l: labels) {
-								final String n = l.getName();
-								if (!n.equals(name)
-										&& n.contains(name + "/")
-										&& name.indexOf("/") == name.lastIndexOf("/")) {
-									hasSubTag = true;
-									break;
-								}
-							}
-							if (!hasSubTag) {
-								alphaTags.add(new GmailTag(label));
-							}
 						}
 					}
 				}

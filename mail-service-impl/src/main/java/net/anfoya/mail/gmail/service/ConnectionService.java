@@ -94,12 +94,12 @@ public class ConnectionService {
 			prefs.put(refreshTokenName, credential.getRefreshToken());
 			prefs.flush();
 
-			if (!HL) Platform.runLater(() -> progress.setValue(2/3d, "connect to GMail..."));
+			if (!HL) Platform.runLater(() -> progress.setValue(2/3d, "connect to mail..."));
 			gmail = new Gmail.Builder(httpTransport, jsonFactory, credential)
 				.setApplicationName(appName)
 				.build();
 
-			if (!HL) Platform.runLater(() -> progress.setValue(1, "connect to Google Contact..."));
+			if (!HL) Platform.runLater(() -> progress.setValue(1, "connect to contact..."));
 			gcontact = new ContactsService(appName);
 			gcontact.setOAuth2Credentials(credential);
 

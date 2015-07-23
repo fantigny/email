@@ -119,14 +119,14 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 				}
 			}
 		});
-		setOnDragDone(event -> {
+		setOnDragDone(e -> {
 			updateHandler.handle(null);
 		});
 
 		setExpanded(false);
-		expandedProperty().addListener((ov, oldVal, newVal) -> {
+		expandedProperty().addListener((ov, o, n) -> {
 			setOpacity(1);
-			if (newVal && lazyCountTask != null) {
+			if (n && lazyCountTask != null) {
 				Platform.runLater(lazyCountTask);
 				lazyCountTask = null;
 			}
@@ -134,18 +134,9 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 	}
 
 	private Timeline expandAfterDelay() {
-		final Timeline timeline = new Timeline(new KeyFrame(Duration.millis(500), new EventHandler<ActionEvent>() {
-		    @Override
-		    public void handle(final ActionEvent event) {
-		    	if (expandDelay != null) {
-		    		setExpanded(true);
-		    	}
-	    		return;
-		    }
-		}));
+		final Timeline timeline = new Timeline(new KeyFrame(Duration.millis(500), e -> setExpanded(isExpanded() || expandDelay != null)));
 		timeline.setCycleCount(1);
 		timeline.play();
-
 
 		return timeline;
 	}

@@ -37,15 +37,15 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 	private final S section;
 	private final Map<String, TagListItem<T>> nameTags = new HashMap<String, TagListItem<T>>();
 
-	private ChangeListener<? super Boolean> incExcListener;
-
 	private boolean refreshing;
 
 	private int countTaskId;
 	private final Set<Task<Integer>> updateCountTasks;
 
-	private int showThisTaskId;
-	private Task<Boolean> showThisTask;
+	private int thisTagTaskId;
+	private Task<Boolean> thisTagTask;
+
+	private ChangeListener<? super Boolean> incExcListener;
 
 	public TagList(final TagService<S, T> tagService, final S section) {
 		this.tagService = tagService;
@@ -93,7 +93,7 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 		return Collections.unmodifiableSet(tags);
 	}
 
-	public synchronized void refresh(final Set<T> includes, final Set<T> excludes, final String itemPattern, final String tagPattern) {
+	public synchronized void refresh(final Set<T> includes, final Set<T> excludes, final String tagPattern, final String itemPattern) {
 		// get all tags
 		Set<T> tags;
 		try {
@@ -156,9 +156,9 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 	}
 
 	private synchronized void initThisTag(final Set<T> includes, final Set<T> excludes, final String itemPattern) {
-		final long taskId = ++showThisTaskId;
-		if (showThisTask != null && showThisTask.isRunning()) {
-			showThisTask.cancel();
+		final long taskId = ++thisTagTaskId;
+		if (thisTagTask != null && thisTagTask.isRunning()) {
+			thisTagTask.cancel();
 		}
 
 		final TagListItem<T> item = nameTags.get(Tag.THIS_NAME);
@@ -166,7 +166,7 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 			return;
 		}
 
-		showThisTask = new Task<Boolean>() {
+		thisTagTask = new Task<Boolean>() {
 			@Override
 			public Boolean call() throws SQLException, TagException, InterruptedException {
 				@SuppressWarnings("serial")
@@ -174,22 +174,19 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 				return 0 != tagService.getCountForTags(includes, new HashSet<T>(), "");
 			}
 		};
-		showThisTask.setOnFailed(event -> {
-			// TODO Auto-generated catch block
-			event.getSource().getException().printStackTrace(System.out);
-		});
-		showThisTask.setOnSucceeded(event -> {
-			if (taskId != showThisTaskId) {
+		thisTagTask.setOnSucceeded(e -> {
+			if (taskId != thisTagTaskId) {
 				return;
 			}
-			if (showThisTask.getValue() && !getItems().contains(item)) {
+			if (thisTagTask.getValue() && !getItems().contains(item)) {
 				getItems().add(0, item);
 				updateCountAsync(item, includes, excludes, itemPattern, taskId);
-			} else if (!showThisTask.getValue() && getItems().contains(item)) {
+			} else if (!thisTagTask.getValue() && getItems().contains(item)) {
 				getItems().remove(item);
 			}
 		});
-		ThreadPool.getInstance().submitLow(showThisTask);
+		thisTagTask.setOnFailed(e -> LOGGER.error("loading [this] tag", e.getSource().getException()));
+		ThreadPool.getInstance().submitLow(thisTagTask);
 	}
 
 	public synchronized void updateCount(final int queryCount, final Set<T> availableTags, final Set<T> includes, final Set<T> excludes, final String itemPattern) {
@@ -233,16 +230,13 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 				return excludeFactor * tagService.getCountForTags(fakeIncludes, fakeExcludes, itemPattern);
 			}
 		};
-		task.setOnFailed(event -> {
-			// TODO Auto-generated catch block
-			event.getSource().getException().printStackTrace(System.out);
-		});
-		task.setOnSucceeded(event -> {
+		task.setOnSucceeded(e -> {
 			if (taskId != countTaskId) {
 				return;
 			}
 			item.countProperty().set(task.getValue());
 		});
+		task.setOnFailed(e -> LOGGER.error("loading [this] tag", e.getSource().getException()));
 		ThreadPool.getInstance().submitLow(task);
 
 		return task;
@@ -303,7 +297,7 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 	}
 
 	public void setExtItemDataFormat(final DataFormat dataFormat) {
-		setCellFactory(list -> new TagListCell<T>(dataFormat));
+		setCellFactory(l -> new TagListCell<T>(dataFormat));
 	}
 
 	public boolean hasCheckedTag() {

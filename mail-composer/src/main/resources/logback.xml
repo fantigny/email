@@ -11,7 +11,8 @@
 		</encoder>
 	</appender>
 
-  <logger name="net.anfoya.javafx.scene.control.HtmlEditorListener" level="DEBUG"/>  
+  <logger name="net.anfoya.javafx.scene.control.ComboField" level="DEBUG"/>  
+  <logger name="net.anfoya.javafx.scene.control.ComboBoxAutoShow" level="DEBUG"/>  
   <!--
 
   <logger name="net.anfoya.mail.browser.javafx.entrypoint" level="DEBUG"/>

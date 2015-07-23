@@ -43,7 +43,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 	private final TagService<S, T> tagService;
 	private final DataFormat extItemDataFormat;
 
-	private final ResetTextField tagPatternField;
+	private final ResetTextField patternField;
 	private final Accordion sectionAcc;
 	private final SelectedTagsPane<T> selectedTagsPane;
 
@@ -76,13 +76,13 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 		lazyCount = true;
 		sectionDisableWhenZero = true;
 
-		tagPatternField = new ResetTextField();
-		tagPatternField.prefWidthProperty().bind(widthProperty());
-		tagPatternField.setPromptText("label search");
-		tagPatternField.textProperty().addListener((ChangeListener<String>) (ov, oldPattern, newPattern) -> {
+		patternField = new ResetTextField();
+		patternField.prefWidthProperty().bind(widthProperty());
+		patternField.setPromptText("label search");
+		patternField.textProperty().addListener((ChangeListener<String>) (ov, oldPattern, newPattern) -> {
 			refreshWithTagPattern();
 		});
-		setTop(new HBox(5, tagPatternField));
+		setTop(new HBox(5, patternField));
 
 		sectionAcc = new Accordion();
 		sectionAcc.expandedPaneProperty().addListener((ov, o, n) -> {
@@ -101,7 +101,6 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 
 		final StackPane stackPane = new StackPane(sectionAcc);
 		stackPane.setAlignment(Pos.BOTTOM_CENTER);
-//		stackPane.setPadding(new Insets(5, 0, 5, 0));
 
 		final ExtItemDropPane<T> extItemDropPane = new ExtItemDropPane<T>(extItemDataFormat);
 		extItemDropPane.prefWidthProperty().bind(stackPane.widthProperty());
@@ -112,28 +111,28 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 		tagDropPane = new TagDropPane<S, T>(tagService);
 		tagDropPane.prefWidthProperty().bind(stackPane.widthProperty());
 
-		stackPane.setOnDragEntered(event -> {
-			if (event.getDragboard().hasContent(DndFormat.SECTION_DATA_FORMAT)
+		stackPane.setOnDragEntered(e -> {
+			if (e.getDragboard().hasContent(DndFormat.SECTION_DATA_FORMAT)
 					&& !stackPane.getChildren().contains(sectionDropPane)) {
 				stackPane.getChildren().add(sectionDropPane);
-			} else if (event.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT)
+			} else if (e.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT)
 					&& !stackPane.getChildren().contains(tagDropPane)) {
 				stackPane.getChildren().add(tagDropPane);
 			} else if (extItemDataFormat != null
-					&& event.getDragboard().hasContent(extItemDataFormat)
+					&& e.getDragboard().hasContent(extItemDataFormat)
 					&& !stackPane.getChildren().contains(extItemDropPane)) {
 				stackPane.getChildren().add(extItemDropPane);
 			}
 		});
-		stackPane.setOnDragExited(event -> {
-			if (event.getDragboard().hasContent(DndFormat.SECTION_DATA_FORMAT)
+		stackPane.setOnDragExited(e -> {
+			if (e.getDragboard().hasContent(DndFormat.SECTION_DATA_FORMAT)
 					&& stackPane.getChildren().contains(sectionDropPane)) {
 				stackPane.getChildren().remove(sectionDropPane);
-			} else if (event.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT)
+			} else if (e.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT)
 					&& stackPane.getChildren().contains(tagDropPane)) {
 				stackPane.getChildren().remove(tagDropPane);
 			} else if (extItemDataFormat != null
-					&& event.getDragboard().hasContent(extItemDataFormat)
+					&& e.getDragboard().hasContent(extItemDataFormat)
 					&& stackPane.getChildren().contains(extItemDropPane)) {
 				stackPane.getChildren().remove(extItemDropPane);
 			}
@@ -178,18 +177,14 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 	}
 
 	private void refreshTags() {
-		final String tagPattern = tagPatternField.getText();
+		final String pattern = patternField.getText();
 		final Set<T> includes = getIncludedTags();
 		final Set<T> excludes = getExcludedTags();
 		for(final TitledPane pane: sectionAcc.getPanes()) {
 			@SuppressWarnings("unchecked")
 			final SectionPane<S, T> sectionPane = (SectionPane<S, T>) pane;
-			sectionPane.refresh(includes, excludes, itemPattern, tagPattern);
+			sectionPane.refresh(includes, excludes, pattern, itemPattern);
 		}
-	}
-
-	public void refreshAsync() {
-		refreshAsync(null);
 	}
 
 	public synchronized void refreshAsync(final Callback<Void, Void> callback) {
@@ -204,7 +199,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 				return tagService.getSections();
 			}
 		};
-		refreshTask.setOnSucceeded(event -> {
+		refreshTask.setOnSucceeded(e -> {
 			if (taskId != refreshTaskId) {
 				return;
 			}
@@ -217,7 +212,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 				callback.call(null);
 			}
 		});
-		refreshTask.setOnFailed(event -> LOGGER.error("getting sections", event.getSource().getException()));
+		refreshTask.setOnFailed(e -> LOGGER.error("getting sections", e.getSource().getException()));
 		ThreadPool.getInstance().submitHigh(refreshTask);
 	}
 
@@ -226,12 +221,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 			tagPatternDelay.stop();
 		}
 
-		tagPatternDelay = new Timeline(new KeyFrame(Duration.millis(500), new EventHandler<ActionEvent>() {
-		    @Override
-		    public void handle(final ActionEvent event) {
-	    		refreshAsync();
-		    }
-		}));
+		tagPatternDelay = new Timeline(new KeyFrame(Duration.millis(500), e -> refreshAsync(null)));
 		tagPatternDelay.setCycleCount(1);
 		tagPatternDelay.play();
 	}
@@ -289,7 +279,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 
 	public void updateItemCount(Set<T> toRefresh, final int queryCount, final String itemPattern, final boolean lazy) {
 		this.itemPattern = itemPattern;
-		tagPattern = tagPatternField.getText();
+		tagPattern = patternField.getText();
 		final Set<T> includes = getIncludedTags();
 		final Set<T> excludes = getExcludedTags();
 		final boolean checkMode = isCheckMode();
@@ -409,5 +399,10 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 
 	public void setOnUpdateTag(final EventHandler<ActionEvent> handler) {
 		tagDropPane.setOnUpdate(handler);
+	}
+
+	@SuppressWarnings("unchecked")
+	public void clearSelection() {
+		sectionAcc.getPanes().forEach(pane -> ((SectionPane<S, T>) pane).clearSelection());
 	}
 }
