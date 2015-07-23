@@ -3,8 +3,6 @@ package net.anfoya.mail.browser.javafx.threadlist;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.ObservableList;
@@ -31,6 +29,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.javafx.scene.animation.DelayTimeline;
 import net.anfoya.javafx.scene.control.ResetTextField;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.composer.javafx.MailComposer;
@@ -57,7 +56,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	private final ThreadList<S, T, H, M, C> threadList;
 	private final ResetTextField patternField;
 
-	private Timeline patternDelay;
+	private DelayTimeline patternDelay;
 
 	private ThreadListDropPane<T, H, M, C> threadListDropPane;
 
@@ -335,8 +334,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 			if (patternDelay != null) {
 				patternDelay.stop();
 			}
-			patternDelay = new Timeline(new KeyFrame(Duration.millis(500), e -> handler.handle(null)));
-			patternDelay.setCycleCount(1);
+			patternDelay = new DelayTimeline(Duration.millis(500), e -> handler.handle(null));
 			patternDelay.play();
 		});
 	}

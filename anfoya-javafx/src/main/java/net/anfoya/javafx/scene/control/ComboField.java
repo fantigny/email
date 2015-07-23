@@ -2,8 +2,6 @@ package net.anfoya.javafx.scene.control;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -12,6 +10,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.javafx.scene.animation.DelayTimeline;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +35,7 @@ public class ComboField<T> extends ComboBox<T> {
 
 	private volatile boolean upHideReady;
 
-	private Timeline emptyTextDelay;
+	private DelayTimeline emptyTextDelay;
 	private volatile boolean textIsEmpty;
 
 	public ComboField() {
@@ -135,8 +134,7 @@ public class ComboField<T> extends ComboBox<T> {
 				if (emptyTextDelay != null) {
 					emptyTextDelay.stop();
 				}
-				emptyTextDelay = new Timeline(new KeyFrame(Duration.millis(200), e -> textIsEmpty = getEditor().getText().isEmpty()));
-				emptyTextDelay.setCycleCount(1);
+				emptyTextDelay = new DelayTimeline(Duration.millis(200), e -> textIsEmpty = getEditor().getText().isEmpty());
 				emptyTextDelay.play();
 			} else {
 				if (emptyTextDelay != null) {

@@ -8,8 +8,6 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import javafx.animation.KeyFrame;
-import javafx.animation.Timeline;
 import javafx.beans.value.ChangeListener;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
@@ -24,6 +22,7 @@ import javafx.scene.layout.StackPane;
 import javafx.util.Callback;
 import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.javafx.scene.animation.DelayTimeline;
 import net.anfoya.javafx.scene.control.ResetTextField;
 import net.anfoya.tag.javafx.scene.dnd.DndFormat;
 import net.anfoya.tag.javafx.scene.dnd.ExtItemDropPane;
@@ -61,7 +60,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 	private Task<Set<S>> refreshTask;
 	private int refreshTaskId;
 
-	private Timeline tagPatternDelay;
+	private DelayTimeline tagPatternDelay;
 	private SectionDropPane<S> sectionDropPane;
 	private TagDropPane<S, T> tagDropPane;
 
@@ -221,8 +220,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 			tagPatternDelay.stop();
 		}
 
-		tagPatternDelay = new Timeline(new KeyFrame(Duration.millis(500), e -> refreshAsync(null)));
-		tagPatternDelay.setCycleCount(1);
+		tagPatternDelay = new DelayTimeline(Duration.millis(500), e -> refreshAsync(null));
 		tagPatternDelay.play();
 	}
 
