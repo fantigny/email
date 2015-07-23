@@ -20,6 +20,7 @@ public class Ecrire extends Application {
 		final GmailService mailService = new GmailService();
 		mailService.connect(App.MAIL_CLIENT);
 		new MailComposer<GmailMessage, GmailContact>(mailService, e -> messageUpdated()).newMessage("frederic.antigny+ecrire@gmail.com");
+		Thread.sleep(2000);
 	}
 
 	private Object messageUpdated() {
