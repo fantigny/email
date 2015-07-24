@@ -197,6 +197,7 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 				messagePane = new MessagePane<M, C>(id, mailService);
 				messagePane.setScrollHandler(webScrollHandler);
 				messagePane.setUpdateHandler(updateHandler);
+				messagePane.setExpanded(false);
 				msgPanes.add(index, messagePane);
 				messagePane.load();
 			}
@@ -204,6 +205,7 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private void loadThread() {
 		scrollPane.setVvalue(0);
 		msgPanes.clear();
@@ -217,11 +219,15 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 			msgPanes.add(0, messagePane);
 		}
 		if (!msgPanes.isEmpty()) {
-			@SuppressWarnings("unchecked")
-			final MessagePane<M, C> messagePane = (MessagePane<M, C>) msgPanes.get(0);
+			MessagePane<M, C> messagePane = (MessagePane<M, C>) msgPanes.get(0);
 			messagePane.setExpanded(true);
 			if (msgPanes.size() == 1) {
 				// only one message, not collapsible
+				messagePane.setCollapsible(false);
+			} else {
+				// last message is not collapsible
+				messagePane = (MessagePane<M, C>) msgPanes.get(msgPanes.size()-1);
+				messagePane.setExpanded(true);
 				messagePane.setCollapsible(false);
 			}
 		}
