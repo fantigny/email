@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
 public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C extends Contact> extends BorderPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadPane.class);
 
-    private static final Image FLAG = new Image(ThreadPane.class.getResourceAsStream("../threadlist/mini_flag.png"));
+    private static final Image FLAG = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/browser/javafx/threadlist/mini_flag.png"));
 
 	private final MailService<? extends Section, T, H, M, C> mailService;
 
