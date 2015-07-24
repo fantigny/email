@@ -14,6 +14,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ScrollEvent;
@@ -63,6 +64,7 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 
 		final Button settingsButton = new Button();
 		settingsButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("settings.png"))));
+		settingsButton.setTooltip(new Tooltip("settings"));
 		settingsButton.setOnAction(event -> new SettingsDialog(mailService, logoutHandler).show());
 
 		final HBox subjectBox = new HBox(5, subjectField, settingsButton);

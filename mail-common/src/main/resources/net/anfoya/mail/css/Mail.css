@@ -1,3 +1,10 @@
+.tooltip {
+	-fx-background-radius: 3;
+	-fx-background-color: black;     
+	-fx-text-fill: white;
+	-fx-font-size: 12px;
+	-fx-padding: 4 5 4 5;
+}
 
 .box-underline {
     -fx-border-color: lightgray;
@@ -57,9 +64,9 @@
 
 .droparea-grid {
 	-fx-alignment: BOTTOM-CENTER;
-    -fx-padding: 3;
-    -fx-hgap: 2;
-    -fx-vgap: 2;
+    -fx-padding: 4;
+    -fx-hgap: 4;
+    -fx-vgap: 4;
 }
 
 .address-label {

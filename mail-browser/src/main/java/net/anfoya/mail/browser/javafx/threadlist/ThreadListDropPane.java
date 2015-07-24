@@ -36,7 +36,8 @@ public class ThreadListDropPane<T extends Tag, H extends Thread, M extends Messa
 	public ThreadListDropPane(final MailService<? extends Section, T, H, M, C> mailService) throws MailException {
 		this.mailService = mailService;
 
-		setMaxHeight(180);
+		setMaxHeight(200);
+		getStyleClass().add("droparea-grid");
 
 		flaggedTag = mailService.getSpecialTag(SpecialTag.FLAGGED);
 		unreadTag = mailService.getSpecialTag(SpecialTag.UNREAD);
@@ -119,10 +120,12 @@ public class ThreadListDropPane<T extends Tag, H extends Thread, M extends Messa
 		});
 
 		int i=0;
-		addRow(i++, flagArea);
+		addRow(i++, flagArea, unreadArea);
+		addRow(i++, replyArea);
+		addRow(i++, replyAllArea, forwardArea);
 		addRow(i++, archiveArea, trashArea);
-		addRow(i++, replyArea, replyAllArea);
-		addRow(i++, forwardArea, unreadArea);
+
+		setColumnSpan(replyArea, 2);
 
 		setHgrow(flagArea, Priority.ALWAYS);
 		setVgrow(flagArea, Priority.ALWAYS);

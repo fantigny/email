@@ -18,6 +18,7 @@ import javafx.scene.control.RadioButton;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.ToolBar;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
@@ -111,17 +112,23 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		threadListPane.setCenter(threadList);
 
 		final Button replyButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("reply.png"))));
+		replyButton.setTooltip(new Tooltip("reply"));
 		replyButton.setOnAction(e -> replySelected(false));
 		final Button replyAllButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("replyall.png"))));
 		replyAllButton.setOnAction(e -> replySelected(true));
+		replyAllButton.setTooltip(new Tooltip("reply all"));
 		final Button forwardButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("forward.png"))));
 		forwardButton.setOnAction(e -> forwardSelected());
+		forwardButton.setTooltip(new Tooltip("forward"));
 		final Button flagButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("flag.png"))));
 		flagButton.setOnAction(e -> toggleFlag());
+		flagButton.setTooltip(new Tooltip("toggle flag"));
 		final Button archiveButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("archive.png"))));
 		archiveButton.setOnAction(e -> archiveSelected());
+		archiveButton.setTooltip(new Tooltip("archive"));
 		final Button trashButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("trash.png"))));
 		trashButton.setOnAction(e -> trashSelected());
+		trashButton.setTooltip(new Tooltip("trash"));
 		final HBox grow = new HBox();
 		HBox.setHgrow(grow, Priority.ALWAYS);
 		final ToolBar toolbar = new ToolBar(
@@ -179,6 +186,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 
 		final Button newButton = new Button();
 		newButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("new.png"))));
+		newButton.setTooltip(new Tooltip("new mail"));
 		newButton.setOnAction(event -> {
 			try {
 				new MailComposer<M, C>(mailService, updateHandler).newMessage("");
