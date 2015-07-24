@@ -5,12 +5,12 @@ import java.util.Optional;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.dnd.DropArea;
 import net.anfoya.tag.javafx.scene.dnd.DndFormat;
@@ -31,12 +31,8 @@ public class SectionDropPane<S extends Section> extends GridPane {
 	public SectionDropPane(final TagService<S, ? extends Tag> tagService) {
 		this.tagService = tagService;
 
-		setVgap(2);
-		setHgap(2);
-		setAlignment(Pos.BOTTOM_CENTER);
-		setOpacity(0.9);
-
-		setMaxHeight(60);
+		setMaxHeight(50);
+		getStyleClass().add("droparea-grid");
 
 		final DropArea removeArea = new DropArea("remove", DndFormat.SECTION_DATA_FORMAT);
 		removeArea.setOnDragDropped(e -> {
@@ -61,6 +57,11 @@ public class SectionDropPane<S extends Section> extends GridPane {
 		});
 
 		addRow(0, renameArea, removeArea);
+		setHgrow(renameArea, Priority.ALWAYS);
+		setVgrow(renameArea, Priority.ALWAYS);
+		setHgrow(removeArea, Priority.ALWAYS);
+		setVgrow(removeArea, Priority.ALWAYS);
+
 	}
 
 	public void setOnUpdateSection(final EventHandler<ActionEvent> handler) {

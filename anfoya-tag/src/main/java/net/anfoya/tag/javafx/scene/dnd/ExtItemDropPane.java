@@ -2,7 +2,6 @@ package net.anfoya.tag.javafx.scene.dnd;
 
 import java.util.Optional;
 
-import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.TextInputDialog;
@@ -10,19 +9,15 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
 import net.anfoya.javafx.scene.dnd.DndPaneTranslationHelper;
 import net.anfoya.javafx.scene.dnd.DropArea;
 import net.anfoya.tag.service.Tag;
 
 public class ExtItemDropPane<T extends Tag> extends GridPane {
 	public ExtItemDropPane(final DataFormat extItemDataFormat) {
-		setVgap(2);
-		setHgap(2);
-		setAlignment(Pos.BOTTOM_CENTER);
-		setOpacity(0.9);
-
-		setMaxHeight(100);
-
+		setMaxHeight(50);
+		getStyleClass().add("droparea-grid");
 		new DndPaneTranslationHelper(this);
 
 		final DropArea newTagArea = new DropArea("add new tag", extItemDataFormat);
@@ -43,6 +38,8 @@ public class ExtItemDropPane<T extends Tag> extends GridPane {
 		});
 
 		addRow(0, newTagArea);
+		setHgrow(newTagArea, Priority.ALWAYS);
+		setVgrow(newTagArea, Priority.ALWAYS);
 	}
 
 	private String getName() {

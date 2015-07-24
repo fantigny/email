@@ -7,8 +7,8 @@ import java.util.Set;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.Pos;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.dnd.DropArea;
 import net.anfoya.mail.composer.javafx.MailComposer;
@@ -35,11 +35,6 @@ public class ThreadListDropPane<T extends Tag, H extends Thread, M extends Messa
 
 	public ThreadListDropPane(final MailService<? extends Section, T, H, M, C> mailService) throws MailException {
 		this.mailService = mailService;
-
-		setVgap(2);
-		setHgap(2);
-		setAlignment(Pos.BOTTOM_CENTER);
-		setOpacity(0.9);
 
 		setMaxHeight(180);
 
@@ -128,6 +123,22 @@ public class ThreadListDropPane<T extends Tag, H extends Thread, M extends Messa
 		addRow(i++, archiveArea, trashArea);
 		addRow(i++, replyArea, replyAllArea);
 		addRow(i++, forwardArea, unreadArea);
+
+		setHgrow(flagArea, Priority.ALWAYS);
+		setVgrow(flagArea, Priority.ALWAYS);
+		setHgrow(archiveArea, Priority.ALWAYS);
+		setVgrow(archiveArea, Priority.ALWAYS);
+		setHgrow(trashArea, Priority.ALWAYS);
+		setVgrow(trashArea, Priority.ALWAYS);
+		setHgrow(replyArea, Priority.ALWAYS);
+		setVgrow(replyArea, Priority.ALWAYS);
+		setHgrow(replyAllArea, Priority.ALWAYS);
+		setVgrow(replyAllArea, Priority.ALWAYS);
+		setHgrow(forwardArea, Priority.ALWAYS);
+		setVgrow(forwardArea, Priority.ALWAYS);
+		setHgrow(unreadArea, Priority.ALWAYS);
+		setVgrow(unreadArea, Priority.ALWAYS);
+
 	}
 
 	private void forward(final Set<H> threads) {
@@ -156,8 +167,8 @@ public class ThreadListDropPane<T extends Tag, H extends Thread, M extends Messa
 				return null;
 			}
 		};
-		task.setOnFailed(event -> LOGGER.error("adding {} to thread", flaggedTag, event.getSource().getException()));
-		task.setOnSucceeded(event -> updateHandler.handle(null));
+		task.setOnSucceeded(e -> updateHandler.handle(null));
+		task.setOnFailed(e -> LOGGER.error("adding {} to thread", flaggedTag, e.getSource().getException()));
 		ThreadPool.getInstance().submitHigh(task);
 	}
 
@@ -169,8 +180,8 @@ public class ThreadListDropPane<T extends Tag, H extends Thread, M extends Messa
 				return null;
 			}
 		};
-		task.setOnFailed(event -> LOGGER.error("adding {} to thread", unreadTag, event.getSource().getException()));
-		task.setOnSucceeded(event -> updateHandler.handle(null));
+		task.setOnSucceeded(e -> updateHandler.handle(null));
+		task.setOnFailed(e -> LOGGER.error("adding {} to thread", unreadTag, e.getSource().getException()));
 		ThreadPool.getInstance().submitHigh(task);
 	}
 
@@ -182,8 +193,8 @@ public class ThreadListDropPane<T extends Tag, H extends Thread, M extends Messa
 				return null;
 			}
 		};
-		task.setOnFailed(event -> LOGGER.error("archiving thread", event.getSource().getException()));
-		task.setOnSucceeded(event -> updateHandler.handle(null));
+		task.setOnSucceeded(e -> updateHandler.handle(null));
+		task.setOnFailed(e -> LOGGER.error("archiving thread", e.getSource().getException()));
 		ThreadPool.getInstance().submitHigh(task);
 	}
 
@@ -195,8 +206,8 @@ public class ThreadListDropPane<T extends Tag, H extends Thread, M extends Messa
 				return null;
 			}
 		};
-		task.setOnFailed(event -> LOGGER.error("trashing thread", event.getSource().getException()));
-		task.setOnSucceeded(event -> updateHandler.handle(null));
+		task.setOnSucceeded(e -> updateHandler.handle(null));
+		task.setOnFailed(e -> LOGGER.error("trashing thread", e.getSource().getException()));
 		ThreadPool.getInstance().submitHigh(task);
 	}
 

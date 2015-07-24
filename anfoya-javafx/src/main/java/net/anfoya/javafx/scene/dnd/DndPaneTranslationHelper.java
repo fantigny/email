@@ -2,7 +2,6 @@ package net.anfoya.javafx.scene.dnd;
 
 import javafx.animation.Interpolator;
 import javafx.animation.TranslateTransition;
-import javafx.application.Platform;
 import javafx.scene.layout.Pane;
 import javafx.util.Duration;
 import net.anfoya.javafx.scene.animation.DelayTimeline;
@@ -33,12 +32,13 @@ public class DndPaneTranslationHelper {
 	}
 
 	private void move() {
-		Platform.runLater(() -> {
-			final TranslateTransition translate = new TranslateTransition(Duration.millis(50), dndPane);
-			translate.setInterpolator(Interpolator.EASE_BOTH);
-			translate.setCycleCount(1);
-			translate.setByY(((int)dndPane.getTranslateY() == 0? -1: 1) * dndPane.getHeight());
-			translate.play();
-		});
+		final TranslateTransition translate = new TranslateTransition(Duration.millis(50), dndPane);
+		translate.setInterpolator(Interpolator.EASE_BOTH);
+		translate.setCycleCount(1);
+		translate.setByY(((int)dndPane.getTranslateY() == 0? -1: 1) * dndPane.getHeight());
+		translate.setOnFinished(e -> {});
+		translate.play();
+
+//		dndPane.fireEvent(new DragEvent(DragEvent.DRAG_EXITED_TARGET, null, 0, 0, 0, 0, null, null, null, null));
 	}
 }

@@ -4,10 +4,10 @@ import static net.anfoya.mail.browser.javafx.threadlist.ThreadListPane.DND_THREA
 
 import java.util.Set;
 
-import javafx.geometry.Pos;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
 
 import javax.mail.internet.MimeMessage;
 
@@ -29,12 +29,8 @@ public class ThreadDropPane<H extends Thread, M extends Message> extends GridPan
 	public ThreadDropPane(final MailService<? extends Section, ? extends Tag, H, M, ? extends Contact> tagService) {
 		this.mailService = tagService;
 
-		setVgap(2);
-		setHgap(2);
-		setAlignment(Pos.BOTTOM_CENTER);
-		setOpacity(0.9);
-
-		setMaxHeight(60);
+		setMaxHeight(50);
+		getStyleClass().add("droparea-grid");
 
 		addThreadArea = new DropArea("add to thread", DND_THREADS_DATA_FORMAT);
 		addThreadArea.setOnDragDropped(event -> {
@@ -57,16 +53,11 @@ public class ThreadDropPane<H extends Thread, M extends Message> extends GridPan
 				event.consume();
 			}
 		});
-	}
 
-	private void newThread(final M message) {
-		// TODO Auto-generated method stub
-
-	}
-
-
-	private void addThreads(final Set<H> threads) {
-		// TODO Auto-generated method stub
+		setHgrow(newThreadArea, Priority.ALWAYS);
+		setVgrow(newThreadArea, Priority.ALWAYS);
+		setHgrow(addThreadArea, Priority.ALWAYS);
+		setVgrow(addThreadArea, Priority.ALWAYS);
 
 	}
 
@@ -84,5 +75,16 @@ public class ThreadDropPane<H extends Thread, M extends Message> extends GridPan
 		if (db.hasContent(DND_THREADS_DATA_FORMAT)) {
 			addRow(0, addThreadArea);
 		}
+	}
+
+	private void newThread(final M message) {
+		// TODO Auto-generated method stub
+
+	}
+
+
+	private void addThreads(final Set<H> threads) {
+		// TODO Auto-generated method stub
+
 	}
 }

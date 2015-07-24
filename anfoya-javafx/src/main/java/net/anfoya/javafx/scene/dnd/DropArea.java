@@ -8,27 +8,24 @@ import javafx.scene.layout.HBox;
 
 public class DropArea extends HBox {
 	public DropArea(final String name, final DataFormat dataFormat) {
-		super(0, new Label(name));
+		super(new Label(name));
 		setAlignment(Pos.CENTER);
-		setStyle("-fx-background-color: #DDDDDD; -fx-border-color: black");
-		setPrefWidth(400);
-		setPrefHeight(50);
-		setOnDragEntered(event -> {
-			if (event.getDragboard().hasContent(dataFormat)) {
-				setStyle("-fx-background-color: #DDDDDD; -fx-border-color: red");
-				event.consume();
+
+		getStyleClass().add("dropbutton-box");
+
+		setOnDragEntered(e -> {
+			if (e.getDragboard().hasContent(dataFormat)) {
+				getStyleClass().add("dropbutton-box-hover");
+				e.consume();
 			}
 		});
-		setOnDragExited(event -> {
-			if (event.getDragboard().hasContent(dataFormat)) {
-				setStyle("-fx-background-color: #DDDDDD; -fx-border-color: black");
-				event.consume();
-			}
+		setOnDragExited(e -> {
+			getStyleClass().remove("dropbutton-box-hover");
 		});
-		setOnDragOver(event -> {
-			if (event.getDragboard().hasContent(dataFormat)) {
-				event.acceptTransferModes(TransferMode.ANY);
-				event.consume();
+		setOnDragOver(e -> {
+			if (e.getDragboard().hasContent(dataFormat)) {
+				e.acceptTransferModes(TransferMode.ANY);
+				e.consume();
 			}
 		});
 	}
