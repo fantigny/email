@@ -5,12 +5,14 @@ import static net.anfoya.mail.browser.javafx.threadlist.ThreadListPane.DND_THREA
 import java.util.Set;
 
 import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.scene.Scene;
 import javafx.scene.control.SplitPane;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
+import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.Notification;
 import net.anfoya.javafx.scene.control.Notification.Notifier;
 import net.anfoya.mail.browser.javafx.settings.Settings;
@@ -133,6 +135,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	}
 
 	private void initData() {
+//		sectionListPane.init("Bank", "HK HSBC");
 		sectionListPane.init(GmailSection.SYSTEM.getName(), "Inbox");
 
 		mailService.addOnUpdateMessage(v -> {
@@ -146,6 +149,21 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 			Platform.runLater(() -> Notifier.INSTANCE.notify("FisherMail", message, Notification.SUCCESS_ICON));
 			return null;
 		});
+
+		final Task<String> titleTask = new Task<String>() {
+			@Override
+			protected String call() throws Exception {
+				final C contact = mailService.getContact();
+				if (contact.getFullname().isEmpty()) {
+					return contact.getEmail();
+				} else {
+					return contact.getFullname() + " (" + contact.getEmail() + ")";
+				}
+			}
+		};
+		titleTask.setOnSucceeded(e -> setTitle(getTitle() + " - " + e.getSource().getValue()));
+		titleTask.setOnFailed(e -> LOGGER.error("loading user's name", e.getSource().getException()));
+		ThreadPool.getInstance().submitLow(titleTask);
 	}
 
 	boolean refreshAfterTagSelected = true;

@@ -2,10 +2,11 @@ package net.anfoya.mail.composer.javafx;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
-import java.util.LinkedHashSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -40,6 +41,7 @@ import javax.mail.Address;
 import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
 import javax.mail.Session;
+import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
@@ -88,10 +90,24 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 	private final BooleanProperty editedProperty;
 	private final Timer autosaveTimer;
 
+	private final Map<String, C> addressContacts;
+
 	public MailComposer(final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService, final EventHandler<ActionEvent> updateHandler) {
 		super(StageStyle.UNIFIED);
-		setTitle("FisherMail");
 		setOnCloseRequest(e -> stopAutosave());
+
+		String personal;
+		try {
+			final C contact = mailService.getContact();
+			if (contact.getFullname().isEmpty()) {
+				personal = contact.getEmail();
+			} else {
+				personal = contact.getFullname() + " (" + contact.getEmail() + ")";
+			}
+		} catch (final MailException e1) {
+			personal = "unknown!";
+		}
+		setTitle("FisherMail - " + personal);
 
 		editedProperty = new SimpleBooleanProperty(false);
 		autosaveTimer = new Timer(true);
@@ -108,9 +124,11 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		this.updateHandler = updateHandler;
 
 		// load contacts from server
-		final Set<C> emailContacts = new LinkedHashSet<C>();
+		addressContacts = new HashMap<String, C>();
 		try {
-			emailContacts.addAll(mailService.getContacts());
+			for(final C c: mailService.getContacts()) {
+				addressContacts.put(c.getEmail(), c);
+			}
 		} catch (final MailException e) {
 			LOGGER.error("loading contacts", e);
 		}
@@ -119,14 +137,14 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		mainPane = (BorderPane) getScene().getRoot();
 		mainPane.setPadding(new Insets(3));
 
-		toListBox = new RecipientListPane<C>("to: ", emailContacts);
+		toListBox = new RecipientListPane<C>("to: ", addressContacts);
 		toListBox.setOnUpdateList(e -> editedProperty.set(true));
 		HBox.setHgrow(toListBox, Priority.ALWAYS);
 
-		ccListBox = new RecipientListPane<C>("cc/bcc: ", emailContacts);
+		ccListBox = new RecipientListPane<C>("cc/bcc: ", addressContacts);
 		ccListBox.setOnUpdateList(e -> editedProperty.set(true));
 
-		bccListBox = new RecipientListPane<C>("bcc: ", emailContacts);
+		bccListBox = new RecipientListPane<C>("bcc: ", addressContacts);
 		bccListBox.setOnUpdateList(e -> editedProperty.set(true));
 
 		final Label subject = new Label("subject:");
@@ -364,13 +382,56 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		multipart.addBodyPart(bodyPart);
 
 		final MimeMessage message = new MimeMessage(Session.getDefaultInstance(new Properties()));
-//		message.setFrom(new InternetAddress("frederic.antigny@gmail.com"));
 		message.setSubject(subjectField.getText());
 		message.setContent(multipart);
 
-		message.addRecipients(RecipientType.TO, toListBox.getRecipients().toArray(new Address[0]));
-		message.addRecipients(RecipientType.CC, ccListBox.getRecipients().toArray(new Address[0]));
-		message.addRecipients(RecipientType.BCC, bccListBox.getRecipients().toArray(new Address[0]));
+		Address from;
+		C contact;
+		try {
+			contact = mailService.getContact();
+			if (contact.getFullname().isEmpty()) {
+				from = new InternetAddress(contact.getEmail());
+			} else {
+				from = new InternetAddress(contact.getEmail(), contact.getFullname());
+			}
+			message.setFrom(from);
+		} catch (final MailException | UnsupportedEncodingException e) {
+			LOGGER.error("loading user data", e);
+		}
+
+		for(final String address: toListBox.getRecipients()) {
+			if (addressContacts.containsKey(address)) {
+				try {
+					message.addRecipient(RecipientType.TO, new InternetAddress(address, addressContacts.get(address).getFullname()));
+				} catch (final UnsupportedEncodingException e) {
+					message.addRecipient(RecipientType.TO, new InternetAddress(address));
+				}
+			} else {
+				message.addRecipient(RecipientType.TO, new InternetAddress(address));
+			}
+		}
+		for(final String address: ccListBox.getRecipients()) {
+			if (addressContacts.containsKey(address)) {
+				try {
+					message.addRecipient(RecipientType.CC, new InternetAddress(address, addressContacts.get(address).getFullname()));
+				} catch (final UnsupportedEncodingException e) {
+					message.addRecipient(RecipientType.CC, new InternetAddress(address));
+				}
+			} else {
+				message.addRecipient(RecipientType.CC, new InternetAddress(address));
+			}
+		}
+		for(final String address: bccListBox.getRecipients()) {
+			if (addressContacts.containsKey(address)) {
+				try {
+					message.addRecipient(RecipientType.BCC, new InternetAddress(address, addressContacts.get(address).getFullname()));
+				} catch (final UnsupportedEncodingException e) {
+					message.addRecipient(RecipientType.BCC, new InternetAddress(address));
+				}
+			} else {
+				message.addRecipient(RecipientType.BCC, new InternetAddress(address));
+			}
+		}
 
 		return message;
 	}

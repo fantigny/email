@@ -1,6 +1,5 @@
 package net.anfoya.mail.composer.javafx;
 
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -16,11 +15,6 @@ import javafx.scene.control.ListCell;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-
-import javax.mail.Address;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.ComboBoxAutoShow;
 import net.anfoya.javafx.scene.control.ComboField;
@@ -45,15 +39,12 @@ public class RecipientListPane<C extends Contact> extends HBox {
 
 	private EventHandler<ActionEvent> updateHandler;
 
-	public RecipientListPane(final String title, final Set<C> contacts) {
+	public RecipientListPane(final String title, final Map<String, C> addressContacts) {
 		super(0);
 		setPadding(new Insets(3, 0, 3, 0));
 		getStyleClass().add("box-underline");
 
-		addressContacts = new LinkedHashMap<String, C>();
-		for(final C c: contacts) {
-			addressContacts.put(c.getEmail(), c);
-		}
+		this.addressContacts = addressContacts;
 
 		this.title = new Label(title);
 		this.title.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
@@ -118,21 +109,10 @@ public class RecipientListPane<C extends Contact> extends HBox {
 		});
 	}
 
-	public Set<Address> getRecipients() {
-		final Set<Address> addresses = new LinkedHashSet<Address>();
-		for(final String address: selectedAdresses) {
-			try {
-				addresses.add(new InternetAddress(address));
-			} catch (final AddressException e) {
-				LOGGER.error("error parsing address {}", address);
-			}
-		}
+	public Set<String> getRecipients() {
+		final Set<String> addresses = new LinkedHashSet<String>(selectedAdresses);
 		if (combo.getValue() != null && !combo.getValue().isEmpty()) {
-			try {
-				addresses.add(new InternetAddress(combo.getValue()));
-			} catch (final AddressException e) {
-				LOGGER.error("error parsing address {}", combo.getValue());
-			}
+			addresses.add(combo.getValue());
 		}
 
 		return addresses;

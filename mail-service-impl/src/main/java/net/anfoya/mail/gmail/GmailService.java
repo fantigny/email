@@ -18,7 +18,6 @@ import javafx.util.Duration;
 import javax.mail.MessagingException;
 
 import net.anfoya.java.lang.StringHelper;
-import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.gmail.model.GmailContact;
 import net.anfoya.mail.gmail.model.GmailMessage;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
@@ -69,6 +68,8 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 	private final ReadOnlyBooleanWrapper disconnected;
 
+	private String address;
+
 	public GmailService() {
 		disconnected = new ReadOnlyBooleanWrapper(false);
 	}
@@ -79,8 +80,13 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		final ContactsService gcontact = connectionService.getGcontactService();
 		final Gmail gmail = connectionService.getGmailService();
 
+		try {
+			address = gmail.users().getProfile(USER).execute().getEmailAddress();
+		} catch (final IOException e) {
+			address = "uknown!";
+		}
+
 		contactService = new ContactService(gcontact, DEFAULT).init();
-		ThreadPool.getInstance().submitLow(() -> contactService.getAll());
 
 		messageService = new MessageService(gmail, USER);
 		threadService = new ThreadService(gmail, USER);
@@ -707,5 +713,19 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		case UNREAD:	return GmailTag.UNREAD_TAG;
 		}
 		return null;
+	}
+
+	@Override
+	public GmailContact getContact() throws GMailException {
+		try {
+			for(final GmailContact c: getContacts()) {
+				if (c.getEmail().equals(address)) {
+					return c;
+				}
+			}
+			return new GmailContact(address, "");
+		} catch (final GMailException e) {
+			throw new GMailException("loading personal data", e);
+		}
 	}
 }
