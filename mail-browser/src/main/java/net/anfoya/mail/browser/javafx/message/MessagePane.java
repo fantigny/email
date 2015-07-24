@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -13,7 +16,6 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Label;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.ScrollEvent;
@@ -22,6 +24,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebView;
+import javafx.util.Duration;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
@@ -46,6 +51,12 @@ import org.slf4j.LoggerFactory;
 
 public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessagePane.class);
+	private static final String CSS_DATA = "<style> body {"
+			+ " margin: 0;"
+			+ " padding: 5 5 5 30;"
+			+ " font-family: Arial, Helvetica, sans-serif;"
+			+ " font-size: 12px;"
+			+ "} </style>";
 
 	private final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService;
 	private final BooleanProperty expanded;
@@ -55,7 +66,8 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 
 	private final Text titleText;
 	private final Text dateText;
-	private final Label snippet;
+	private final HBox snippet;
+	private final WebEngine snippetEngine;
 	private final WebViewFitContent bodyView;
 
 	private final String messageId;
@@ -63,6 +75,8 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	private Task<String> loadTask;
 
 	private EventHandler<ActionEvent> updateHandler;
+	private boolean mouseOver;
+	private Timeline showSnippetTimeline;
 
 	public MessagePane(final String messageId, final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService) {
 		this.mailService = mailService;
@@ -102,14 +116,28 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		titlePane.setAlignment(Pos.CENTER_LEFT);
 		titlePane.setMinHeight(30);
 		titlePane.setOnMouseClicked(event -> expanded.set(!expanded.get()));
-		titlePane.setOnMouseEntered(e -> showSnipet());
-		titlePane.setOnMouseExited(e -> hideSnippet());
 
-		snippet = new Label();
-		snippet.getStyleClass().add("snippet-label");
+		final WebView webView = new WebView();
+		snippetEngine = webView.getEngine();
+
+		snippet = new HBox(webView);
 		snippet.prefWidthProperty().bind(widthProperty());
+		snippet.setPrefHeight(30);
+		snippet.setMinHeight(0);
+		snippet.setMaxHeight(0);
+		snippet.toBack();
 
-		getChildren().addAll(titlePane, bodyView);
+		expanded.addListener((ov, o, n) -> setShowSnippet(mouseOver && !n));
+		titlePane.setOnMouseEntered(e ->{
+			 setShowSnippet(expanded.not().get());
+			 mouseOver = true;
+		});
+		titlePane.setOnMouseExited(e ->{
+			 setShowSnippet(false);
+			 mouseOver = false;
+		});
+
+		getChildren().addAll(titlePane, snippet, bodyView);
 		setOnDragDetected(event -> {
 	        final ClipboardContent content = new ClipboardContent();
 	        content.put(ThreadDropPane.MESSAGE_DATA_FORMAT, message);
@@ -118,18 +146,15 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		});
 	}
 
-	private void hideSnippet() {
-		if (expanded.not().get() && getChildren().contains(snippet)) {
-			LOGGER.warn("hideSnippet");
-			getChildren().remove(snippet);
+	private void setShowSnippet(final boolean show) {
+		if (showSnippetTimeline != null) {
+			showSnippetTimeline.stop();
 		}
-	}
 
-	private void showSnipet() {
-		if (expanded.not().get() && !getChildren().contains(snippet)) {
-			LOGGER.warn("showSnipet");
-			getChildren().add(snippet);
-		}
+		final KeyValue values = new KeyValue(snippet.maxHeightProperty(), show? snippet.getPrefHeight(): 0);
+		final KeyFrame frame = new KeyFrame(Duration.millis(100), values);
+		showSnippetTimeline = new Timeline(frame);
+		showSnippetTimeline.play();
 	}
 
 	public synchronized void load() {
@@ -210,9 +235,10 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 			title.append(" to ").append(String.join(", ", helper.getMailAddresses(mimeMessage.getRecipients(MimeMessage.RecipientType.TO))));
 			titleText.setText(title.toString());
 			dateText.setText(new DateHelper(mimeMessage.getSentDate()).format());
-			snippet.setText(message.getSnippet());
 		} catch (final MessagingException e) {
-			LOGGER.error("loading title/snippet data", e);
+			LOGGER.error("loading title data", e);
 		}
+
+		snippetEngine.loadContent(CSS_DATA + message.getSnippet() + "...");
 	}
 }
