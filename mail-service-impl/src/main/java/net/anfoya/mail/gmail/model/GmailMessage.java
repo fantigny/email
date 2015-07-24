@@ -24,12 +24,21 @@ public class GmailMessage extends SimpleMessage {
 		return new MimeMessage(SESSION, new ByteArrayInputStream(buf));
 	}
 
+	private final String snippet;
+
 	public GmailMessage(final Message message) throws MessagingException {
 		super(message.getId(), false, getMimeMessage(message));
+		snippet = message.getSnippet();
 	}
 
 	public GmailMessage(final Draft draft) throws MessagingException {
 		super(draft.getId(), true, getMimeMessage(draft.getMessage()));
+		snippet = draft.getMessage().getSnippet();
+	}
+
+	@Override
+	public String getSnippet() {
+		return snippet;
 	}
 
 	public String getRaw() throws IOException, MessagingException {

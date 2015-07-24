@@ -13,6 +13,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Label;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.ScrollEvent;
@@ -54,6 +55,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 
 	private final Text titleText;
 	private final Text dateText;
+	private final Label snippet;
 	private final WebViewFitContent bodyView;
 
 	private final String messageId;
@@ -79,9 +81,9 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		});
 
 		expanded = new SimpleBooleanProperty(true);
-		expanded.addListener((ov, oldVal, newVal) -> {
+		expanded.addListener((ov, o, n) -> {
 			if (collapsible) {
-				final double height = newVal? bodyView.getPrefHeight(): 0;
+				final double height = n? bodyView.getPrefHeight(): 0;
 				bodyView.setMinHeight(height);
 				bodyView.setMaxHeight(height);
 				autosize();
@@ -100,6 +102,12 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		titlePane.setAlignment(Pos.CENTER_LEFT);
 		titlePane.setMinHeight(30);
 		titlePane.setOnMouseClicked(event -> expanded.set(!expanded.get()));
+		titlePane.setOnMouseEntered(e -> showSnipet());
+		titlePane.setOnMouseExited(e -> hideSnippet());
+
+		snippet = new Label();
+		snippet.getStyleClass().add("snippet-label");
+		snippet.prefWidthProperty().bind(widthProperty());
 
 		getChildren().addAll(titlePane, bodyView);
 		setOnDragDetected(event -> {
@@ -110,17 +118,17 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		});
 	}
 
-	private void handleHyperlink(final String location) {
-		try {
-			final URI uri = new URI(location);
-			final String scheme = uri.getScheme();
-			if (scheme.equals("mailto")) {
-				new MailComposer<M, C>(mailService, updateHandler).newMessage(uri.getSchemeSpecificPart());
-			} else {
-				Desktop.getDesktop().browse(uri);
-			}
-		} catch (final Exception e) {
-			LOGGER.error("handling link \"{}\"", location, e);
+	private void hideSnippet() {
+		if (expanded.not().get() && getChildren().contains(snippet)) {
+			LOGGER.warn("hideSnippet");
+			getChildren().remove(snippet);
+		}
+	}
+
+	private void showSnipet() {
+		if (expanded.not().get() && !getChildren().contains(snippet)) {
+			LOGGER.warn("showSnipet");
+			getChildren().add(snippet);
 		}
 	}
 
@@ -140,26 +148,11 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 			LOGGER.error("loading message id {}", messageId, event.getSource().getException());
 		});
 		loadTask.setOnSucceeded(event -> {
-			refreshTitle();
+			refresh();
 			bodyView.getEngine().loadContent(loadTask.getValue());
 			((JSObject) bodyView.getEngine().executeScript("window")).setMember("attLoader", new AttachmentLoader<M>(mailService, messageId));
 		});
 		ThreadPool.getInstance().submitHigh(loadTask);
-	}
-
-	private void refreshTitle() {
-		try {
-			final MimeMessage mimeMessage = message.getMimeMessage();
-
-			final StringBuilder title = new StringBuilder();
-			title.append(String.join(", ", helper.getMailAddresses(mimeMessage.getFrom())));
-			title.append(" to ").append(String.join(", ", helper.getMailAddresses(mimeMessage.getRecipients(MimeMessage.RecipientType.TO))));
-			titleText.setText(title.toString());
-			dateText.setText(new DateHelper(mimeMessage.getSentDate()).format());
-		} catch (final MessagingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 
 	public void setScrollHandler(final EventHandler<ScrollEvent> handler) {
@@ -192,5 +185,34 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 
 	public void setUpdateHandler(final EventHandler<ActionEvent> handler) {
 		this.updateHandler = handler;
+	}
+
+	private void handleHyperlink(final String location) {
+		try {
+			final URI uri = new URI(location);
+			final String scheme = uri.getScheme();
+			if (scheme.equals("mailto")) {
+				new MailComposer<M, C>(mailService, updateHandler).newMessage(uri.getSchemeSpecificPart());
+			} else {
+				Desktop.getDesktop().browse(uri);
+			}
+		} catch (final Exception e) {
+			LOGGER.error("handling link \"{}\"", location, e);
+		}
+	}
+
+	private void refresh() {
+		try {
+			final MimeMessage mimeMessage = message.getMimeMessage();
+
+			final StringBuilder title = new StringBuilder();
+			title.append(String.join(", ", helper.getMailAddresses(mimeMessage.getFrom())));
+			title.append(" to ").append(String.join(", ", helper.getMailAddresses(mimeMessage.getRecipients(MimeMessage.RecipientType.TO))));
+			titleText.setText(title.toString());
+			dateText.setText(new DateHelper(mimeMessage.getSentDate()).format());
+			snippet.setText(message.getSnippet());
+		} catch (final MessagingException e) {
+			LOGGER.error("loading title/snippet data", e);
+		}
 	}
 }

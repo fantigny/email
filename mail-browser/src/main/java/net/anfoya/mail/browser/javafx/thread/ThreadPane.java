@@ -9,6 +9,7 @@ import java.util.Set;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
@@ -34,11 +35,17 @@ import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
 import net.anfoya.tag.javafx.scene.section.SelectedTagsPane;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C extends Contact> extends BorderPane {
-//	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadPane.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadPane.class);
+
+    private static final Image FLAG = new Image(ThreadPane.class.getResourceAsStream("../threadlist/mini_flag.png"));
 
 	private final MailService<? extends Section, T, H, M, C> mailService;
 
+	private final HBox iconBox;
 	private final TextField subjectField;
 	private final SelectedTagsPane<T> tagsPane;
 	private final VBox messagesBox;
@@ -57,6 +64,10 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 	public ThreadPane(final MailService<? extends Section, T, H, M, C> mailService) {
 		this.mailService = mailService;
 
+		iconBox = new HBox();
+		iconBox.setAlignment(Pos.CENTER_LEFT);
+		iconBox.setPadding(new Insets(0,0,0, 5));
+
 		subjectField = new TextField();
 		subjectField.setPromptText("select a mail");
 		subjectField.prefWidthProperty().bind(widthProperty());
@@ -67,7 +78,7 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 		settingsButton.setTooltip(new Tooltip("settings"));
 		settingsButton.setOnAction(event -> new SettingsDialog(mailService, logoutHandler).show());
 
-		final HBox subjectBox = new HBox(5, subjectField, settingsButton);
+		final HBox subjectBox = new HBox(iconBox, subjectField, settingsButton);
 		setTop(subjectBox);
 
 		final StackPane stackPane = new StackPane();
@@ -108,11 +119,11 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 			scrollPane.setVvalue(current + offset);
 			event.consume();
 
-//			LOGGER.debug("[e {}, delta {}], [max {}, delta {}]"
-//					, maxPx
-//					, event.getDeltaY()
-//					, scrollPane.getVmax()
-//					, offset);
+			LOGGER.debug("[e {}, delta {}], [max {}, delta {}]"
+					, maxPx
+					, event.getDeltaY()
+					, scrollPane.getVmax()
+					, offset);
 		};
 
 		stackPane.getChildren().add(scrollPane);
@@ -124,6 +135,7 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 	public void refresh(final Set<H> threads) {
 		this.threads = threads;
 
+		refreshIcons();
 		refreshSubject();
 		refreshThread();
 		refreshTags();
@@ -142,6 +154,13 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 			refreshCurrentThread();
 		} else {
 			loadThread();
+		}
+	}
+
+	private void refreshIcons() {
+		iconBox.getChildren().clear();
+		if (threads.size() == 1 && threads.iterator().next().isFlagged()) {
+			iconBox.getChildren().add(new ImageView(FLAG));
 		}
 	}
 
@@ -192,11 +211,17 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 			final MessagePane<M, C> messagePane = new MessagePane<M, C>(id, mailService);
 			messagePane.setScrollHandler(webScrollHandler);
 			messagePane.setUpdateHandler(updateHandler);
+			messagePane.setExpanded(false);
 			messagePane.load();
 
 			msgPanes.add(0, messagePane);
+		}
+		if (!msgPanes.isEmpty()) {
+			@SuppressWarnings("unchecked")
+			final MessagePane<M, C> messagePane = (MessagePane<M, C>) msgPanes.get(0);
+			messagePane.setExpanded(true);
 			if (msgPanes.size() == 1) {
-				// last item is not collapsible
+				// only one message, not collapsible
 				messagePane.setCollapsible(false);
 			}
 		}
@@ -210,8 +235,7 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 				updateHandler.handle(null);
 			}
 		} catch (final MailException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.error("marking thread id ({}) unread", thread.getId());
 		}
 	}
 

@@ -6,6 +6,10 @@
 	-fx-padding: 4 5 4 5;
 }
 
+.snippet-label {
+	-fx-padding: 0 0 0 10;
+}
+
 .box-underline {
     -fx-border-color: lightgray;
 	-fx-border-width: 0 0 1 0;

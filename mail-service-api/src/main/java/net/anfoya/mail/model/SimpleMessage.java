@@ -6,7 +6,7 @@ import net.anfoya.mail.service.Message;
 
 
 @SuppressWarnings("serial")
-public class SimpleMessage implements Message {
+public abstract class SimpleMessage implements Message {
 
 	private final String id;
 	private final boolean draft;
