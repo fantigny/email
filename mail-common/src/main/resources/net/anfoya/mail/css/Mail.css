@@ -48,10 +48,11 @@
     -fx-padding: 2;
 
 	-fx-opacity: 0.9;
+	-fx-background-radius: 5;
     -fx-background-color: lightgray;
 
-    -fx-border-color: darkgray;
     -fx-border-radius: 5;
+    -fx-border-color: transparent;
     
     -fx-text-fill: black;
     -fx-font-weight: bold;
