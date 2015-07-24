@@ -143,7 +143,10 @@ public class RecipientListPane<C extends Contact> extends HBox {
 	}
 
 	public void setAddressContacts(final Map<String, C> addressContacts) {
-		if (!combo.getItems().isEmpty()) throw new RuntimeException("addressContacts can only be set once");
+		if (!this.addressContacts.isEmpty()) {
+			throw new RuntimeException("addressContacts can only be set once");
+		}
+		this.addressContacts = addressContacts;
 		combo.getItems().addAll(addressContacts.keySet());
 		new ComboBoxAutoShow(combo, address ->
 			selectedAdresses.contains(address)

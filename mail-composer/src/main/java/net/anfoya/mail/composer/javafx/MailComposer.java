@@ -376,7 +376,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		show();
 
 		Platform.runLater(() -> {
-			if (quote || true) {
+			if (quote) {
 				// send focus to html editor
 				final WebView view = (WebView) ((GridPane)((HTMLEditorSkin)editor.getSkin()).getChildren().get(0)).getChildren().get(2);
 				view.fireEvent(new MouseEvent(MouseEvent.MOUSE_PRESSED, 100, 100, 200, 200, MouseButton.PRIMARY, 1, false, false, false, false, false, false, false, false, false, false, null));
