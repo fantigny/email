@@ -1,5 +1,6 @@
 package net.anfoya.mail.composer.javafx;
 
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -31,20 +32,19 @@ public class RecipientListPane<C extends Contact> extends HBox {
 	private final Label title;
 	private final FlowPane flowPane;
 	private final ComboField<String> combo;
-	private final Map<String, C> addressContacts;
 	private final Set<String> selectedAdresses;
+
+	private Map<String, C> addressContacts;
 
 	private Task<Double> organiseTask;
 	private long organiseTaskId;
 
 	private EventHandler<ActionEvent> updateHandler;
 
-	public RecipientListPane(final String title, final Map<String, C> addressContacts) {
+	public RecipientListPane(final String title) {
 		super(0);
 		setPadding(new Insets(3, 0, 3, 0));
 		getStyleClass().add("box-underline");
-
-		this.addressContacts = addressContacts;
 
 		this.title = new Label(title);
 		this.title.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
@@ -59,6 +59,7 @@ public class RecipientListPane<C extends Contact> extends HBox {
 		organiseTask = null;
 		organiseTaskId = -1;
 
+		addressContacts = new HashMap<String, C>();
 		selectedAdresses = new LinkedHashSet<String>();
 
 		combo = new ComboField<String>();
@@ -69,7 +70,12 @@ public class RecipientListPane<C extends Contact> extends HBox {
 			    public void updateItem(final String address, final boolean empty) {
 			        super.updateItem(address, empty);
 			        if (!empty) {
-			        	setText(addressContacts.get(address).getFullname() + " (" + addressContacts.get(address).getEmail() + ")");
+			        	try {
+			        		setText(addressContacts.get(address).getFullname() + " (" + addressContacts.get(address).getEmail() + ")");
+			        	} catch(final Exception e) {
+			        		setText(address);
+			        		//TODO: debug anita@glorywell.com.hk
+			        	}
 			        }
 				}
 			};
@@ -81,12 +87,14 @@ public class RecipientListPane<C extends Contact> extends HBox {
 				flowPane.getChildren().remove(lastAddressIndex);
 			}
 		});
-		combo.getItems().addAll(addressContacts.keySet());
-		new ComboBoxAutoShow(combo, address -> selectedAdresses.contains(address)
-				? ""
-				: addressContacts.get(address).getFullname() + " " + addressContacts.get(address).getEmail());
+		combo.focusTraversableProperty().bind(focusTraversableProperty());
 		flowPane.getChildren().add(combo);
 
+		focusedProperty().addListener((ov, o, n) -> {
+			if (n) {
+				combo.requestFocus();
+			}
+		});
 		heightProperty().addListener((ov, o, n) -> organise(null));
 		widthProperty().addListener((ov, o, n) -> organise(null));
 	}
@@ -132,6 +140,15 @@ public class RecipientListPane<C extends Contact> extends HBox {
 
 	public void setTitle(final String title) {
 		this.title.setText(title);
+	}
+
+	public void setAddressContacts(final Map<String, C> addressContacts) {
+		if (!combo.getItems().isEmpty()) throw new RuntimeException("addressContacts can only be set once");
+		combo.getItems().addAll(addressContacts.keySet());
+		new ComboBoxAutoShow(combo, address ->
+			selectedAdresses.contains(address)
+			? ""
+			: addressContacts.get(address).getFullname() + " " + addressContacts.get(address).getEmail());
 	}
 
 	private synchronized void organise(final Label lastAdded) {

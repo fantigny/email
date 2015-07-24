@@ -4,11 +4,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -41,6 +42,7 @@ import javax.mail.Address;
 import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
 import javax.mail.Session;
+import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
@@ -96,14 +98,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		super(StageStyle.UNIFIED);
 		setOnCloseRequest(e -> stopAutosave());
 
-		String personal;
-		final C contact = mailService.getContact();
-		if (contact.getFullname().isEmpty()) {
-			personal = contact.getEmail();
-		} else {
-			personal = contact.getFullname() + " (" + contact.getEmail() + ")";
-		}
-		setTitle("FisherMail - " + personal);
+		setTitle("FisherMail");
 
 		editedProperty = new SimpleBooleanProperty(false);
 		autosaveTimer = new Timer(true);
@@ -120,27 +115,22 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		this.updateHandler = updateHandler;
 
 		// load contacts from server
-		addressContacts = new HashMap<String, C>();
-		try {
-			for(final C c: mailService.getContacts()) {
-				addressContacts.put(c.getEmail(), c);
-			}
-		} catch (final MailException e) {
-			LOGGER.error("loading contacts", e);
-		}
+		addressContacts = new ConcurrentHashMap<String, C>();
+		initContacts();
 
 		helper = new MessageHelper();
 		mainPane = (BorderPane) getScene().getRoot();
 		mainPane.setPadding(new Insets(3));
 
-		toListBox = new RecipientListPane<C>("to: ", addressContacts);
+		toListBox = new RecipientListPane<C>("to: ");
 		toListBox.setOnUpdateList(e -> editedProperty.set(true));
 		HBox.setHgrow(toListBox, Priority.ALWAYS);
 
-		ccListBox = new RecipientListPane<C>("cc/bcc: ", addressContacts);
+		ccListBox = new RecipientListPane<C>("cc/bcc: ");
+		ccListBox.setFocusTraversable(false);
 		ccListBox.setOnUpdateList(e -> editedProperty.set(true));
 
-		bccListBox = new RecipientListPane<C>("bcc: ", addressContacts);
+		bccListBox = new RecipientListPane<C>("bcc: ");
 		bccListBox.setOnUpdateList(e -> editedProperty.set(true));
 
 		final Label subject = new Label("subject:");
@@ -204,16 +194,58 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		});
 	}
 
+	private void initContacts() {
+		final Task<Set<C>> contactTask = new Task<Set<C>>() {
+			@Override
+			protected Set<C> call() throws Exception {
+				return mailService.getContacts();
+			}
+		};
+		contactTask.setOnSucceeded(e -> {
+			for(final C c: contactTask.getValue()) {
+				addressContacts.put(c.getEmail(), c);
+			}
+			toListBox.setAddressContacts(addressContacts);
+			ccListBox.setAddressContacts(addressContacts);
+			bccListBox.setAddressContacts(addressContacts);
+
+			final C contact = mailService.getContact();
+			if (contact.getFullname().isEmpty()) {
+				setTitle(getTitle() + " - " + contact.getEmail());
+			} else {
+				setTitle(getTitle() + " - " + contact.getFullname() + " (" + contact.getEmail() + ")");
+			}
+		});
+		contactTask.setOnFailed(e -> LOGGER.error("loading contacts", e.getSource().getException()));
+		ThreadPool.getInstance().submitHigh(contactTask);
+	}
+
 	private void addAttachment(final File file) {
 
 	}
 
 	public void newMessage(final String recipient) throws MailException {
+		final InternetAddress to;
+		if (recipient == null || recipient.isEmpty()) {
+			to = null;
+		} else {
+			InternetAddress address;
+			try {
+				address = new InternetAddress(recipient);
+			} catch (final AddressException e) {
+				address = null;
+			}
+			to = address;
+		}
+
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
 				final MimeMessage message = new MimeMessage(Session.getDefaultInstance(new Properties()));
 				message.setContent("", "text/html");
+				if (to != null) {
+					message.addRecipient(RecipientType.TO, to);
+				}
 				message.saveChanges();
 				draft = mailService.createDraft(null);
 				draft.setMimeDraft(message);
@@ -344,11 +376,15 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		show();
 
 		Platform.runLater(() -> {
-			// send focus to html editor
-			final WebView view = (WebView) ((GridPane)((HTMLEditorSkin)editor.getSkin()).getChildren().get(0)).getChildren().get(2);
-			view.fireEvent(new MouseEvent(MouseEvent.MOUSE_PRESSED, 100, 100, 200, 200, MouseButton.PRIMARY, 1, false, false, false, false, false, false, false, false, false, false, null));
-			editor.requestFocus();
-			view.fireEvent(new MouseEvent(MouseEvent.MOUSE_RELEASED, 100, 100, 200, 200, MouseButton.PRIMARY, 1, false, false, false, false, false, false, false, false, false, false, null));
+			if (quote || true) {
+				// send focus to html editor
+				final WebView view = (WebView) ((GridPane)((HTMLEditorSkin)editor.getSkin()).getChildren().get(0)).getChildren().get(2);
+				view.fireEvent(new MouseEvent(MouseEvent.MOUSE_PRESSED, 100, 100, 200, 200, MouseButton.PRIMARY, 1, false, false, false, false, false, false, false, false, false, false, null));
+				editor.requestFocus();
+				view.fireEvent(new MouseEvent(MouseEvent.MOUSE_RELEASED, 100, 100, 200, 200, MouseButton.PRIMARY, 1, false, false, false, false, false, false, false, false, false, false, null));
+			} else {
+				toListBox.requestFocus();
+			}
 
 			// start auto save
 			startAutosave();
@@ -491,6 +527,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		final String cc = "cc: ";
 		if (!cc.equals(ccListBox.getTitle())) {
 			ccListBox.setTitle(cc);
+			ccListBox.setFocusTraversable(true);
 			headerBox.getChildren().add(2, bccListBox);
 		}
 	}
