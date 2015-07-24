@@ -24,7 +24,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
-import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.util.Duration;
 
@@ -52,55 +51,47 @@ import org.slf4j.LoggerFactory;
 public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessagePane.class);
 	private static final String CSS_DATA = "<style> body {"
-			+ " margin: 0;"
-			+ " padding: 5 5 5 30;"
+			+ " margin: 7;"
+			+ " padding: 0;"
 			+ " font-family: Arial, Helvetica, sans-serif;"
 			+ " font-size: 12px;"
 			+ "} </style>";
 
+	private final String messageId;
 	private final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService;
 	private final BooleanProperty expanded;
 	private final MessageHelper helper;
 
-	private boolean collapsible;
-
 	private final Text titleText;
 	private final Text dateText;
-	private final HBox snippet;
-	private final WebEngine snippetEngine;
-	private final WebViewFitContent bodyView;
+	private final WebView snippetView;
+	private final WebViewFitContent messageView;
 
-	private final String messageId;
+	private boolean collapsible;
+
 	private M message;
 	private Task<String> loadTask;
 
 	private EventHandler<ActionEvent> updateHandler;
 	private boolean mouseOver;
+
 	private Timeline showSnippetTimeline;
+	private Timeline showMessageTimeline;
 
 	public MessagePane(final String messageId, final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService) {
 		this.mailService = mailService;
 		this.messageId = messageId;
+		expanded = new SimpleBooleanProperty(true);
 
 		collapsible = true;
 		helper = new MessageHelper();
 
-		bodyView = new WebViewFitContent();
-		bodyView.getEngine().setCreatePopupHandler(handler -> bodyView.getEngine());
-		bodyView.getEngine().locationProperty().addListener((ov, o, n) -> {
+		messageView = new WebViewFitContent();
+		messageView.getEngine().setCreatePopupHandler(handler -> messageView.getEngine());
+		messageView.getEngine().locationProperty().addListener((ov, o, n) -> {
 			if (o != null) {
-				Platform.runLater(() -> bodyView.getEngine().getLoadWorker().cancel());
+				Platform.runLater(() -> messageView.getEngine().getLoadWorker().cancel());
 				handleHyperlink(n);
-			}
-		});
-
-		expanded = new SimpleBooleanProperty(true);
-		expanded.addListener((ov, o, n) -> {
-			if (collapsible) {
-				final double height = n? bodyView.getPrefHeight(): 0;
-				bodyView.setMinHeight(height);
-				bodyView.setMaxHeight(height);
-				autosize();
 			}
 		});
 
@@ -117,17 +108,13 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		titlePane.setMinHeight(30);
 		titlePane.setOnMouseClicked(event -> expanded.set(!expanded.get()));
 
-		final WebView webView = new WebView();
-		snippetEngine = webView.getEngine();
+		snippetView = new WebView();
+		snippetView.prefWidthProperty().bind(widthProperty());
+		snippetView.setPrefHeight(30);
+		snippetView.setMinHeight(0);
+		snippetView.setMaxHeight(0);
+		snippetView.toBack();
 
-		snippet = new HBox(webView);
-		snippet.prefWidthProperty().bind(widthProperty());
-		snippet.setPrefHeight(30);
-		snippet.setMinHeight(0);
-		snippet.setMaxHeight(0);
-		snippet.toBack();
-
-		expanded.addListener((ov, o, n) -> setShowSnippet(mouseOver && !n));
 		titlePane.setOnMouseEntered(e ->{
 			 setShowSnippet(expanded.not().get());
 			 mouseOver = true;
@@ -137,7 +124,16 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 			 mouseOver = false;
 		});
 
-		getChildren().addAll(titlePane, snippet, bodyView);
+		expanded.addListener((ov, o, n) -> {
+			setShowMessage(collapsible && n);
+			if (!o && n) {
+				snippetView.setMaxHeight(0);
+			} else {
+				setShowSnippet(mouseOver && !n);
+			}
+		});
+
+		getChildren().addAll(titlePane, snippetView, messageView);
 		setOnDragDetected(event -> {
 	        final ClipboardContent content = new ClipboardContent();
 	        content.put(ThreadDropPane.MESSAGE_DATA_FORMAT, message);
@@ -151,10 +147,21 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 			showSnippetTimeline.stop();
 		}
 
-		final KeyValue values = new KeyValue(snippet.maxHeightProperty(), show? snippet.getPrefHeight(): 0);
-		final KeyFrame frame = new KeyFrame(Duration.millis(100), values);
+		final KeyValue values = new KeyValue(snippetView.maxHeightProperty(), show? snippetView.getPrefHeight(): 0);
+		final KeyFrame frame = new KeyFrame(Duration.millis(100 * (show? 1: .5)), values);
 		showSnippetTimeline = new Timeline(frame);
 		showSnippetTimeline.play();
+	}
+
+	private void setShowMessage(final boolean show) {
+		if (showMessageTimeline != null) {
+			showMessageTimeline.stop();
+		}
+
+		final KeyValue values = new KeyValue(messageView.maxHeightProperty(), show? messageView.getPrefHeight(): 0);
+		final KeyFrame frame = new KeyFrame(Duration.millis(100 * (show? 1: .5)), values);
+		showMessageTimeline = new Timeline(frame);
+		showMessageTimeline.play();
 	}
 
 	public synchronized void load() {
@@ -174,14 +181,14 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		});
 		loadTask.setOnSucceeded(event -> {
 			refresh();
-			bodyView.getEngine().loadContent(loadTask.getValue());
-			((JSObject) bodyView.getEngine().executeScript("window")).setMember("attLoader", new AttachmentLoader<M>(mailService, messageId));
+			messageView.getEngine().loadContent(loadTask.getValue());
+			((JSObject) messageView.getEngine().executeScript("window")).setMember("attLoader", new AttachmentLoader<M>(mailService, messageId));
 		});
 		ThreadPool.getInstance().submitHigh(loadTask);
 	}
 
 	public void setScrollHandler(final EventHandler<ScrollEvent> handler) {
-		bodyView.setScrollHandler(handler);
+		messageView.setScrollHandler(handler);
 	}
 
 	public boolean isExpanded() {
@@ -239,6 +246,6 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 			LOGGER.error("loading title data", e);
 		}
 
-		snippetEngine.loadContent(CSS_DATA + message.getSnippet() + "...");
+		snippetView.getEngine().loadContent(CSS_DATA + message.getSnippet() + "...");
 	}
 }
