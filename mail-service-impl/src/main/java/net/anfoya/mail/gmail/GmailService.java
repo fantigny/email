@@ -69,6 +69,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	private final ReadOnlyBooleanWrapper disconnected;
 
 	private String address;
+	private GmailContact contact;
 
 	public GmailService() {
 		disconnected = new ReadOnlyBooleanWrapper(false);
@@ -716,16 +717,22 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	@Override
-	public GmailContact getContact() throws GMailException {
-		try {
-			for(final GmailContact c: getContacts()) {
-				if (c.getEmail().equals(address)) {
-					return c;
+	public synchronized GmailContact getContact() {
+		if (contact == null) {
+			try {
+				for(final GmailContact c: getContacts()) {
+					if (c.getEmail().equals(address)) {
+						contact = c;
+						break;
+					}
 				}
+			} catch (final GMailException e) {
+				LOGGER.error("loading personal contact", e);
 			}
-			return new GmailContact(address, "");
-		} catch (final GMailException e) {
-			throw new GMailException("loading personal data", e);
+			if (contact == null) {
+				contact = new GmailContact(address, "");
+			}
 		}
+		return contact;
 	}
 }

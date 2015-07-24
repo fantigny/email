@@ -42,6 +42,6 @@ public interface MailService<
 	public void send(M draft) throws MailException;
 	public void save(M draft) throws MailException;
 
-	public C getContact() throws MailException;
+	public C getContact();
 	public Set<C> getContacts() throws MailException;
 }

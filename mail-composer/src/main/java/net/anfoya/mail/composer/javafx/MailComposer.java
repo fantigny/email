@@ -97,15 +97,11 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		setOnCloseRequest(e -> stopAutosave());
 
 		String personal;
-		try {
-			final C contact = mailService.getContact();
-			if (contact.getFullname().isEmpty()) {
-				personal = contact.getEmail();
-			} else {
-				personal = contact.getFullname() + " (" + contact.getEmail() + ")";
-			}
-		} catch (final MailException e1) {
-			personal = "unknown!";
+		final C contact = mailService.getContact();
+		if (contact.getFullname().isEmpty()) {
+			personal = contact.getEmail();
+		} else {
+			personal = contact.getFullname() + " (" + contact.getEmail() + ")";
 		}
 		setTitle("FisherMail - " + personal);
 
@@ -395,7 +391,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 				from = new InternetAddress(contact.getEmail(), contact.getFullname());
 			}
 			message.setFrom(from);
-		} catch (final MailException | UnsupportedEncodingException e) {
+		} catch (final UnsupportedEncodingException e) {
 			LOGGER.error("loading user data", e);
 		}
 
