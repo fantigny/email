@@ -10,6 +10,7 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
 import javafx.scene.layout.GridPane;
+import net.anfoya.javafx.scene.dnd.DndPaneTranslationHelper;
 import net.anfoya.javafx.scene.dnd.DropArea;
 import net.anfoya.tag.service.Tag;
 
@@ -22,13 +23,15 @@ public class ExtItemDropPane<T extends Tag> extends GridPane {
 
 		setMaxHeight(100);
 
+		new DndPaneTranslationHelper(this);
+
 		final DropArea newTagArea = new DropArea("add new tag", extItemDataFormat);
-		newTagArea.setOnDragDropped(event -> {
-			final Dragboard db = event.getDragboard();
+		newTagArea.setOnDragDropped(e -> {
+			final Dragboard db = e.getDragboard();
 			if (db.hasContent(extItemDataFormat)) {
 				final String name = getName();
 				if (name == null) {
-					event.consume();
+					e.consume();
 					return;
 				}
 

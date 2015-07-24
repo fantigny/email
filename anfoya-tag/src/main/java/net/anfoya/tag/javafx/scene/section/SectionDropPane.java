@@ -18,9 +18,14 @@ import net.anfoya.tag.service.Section;
 import net.anfoya.tag.service.Tag;
 import net.anfoya.tag.service.TagService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class SectionDropPane<S extends Section> extends GridPane {
+	private static final Logger LOGGER = LoggerFactory.getLogger(SectionDropPane.class);
 
 	private final TagService<S, ? extends Tag> tagService;
+
 	private EventHandler<ActionEvent> updateHandler;
 
 	public SectionDropPane(final TagService<S, ? extends Tag> tagService) {
@@ -34,28 +39,32 @@ public class SectionDropPane<S extends Section> extends GridPane {
 		setMaxHeight(60);
 
 		final DropArea removeArea = new DropArea("remove", DndFormat.SECTION_DATA_FORMAT);
-		removeArea.setOnDragDropped(event -> {
-			if (event.getDragboard().hasContent(DndFormat.SECTION_DATA_FORMAT)) {
+		removeArea.setOnDragDropped(e -> {
+			if (e.getDragboard().hasContent(DndFormat.SECTION_DATA_FORMAT)) {
 				@SuppressWarnings("unchecked")
-				final S section = (S) event.getDragboard().getContent(DndFormat.SECTION_DATA_FORMAT);
+				final S section = (S) e.getDragboard().getContent(DndFormat.SECTION_DATA_FORMAT);
 				remove(section);
-				event.setDropCompleted(true);
-				event.consume();
+				e.setDropCompleted(true);
+				e.consume();
 			}
 		});
 
 		final DropArea renameArea = new DropArea("rename", DndFormat.SECTION_DATA_FORMAT);
-		renameArea.setOnDragDropped(event -> {
-			if (event.getDragboard().hasContent(DndFormat.SECTION_DATA_FORMAT)) {
+		renameArea.setOnDragDropped(e -> {
+			if (e.getDragboard().hasContent(DndFormat.SECTION_DATA_FORMAT)) {
 				@SuppressWarnings("unchecked")
-				final S section = (S) event.getDragboard().getContent(DndFormat.SECTION_DATA_FORMAT);
+				final S section = (S) e.getDragboard().getContent(DndFormat.SECTION_DATA_FORMAT);
 				rename(section);
-				event.setDropCompleted(true);
-				event.consume();
+				e.setDropCompleted(true);
+				e.consume();
 			}
 		});
 
 		addRow(0, renameArea, removeArea);
+	}
+
+	public void setOnUpdateSection(final EventHandler<ActionEvent> handler) {
+		updateHandler = handler;
 	}
 
 	private void rename(final S section) {
@@ -88,8 +97,8 @@ public class SectionDropPane<S extends Section> extends GridPane {
 				return null;
 			}
 		};
-		task.setOnFailed(event -> event.getSource().getException().printStackTrace(System.out)); // TODO Auto-generated catch block
-		task.setOnSucceeded(event -> updateHandler.handle(null));
+		task.setOnSucceeded(e -> updateHandler.handle(null));
+		task.setOnFailed(e -> LOGGER.error("renaming section \"{}\" to \"{}\"", section.getName(), finalAnswer, e.getSource().getException()));
 		ThreadPool.getInstance().submitHigh(task);
 	}
 
@@ -107,13 +116,9 @@ public class SectionDropPane<S extends Section> extends GridPane {
 					return null;
 				}
 			};
-			task.setOnFailed(event -> event.getSource().getException().printStackTrace(System.out)); // TODO Auto-generated catch block
 			task.setOnSucceeded(event -> updateHandler.handle(null));
+			task.setOnFailed(e -> LOGGER.error("removing section \"{}\"", section.getName(), e.getSource().getException()));
 			ThreadPool.getInstance().submitHigh(task);
 		}
-	}
-
-	public void setOnUpdateSection(final EventHandler<ActionEvent> handler) {
-		updateHandler = handler;
 	}
 }

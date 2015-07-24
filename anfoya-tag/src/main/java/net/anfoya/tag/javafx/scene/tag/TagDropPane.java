@@ -12,13 +12,20 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.GridPane;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.javafx.scene.dnd.DndPaneTranslationHelper;
 import net.anfoya.javafx.scene.dnd.DropArea;
 import net.anfoya.tag.javafx.scene.dnd.DndFormat;
+import net.anfoya.tag.javafx.scene.section.SectionDropPane;
 import net.anfoya.tag.service.Section;
 import net.anfoya.tag.service.Tag;
 import net.anfoya.tag.service.TagService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
+	private static final Logger LOGGER = LoggerFactory.getLogger(SectionDropPane.class);
+
 	private final TagService<S, T> tagService;
 	private EventHandler<ActionEvent> onUpdateHandler;
 
@@ -32,38 +39,40 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 
 		setMaxHeight(100);
 
+		new DndPaneTranslationHelper(this);
+
 		final DropArea removeArea = new DropArea("remove", DndFormat.TAG_DATA_FORMAT);
-		removeArea.setOnDragDropped(event -> {
-			if (event.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT)) {
+		removeArea.setOnDragDropped(e -> {
+			if (e.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT)) {
 				@SuppressWarnings("unchecked")
-				final T tag = (T) event.getDragboard().getContent(DndFormat.TAG_DATA_FORMAT);
+				final T tag = (T) e.getDragboard().getContent(DndFormat.TAG_DATA_FORMAT);
 				remove(tag);
-				event.setDropCompleted(true);
-				event.consume();
+				e.setDropCompleted(true);
+				e.consume();
 			}
 		});
 
 		final DropArea renameArea = new DropArea("rename", DndFormat.TAG_DATA_FORMAT);
-		renameArea.setOnDragDropped(event -> {
-			if (event.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT)) {
+		renameArea.setOnDragDropped(e -> {
+			if (e.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT)) {
 				@SuppressWarnings("unchecked")
-				final T tag = (T) event.getDragboard().getContent(DndFormat.TAG_DATA_FORMAT);
+				final T tag = (T) e.getDragboard().getContent(DndFormat.TAG_DATA_FORMAT);
 				rename(tag);
-				event.setDropCompleted(true);
-				event.consume();
+				e.setDropCompleted(true);
+				e.consume();
 			}
 		});
 
 		addRow(0, renameArea, removeArea);
 
 		final DropArea newSectionArea = new DropArea("new section", DndFormat.TAG_DATA_FORMAT);
-		newSectionArea.setOnDragDropped(event -> {
-			if (event.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT)) {
+		newSectionArea.setOnDragDropped(e -> {
+			if (e.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT)) {
 				@SuppressWarnings("unchecked")
-				final T tag = (T) event.getDragboard().getContent(DndFormat.TAG_DATA_FORMAT);
+				final T tag = (T) e.getDragboard().getContent(DndFormat.TAG_DATA_FORMAT);
 				newSection(tag);
-				event.setDropCompleted(true);
-				event.consume();
+				e.setDropCompleted(true);
+				e.consume();
 			}
 		});
 
@@ -102,9 +111,8 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 				return null;
 			}
 		};
-		task.setOnFailed(event -> // TODO Auto-generated catch block
-		event.getSource().getException().printStackTrace(System.out));
 		task.setOnSucceeded(event -> onUpdateHandler.handle(null));
+		task.setOnFailed(e -> LOGGER.error("moving tag \"{}\" to new section \"{}\"", tag.getName(), finalAnswer, e.getSource().getException()));
 		ThreadPool.getInstance().submitHigh(task);
 	}
 
@@ -138,9 +146,8 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 				return null;
 			}
 		};
-		task.setOnFailed(event -> // TODO Auto-generated catch block
-		event.getSource().getException().printStackTrace(System.out));
 		task.setOnSucceeded(event -> onUpdateHandler.handle(null));
+		task.setOnFailed(e -> LOGGER.error("renaming tag \"{}\" to \"{}\"", tag.getName(), finalAnswer, e.getSource().getException()));
 		ThreadPool.getInstance().submitHigh(task);
 	}
 
@@ -158,9 +165,8 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 					return null;
 				}
 			};
-			task.setOnFailed(event -> // TODO Auto-generated catch block
-			event.getSource().getException().printStackTrace(System.out));
 			task.setOnSucceeded(event -> onUpdateHandler.handle(null));
+			task.setOnFailed(e -> LOGGER.error("removing tag \"{}\"", tag.getName(), e.getSource().getException()));
 			ThreadPool.getInstance().submitHigh(task);
 		}
 	}
