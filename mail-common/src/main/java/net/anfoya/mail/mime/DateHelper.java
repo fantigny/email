@@ -16,9 +16,7 @@ public class DateHelper {
 	public DateHelper(final Date date) {
 		today = Calendar.getInstance();
 		calendar = Calendar.getInstance();
-		if (date != null) {
-			calendar.setTime(date);
-		}
+		calendar.setTime(date);
 	}
 
 	public String getPattern() {

@@ -63,6 +63,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	private final MessageHelper helper;
 
 	private final Text titleText;
+	private final HBox iconPane;
 	private final Text dateText;
 	private final WebView snippetView;
 	private final WebViewFitContent messageView;
@@ -73,7 +74,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	private Task<String> loadTask;
 
 	private EventHandler<ActionEvent> updateHandler;
-	private boolean mouseOver;
+	private volatile boolean mouseOver;
 
 	private Timeline showSnippetTimeline;
 	private Timeline showMessageTimeline;
@@ -98,10 +99,12 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		titleText = new Text("loading...");
 		dateText = new Text();
 
-		final HBox empty = new HBox();
-		HBox.setHgrow(empty, Priority.ALWAYS);
+		iconPane = new HBox();
+		iconPane.setAlignment(Pos.CENTER_LEFT);
+		HBox.setHgrow(iconPane, Priority.ALWAYS);
+		//TODO add attachment icon in this pane
 
-		final HBox titlePane = new HBox(titleText, empty, dateText);
+		final HBox titlePane = new HBox(titleText, iconPane, dateText);
 		titlePane.getStyleClass().add("message-title-pane");
 		titlePane.setPadding(new Insets(5));
 		titlePane.setAlignment(Pos.CENTER_LEFT);
@@ -125,7 +128,10 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		});
 
 		expanded.addListener((ov, o, n) -> {
-			setShowMessage(collapsible && n);
+			if (!collapsible) {
+				return;
+			}
+			setShowMessage(n);
 			if (!o && n) {
 				snippetView.setMaxHeight(0);
 			} else {
@@ -159,7 +165,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		}
 
 		final KeyValue values = new KeyValue(messageView.maxHeightProperty(), show? messageView.getPrefHeight(): 0);
-		final KeyFrame frame = new KeyFrame(Duration.millis(100 * (show? 1: .5)), values);
+		final KeyFrame frame = new KeyFrame(Duration.millis(50 * (show? 1: .5)), values);
 		showMessageTimeline = new Timeline(frame);
 		showMessageTimeline.play();
 	}
@@ -234,17 +240,23 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	}
 
 	private void refresh() {
+		final StringBuilder title = new StringBuilder();
+		final MimeMessage mimeMessage = message.getMimeMessage();
 		try {
-			final MimeMessage mimeMessage = message.getMimeMessage();
-
-			final StringBuilder title = new StringBuilder();
 			title.append(String.join(", ", helper.getMailAddresses(mimeMessage.getFrom())));
 			title.append(" to ").append(String.join(", ", helper.getMailAddresses(mimeMessage.getRecipients(MimeMessage.RecipientType.TO))));
-			titleText.setText(title.toString());
-			dateText.setText(new DateHelper(mimeMessage.getSentDate()).format());
 		} catch (final MessagingException e) {
 			LOGGER.error("loading title data", e);
 		}
+		titleText.setText(title.toString());
+
+		String date = "";
+		try {
+			date = new DateHelper(mimeMessage.getSentDate()).format();
+		} catch (final Exception e) {
+			LOGGER.warn("loading sent date", e);
+		}
+		dateText.setText(date);
 
 		snippetView.getEngine().loadContent(CSS_DATA + message.getSnippet() + "...");
 	}

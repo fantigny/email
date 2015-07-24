@@ -46,7 +46,11 @@ public class GmailThread extends SimpleThread {
 	private static Date findDate(final Thread thread) {
 		try {
 			final String s = findHeader(thread, "Date");
-			return new MailDateFormat().parse(s);
+			if (s.isEmpty()) {
+				return new Date();
+			} else {
+				return new MailDateFormat().parse(s);
+			}
 		} catch (final Exception e) {
 			return new Date();
 		}
