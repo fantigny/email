@@ -57,13 +57,10 @@ public class ComboField<T> extends ComboBox<T> {
 
 		// arm delayed <fieldActionHandler> on ComboBox::onAction event when showing
 		// (to catch mouse click on combobox displayed list)
-		setOnAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(final ActionEvent event) {
-				if (showingProperty().get()) {
-					LOGGER.debug("handle onAction and showing");
-					fireDelayedFieldAction(event);
-				}
+		setOnAction(event -> {
+			if (showingProperty().get()) {
+				LOGGER.debug("handle onAction and showing");
+				fireDelayedFieldAction(event);
 			}
 		});
 
@@ -79,44 +76,41 @@ public class ComboField<T> extends ComboBox<T> {
 		// discard ENTER, ESCAPE, RIGHT, LEFT KEY_RELEASED
 		// cancel delayed <fieldActionHandler> on UP or DOWN KEY_RELEASED
 		// fire <listRequestHandler> on DOWN KEY_RELEASED (if list is not showing) or other characters
-		getEditor().addEventFilter(KeyEvent.KEY_RELEASED, new EventHandler<KeyEvent>() {
-			@Override
-			public void handle(final KeyEvent event) {
-				switch(event.getCode()) {
-				case ENTER: case ESCAPE: case RIGHT: case LEFT: case SHIFT: case ALT: case WINDOWS: case COMMAND: case CONTROL: case TAB:
-					LOGGER.debug("editor filter KEY_RELEASED ENTER/ESCAPE/RIGHT/LEFT/SHIFT/ALT/WINDOWS/COMMAND/CONTROL/TAB");
-					break;
-				case UP:
-					LOGGER.debug("editor filter KEY_RELEASED UP");
-					cancelDelayedFieldAction();
-					if (showingProperty().get()) {
-						if (getSelectionModel().isEmpty()) {
-							LOGGER.debug("editor filter KEY_RELEASED UP and showing no selection");
-							hide();
+		getEditor().addEventFilter(KeyEvent.KEY_RELEASED, event -> {
+			switch(event.getCode()) {
+			case ENTER: case ESCAPE: case RIGHT: case LEFT: case SHIFT: case ALT: case WINDOWS: case COMMAND: case CONTROL: case TAB:
+				LOGGER.debug("editor filter KEY_RELEASED ENTER/ESCAPE/RIGHT/LEFT/SHIFT/ALT/WINDOWS/COMMAND/CONTROL/TAB");
+				break;
+			case UP:
+				LOGGER.debug("editor filter KEY_RELEASED UP");
+				cancelDelayedFieldAction();
+				if (showingProperty().get()) {
+					if (getSelectionModel().isEmpty()) {
+						LOGGER.debug("editor filter KEY_RELEASED UP and showing no selection");
+						hide();
+					} else {
+						if (!upHideReady) {
+							LOGGER.debug("editor filter KEY_RELEASED UP and showing");
 						} else {
-							if (!upHideReady) {
-								LOGGER.debug("editor filter KEY_RELEASED UP and showing");
-							} else {
-								LOGGER.debug("editor filter KEY_RELEASED UP again and showing");
-								hide();
-							}
-							upHideReady = true;
+							LOGGER.debug("editor filter KEY_RELEASED UP again and showing");
+							hide();
 						}
+						upHideReady = true;
 					}
-					break;
-				case DOWN:
-					LOGGER.debug("editor filter KEY_RELEASED DOWN");
-					cancelDelayedFieldAction();
-					if (!showingProperty().get()) {
-						LOGGER.debug("editor filter KEY_RELEASED DOWN and not showing");
-						fireListRequest(new ActionEvent(event.getSource(), event.getTarget()));
-					}
-					break;
-				default:
-					LOGGER.debug("editor filter other characters");
-					fireListRequest(new ActionEvent(event.getSource(), event.getTarget()));
-					break;
 				}
+				break;
+			case DOWN:
+				LOGGER.debug("editor filter KEY_RELEASED DOWN");
+				cancelDelayedFieldAction();
+				if (!showingProperty().get()) {
+					LOGGER.debug("editor filter KEY_RELEASED DOWN and not showing");
+					fireListRequest(new ActionEvent(event.getSource(), event.getTarget()));
+				}
+				break;
+			default:
+				LOGGER.debug("editor filter other characters");
+				fireListRequest(new ActionEvent(event.getSource(), event.getTarget()));
+				break;
 			}
 		});
 
@@ -153,6 +147,7 @@ public class ComboField<T> extends ComboBox<T> {
 		LOGGER.debug("set field value ({})", value);
 		if (!value.equals(this.progSetValue)) {
 			this.progSetValue = value;
+			this.currentValue = value;
 			setValue(value);
 		}
 	}
