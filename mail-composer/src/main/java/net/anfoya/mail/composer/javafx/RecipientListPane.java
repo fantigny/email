@@ -81,10 +81,19 @@ public class RecipientListPane<C extends Contact> extends HBox {
 		comboField.setOnBackspaceAction(e -> {
 			final int lastAddressIndex = flowPane.getChildren().size() - 2;
 			if (lastAddressIndex >= 0) {
-				flowPane.getChildren().remove(lastAddressIndex);
+				remove((Label) flowPane.getChildren().get(lastAddressIndex));
 			}
 		});
 		comboField.focusTraversableProperty().bind(focusTraversableProperty());
+		comboField.setFilter(address -> {
+			if (selectedAdresses.contains(address)) {
+				return "";
+			} else {
+				final C contact = addressContacts.get(address);
+				return contact.getFullname() + " " + contact.getEmail();
+			}
+		});
+
 		flowPane.getChildren().add(comboField);
 
 		focusedProperty().addListener((ov, o, n) -> {
@@ -107,11 +116,15 @@ public class RecipientListPane<C extends Contact> extends HBox {
 		organise(label);
 
 		label.setOnRemove(e -> {
-			flowPane.getChildren().remove(label);
-			selectedAdresses.remove(label.getTooltip());
-			updateHandler.handle(null);
-			organise(null);
+			remove(label);
 		});
+	}
+
+	public void remove(final Label label) {
+		flowPane.getChildren().remove(label);
+		selectedAdresses.remove(label.getTooltip().getText());
+		updateHandler.handle(null);
+		organise(null);
 	}
 
 	public Set<String> getRecipients() {
