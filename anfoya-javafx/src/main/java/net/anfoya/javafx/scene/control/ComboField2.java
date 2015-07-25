@@ -52,7 +52,7 @@ public class ComboField2 extends TextField {
 
 	public ComboField2() {
 		super("");
-        getStyleClass().add("combo-noarrow");
+        getStyleClass().add("combofield");
 		this.items = FXCollections.observableArrayList();
 
 		listView = new ListView<String>();

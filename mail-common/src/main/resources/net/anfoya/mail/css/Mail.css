@@ -1,3 +1,7 @@
+.combofield {
+	-fx-padding: 2;
+}
+
 .tooltip {
 	-fx-background-radius: 3;
 	-fx-background-color: black;     
