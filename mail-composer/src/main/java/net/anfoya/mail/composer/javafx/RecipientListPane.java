@@ -39,6 +39,8 @@ public class RecipientListPane<C extends Contact> extends HBox {
 
 	private EventHandler<ActionEvent> updateHandler;
 
+	private volatile boolean focusFromPane;
+
 	public RecipientListPane(final String title) {
 		super(0);
 		setPadding(new Insets(3, 0, 3, 0));
@@ -96,11 +98,23 @@ public class RecipientListPane<C extends Contact> extends HBox {
 
 		flowPane.getChildren().add(comboField);
 
+		focusFromPane = false;
 		focusedProperty().addListener((ov, o, n) -> {
 			if (n) {
+				focusFromPane = true;
 				comboField.requestFocus();
 			}
 		});
+		comboField.focusedProperty().addListener((ov, o, n) -> {
+			if (n) {
+				if (focusFromPane) {
+					focusFromPane = false;
+				} else {
+					requestFocus();
+				}
+			}
+		});
+
 		heightProperty().addListener((ov, o, n) -> organise(null));
 		widthProperty().addListener((ov, o, n) -> organise(null));
 	}
