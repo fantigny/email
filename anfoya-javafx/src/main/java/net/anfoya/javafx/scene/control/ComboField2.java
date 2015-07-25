@@ -31,11 +31,12 @@ import com.sun.javafx.Utils;
 public class ComboField2 extends TextField {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ComboField2.class);
 
-	private final Popup popup;
 	private final ObservableList<String> items;
-	private final BooleanProperty showingProperty;
 
+	private final Popup popup;
 	private final ListView<String> listView;
+	private final BooleanProperty showingProperty;
+	private volatile boolean firstShow;
 
 	private Callback<String, String> textFactory;
 	private Task<ObservableList<String>> filterTask;
@@ -44,7 +45,7 @@ public class ComboField2 extends TextField {
 	private volatile boolean emptyBackspaceReady;
 	private EventHandler<ActionEvent> backspaceHandler;
 
-	private double listViewHeight;
+	private double cellHeight;
 	private double cellWidth;
 
 	private Callback<ListView<String>, ListCell<String>> cellFactory;
@@ -58,10 +59,11 @@ public class ComboField2 extends TextField {
 		listView.setCellFactory(new Callback<ListView<String>, ListCell<String>>() {
 		    @Override public ListCell<String> call(final ListView<String> listView) {
 		    	final ListCell<String> cell = cellFactory  == null? new ListCell<String>(): cellFactory.call(listView);
-		    	cell.setPrefWidth(50);
-		    	cell.widthProperty().addListener((ov, o, n) -> {
-					updateListSize(cell.getHeight(), cell.getWidth());
-				});
+		    	if (firstShow) {
+			    	cell.widthProperty().addListener((ov, o, n) -> {
+						updateCellSize(cell.getHeight(), cell.getWidth());
+					});
+		    	}
 		    	return cell;
 		    }
 		});
@@ -82,6 +84,10 @@ public class ComboField2 extends TextField {
 
 		popup = new Popup();
 		popup.getContent().add(listView);
+
+		firstShow = true;
+		popup.setOnShown(e -> firstShow = false);
+
 		showingProperty = new SimpleBooleanProperty(false);
 
 		setContextMenu(new ContextMenu(new MenuItem("", listView)));
@@ -155,7 +161,7 @@ public class ComboField2 extends TextField {
 	}
 
 	public void setCellSize(final double height, final double width) {
-		listViewHeight = height;
+		cellHeight = height;
 		cellWidth = width;
 	}
 
@@ -203,35 +209,33 @@ public class ComboField2 extends TextField {
 	}
 
 	private void updatePopup(final ObservableList<String> items) {
-		listViewHeight = 10;
-		cellWidth = 100;
+		final double height = Math.max(25, Math.min(200, items.size() * ((cellHeight > 0? cellHeight:24) + 1)));
+		final double width = Math.max(100, Math.min(500, cellWidth > 0? cellWidth: 500));
+
+		LOGGER.debug("height {} width {}", height, width);
+		listView.setMaxHeight(height);
+		listView.setMinHeight(height);
+		listView.setPrefHeight(height);
+		popup.setHeight(height);
+		listView.setMaxWidth(width);
+		listView.setMinWidth(width);
+		listView.setPrefWidth(width);
+		popup.setWidth(width);
 
 		listView.getItems().setAll(items);
 	}
 
-	protected void updateListSize(double height, double width) {
-		LOGGER.debug("height {} width {}", height, width);
-		boolean update = false;
-		height *= listView.getItems().size();
-		height += 2;
-		height = Math.max(10, Math.min(240, height));
-		if (listViewHeight < height) {
-			listViewHeight = height;
-			update = true;
+	private void updateCellSize(final double height, final double width) {
+		if (!firstShow) {
+			return;
 		}
-		width = Math.max(50, Math.min(500, width));
-		if (cellWidth < width) {
+		if (cellHeight < height) {
+			cellHeight = height;
+			LOGGER.debug("update cell height {}", height);
+		}
+		if (cellWidth <=0 && cellWidth < width) {
 			cellWidth = width;
-			update = true;
-		}
-		if (update) {
-			LOGGER.debug("height {} width {}", height, width);
-			listView.setMaxWidth(width);
-			listView.setMinWidth(width);
-			popup.setWidth(width);
-			listView.setMaxHeight(height);
-			listView.setMinHeight(height);
-			popup.setHeight(height);
+			LOGGER.debug("update cell width {}", width);
 		}
 	}
 
