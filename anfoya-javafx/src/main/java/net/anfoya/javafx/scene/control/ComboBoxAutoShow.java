@@ -1,13 +1,13 @@
 package net.anfoya.javafx.scene.control;
 
-import java.util.function.Predicate;
-
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.concurrent.Task;
 import javafx.scene.control.ComboBox;
 import javafx.util.Callback;
 import net.anfoya.java.lang.StringHelper;
+import net.anfoya.java.util.concurrent.ThreadPool;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,21 +34,27 @@ public class ComboBoxAutoShow {
 				return;
 			}
 
-			comboBox.hide();
-
-			final Predicate<String> filter = s -> {
-				final String src = textBuilder.call(s);
-				return StringHelper.containsIgnoreCase(src, n);
+			final Task<FilteredList<String>> task = new Task<FilteredList<String>>() {
+				@Override
+				protected FilteredList<String> call() throws Exception {
+					return items.filtered(s -> {
+						final String src = textBuilder.call(s);
+						return StringHelper.containsIgnoreCase(src, n);
+					});
+				}
 			};
-			final FilteredList<String> filtered = items.filtered(filter);
-			if (filtered.isEmpty()) {
-				LOGGER.debug("no item match");
-				comboBox.getItems().setAll(items);
-			} else {
-				LOGGER.debug("filtered {} item(s)", filtered.size());
-				comboBox.getItems().setAll(filtered);
-				comboBox.show();
-			}
+			task.setOnSucceeded(e -> {
+				comboBox.hide();
+				comboBox.setItems(FXCollections.observableArrayList(task.getValue()));
+				if (comboBox.getItems().isEmpty()) {
+					LOGGER.debug("no item match");
+				} else {
+					LOGGER.debug("filtered {} item(s)", comboBox.getItems().size());
+					comboBox.show();
+				}
+			});
+			task.setOnFailed(e -> LOGGER.error("filtering items with \"{}\"", n, e.getSource().getException()));
+			ThreadPool.getInstance().submitHigh(task);
 		});
 	}
 }

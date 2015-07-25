@@ -48,6 +48,11 @@
 
 		<!-- compile -->
 		<dependency>
+			<groupId>np.com.ngopal</groupId>
+			<artifactId>javafx-autocomplete-field</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<dependency>
 			<groupId>javax.mail</groupId>
 			<artifactId>javax.mail-api</artifactId>
 			<version>1.5.4</version>
