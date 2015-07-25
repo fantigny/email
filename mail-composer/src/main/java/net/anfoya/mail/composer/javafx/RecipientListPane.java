@@ -5,7 +5,6 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -17,8 +16,7 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.javafx.scene.control.ComboBoxAutoShow;
-import net.anfoya.javafx.scene.control.ComboField;
+import net.anfoya.javafx.scene.control.ComboField2;
 import net.anfoya.javafx.scene.control.RemoveLabel;
 import net.anfoya.javafx.util.LabelHelper;
 import net.anfoya.mail.service.Contact;
@@ -31,7 +29,7 @@ public class RecipientListPane<C extends Contact> extends HBox {
 
 	private final Label title;
 	private final FlowPane flowPane;
-	private final ComboField<String> combo;
+	private final ComboField2 comboField;
 	private final Set<String> selectedAdresses;
 
 	private Map<String, C> addressContacts;
@@ -62,9 +60,8 @@ public class RecipientListPane<C extends Contact> extends HBox {
 		addressContacts = new HashMap<String, C>();
 		selectedAdresses = new LinkedHashSet<String>();
 
-		combo = new ComboField<String>();
-		combo.setPadding(new Insets(0));
-		combo.setCellFactory(listView -> {
+		comboField = new ComboField2();
+		comboField.setCellFactory(listView -> {
 			return new ListCell<String>() {
 				@Override
 			    public void updateItem(final String address, final boolean empty) {
@@ -80,19 +77,19 @@ public class RecipientListPane<C extends Contact> extends HBox {
 				}
 			};
 		});
-		combo.setOnFieldAction(e -> add(combo.getFieldValue()));
-		combo.setOnBackspaceAction(e -> {
+		comboField.setOnAction(e -> add(comboField.getText()));
+		comboField.setOnBackspaceAction(e -> {
 			final int lastAddressIndex = flowPane.getChildren().size() - 2;
 			if (lastAddressIndex >= 0) {
 				flowPane.getChildren().remove(lastAddressIndex);
 			}
 		});
-		combo.focusTraversableProperty().bind(focusTraversableProperty());
-		flowPane.getChildren().add(combo);
+		comboField.focusTraversableProperty().bind(focusTraversableProperty());
+		flowPane.getChildren().add(comboField);
 
 		focusedProperty().addListener((ov, o, n) -> {
 			if (n) {
-				combo.requestFocus();
+				comboField.requestFocus();
 			}
 		});
 		heightProperty().addListener((ov, o, n) -> organise(null));
@@ -119,8 +116,8 @@ public class RecipientListPane<C extends Contact> extends HBox {
 
 	public Set<String> getRecipients() {
 		final Set<String> addresses = new LinkedHashSet<String>(selectedAdresses);
-		if (combo.getValue() != null && !combo.getValue().isEmpty()) {
-			addresses.add(combo.getValue());
+		if (!comboField.getText().isEmpty()) {
+			addresses.add(comboField.getText());
 		}
 
 		return addresses;
@@ -128,10 +125,6 @@ public class RecipientListPane<C extends Contact> extends HBox {
 
 	public void setOnUpdateList(final EventHandler<ActionEvent> handler) {
 		updateHandler = handler;
-	}
-
-	public ReadOnlyBooleanProperty textfocusedProperty() {
-		return combo.getEditor().focusedProperty();
 	}
 
 	public String getTitle() {
@@ -147,11 +140,7 @@ public class RecipientListPane<C extends Contact> extends HBox {
 			throw new RuntimeException("addressContacts can only be set once");
 		}
 		this.addressContacts = addressContacts;
-		combo.getItems().addAll(addressContacts.keySet());
-		new ComboBoxAutoShow(combo, address ->
-			selectedAdresses.contains(address)
-			? ""
-			: addressContacts.get(address).getFullname() + " " + addressContacts.get(address).getEmail());
+		comboField.setItems(addressContacts.keySet());
 	}
 
 	private synchronized void organise(final Label lastAdded) {
@@ -160,16 +149,15 @@ public class RecipientListPane<C extends Contact> extends HBox {
 			organiseTask.cancel();
 		}
 
-		final double comboWidth = combo.getWidth();
+		final double comboWidth = comboField.getWidth();
 		LOGGER.debug("combo width {}", comboWidth);
 
-		combo.setFieldValue("");
-		combo.hide();
+		comboField.setText("");
 
 		if (lastAdded != null) {
 			final double tempWidth = comboWidth - LabelHelper.computeWidth(lastAdded) - flowPane.getHgap();
 			LOGGER.debug("combo temp width {}", comboWidth);
-			combo.setPrefWidth(tempWidth);
+			comboField.setPrefWidth(tempWidth);
 		}
 
 		organiseTask = new Task<Double>() {
@@ -206,7 +194,7 @@ public class RecipientListPane<C extends Contact> extends HBox {
 			}
 
 			final double availableWidth = (double) e.getSource().getValue();
-			combo.setPrefWidth(availableWidth < 150? flowPane.getWidth(): availableWidth);
+			comboField.setPrefWidth(availableWidth < 150? flowPane.getWidth(): availableWidth);
 		});
 		ThreadPool.getInstance().submitHigh(organiseTask);
 	}

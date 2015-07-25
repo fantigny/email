@@ -147,7 +147,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		headerBox.setPadding(new Insets(3, 10, 5, 10));
 		mainPane.setTop(headerBox);
 
-		ccListBox.textfocusedProperty().addListener((ov, o, n) -> showBcc());
+		ccListBox.focusedProperty().addListener((ov, o, n) -> showBcc());
 
 		editor = new HTMLEditor();
 		editor.setStyle("-fx-background-color: transparent; -fx-border-width: 0 0 1 0; -fx-border-color: lightgray;");
