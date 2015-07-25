@@ -44,12 +44,27 @@ public class ComboField2 extends TextField {
 	private volatile boolean emptyBackspaceReady;
 	private EventHandler<ActionEvent> backspaceHandler;
 
+	private double listViewHeight;
+	private double cellWidth;
+
+	private Callback<ListView<String>, ListCell<String>> cellFactory;
+
 	public ComboField2() {
 		super("");
         getStyleClass().add("combo-noarrow");
 		this.items = FXCollections.observableArrayList();
 
 		listView = new ListView<String>();
+		listView.setCellFactory(new Callback<ListView<String>, ListCell<String>>() {
+		    @Override public ListCell<String> call(final ListView<String> listView) {
+		    	final ListCell<String> cell = cellFactory  == null? new ListCell<String>(): cellFactory.call(listView);
+		    	cell.setPrefWidth(50);
+		    	cell.widthProperty().addListener((ov, o, n) -> {
+					updateListSize(cell.getHeight(), cell.getWidth());
+				});
+		    	return cell;
+		    }
+		});
 		listView.setOnMouseClicked(e -> {
 			if (!listView.getSelectionModel().isEmpty()) {
 				actionFromListView();
@@ -136,7 +151,12 @@ public class ComboField2 extends TextField {
 	}
 
 	public void setCellFactory(final Callback<ListView<String>, ListCell<String>> factory) {
-		listView.setCellFactory(factory);
+		cellFactory =  factory;
+	}
+
+	public void setCellSize(final double height, final double width) {
+		listViewHeight = height;
+		cellWidth = width;
 	}
 
 	public void setOnBackspaceAction(final EventHandler<ActionEvent> handler) {
@@ -183,14 +203,36 @@ public class ComboField2 extends TextField {
 	}
 
 	private void updatePopup(final ObservableList<String> items) {
-		final double height = 25 * Math.min(10, Math.max(2, items.size())); //TODO get from cell
+		listViewHeight = 10;
+		cellWidth = 100;
 
 		listView.getItems().setAll(items);
-		listView.setPrefHeight(height);
-		listView.setMinHeight(height);
-		listView.setMaxHeight(height);
-		listView.setMinWidth(500); //TODO get from cell
-		listView.setMaxWidth(500);
+	}
+
+	protected void updateListSize(double height, double width) {
+		LOGGER.debug("height {} width {}", height, width);
+		boolean update = false;
+		height *= listView.getItems().size();
+		height += 2;
+		height = Math.max(10, Math.min(240, height));
+		if (listViewHeight < height) {
+			listViewHeight = height;
+			update = true;
+		}
+		width = Math.max(50, Math.min(500, width));
+		if (cellWidth < width) {
+			cellWidth = width;
+			update = true;
+		}
+		if (update) {
+			LOGGER.debug("height {} width {}", height, width);
+			listView.setMaxWidth(width);
+			listView.setMinWidth(width);
+			popup.setWidth(width);
+			listView.setMaxHeight(height);
+			listView.setMinHeight(height);
+			popup.setHeight(height);
+		}
 	}
 
 	private void actionFromTextField() {
