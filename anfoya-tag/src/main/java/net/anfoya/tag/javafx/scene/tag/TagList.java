@@ -102,10 +102,10 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 		// get all tags
 		Set<T> tags;
 		try {
-			if (!pattern.isEmpty()) {
-				tags = tagService.getTags(pattern);
-			} else {
+			if (pattern.isEmpty()) {
 				tags = tagService.getTags(section);
+			} else {
+				tags = tagService.getTags(pattern);
 			}
 		} catch (final TagException e) {
 			LOGGER.error("loading tags for section {} and pattern \"{}\"", section.getName(), pattern, e);

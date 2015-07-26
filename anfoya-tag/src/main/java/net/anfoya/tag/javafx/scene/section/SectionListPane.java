@@ -193,6 +193,10 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 			refreshTask.cancel();
 		}
 
+		if (!patternField.getText().isEmpty()) {
+			refreshWithPatternAsync();
+		}
+
 		refreshTask = new Task<Void>() {
 			@Override
 			protected Void call() throws InterruptedException, TagException {
@@ -221,17 +225,15 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 			patternDelay.stop();
 		}
 
-		patternDelay = new DelayTimeline(Duration.millis(500), e -> {
-			if (patternField.getText().isEmpty()) {
-				refreshAsync(v -> {
-					init(initSectionName, initTagName);
-					return null;
-				});
-			} else {
-				refreshWithPatternAsync();
-			}
-		});
-		patternDelay.play();
+		if (patternField.getText().isEmpty()) {
+			refreshAsync(v -> {
+				init(initSectionName, initTagName);
+				return null;
+			});
+		} else {
+			patternDelay = new DelayTimeline(Duration.millis(500), e -> refreshWithPatternAsync());
+			patternDelay.play();
+		}
 	}
 
 	private synchronized void refreshWithPatternAsync() {
@@ -241,8 +243,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 		}
 
 		SearchPane<S, T> searchPane = null;
-		if (sectionAcc.getPanes().isEmpty()
-				|| sectionAcc.getPanes().size() > 0
+		if (sectionAcc.getPanes().size() != 1
 				|| !(sectionAcc.getPanes().get(0) instanceof SearchPane)) {
 			searchPane = new SearchPane<S, T>(tagService, showExcludeBox);
 			searchPane.setOnSelectTag(selectTagHandler);
