@@ -1,205 +1,250 @@
 package net.anfoya.javafx.scene.control;
 
+import java.util.Set;
+
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.scene.control.ComboBox;
+import javafx.geometry.HPos;
+import javafx.geometry.Point2D;
+import javafx.geometry.VPos;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import javafx.util.Duration;
-import net.anfoya.javafx.scene.animation.DelayTimeline;
+import javafx.stage.Popup;
+import javafx.util.Callback;
+import net.anfoya.java.lang.StringHelper;
+import net.anfoya.java.util.concurrent.ThreadPool;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * @author fantigny
- *
- * @param <T>
- */
-public class ComboField<T> extends ComboBox<T> {
-    private static final String DEFAULT_STYLE_CLASS = "combo-noarrow";
+import com.sun.javafx.Utils;
+
+public class ComboField extends TextField {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ComboField.class);
 
-	private volatile T currentValue;
-	private volatile T progSetValue;
+	private final ObservableList<String> items;
 
-	private EventHandler<ActionEvent> fieldActionHandler;
-	private EventHandler<ActionEvent> listRequestHandler;
-	private EventHandler<ActionEvent> emptyBackspaceHandler;
+	private final Popup popup;
+	private final ListView<String> listView;
+	private final BooleanProperty showingProperty;
+	private volatile boolean firstShow;
 
-	private volatile boolean upHideReady;
+	private Callback<String, String> textFactory;
+	private Task<ObservableList<String>> filterTask;
+	private int filterTaskId;
 
-	private DelayTimeline emptyTextDelay;
-	private volatile boolean textIsEmpty;
+	private volatile boolean emptyBackspaceReady;
+	private EventHandler<ActionEvent> backspaceHandler;
 
-	private DelayTimeline fieldActionDelay;
+	private double cellHeight;
+	private double cellWidth;
+
+	private Callback<ListView<String>, ListCell<String>> cellFactory;
 
 	public ComboField() {
-		setEditable(true);
-        getStyleClass().add(DEFAULT_STYLE_CLASS);
+		super("");
+        getStyleClass().add("combofield");
+		this.items = FXCollections.observableArrayList();
 
-		currentValue = null;
-		progSetValue = null;
-
-		upHideReady = false;
-		textIsEmpty = false;
-
-		// fire <fieldActionHandler> on ENTER key released
-		addEventFilter(KeyEvent.KEY_RELEASED, e -> {
-			switch(e.getCode()) {
-			case ENTER:
-				LOGGER.debug("filter KEY_RELEASED ENTER");
-				fireFieldAction(new ActionEvent(e.getSource(), e.getTarget()));
-				break;
-			default:
+		listView = new ListView<String>();
+		listView.setCellFactory(new Callback<ListView<String>, ListCell<String>>() {
+		    @Override public ListCell<String> call(final ListView<String> listView) {
+		    	final ListCell<String> cell = cellFactory  == null? new ListCell<String>(): cellFactory.call(listView);
+		    	if (firstShow) {
+			    	cell.widthProperty().addListener((ov, o, n) -> {
+						updateCellSize(cell.getHeight(), cell.getWidth());
+					});
+		    	}
+		    	return cell;
+		    }
+		});
+		listView.setOnMouseClicked(e -> {
+			if (!listView.getSelectionModel().isEmpty()) {
+				actionFromListView();
 			}
 		});
-
-		// arm delayed <fieldActionHandler> on ComboBox::onAction event when showing
-		// (to catch mouse click on combobox displayed list)
-		setOnAction(event -> {
-			if (showingProperty().get()) {
-				LOGGER.debug("handle onAction and showing");
-				fireDelayedFieldAction(event);
-			}
-		});
-
-		// call handler when input is empty and the user hit backspace
-		getEditor().addEventHandler(KeyEvent.KEY_RELEASED, e -> {
-			if (textIsEmpty
-					&& e.getCode() == KeyCode.BACK_SPACE
-					&& emptyBackspaceHandler != null) {
-				emptyBackspaceHandler.handle(null);
-			}
-		});
-
-		// discard ENTER, ESCAPE, RIGHT, LEFT KEY_RELEASED
-		// cancel delayed <fieldActionHandler> on UP or DOWN KEY_RELEASED
-		// fire <listRequestHandler> on DOWN KEY_RELEASED (if list is not showing) or other characters
-		getEditor().addEventFilter(KeyEvent.KEY_RELEASED, event -> {
-			switch(event.getCode()) {
-			case ENTER: case ESCAPE: case RIGHT: case LEFT: case SHIFT: case ALT: case WINDOWS: case COMMAND: case CONTROL: case TAB:
-				LOGGER.debug("editor filter KEY_RELEASED ENTER/ESCAPE/RIGHT/LEFT/SHIFT/ALT/WINDOWS/COMMAND/CONTROL/TAB");
-				break;
-			case UP:
-				LOGGER.debug("editor filter KEY_RELEASED UP");
-				cancelDelayedFieldAction();
-				if (showingProperty().get()) {
-					if (getSelectionModel().isEmpty()) {
-						LOGGER.debug("editor filter KEY_RELEASED UP and showing no selection");
-						hide();
-					} else {
-						if (!upHideReady) {
-							LOGGER.debug("editor filter KEY_RELEASED UP and showing");
-						} else {
-							LOGGER.debug("editor filter KEY_RELEASED UP again and showing");
-							hide();
-						}
-						upHideReady = true;
-					}
+		listView.setOnKeyPressed(e -> {
+			if (KeyCode.ENTER == e.getCode()) {
+				if (!listView.getSelectionModel().isEmpty()) {
+					actionFromListView();
+				} else if (!getText().isEmpty()) {
+					actionFromTextField();
 				}
-				break;
-			case DOWN:
-				LOGGER.debug("editor filter KEY_RELEASED DOWN");
-				cancelDelayedFieldAction();
-				if (!showingProperty().get()) {
-					LOGGER.debug("editor filter KEY_RELEASED DOWN and not showing");
-					fireListRequest(new ActionEvent(event.getSource(), event.getTarget()));
-				}
-				break;
-			default:
-				LOGGER.debug("editor filter other characters");
-				fireListRequest(new ActionEvent(event.getSource(), event.getTarget()));
-				break;
 			}
 		});
 
-		// keep track of the latest text input
-		getEditor().textProperty().addListener((ov, o, n) -> {
-			LOGGER.debug("handle text changed from \"{}\" to \"{}\"", o, n);
-			currentValue = getConverter().fromString(n);
-			upHideReady = false;
-			if (getEditor().getText().isEmpty() && !o.isEmpty()) {
-				if (emptyTextDelay != null) {
-					emptyTextDelay.stop();
-				}
-				emptyTextDelay = new DelayTimeline(Duration.millis(200), e -> textIsEmpty = getEditor().getText().isEmpty());
-				emptyTextDelay.play();
+		popup = new Popup();
+		popup.getContent().add(listView);
+
+		firstShow = true;
+		popup.setOnShown(e -> firstShow = false);
+
+		showingProperty = new SimpleBooleanProperty(false);
+
+		setContextMenu(new ContextMenu(new MenuItem("", listView)));
+
+		textFactory = null;
+
+		emptyBackspaceReady = true;
+		setOnKeyPressed(e -> {
+			if (KeyCode.BACK_SPACE == e.getCode()
+					&& emptyBackspaceReady
+					&& backspaceHandler != null) {
+				backspaceHandler.handle(new ActionEvent());
+			}
+		});
+
+		textProperty().addListener((ov, o, n) -> {
+			emptyBackspaceReady = n.isEmpty();
+			filter(n);
+		});
+
+		focusedProperty().addListener((ov, o, n) -> {
+			if (o && !n && isShowing()) {
+				hide();
+			}
+		});
+
+		showingProperty().addListener((ov, o, n) -> {
+			if (n) {
+				final Point2D p = Utils.pointRelativeTo(ComboField.this
+						, prefWidth(-1), prefHeight(-1), HPos.CENTER, VPos.BOTTOM, 0, 0
+		                , true);
+				popup.show(this, p.getX(), p.getY());
 			} else {
-				if (emptyTextDelay != null) {
-					emptyTextDelay.stop();
-				}
-				textIsEmpty = getEditor().getText().isEmpty();
+				popup.hide();
 			}
 		});
 	}
 
-	public T getFieldValue() {
-		final T value = getValue();
-		if (currentValue != null && currentValue.equals(value)) {
-			currentValue = value;
-		}
-		LOGGER.debug("get field value ({})", currentValue);
-		return currentValue;
+	public void setFilter(final Callback<String, String> textFactory) {
+		this.textFactory = textFactory;
 	}
 
-	public void setFieldValue(final T value) {
-		LOGGER.debug("set field value ({})", value);
-		if (!value.equals(this.progSetValue)) {
-			this.progSetValue = value;
-			this.currentValue = value;
-			setValue(value);
+	public void setItems(final Set<String> items) {
+		this.items.setAll(items);
+		if (isShowing()) {
+			filter(getText());
 		}
 	}
 
-	public void setOnListRequest(final EventHandler<ActionEvent> handler) {
-		this.listRequestHandler = handler;
+	public boolean isShowing() {
+		return showingProperty.get();
 	}
 
-	public void setOnFieldAction(final EventHandler<ActionEvent> handler) {
-		this.fieldActionHandler = handler;
+	public BooleanProperty showingProperty() {
+		return showingProperty;
 	}
 
-	private void fireListRequest(final ActionEvent event) {
-		if (listRequestHandler != null) {
-			LOGGER.debug("fire list request");
-			listRequestHandler.handle(event);
-		}
+	public void show() {
+		showingProperty.set(true);
 	}
 
-	private void fireDelayedFieldAction(final ActionEvent event) {
-		cancelDelayedFieldAction();
-
-		fieldActionDelay = new DelayTimeline(Duration.millis(500), e -> {
-			LOGGER.debug("fire delayed field action");
-			fireFieldAction(event);
-		});
-		fieldActionDelay.play();
+	public void hide() {
+		showingProperty.set(false);
 	}
 
-	private void cancelDelayedFieldAction() {
-		if (fieldActionDelay != null) {
-			fieldActionDelay.stop();
-		}
+	public void setCellFactory(final Callback<ListView<String>, ListCell<String>> factory) {
+		cellFactory =  factory;
 	}
 
-	private void fireFieldAction(final ActionEvent event) {
-		LOGGER.debug("fire field action");
-		currentValue = getFieldValue();
-
-		if (currentValue != null && currentValue.equals(progSetValue)) {
-			LOGGER.debug("cancelled (set by prog)");
-			return;
-		}
-		progSetValue = currentValue;
-
-		if (fieldActionHandler != null) {
-			LOGGER.debug("call field action handler");
-			fieldActionHandler.handle(event);
-		}
+	public void setCellSize(final double height, final double width) {
+		cellHeight = height;
+		cellWidth = width;
 	}
 
 	public void setOnBackspaceAction(final EventHandler<ActionEvent> handler) {
-		emptyBackspaceHandler = handler;
+		backspaceHandler = handler;
+	}
+
+	private synchronized void filter(final String n) {
+		final long taskId = ++filterTaskId;
+		if (filterTask != null && filterTask.isRunning()) {
+			filterTask.cancel();
+		}
+
+		if (n.isEmpty()) {
+			hide();
+			LOGGER.debug("cancel filter, text is empty", n);
+			return;
+		}
+
+		filterTask = new Task<ObservableList<String>>() {
+			@Override
+			protected ObservableList<String> call() throws Exception {
+				return FXCollections.observableArrayList(items.filtered(s ->
+					textFactory == null
+						? StringHelper.containsIgnoreCase(s, n)
+						: StringHelper.containsIgnoreCase(textFactory.call(s), n)));
+			}
+		};
+		filterTask.setOnSucceeded(e -> {
+			if (taskId != filterTaskId) {
+				return;
+			}
+			final ObservableList<String> filtered = filterTask.getValue();
+			if (filtered.isEmpty()) {
+				hide();
+				LOGGER.debug("no item match");
+			} else {
+				updatePopup(filtered);
+				show();
+				LOGGER.debug("filtered {} item(s)", listView.getItems().size());
+			}
+		});
+		filterTask.setOnFailed(e -> LOGGER.error("filtering items with \"{}\"", n, e.getSource().getException()));
+		ThreadPool.getInstance().submitHigh(filterTask);
+	}
+
+	private void updatePopup(final ObservableList<String> items) {
+		final double height = Math.max(25, Math.min(200, items.size() * ((cellHeight > 0? cellHeight:24) + 1)));
+		final double width = Math.max(100, Math.min(500, cellWidth > 0? cellWidth: 500));
+
+		LOGGER.debug("height {} width {}", height, width);
+		listView.setMaxHeight(height);
+		listView.setMinHeight(height);
+		listView.setPrefHeight(height);
+		popup.setHeight(height);
+		listView.setMaxWidth(width);
+		listView.setMinWidth(width);
+		listView.setPrefWidth(width);
+		popup.setWidth(width);
+
+		listView.getItems().setAll(items);
+	}
+
+	private void updateCellSize(final double height, final double width) {
+		if (!firstShow) {
+			return;
+		}
+		if (cellHeight < height) {
+			cellHeight = height;
+			LOGGER.debug("update cell height {}", height);
+		}
+		if (cellWidth <=0 && cellWidth < width) {
+			cellWidth = width;
+			LOGGER.debug("update cell width {}", width);
+		}
+	}
+
+	private void actionFromTextField() {
+		LOGGER.warn("action from textfield, text: {}", getText());
+		getOnAction().handle(new ActionEvent());
+	}
+
+	private void actionFromListView() {
+		LOGGER.warn("action from listview, selected item: {}", listView.getSelectionModel().getSelectedItem());
+		setText(listView.getSelectionModel().getSelectedItem());
+		getOnAction().handle(new ActionEvent());
+		hide();
 	}
 }
