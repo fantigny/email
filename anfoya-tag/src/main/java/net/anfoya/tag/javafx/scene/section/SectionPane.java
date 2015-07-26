@@ -27,8 +27,11 @@ import net.anfoya.tag.service.Tag;
 import net.anfoya.tag.service.TagException;
 import net.anfoya.tag.service.TagService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
-//	private static final Logger LOGGER = LoggerFactory.getLogger(SectionPane.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(SectionPane.class);
 
 	private long sectionTaskId;
 	private final TagService<S, T> tagService;
@@ -52,7 +55,11 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 	@SuppressWarnings("unchecked")
 	public SectionPane(final TagService<S, T> tagService, final S section, final boolean showExcludeBox) {
 		this.tagService = tagService;
-		this.sectionItem = new TagListItem<Tag>(new SimpleTag(section.getId(), section.getName(), section.isSystem()));
+		if (section == null) {
+			this.sectionItem = null;
+		} else {
+			this.sectionItem = new TagListItem<Tag>(new SimpleTag(section.getId(), section.getName(), section.isSystem()));
+		}
 
 		tagList = new TagList<S, T>(tagService, section, showExcludeBox);
 		setContent(tagList);
@@ -64,10 +71,12 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 		lazyCountTask = null;
 
 		setOnDragDetected(event -> {
-	        final ClipboardContent content = new ClipboardContent();
-	        content.put(DndFormat.SECTION_DATA_FORMAT, section);
-	        final Dragboard db = startDragAndDrop(TransferMode.ANY);
-	        db.setContent(content);
+			if (section != null) {
+		        final ClipboardContent content = new ClipboardContent();
+		        content.put(DndFormat.SECTION_DATA_FORMAT, section);
+		        final Dragboard db = startDragAndDrop(TransferMode.ANY);
+		        db.setContent(content);
+			}
 		});
 		setOnDragEntered(event -> {
 			final Dragboard db = event.getDragboard();
@@ -82,6 +91,7 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 		setOnDragOver(event -> {
 			final Dragboard db = event.getDragboard();
 			if (db.hasContent(DndFormat.TAG_DATA_FORMAT)
+					&& section != null
 					&& !section.getId().startsWith(Section.NO_ID)) { //TODO improve
 				final T tag = (T) db.getContent(DndFormat.TAG_DATA_FORMAT);
 				if (!tagList.contains(tag)) {
@@ -100,6 +110,7 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 				SectionPane.this.setOpacity(1);
 				event.consume();
 			} else if (db.hasContent(DndFormat.TAG_DATA_FORMAT)
+					&& section != null
 					&& !section.getId().startsWith(Section.NO_ID)) { //TODO improve
 				SectionPane.this.setOpacity(1);
 				event.consume();
@@ -107,7 +118,8 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 		});
 		setOnDragDropped(event -> {
 			final Dragboard db = event.getDragboard();
-			if (db.hasContent(DndFormat.TAG_DATA_FORMAT)) {
+			if (db.hasContent(DndFormat.TAG_DATA_FORMAT)
+					&& section != null) {
 				final T tag = (T) db.getContent(DndFormat.TAG_DATA_FORMAT);
 				try {
 					tagService.moveToSection(tag, section);
@@ -123,7 +135,7 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 			updateHandler.handle(null);
 		});
 
-		setExpanded(false);
+		setExpanded(section == null);
 		expandedProperty().addListener((ov, o, n) -> {
 			setOpacity(1);
 			if (n && lazyCountTask != null) {
@@ -147,19 +159,16 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 			final Task<Integer> sectionTask = new Task<Integer>() {
 				@Override
 				protected Integer call() throws TagException {
-					return tagService.getCountForSection(tagList.getSection(), includes, excludes, itemPattern, tagPattern);
+					return tagService.getCountForSection(tagList.getSection(), includes, excludes, itemPattern);
 				}
 			};
-			sectionTask.setOnFailed(event -> {
-				// TODO Auto-generated catch block
-				event.getSource().getException().printStackTrace(System.out);
-			});
 			sectionTask.setOnSucceeded(event -> {
 				if (taskId != sectionTaskId) {
 					return;
 				}
 				sectionItem.countProperty().set(sectionTask.getValue());
 			});
+			sectionTask.setOnFailed(e -> LOGGER.error("counting for section {}", tagList.getSection().getName(), e.getSource().getException()));
 			ThreadPool.getInstance().submitHigh(sectionTask);
 		} else {
 			if (tagList.getSectionItem() == null) {
@@ -178,8 +187,8 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 		}
 	}
 
-	public void refresh(final Set<T> includes, final Set<T> excludes, final String tagPattern, final String itemPattern) {
-		tagList.refresh(includes, excludes, tagPattern, itemPattern);
+	public void refresh(final String pattern, final Set<T> includes, final Set<T> excludes, final String itemPattern) {
+		tagList.refresh(pattern, includes, excludes, itemPattern);
 
 		if (!initialized) {
 			init();
@@ -209,7 +218,7 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 		}
 	}
 
-	public void init() {
+	protected void init() {
 		initialized = true;
 		isTag = tagList.isStandAloneSectionTag();
 

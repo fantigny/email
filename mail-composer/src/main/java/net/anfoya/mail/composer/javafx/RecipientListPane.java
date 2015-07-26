@@ -16,7 +16,7 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.javafx.scene.control.ComboField2;
+import net.anfoya.javafx.scene.control.ComboField;
 import net.anfoya.javafx.scene.control.RemoveLabel;
 import net.anfoya.javafx.util.LabelHelper;
 import net.anfoya.mail.service.Contact;
@@ -29,7 +29,7 @@ public class RecipientListPane<C extends Contact> extends HBox {
 
 	private final Label title;
 	private final FlowPane flowPane;
-	private final ComboField2 comboField;
+	private final ComboField comboField;
 	private final Set<String> selectedAdresses;
 
 	private Map<String, C> addressContacts;
@@ -62,7 +62,7 @@ public class RecipientListPane<C extends Contact> extends HBox {
 		addressContacts = new HashMap<String, C>();
 		selectedAdresses = new LinkedHashSet<String>();
 
-		comboField = new ComboField2();
+		comboField = new ComboField();
 		comboField.setCellFactory(listView -> {
 			return new ListCell<String>() {
 				@Override

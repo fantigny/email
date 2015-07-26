@@ -98,14 +98,17 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 		return Collections.unmodifiableSet(tags);
 	}
 
-	public synchronized void refresh(final Set<T> includes, final Set<T> excludes, final String tagPattern, final String itemPattern) {
+	public synchronized void refresh(final String pattern, final Set<T> includes, final Set<T> excludes, final String itemPattern) {
 		// get all tags
 		Set<T> tags;
 		try {
-			tags = tagService.getTags(section, tagPattern);
+			if (!pattern.isEmpty()) {
+				tags = tagService.getTags(pattern);
+			} else {
+				tags = tagService.getTags(section);
+			}
 		} catch (final TagException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.error("loading tags for section {} and pattern \"{}\"", section.getName(), pattern, e);
 			return;
 		}
 

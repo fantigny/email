@@ -8,7 +8,6 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import javafx.beans.value.ChangeListener;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -55,16 +54,17 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 	private boolean lazyCount;
 	private String itemPattern;
 
-	private String tagPattern;
-
-	private Task<Set<S>> refreshTask;
+	private Task<Void> refreshTask;
 	private int refreshTaskId;
 
-	private DelayTimeline tagPatternDelay;
+	private DelayTimeline patternDelay;
 	private SectionDropPane<S> sectionDropPane;
 	private TagDropPane<S, T> tagDropPane;
 
 	private boolean showExcludeBox;
+
+	private String initSectionName;
+	private String initTagName;
 
 	public SectionListPane(final TagService<S, T> tagService) {
 		this(tagService, null, false);
@@ -81,9 +81,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 		patternField = new ResetTextField();
 		patternField.prefWidthProperty().bind(widthProperty());
 		patternField.setPromptText("label search");
-		patternField.textProperty().addListener((ChangeListener<String>) (ov, oldPattern, newPattern) -> {
-			refreshWithTagPattern();
-		});
+		patternField.textProperty().addListener((ov, o, n) -> refreshWithPattern());
 		setTop(new HBox(5, patternField));
 
 		sectionAcc = new Accordion();
@@ -185,7 +183,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 		for(final TitledPane pane: sectionAcc.getPanes()) {
 			@SuppressWarnings("unchecked")
 			final SectionPane<S, T> sectionPane = (SectionPane<S, T>) pane;
-			sectionPane.refresh(includes, excludes, pattern, itemPattern);
+			sectionPane.refresh(pattern, includes, excludes, itemPattern);
 		}
 	}
 
@@ -195,10 +193,11 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 			refreshTask.cancel();
 		}
 
-		refreshTask = new Task<Set<S>>() {
+		refreshTask = new Task<Void>() {
 			@Override
-			protected Set<S> call() throws InterruptedException, TagException {
-				return tagService.getSections();
+			protected Void call() throws InterruptedException, TagException {
+				sections = tagService.getSections();
+				return null;
 			}
 		};
 		refreshTask.setOnSucceeded(e -> {
@@ -206,7 +205,6 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 				return;
 			}
 
-			sections = refreshTask.getValue();
 			refreshSections();
 			refreshTags();
 			selectedTagsPane.refresh(getAllSelectedTags());
@@ -218,13 +216,42 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 		ThreadPool.getInstance().submitHigh(refreshTask);
 	}
 
-	private synchronized void refreshWithTagPattern() {
-		if (tagPatternDelay != null) {
-			tagPatternDelay.stop();
+	private synchronized void refreshWithPattern() {
+		if (patternDelay != null) {
+			patternDelay.stop();
 		}
 
-		tagPatternDelay = new DelayTimeline(Duration.millis(500), e -> refreshAsync(null));
-		tagPatternDelay.play();
+		patternDelay = new DelayTimeline(Duration.millis(500), e -> {
+			if (patternField.getText().isEmpty()) {
+				refreshAsync(v -> {
+					init(initSectionName, initTagName);
+					return null;
+				});
+			} else {
+				refreshWithPatternAsync();
+			}
+		});
+		patternDelay.play();
+	}
+
+	private synchronized void refreshWithPatternAsync() {
+		++refreshTaskId;
+		if (refreshTask != null && refreshTask.isRunning()) {
+			refreshTask.cancel();
+		}
+
+		SearchPane<S, T> searchPane = null;
+		if (sectionAcc.getPanes().isEmpty()
+				|| sectionAcc.getPanes().size() > 0
+				|| !(sectionAcc.getPanes().get(0) instanceof SearchPane)) {
+			searchPane = new SearchPane<S, T>(tagService, showExcludeBox);
+			searchPane.setOnSelectTag(selectTagHandler);
+			searchPane.setOnUpdateSection(updateSectionHandler);
+			searchPane.setExtItemDataFormat(extItemDataFormat);
+
+			sectionAcc.getPanes().setAll(searchPane);
+		}
+		searchPane.refresh(patternField.getText(), getIncludedTags(), getExcludedTags(), itemPattern);
 	}
 
 	public void clear(final String tagName) {
@@ -236,6 +263,9 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 	}
 
 	public void init(final String sectionName, final String tagName) {
+		initSectionName = sectionName;
+		initTagName = tagName;
+
 		refreshAsync(v -> {
 			for(final TitledPane sectionPane: sectionAcc.getPanes()) {
 				@SuppressWarnings("unchecked")
@@ -280,7 +310,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 
 	public void updateItemCount(Set<T> toRefresh, final int queryCount, final String itemPattern, final boolean lazy) {
 		this.itemPattern = itemPattern;
-		tagPattern = patternField.getText();
+		final String pattern = patternField.getText();
 		final Set<T> includes = getIncludedTags();
 		final Set<T> excludes = getExcludedTags();
 		final boolean checkMode = isCheckMode();
@@ -289,12 +319,13 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 			final SectionPane<S, T> sectionPane = (SectionPane<S, T>) titledPane;
 			if (!checkMode) {
 				try {
-					toRefresh = tagService.getTags(sectionPane.getSection(), itemPattern);
+					//TODO param toRefresh is not used
+					toRefresh = tagService.getTags(sectionPane.getSection());
 				} catch (final TagException e) {
 					LOGGER.error("getting section count", e);
 				}
 			}
-			sectionPane.updateCountAsync(queryCount, toRefresh, includes, excludes, itemPattern, tagPattern);
+			sectionPane.updateCountAsync(queryCount, toRefresh, includes, excludes, itemPattern, pattern);
 		}
 	}
 
