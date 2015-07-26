@@ -264,15 +264,23 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 				.filter(s -> !s.trim().isEmpty())
 				.map(String::toLowerCase)
 				.collect(Collectors.toSet());
+		final Set<GmailTag> tags = new TreeSet<GmailTag>();
 		try {
-			return labelService.getAll()
-				.stream()
-				.filter(l -> !GmailTag.isHidden(l) && patterns.contains(GmailTag.getName(l).toLowerCase()))
-				.map(GmailTag::new)
-				.collect(Collectors.toSet());
+			for(final Label l: labelService.getAll()) {
+				if (!GmailTag.isHidden(l)) {
+					final String name = GmailTag.getName(l).toLowerCase();
+					for(final String p: patterns) {
+						if (name.contains(p)) {
+							tags.add(new GmailTag(l));
+							break;
+						}
+					}
+				}
+			}
 		} catch (final LabelException e) {
 			throw new GMailException("getting tags for patterns " + patterns.toString(), e);
 		}
+		return tags;
 	}
 
 	@Override
