@@ -38,14 +38,9 @@ public class SerializedFile<K> extends File {
 	public void save(final K k) throws IOException {
 		LOGGER.info("saving {}", this);
 
-		BufferedOutputStream bos = null;
-		try {
-			bos = new BufferedOutputStream(new FileOutputStream(this));
-			new ObjectOutputStream(bos).writeObject(k);
-		} finally {
-			try {
-				bos.close();
-			} catch (final Exception e) {}
+		try (BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(this));
+				ObjectOutputStream oos = new ObjectOutputStream(bos)) {
+			oos.writeObject(k);
 		}
 	}
 

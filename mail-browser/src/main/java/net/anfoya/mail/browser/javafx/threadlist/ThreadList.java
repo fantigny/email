@@ -10,6 +10,9 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -29,9 +32,6 @@ import net.anfoya.mail.service.Message;
 import net.anfoya.mail.service.Section;
 import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ThreadList<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends ListView<H> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadList.class);
@@ -89,40 +89,6 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 		getSelectionModel().selectedIndexProperty().addListener((ov, o, n) -> checkForSelection(o.intValue(), n.intValue()));
 	}
 
-	private void checkForSelection(final int prevIndex, final int newIndex) {
-		if (resetSelection) {
-			resetSelection = false;
-			return;
-		}
-		if (prevIndex != -1 && newIndex == -1) {
-			new Timer(true).schedule(new TimerTask() {
-				@Override
-				public void run() {
-					Platform.runLater(() -> {
-						if (getSelectionModel().selectedItemProperty().isNull().get()
-								&& !getItems().get(prevIndex).isUnread()) {
-							getSelectionModel().select(prevIndex);
-						}
-					});
-				}
-			}, 500);
-		}
-	}
-
-	private void archive() {
-		final Task<Void> task = new Task<Void>() {
-			@Override
-			protected Void call() throws Exception {
-				mailService.archive(getSelectedThreads());
-				return null;
-			}
-		};
-		task.setOnFailed(event -> {/* TODO Auto-generated catch block */
-		});
-		task.setOnSucceeded(event -> updateHandler.handle(null));
-		ThreadPool.getInstance().submitHigh(task);
-	}
-
 	public void refreshWithOrder(final SortOrder order) {
 		sortOrder = order;
 		load();
@@ -139,90 +105,6 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 		this.pattern = pattern;
 		this.pageMax = 1;
 		load();
-	}
-
-	protected synchronized void load() {
-		final long taskId = ++loadTaskId;
-		if (loadTask != null && loadTask.isRunning()) {
-			loadTask.cancel();
-		}
-		loadTask = new Task<Set<H>>() {
-			@Override
-			protected Set<H> call() throws InterruptedException, MailException {
-				LOGGER.debug("loading for includes {}, excludes {}, pattern: {}, pageMax: {}", includes, excludes, pattern, pageMax);
-				return mailService.findThreads(includes, excludes, pattern, pageMax);
-			}
-		};
-		loadTask.setOnFailed(e -> LOGGER.error("loading thread list", e.getSource().getException()));
-		loadTask.setOnSucceeded(e -> {
-			if (taskId != loadTaskId) {
-				return;
-			}
-			threads = loadTask.getValue();
-			refresh();
-		});
-		ThreadPool.getInstance().submitHigh(loadTask);
-	}
-
-	private void refresh() {
-		// get previously selected threads
-		final Set<H> selectedThreads = new HashSet<H>(getSelectedThreads());
-		final int selectedIndex = getSelectionModel().getSelectedIndex();
-
-		// get list
-		final List<H> sortedThreads = new ArrayList<H>(threads);
-
-		// sort
-		Collections.sort(sortedThreads, sortOrder.getComparator());
-
-		// display
-		refreshing = true;
-		resetSelection = true;
-		getItems().setAll(sortedThreads);
-
-		// restore selection
-		getSelectionModel().clearSelection();
-		if (!getItems().isEmpty()) {
-			boolean hasSelection = false;
-			if (!selectedThreads.isEmpty()) {
-				LOGGER.debug("selected threads {}", threads);
-				final int[] indices = new int[selectedThreads.size()];
-				Arrays.fill(indices, -1);
-				if (selectedThreads.size() == 1
-						&& selectedThreads.iterator().next() instanceof GmailMoreThreads) {
-					indices[0] = selectedIndex;
-					scrollTo(indices[0]);
-				} else {
-					int itemIndex = 0, arrayIndex = 0;
-					for (final H t : getItems()) {
-						if (selectedThreads.contains(t) && !t.isUnread()) {
-							indices[arrayIndex] = itemIndex;
-							arrayIndex++;
-						}
-						itemIndex++;
-					}
-				}
-				if (indices[0] != -1) {
-					hasSelection = true;
-					getSelectionModel().selectIndices(indices[0], indices);
-				}
-			}
-			if (!hasSelection && selectedThreads.size() == 1) {
-				hasSelection = true;
-				final H newSelection = getItems().get(Math.min(selectedIndex, getItems().size()-1));
-				if (!(newSelection instanceof GmailMoreThreads)
-						&& !newSelection.isUnread()) {
-					getSelectionModel().select(newSelection);
-				}
-			}
-			if (!hasSelection && !getItems().get(0).isUnread()) {
-				getSelectionModel().select(0);
-			}
-		}
-		refreshing = false;
-		requestFocus();
-
-		loadHandler.handle(null);
 	}
 
 	public Set<T> getThreadsTags() {
@@ -266,5 +148,143 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 
 	public void setOnUpdate(final EventHandler<ActionEvent> handler) {
 		updateHandler = handler;
+	}
+
+	private synchronized void load() {
+		final long taskId = ++loadTaskId;
+		if (loadTask != null && loadTask.isRunning()) {
+			loadTask.cancel();
+		}
+		loadTask = new Task<Set<H>>() {
+			@Override
+			protected Set<H> call() throws InterruptedException, MailException {
+				LOGGER.debug("loading for includes {}, excludes {}, pattern: {}, pageMax: {}", includes, excludes, pattern, pageMax);
+				return mailService.findThreads(includes, excludes, pattern, pageMax);
+			}
+		};
+		loadTask.setOnFailed(e -> LOGGER.error("loading thread list", e.getSource().getException()));
+		loadTask.setOnSucceeded(e -> {
+			if (taskId != loadTaskId) {
+				return;
+			}
+			threads = loadTask.getValue();
+			refresh();
+		});
+		ThreadPool.getInstance().submitHigh(loadTask);
+	}
+
+	private void refresh() {
+		// get previously selected threads
+		final Set<H> selectedThreads = new HashSet<H>(getSelectedThreads());
+		final int selectedIndex = getSelectionModel().getSelectedIndex();
+
+		// get list
+		final List<H> sortedThreads = new ArrayList<H>(threads);
+
+		// sort
+		Collections.sort(sortedThreads, sortOrder.getComparator());
+
+		// display
+		refreshing = true;
+		resetSelection = true;
+		getItems().setAll(sortedThreads);
+
+		// restore selection
+		getSelectionModel().clearSelection();
+		if (!getItems().isEmpty()) {
+			if (!selectedThreads.isEmpty()) {
+				LOGGER.debug("selected threads {}", threads);
+				final int[] indices = new int[selectedThreads.size()];
+				Arrays.fill(indices, -1);
+				if (selectedThreads.size() == 1 && selectedThreads.iterator().next() instanceof GmailMoreThreads) {
+					// select first of "next threads"
+					indices[0] = selectedIndex;
+					scrollTo(indices[0]);
+				} else {
+					int itemIndex = 0, arrayIndex = 0;
+					for (final H t : getItems()) {
+						if (selectedThreads.contains(t) && !t.isUnread()) {
+							indices[arrayIndex] = itemIndex;
+							arrayIndex++;
+						}
+						itemIndex++;
+					}
+				}
+				if (indices[0] != -1) {
+					getSelectionModel().selectIndices(indices[0], indices);
+				}
+			}
+			if (getSelectionModel().isEmpty() && selectedIndex != -1) {
+				// select the closest to previous selection
+				int before = -1, after = -1, index = 0;
+				for(H t: getItems()) {
+					if (!t.isUnread() && !(t instanceof GmailMoreThreads)) { //TODO: put MoreThread in the API
+						if (index < selectedIndex) {
+							before = index;
+						} else {
+							after = index;
+							break;
+						}
+					}
+					index++;
+				}
+				if (after != -1) {
+					getSelectionModel().select(after);
+				} else if (before != -1) {
+					getSelectionModel().select(before);
+				}
+			}
+			if (getSelectionModel().isEmpty()) {
+				// select the first unread
+				for(H t: getItems()) {
+					if (!t.isUnread() && !(t instanceof GmailMoreThreads)) { //TODO: put MoreThread in the API
+						getSelectionModel().select(t);
+						break;
+					}
+				}
+			}
+		}
+		refreshing = false;
+		
+		if (pattern.isEmpty()) {
+			// request focus if no pattern search
+			requestFocus();
+		}
+
+		loadHandler.handle(null);
+	}
+
+	private void checkForSelection(final int prevIndex, final int newIndex) {
+		if (resetSelection) {
+			resetSelection = false;
+			return;
+		}
+		if (prevIndex != -1 && newIndex == -1) {
+			new Timer(true).schedule(new TimerTask() {
+				@Override
+				public void run() {
+					Platform.runLater(() -> {
+						if (getSelectionModel().selectedItemProperty().isNull().get()
+								&& !getItems().get(prevIndex).isUnread()) {
+							getSelectionModel().select(prevIndex);
+						}
+					});
+				}
+			}, 500);
+		}
+	}
+
+	private void archive() {
+		final Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				mailService.archive(getSelectedThreads());
+				return null;
+			}
+		};
+		task.setOnFailed(event -> {/* TODO Auto-generated catch block */
+		});
+		task.setOnSucceeded(event -> updateHandler.handle(null));
+		ThreadPool.getInstance().submitHigh(task);
 	}
 }

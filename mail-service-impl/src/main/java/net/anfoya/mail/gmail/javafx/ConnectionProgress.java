@@ -14,6 +14,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
+import net.anfoya.javafx.scene.animation.DelayTimeline;
 
 public class ConnectionProgress extends Stage {
 	private static final int DEFAULT_WIDTH = 300;
@@ -48,6 +49,11 @@ public class ConnectionProgress extends Stage {
 
 		setScene(new Scene(borderPane, width, 110));
 		sizeToScene();
+	}
+	
+	@Override
+	public void hide() {
+		new DelayTimeline(Duration.millis(500), e -> super.hide()).play();
 	}
 
 	public ConnectionProgress setValue(final double progress, final String text) {
