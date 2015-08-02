@@ -27,7 +27,6 @@
 						</goals>
 						<configuration>
 							<finalName>MovieSearch</finalName>
-							<outputDirectory>/Volumes/movies/java</outputDirectory>
 							<transformers>
 								<transformer
 									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
