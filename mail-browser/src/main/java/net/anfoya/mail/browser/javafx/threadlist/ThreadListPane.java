@@ -172,7 +172,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		final RadioButton dateSortButton = new RadioButton("date");
 		dateSortButton.setToggleGroup(toggleGroup);
 
-		toggleGroup.selectedToggleProperty().addListener((ChangeListener<Toggle>) (ov, oldVal, newVal) -> threadList.refreshWithOrder(nameSortButton.isSelected()
+		toggleGroup.selectedToggleProperty().addListener((ChangeListener<Toggle>) (ov, oldVal, newVal) -> threadList.setOrder(nameSortButton.isSelected()
 				? SortOrder.SENDER
 				: SortOrder.DATE));
 		dateSortButton.setSelected(true);
@@ -319,11 +319,11 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	}
 
 	public void refreshWithTags(final Set<T> includes, final Set<T> excludes) {
-		threadList.refresh(includes, excludes, patternField.getText());
+		threadList.load(includes, excludes, patternField.getText());
 	}
 
 	public void refreshWithPage(final int page) {
-		threadList.refreshWithPage(page);
+		threadList.loadPage(page);
 	}
 
 	public int getThreadCount() {

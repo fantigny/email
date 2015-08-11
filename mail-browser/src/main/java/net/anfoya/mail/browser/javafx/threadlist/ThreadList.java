@@ -10,9 +10,6 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -33,18 +30,19 @@ import net.anfoya.mail.service.Section;
 import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ThreadList<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends ListView<H> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadList.class);
 
 	private final MailService<S, T, H, M, C> mailService;
 
-	private Set<H> threads;
-
 	private Set<T> includes;
 	private Set<T> excludes;
 	private SortOrder sortOrder;
 	private String pattern;
-	private int pageMax;
+	private int page;
 
 	private long loadTaskId;
 	private Task<Set<H>> loadTask;
@@ -57,8 +55,6 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 
 	public ThreadList(final MailService<S, T, H, M, C> mailService) {
 		this.mailService = mailService;
-
-		threads = new LinkedHashSet<H>();
 
 		includes = new LinkedHashSet<T>();
 		excludes = new LinkedHashSet<T>();
@@ -89,21 +85,29 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 		getSelectionModel().selectedIndexProperty().addListener((ov, o, n) -> checkForSelection(o.intValue(), n.intValue()));
 	}
 
-	public void refreshWithOrder(final SortOrder order) {
+	public void setOnLoad(final EventHandler<ActionEvent> handler) {
+		this.loadHandler = handler;
+	}
+
+	public void setOnUpdate(final EventHandler<ActionEvent> handler) {
+		updateHandler = handler;
+	}
+
+	public void setOrder(final SortOrder order) {
 		sortOrder = order;
 		load();
 	}
 
-	public void refreshWithPage(final int page) {
-		pageMax = page;
+	public void loadPage(final int page) {
+		this.page = page;
 		load();
 	}
 
-	public void refresh(final Set<T> includes, final Set<T> excludes, final String pattern) {
+	public void load(final Set<T> includes, final Set<T> excludes, final String pattern) {
 		this.includes = includes;
 		this.excludes = excludes;
 		this.pattern = pattern;
-		this.pageMax = 1;
+		this.page = 1; //TODO check on external refresh >> extra list wuld disappear?
 		load();
 	}
 
@@ -142,14 +146,6 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 		});
 	}
 
-	public void setOnLoad(final EventHandler<ActionEvent> handler) {
-		this.loadHandler = handler;
-	}
-
-	public void setOnUpdate(final EventHandler<ActionEvent> handler) {
-		updateHandler = handler;
-	}
-
 	private synchronized void load() {
 		final long taskId = ++loadTaskId;
 		if (loadTask != null && loadTask.isRunning()) {
@@ -158,8 +154,8 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 		loadTask = new Task<Set<H>>() {
 			@Override
 			protected Set<H> call() throws InterruptedException, MailException {
-				LOGGER.debug("loading for includes {}, excludes {}, pattern: {}, pageMax: {}", includes, excludes, pattern, pageMax);
-				return mailService.findThreads(includes, excludes, pattern, pageMax);
+				LOGGER.debug("loading for includes {}, excludes {}, pattern: {}, pageMax: {}", includes, excludes, pattern, page);
+				return mailService.findThreads(includes, excludes, pattern, page);
 			}
 		};
 		loadTask.setOnFailed(e -> LOGGER.error("loading thread list", e.getSource().getException()));
@@ -167,13 +163,12 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 			if (taskId != loadTaskId) {
 				return;
 			}
-			threads = loadTask.getValue();
-			refresh();
+			refresh(loadTask.getValue());
 		});
 		ThreadPool.getInstance().submitHigh(loadTask);
 	}
 
-	private void refresh() {
+	private void refresh(final Set<H> threads) {
 		// get previously selected threads
 		final Set<H> selectedThreads = new HashSet<H>(getSelectedThreads());
 		final int selectedIndex = getSelectionModel().getSelectedIndex();
@@ -197,10 +192,11 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 				final int[] indices = new int[selectedThreads.size()];
 				Arrays.fill(indices, -1);
 				if (selectedThreads.size() == 1 && selectedThreads.iterator().next() instanceof GmailMoreThreads) {
-					// select first of "next threads"
+					// user wants to see more threads, select first of the "next threads"
 					indices[0] = selectedIndex;
 					scrollTo(indices[0]);
 				} else {
+					// find thread(s) previously selected in the new thread list
 					int itemIndex = 0, arrayIndex = 0;
 					for (final H t : getItems()) {
 						if (selectedThreads.contains(t) && !t.isUnread()) {
@@ -217,8 +213,8 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 			if (getSelectionModel().isEmpty() && selectedIndex != -1) {
 				// select the closest to previous selection
 				int before = -1, after = -1, index = 0;
-				for(H t: getItems()) {
-					if (!t.isUnread() && !(t instanceof GmailMoreThreads)) { //TODO: put MoreThread in the API
+				for(final H t: getItems()) {
+					if (!(t instanceof GmailMoreThreads)) { //TODO: put MoreThread in the API
 						if (index < selectedIndex) {
 							before = index;
 						} else {
@@ -236,7 +232,7 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 			}
 			if (getSelectionModel().isEmpty()) {
 				// select the first unread
-				for(H t: getItems()) {
+				for(final H t: getItems()) {
 					if (!t.isUnread() && !(t instanceof GmailMoreThreads)) { //TODO: put MoreThread in the API
 						getSelectionModel().select(t);
 						break;
@@ -245,7 +241,7 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 			}
 		}
 		refreshing = false;
-		
+
 		if (pattern.isEmpty()) {
 			// request focus if no pattern search
 			requestFocus();
@@ -275,16 +271,16 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 	}
 
 	private void archive() {
+		final Set<H> threads = getSelectedThreads();
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
-				mailService.archive(getSelectedThreads());
+				mailService.archive(threads);
 				return null;
 			}
 		};
-		task.setOnFailed(event -> {/* TODO Auto-generated catch block */
-		});
 		task.setOnSucceeded(event -> updateHandler.handle(null));
+		task.setOnFailed(event -> LOGGER.error("archiving {}", threads));
 		ThreadPool.getInstance().submitHigh(task);
 	}
 }
