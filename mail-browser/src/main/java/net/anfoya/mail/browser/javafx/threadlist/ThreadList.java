@@ -107,7 +107,7 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 		this.includes = includes;
 		this.excludes = excludes;
 		this.pattern = pattern;
-		this.page = 1; //TODO check on external refresh >> extra list wuld disappear?
+		this.page = 1; //TODO check on external refresh >> extra list would disappear?
 		load();
 	}
 

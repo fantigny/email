@@ -9,9 +9,7 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.HPos;
 import javafx.geometry.Point2D;
-import javafx.geometry.VPos;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -25,8 +23,6 @@ import net.anfoya.java.util.concurrent.ThreadPool;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.sun.javafx.Utils;
 
 public class ComboField extends TextField {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ComboField.class);
@@ -116,10 +112,10 @@ public class ComboField extends TextField {
 
 		showingProperty().addListener((ov, o, n) -> {
 			if (n) {
-				final Point2D p = Utils.pointRelativeTo(ComboField.this
-						, prefWidth(-1), prefHeight(-1), HPos.CENTER, VPos.BOTTOM, 0, 0
-		                , true);
-				popup.show(this, p.getX(), p.getY());
+				final Point2D pos = localToScene(0, 0);
+				popup.show(this
+						, getScene().getWindow().getX() + getScene().getX() + pos.getX()
+						, getScene().getWindow().getY() + getScene().getY() + pos.getY() + getBoundsInParent().getHeight());
 			} else {
 				popup.hide();
 			}
