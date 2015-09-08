@@ -17,7 +17,8 @@ public class GmailTag extends SimpleTag implements Tag {
 	private final String path;
 
 	public static boolean isHidden(final Label label) {
-		return "labelHide".equals(label.getLabelListVisibility())
+		return label != null
+				&& "labelHide".equals(label.getLabelListVisibility())
 				|| "CATEGORY_PERSONAL".equals(label.getName());
 	}
 

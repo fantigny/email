@@ -5,12 +5,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -32,6 +26,10 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.scene.web.WebView;
 import javafx.util.Duration;
+
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.web.WebViewFitContent;
 import net.anfoya.mail.browser.javafx.thread.ThreadDropPane;
@@ -46,6 +44,9 @@ import net.anfoya.mail.service.Section;
 import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
 import netscape.javascript.JSObject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessagePane.class);
@@ -228,7 +229,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		URI uri;
 		try {
 			uri = new URI(location);
-		} catch (URISyntaxException e) {
+		} catch (final URISyntaxException e) {
 			LOGGER.error("raeding address \"{}\"", location, e);
 			return;
 		}
@@ -236,14 +237,14 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		if (scheme.equals("mailto")) {
 			try {
 				new MailComposer<M, C>(mailService, updateHandler).newMessage(uri.getSchemeSpecificPart());
-			} catch (MailException e) {
+			} catch (final MailException e) {
 				LOGGER.error("creating new mail to \"{}\"", location, e);
 			}
 		} else {
 			ThreadPool.getInstance().submitHigh(() -> {
 				try {
 					Desktop.getDesktop().browse(uri);
-				} catch (Exception e) {
+				} catch (final Exception e) {
 					LOGGER.error("handling link \"{}\"", location, e);
 				}
 			});

@@ -169,11 +169,10 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 					for(final Message m: t.getMessages()) {
 						final List<String> cleaned = new ArrayList<String>();
 						if (m.getLabelIds() == null) {
-							LOGGER.error("no label for message {}", m.toPrettyString());
+							LOGGER.error("no label for message id: {}", m.getId());
 						} else {
 							for(final String id: m.getLabelIds()) {
-								final Label l = labelService.get(id);
-								if (l!= null && !GmailTag.isHidden(l)) {
+								if (!GmailTag.isHidden(labelService.get(id))) {
 									cleaned.add(id);
 								}
 							}

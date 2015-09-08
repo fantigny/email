@@ -103,11 +103,19 @@ public class ThreadService {
 			load(toLoadIds);
 			final Set<Thread> threads = new LinkedHashSet<Thread>();
 			for(final String id: ids) {
-				try {
-					threads.add(idThreads.get(id).getData());
-				} catch (final CacheException e) {
+				Thread thread = null;
+				if (idThreads.containsKey(id)) {
+					try {
+						thread = idThreads.get(id).getData();
+					} catch (final CacheException e) {
+						LOGGER.error("getting from cache thread id: {}", id);
+					}
+				}
+				if (thread != null) {
+					threads.add(thread);
+				} else {
+					LOGGER.error("no thread for id: {}", id);
 					idThreads.remove(id);
-					LOGGER.error("getting from cache thread id: {}", id);
 				}
 			}
 			if (threadResponse.getNextPageToken() != null) {
@@ -244,7 +252,7 @@ public class ThreadService {
 				}
 				@Override
 				public void onFailure(final GoogleJsonError e, final HttpHeaders responseHeaders) throws IOException {
-					LOGGER.error("loading thread {}", e.getMessage());
+					LOGGER.error("loading thread error: {}", e.getMessage());
 					latch.countDown();
 				}
 			};
