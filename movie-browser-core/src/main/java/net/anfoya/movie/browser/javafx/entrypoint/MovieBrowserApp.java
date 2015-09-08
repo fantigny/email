@@ -239,7 +239,7 @@ public class MovieBrowserApp extends Application {
 
 	private void refreshSectionList() {
 		// refresh tag list
-		sectionListPane.refreshAsync();
+		sectionListPane.refreshAsync(null);
 		// refresh available tags in movie tag list
 		moviePane.refreshTags();
 	}
