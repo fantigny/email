@@ -55,11 +55,7 @@ public class MessageHelper {
 			for(final Address address: addresses) {
 				if (address.getType().equalsIgnoreCase("rfc822")) {
 					final InternetAddress mailAddress = (InternetAddress) address;
-					if (mailAddress.getPersonal() != null) {
-						list.add(mailAddress.getPersonal());
-					} else {
-						list.add(mailAddress.getAddress());
-					}
+					list.add(mailAddress.getAddress());
 				}
 			}
 		}

@@ -258,14 +258,17 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 	}
 
 	public void editOrReply(final String id) {
+		// try to find a draft with this id
 		try {
 			draft = mailService.getDraft(id);
 		} catch (final MailException e) {
 			LOGGER.error("loading draft for id {}", id, e);
 		}
 		if (draft != null) {
+			// edit
 			initComposer(false);
 		} else {
+			// reply
 			try {
 				final M message = mailService.getMessage(id);
 				reply(message, false);
@@ -281,6 +284,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
+				LOGGER.warn(message.getMimeMessage().getReplyTo()[0].toString());
 				final MimeMessage reply = (MimeMessage) message.getMimeMessage().reply(all);
 				reply.setContent(message.getMimeMessage().getContent(), message.getMimeMessage().getContentType());
 				reply.saveChanges();

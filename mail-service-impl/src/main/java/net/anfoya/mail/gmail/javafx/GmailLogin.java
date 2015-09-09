@@ -68,7 +68,7 @@ public class GmailLogin {
 			System.out.println("Please open the following URL in your browser then type the authorization code:\n" + url);
 			// Read code entered by user.
 			final BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-			authCode = br.readLine();
+			authCode = "4/y9l6S0KL9usiEOp1hp1fM5gCig30wctCg_S0VoPzEx8";//br.readLine();
 		} else {
 			authCode = getCredentialsFx(url);
 		}
