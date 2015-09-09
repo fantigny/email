@@ -74,7 +74,7 @@ public class GmailLogin {
 		}
 
 		if (authCode.length() == 0) {
-			throw new GMailException("no authentication code received from GMail", null);
+			throw new GMailException("no authentication code", null);
 		}
 
 		// Generate credential
