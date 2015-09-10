@@ -119,7 +119,6 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		toolbar.setOnArchive(e -> archiveSelected());
 		toolbar.setOnTrash(e -> trashSelected());
 
-
 		final BooleanProperty showToolbar = Settings.getSettings().showToolbar();
 		if (showToolbar.get()) {
 			threadListPane.setTop(toolbar);

@@ -41,7 +41,7 @@ public class ThreadToolBar extends ToolBar {
 		final HBox grow = new HBox();
 		HBox.setHgrow(grow, Priority.ALWAYS);
 
-		getChildren().addAll(
+		getItems().addAll(
 				archiveButton, flagButton, trashButton
 				, grow
 				, replyButton, replyAllButton, forwardButton
