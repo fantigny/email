@@ -6,6 +6,13 @@ import java.io.InputStreamReader;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
+import javafx.application.Platform;
+import net.anfoya.javafx.application.PlatformHelper;
+import net.anfoya.mail.gmail.GMailException;
+import net.anfoya.mail.gmail.GmailService;
+import net.anfoya.mail.gmail.javafx.ConnectionProgress;
+import net.anfoya.mail.gmail.javafx.GmailLogin;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,19 +20,13 @@ import com.google.api.client.auth.oauth2.TokenResponse;
 import com.google.api.client.auth.oauth2.TokenResponseException;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.gmail.Gmail;
 import com.google.gdata.client.contacts.ContactsService;
-
-import javafx.application.Platform;
-import net.anfoya.javafx.application.PlatformHelper;
-import net.anfoya.mail.gmail.GMailException;
-import net.anfoya.mail.gmail.GmailService;
-import net.anfoya.mail.gmail.javafx.ConnectionProgress;
-import net.anfoya.mail.gmail.javafx.GmailLogin;
 
 public class ConnectionService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GmailService.class);
@@ -119,6 +120,18 @@ public class ConnectionService {
 		} catch (final BackingStoreException e) {
 			LOGGER.error("removing refresh token", e);
 		}
+		try {
+			final GenericUrl url = new GenericUrl(String.format(
+					"https://accounts.google.com/o/oauth2/revoke?token=%s"
+					, credential.getAccessToken()));
+			httpTransport
+				.createRequestFactory()
+				.buildGetRequest(url)
+				.execute();
+		} catch (final IOException e) {
+			LOGGER.error("error revoking token", e);
+		}
+		System.exit(0);
 	}
 
 	public void reconnect() {

@@ -57,7 +57,6 @@ public class SettingsDialog extends Stage {
 		final Text text = new Text("FisherMail 1.0b\rby Frederic Antigny");
 		text.setFont(Font.font("Amble Cn", FontWeight.BOLD, 24));
 		text.setFill(Color.web("#bbbbbb"));
-		//text.setStroke(Color.web("#222222"));
 
 		final GridPane gridPane = new GridPane();
 		gridPane.setStyle("-fx-background-color: #4d4d4d;");
@@ -102,7 +101,7 @@ public class SettingsDialog extends Stage {
 		gridPane.setVgap(5);
 		gridPane.setHgap(10);
 		int i = 0;
-		gridPane.addRow(i++, new Label("disconnect"), logoutButton);
+		gridPane.addRow(i++, new Label("logout and close"), logoutButton);
 		gridPane.addRow(i++, new Label("clear cache"), clearCacheButton);
 		gridPane.addRow(i++, new Label("show tool bar"), toolButton);
 		gridPane.addRow(i++, new Label("show exclude box (restart needed)"), showExcButton);

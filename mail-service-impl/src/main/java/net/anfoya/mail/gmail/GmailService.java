@@ -105,7 +105,9 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 	@Override
 	public void disconnect() {
+		historyService.stop();
 	    connectionService.disconnect();
+		clearCache();
 	}
 
 	@Override

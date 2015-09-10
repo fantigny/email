@@ -76,6 +76,11 @@ public class HistoryService extends TimerTask {
 		timer.schedule(this, period, period);
 	}
 
+	public void stop() {
+		timer.cancel();
+		timer = null;
+	}
+
 	@Override
 	public void run() {
 		try {
