@@ -3,7 +3,7 @@ package net.anfoya.mail.browser.javafx.settings;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
+import javafx.geometry.VPos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -11,10 +11,10 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.control.TextArea;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -52,19 +52,26 @@ public class SettingsDialog extends Stage {
 
 	private Tab buildAboutTab() {
 
-		final Text helpText = new Text("FisherMail [1.0] by Frederic Antigny");
-		helpText.setFont(Font.font("Amble Cn", FontWeight.BOLD, 24));
-		helpText.setFill(Color.WHITE);
-		helpText.setStroke(Color.web("#7080A0"));
+		final ImageView image = new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png")));
 
-		final StackPane stack = new StackPane();
-		stack.getChildren().addAll(helpText);
-		stack.setAlignment(Pos.CENTER);     // Right-justify nodes in stack
+		final Text text = new Text("FisherMail 1.0b\rby Frederic Antigny");
+		text.setFont(Font.font("Amble Cn", FontWeight.BOLD, 24));
+		text.setFill(Color.web("#bbbbbb"));
+		//text.setStroke(Color.web("#222222"));
 
-		HBox.setHgrow(stack, Priority.ALWAYS);    // Give stack any extra space
-		final HBox hbox = new HBox(stack);            // Add to HBox from Example 1-2
+		final GridPane gridPane = new GridPane();
+		gridPane.setStyle("-fx-background-color: #4d4d4d;");
 
-		return new Tab("about", hbox);
+		gridPane.addColumn(0, image);
+		GridPane.setMargin(image, new Insets(20));
+		GridPane.setVgrow(image, Priority.ALWAYS);
+		GridPane.setValignment(image, VPos.CENTER);
+
+		gridPane.addColumn(1, text);
+		GridPane.setVgrow(text, Priority.ALWAYS);
+		GridPane.setValignment(text, VPos.CENTER);
+
+		return new Tab("about", gridPane);
 	}
 
 	private Tab buildSettingsTab() {
