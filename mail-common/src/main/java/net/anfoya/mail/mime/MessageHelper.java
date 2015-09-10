@@ -50,17 +50,35 @@ public class MessageHelper {
 	}
 
 	public String[] getMailAddresses(final Address[] addresses) {
-		final List<String> list = new ArrayList<String>();
+		final List<String> mailAddresses = new ArrayList<String>();
 		if (addresses != null) {
 			for(final Address address: addresses) {
 				if (address.getType().equalsIgnoreCase("rfc822")) {
 					final InternetAddress mailAddress = (InternetAddress) address;
-					list.add(mailAddress.getAddress());
+					mailAddresses.add(mailAddress.getAddress());
 				}
 			}
 		}
 
-		return list.toArray(new String[list.size()]);
+		return mailAddresses.toArray(new String[mailAddresses.size()]);
+	}
+
+	public String[] getNames(final Address[] addresses) {
+		final List<String> names = new ArrayList<String>();
+		if (addresses != null) {
+			for(final Address address: addresses) {
+				if (address.getType().equalsIgnoreCase("rfc822")) {
+					final InternetAddress mailAddress = (InternetAddress) address;
+					if (mailAddress.getPersonal() != null) {
+						names.add(mailAddress.getPersonal());
+					} else {
+						names.add(mailAddress.getAddress());
+					}
+				}
+			}
+		}
+
+		return names.toArray(new String[names.size()]);
 	}
 
 	public String toHtml(final MimeMessage message) throws IOException, MessagingException {
