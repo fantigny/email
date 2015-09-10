@@ -17,7 +17,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -111,32 +110,15 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		});
 		threadListPane.setCenter(threadList);
 
-		final Button replyButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("reply.png"))));
-		replyButton.setTooltip(new Tooltip("reply"));
-		replyButton.setOnAction(e -> replySelected(false));
-		final Button replyAllButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("replyall.png"))));
-		replyAllButton.setOnAction(e -> replySelected(true));
-		replyAllButton.setTooltip(new Tooltip("reply all"));
-		final Button forwardButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("forward.png"))));
-		forwardButton.setOnAction(e -> forwardSelected());
-		forwardButton.setTooltip(new Tooltip("forward"));
-		final Button flagButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("flag.png"))));
-		flagButton.setOnAction(e -> toggleFlag());
-		flagButton.setTooltip(new Tooltip("toggle flag"));
-		final Button archiveButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("archive.png"))));
-		archiveButton.setOnAction(e -> archiveSelected());
-		archiveButton.setTooltip(new Tooltip("archive"));
-		final Button trashButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("trash.png"))));
-		trashButton.setOnAction(e -> trashSelected());
-		trashButton.setTooltip(new Tooltip("trash"));
-		final HBox grow = new HBox();
-		HBox.setHgrow(grow, Priority.ALWAYS);
-		final ToolBar toolbar = new ToolBar(
-				archiveButton, flagButton, trashButton
-				, grow
-				, replyButton, replyAllButton, forwardButton
-				);
+		final ThreadToolBar toolbar = new ThreadToolBar();
 		toolbar.setPadding(new Insets(0, 0, 3, 0));
+		toolbar.setOnReply(e -> replySelected(false));
+		toolbar.setOnReplyAll(e -> replySelected(true));
+		toolbar.setOnForward(e -> forwardSelected());
+		toolbar.setOnToggleFlag(e -> toggleFlag());
+		toolbar.setOnArchive(e -> archiveSelected());
+		toolbar.setOnTrash(e -> trashSelected());
+
 
 		final BooleanProperty showToolbar = Settings.getSettings().showToolbar();
 		if (showToolbar.get()) {
