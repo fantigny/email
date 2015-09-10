@@ -3,6 +3,7 @@ package net.anfoya.mail.gmail.service;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.CookieManager;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
@@ -131,7 +132,7 @@ public class ConnectionService {
 		} catch (final IOException e) {
 			LOGGER.error("error revoking token", e);
 		}
-		System.exit(0);
+		CookieManager.setDefault(new CookieManager());
 	}
 
 	public void reconnect() {
