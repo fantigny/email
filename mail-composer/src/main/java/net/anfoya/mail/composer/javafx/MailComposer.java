@@ -294,7 +294,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 			}
 		};
 		task.setOnFailed(event -> LOGGER.error("creating reply message", event.getSource().getException()));
-		task.setOnSucceeded(e -> initComposer(false));
+		task.setOnSucceeded(e -> initComposer(true));
 		ThreadPool.getInstance().submitHigh(task);
 	}
 

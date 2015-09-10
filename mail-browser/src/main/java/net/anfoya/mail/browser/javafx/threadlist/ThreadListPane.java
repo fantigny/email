@@ -185,10 +185,18 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		setMargin(sortBox, new Insets(5));
 	}
 
+	private M getLastMessage(final H thread) throws MailException {
+		String lastMessageId = null;
+		for(final String id: thread.getMessageIds()) {
+			lastMessageId = id;
+		}
+		return mailService.getMessage(lastMessageId);
+	}
+
 	private void forwardSelected() {
 		try {
 			for(final H t: threadList.getSelectedThreads()) {
-				final M m = mailService.getMessage(t.getMessageIds().iterator().next());
+				final M m = getLastMessage(t);
 				new MailComposer<M, C>(mailService, updateHandler).forward(m);
 			}
 		} catch (final Exception e) {
@@ -199,7 +207,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	private void replySelected(final boolean all) {
 		try {
 			for(final H t: threadList.getSelectedThreads()) {
-				final M m = mailService.getMessage(t.getMessageIds().iterator().next());
+				final M m = getLastMessage(t);
 				new MailComposer<M, C>(mailService, updateHandler).reply(m, all);
 			}
 		} catch (final Exception e) {
