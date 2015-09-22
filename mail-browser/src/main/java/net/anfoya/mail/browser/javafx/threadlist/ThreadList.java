@@ -27,6 +27,7 @@ import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.Message;
 import net.anfoya.mail.service.Section;
+import net.anfoya.mail.service.SpecialTag;
 import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
 
@@ -155,7 +156,9 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 			@Override
 			protected Set<H> call() throws InterruptedException, MailException {
 				LOGGER.debug("loading for includes {}, excludes {}, pattern: {}, pageMax: {}", includes, excludes, pattern, page);
-				return mailService.findThreads(includes, excludes, pattern, page);
+				final Set <H> threads = mailService.findThreads(includes, excludes, pattern, page);
+				tweakUnreadMessage(threads);
+				return threads;
 			}
 		};
 		loadTask.setOnFailed(e -> LOGGER.error("loading thread list", e.getSource().getException()));
@@ -248,6 +251,29 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 		}
 
 		loadHandler.handle(null);
+	}
+
+	private void tweakUnreadMessage(final Set<H> threads) {
+		T unread;
+		try {
+			unread = mailService.getSpecialTag(SpecialTag.UNREAD);
+		} catch (final MailException e) {
+			LOGGER.error("retrieving unread tag", e);
+			return;
+		}
+		if (!includes.contains(unread)) {
+			return;
+		}
+		for(final H t: getItems()) {
+			if (!t.isUnread()) {
+				return;
+			}
+		}
+		for(final H t: getItems()) {
+			if (!threads.contains(t)) {
+				threads.add(t);
+			}
+		}
 	}
 
 	private void checkForSelection(final int prevIndex, final int newIndex) {

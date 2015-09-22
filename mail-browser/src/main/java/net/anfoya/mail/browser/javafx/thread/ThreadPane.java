@@ -31,6 +31,7 @@ import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.Message;
 import net.anfoya.mail.service.Section;
+import net.anfoya.mail.service.SpecialTag;
 import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
 import net.anfoya.tag.javafx.scene.section.SelectedTagsPane;
@@ -233,7 +234,7 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 		}
 
 		try {
-			final T unread = mailService.findTag("UNREAD");
+			final T unread = mailService.getSpecialTag(SpecialTag.UNREAD);
 			if (thread.getTagIds().contains(unread.getId())) {
 				@SuppressWarnings("serial")
 				final Set<H> threads = new HashSet<H>() {{ add(thread); }};
