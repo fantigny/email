@@ -4,8 +4,6 @@ import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import javax.mail.internet.MailDateFormat;
-
 import net.anfoya.mail.model.SimpleThread;
 
 import com.google.api.services.gmail.model.Message;
@@ -44,16 +42,19 @@ public class GmailThread extends SimpleThread {
 	}
 
 	private static Date findDate(final Thread thread) {
-		try {
-			final String s = findHeader(thread, "Date");
-			if (s.isEmpty()) {
-				return new Date();
-			} else {
-				return new MailDateFormat().parse(s);
+		if (thread.getMessages() != null) {
+			Date d = null;
+			for(final Message m: thread.getMessages()) {
+				if (m.getInternalDate() != null) {
+					d = new Date(m.getInternalDate());
+				}
 			}
-		} catch (final Exception e) {
-			return new Date();
+			if (d != null) {
+				return d;
+			}
 		}
+
+		return new Date();
 	}
 
 	private static Set<String> getMessageIds(final Thread thread) {

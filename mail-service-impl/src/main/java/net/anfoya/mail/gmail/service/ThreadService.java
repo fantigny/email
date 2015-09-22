@@ -258,7 +258,7 @@ public class ThreadService {
 			};
 			for(final String id: ids) {
 				gmail.users().threads().get(user, id)
-					.setFields("historyId,id,messages(id,labelIds,payload)")
+					.setFields("historyId,id,messages(id,internalDate,labelIds,payload)")
 					.queue(batch, callback);
 			}
 			batch.execute();
