@@ -29,6 +29,7 @@ public class ThreadListDropPane<T extends Tag, H extends Thread, M extends Messa
 
 	private final MailService<? extends Section, T, H, M, C> mailService;
 	private EventHandler<ActionEvent> updateHandler;
+	private EventHandler<ActionEvent> unreadHandler;
 
 	private final T flaggedTag;
 	private final T unreadTag;
@@ -183,7 +184,10 @@ public class ThreadListDropPane<T extends Tag, H extends Thread, M extends Messa
 				return null;
 			}
 		};
-		task.setOnSucceeded(e -> updateHandler.handle(null));
+		task.setOnSucceeded(e -> {
+			unreadHandler.handle(null);
+			updateHandler.handle(null);
+		});
 		task.setOnFailed(e -> LOGGER.error("adding {} to thread", unreadTag, e.getSource().getException()));
 		ThreadPool.getInstance().submitHigh(task);
 	}
@@ -216,5 +220,9 @@ public class ThreadListDropPane<T extends Tag, H extends Thread, M extends Messa
 
 	public void setOnUpdate(final EventHandler<ActionEvent> handler) {
 		this.updateHandler = handler;
+	}
+
+	public void setOnUnread(final EventHandler<ActionEvent> handler) {
+		this.unreadHandler = handler;
 	}
 }

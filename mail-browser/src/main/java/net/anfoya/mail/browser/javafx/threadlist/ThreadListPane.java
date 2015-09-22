@@ -72,9 +72,6 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		stackPane.setAlignment(Pos.BOTTOM_CENTER);
 		setCenter(stackPane);
 
-		threadListDropPane = new ThreadListDropPane<T, H, M, C>(mailService);
-		threadListDropPane.prefWidthProperty().bind(stackPane.widthProperty());
-
 		final BorderPane threadListPane = new BorderPane();
 		stackPane.getChildren().add(threadListPane);
 
@@ -109,6 +106,10 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 			}
 		});
 		threadListPane.setCenter(threadList);
+
+		threadListDropPane = new ThreadListDropPane<T, H, M, C>(mailService);
+		threadListDropPane.prefWidthProperty().bind(stackPane.widthProperty());
+		threadListDropPane.setOnUnread(e -> threadList.getSelectionModel().clearSelection());
 
 		final ThreadToolBar toolbar = new ThreadToolBar();
 		toolbar.setPadding(new Insets(0, 0, 3, 0));
