@@ -150,7 +150,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		ccListBox.focusedProperty().addListener((ov, o, n) -> showBcc());
 
 		editor = new HTMLEditor();
-		editor.setStyle("-fx-background-color: transparent; -fx-border-width: 0 0 1 0; -fx-border-color: lightgray;");
+		editor.setStyle("-fx-background-color: transparent; -fx-border-width: 0 0 1 0; -fx-border-color: lightgray; -fx-font-size: 11px;");
 		editor.setOnDragOver(e -> {
             if (e.getDragboard().hasFiles()) {
                 e.acceptTransferModes(TransferMode.COPY);
@@ -361,9 +361,20 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		}
 		subjectField.setText(subject);
 
-		String html;
+		String html = "<style>"
+				+ "html {"
+				+ " line-height: 1em !important;"
+				+ " font-size: 14px !important;"
+				+ " font-family: Lucida Grande !important;"
+				+ " color: #222222 !important;"
+				+ " background-color: #FDFDFD !important;}"
+				+ "p {"
+				+ " padding: 0 !important;"
+				+ " margin: 2px 0 !important; }"
+				+ "</style>";
 		try {
-			html = helper.toHtml(message);
+			html += helper.toHtml(message);
+
 		} catch (IOException | MessagingException e) {
 			html = "";
 			LOGGER.error("getting html content", e);
