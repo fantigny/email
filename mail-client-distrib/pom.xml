@@ -39,6 +39,7 @@
 									shortversion="1.0"
 									copyright="ANFOYA.net"
 									mainclassname="net.anfoya.mail.client.javafx.entrypoint.MailClient">
+									<runtime dir="mac/jdk1.8.0_51.jdk/Contents/Home" />
 									<classpath file="distrib/FisherMail.jar" />
 							        <option value="-Xmx1g"/>
 								</bundleapp>
@@ -71,7 +72,7 @@
 			                <headerType>gui</headerType>
 			                <outfile>distrib/FisherMail.exe</outfile>
 			                <jar>distrib/FisherMail.jar</jar>
-			                <errTitle>FisherMail Err</errTitle>
+			                <errTitle>FisherMail Error</errTitle>
 			                <classPath>
 			                    <mainClass>net.anfoya.mail.client.javafx.entrypoint.MailClient</mainClass>
 			                </classPath>
