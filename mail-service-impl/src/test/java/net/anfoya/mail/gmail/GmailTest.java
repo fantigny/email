@@ -21,4 +21,10 @@ public class GmailTest {
 			System.out.println(t);
 		}
 	}
+
+	@Test
+	public void clearCache() throws MailException, TagException {
+		final GmailService service = new GmailService();
+		service.clearCache();
+	}
 }
