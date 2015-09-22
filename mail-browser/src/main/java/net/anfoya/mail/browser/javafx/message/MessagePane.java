@@ -88,6 +88,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		helper = new MessageHelper();
 
 		messageView = new WebViewFitContent();
+		messageView.getEngine().setUserStyleSheetLocation(getClass().getResource("default.css").toExternalForm());
 		messageView.getEngine().setCreatePopupHandler(handler -> messageView.getEngine());
 		messageView.getEngine().locationProperty().addListener((ov, o, n) -> {
 			if (o != null) {
