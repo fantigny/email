@@ -1,5 +1,8 @@
 package net.anfoya.mail.browser.javafx.settings;
 
+import java.util.concurrent.Future;
+
+import javafx.collections.SetChangeListener.Change;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -7,6 +10,7 @@ import javafx.geometry.VPos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
@@ -22,6 +26,7 @@ import javafx.scene.text.Text;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.Message;
@@ -32,6 +37,8 @@ import net.anfoya.mail.service.Thread;
 public class SettingsDialog extends Stage {
 	private final MailService<? extends Section, ? extends Tag, ? extends Thread, ? extends Message, ? extends Contact> mailService;
 	private final EventHandler<ActionEvent> logoutHandler;
+
+	private final ListView<String> taskList;
 
 	public SettingsDialog(final MailService<? extends Section, ? extends Tag, ? extends Thread, ? extends Message, ? extends Contact> mailService, final EventHandler<ActionEvent> logoutHandler) {
 		initStyle(StageStyle.UNIFIED);
@@ -44,14 +51,24 @@ public class SettingsDialog extends Stage {
 		final TextArea textArea = new TextArea("Take your mail bait and fish some action!");
 		final Tab helpTab = new Tab("help", textArea);
 
-		final TabPane tabPane = new TabPane(buildSettingsTab(), helpTab, buildAboutTab());
+		taskList = new ListView<String>();
+		ThreadPool.getInstance().getFutures().addListener((final Change<? extends Future<?>> change) -> refreshTasks());
+		final Tab taskTab = new Tab("Tasks", taskList);
+
+		final TabPane tabPane = new TabPane(buildSettingsTab(), helpTab, buildAboutTab(), taskTab);
 		tabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
 
 		setScene(new Scene(tabPane, 600, 400));
 	}
 
-	private Tab buildAboutTab() {
+	private void refreshTasks() {
+		taskList.getItems().clear();
+		for(final Future<?> f: ThreadPool.getInstance().getFutures()) {
+			taskList.getItems().add(f.toString());
+		}
+	}
 
+	private Tab buildAboutTab() {
 		final ImageView image = new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png")));
 
 		final Text text = new Text("FisherMail 1.0\u03B1\rby Frederic Antigny");

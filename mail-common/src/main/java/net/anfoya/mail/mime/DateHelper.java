@@ -20,10 +20,10 @@ public class DateHelper {
 	}
 
 	public String getPattern() {
-		if (sameField(Calendar.YEAR)) {
-			 if (sameField(Calendar.DAY_OF_YEAR)) {
+		if (isSameAsTodays(Calendar.YEAR)) {
+			 if (isSameAsTodays(Calendar.DAY_OF_YEAR)) {
 				return TODAY_FORMAT;
-			} else if (sameField(Calendar.MONTH)) {
+			} else if (isSameAsTodays(Calendar.MONTH)) {
 				return WEEK_FORMAT;
 			} else {
 				return MONTH_FORMAT;
@@ -37,7 +37,7 @@ public class DateHelper {
 		return new SimpleDateFormat(getPattern()).format(calendar.getTime());
 	}
 
-	private boolean sameField(final int field) {
+	private boolean isSameAsTodays(final int field) {
 		return calendar.get(field) == today.get(field);
 	}
 }

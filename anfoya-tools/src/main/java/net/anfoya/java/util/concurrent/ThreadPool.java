@@ -1,14 +1,20 @@
 package net.anfoya.java.util.concurrent;
 
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javafx.concurrent.Task;
+import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,19 +57,30 @@ public final class ThreadPool {
 	private final ExecutorService delegateHigh;
 	private final ExecutorService delegateLow;
 
+	private final ObservableSet<Future<?>> futures = FXCollections.observableSet(new LinkedHashSet<Future<?>>());
+	private final Timer timer;
 
 	private ThreadPool() {
 //		delegateHigh = Executors.newCachedThreadPool(new NamedThreadFactory("high", Thread.NORM_PRIORITY));
 //		delegateLow = Executors.newCachedThreadPool(new NamedThreadFactory("low", Thread.MIN_PRIORITY));
 		delegateHigh = Executors.newFixedThreadPool(20, new NamedThreadFactory("high", Thread.NORM_PRIORITY));
 		delegateLow = Executors.newFixedThreadPool(10, new NamedThreadFactory("low", Thread.MIN_PRIORITY));
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-			shutdown();
-		}));
+
+		timer = new Timer(true);
+		timer.schedule(new TimerTask() {
+			@Override
+			public void run() {
+				checkFutures();
+			}
+		}, 1000, 1000);
+
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdown()));
+
 		LOGGER.info("started!");
 	}
 
 	public void shutdown() {
+		timer.cancel();
 		shutdown(delegateHigh);
 		shutdown(delegateLow);
 	}
@@ -78,40 +95,48 @@ public final class ThreadPool {
 		}
 	}
 
-	public Future<?> submitHigh(final Runnable runnable) {
-		return submit(delegateHigh, runnable);
+	public void submitHigh(final Runnable runnable) {
+		submit(delegateHigh, runnable);
+	}
+
+	public void submitLow(final Runnable runnable) {
+		submit(delegateLow, runnable);
 	}
 
 	public <T> Future<T> submitHigh(final Callable<T> callable) {
 		return submit(delegateHigh, callable);
 	}
 
-	public Future<?> submitLow(final Runnable runnable) {
-		return submit(delegateLow, runnable);
-	}
-
 	public <T> Future<T> submitLow(final Callable<T> callable) {
 		return submit(delegateLow, callable);
 	}
 
-	public Executor getExecutor() {
-		return delegateLow;
+	public ObservableSet<Future<?>> getFutures() {
+		return futures;
 	}
 
-	private Future<?> submit(final ExecutorService delegate, final Runnable runnable) {
-		return delegate.submit(runnable);
+	private void submit(final ExecutorService delegate, final Runnable runnable) {
+		final Future<?> future = delegate.submit(runnable);
+		futures.add(future);
 	}
 
-	public <T> Future<T> submit(final ExecutorService delegate, final Callable<T> callable) {
-		if (callable instanceof Task) {
-			@SuppressWarnings("unchecked")
-			final Task<T> task = (Task<T>) callable;
-			if (task.getOnSucceeded() == null) {
-				task.setOnSucceeded(event -> {
-					LOGGER.error("running task", event.getSource().getException());
-				});
+	private <T> Future<T> submit(final ExecutorService delegate, final Callable<T> callable) {
+		final Future<T> future = delegate.submit(callable);
+		futures.add(future);
+		return future;
+	}
+
+	private void checkFutures() {
+		final Set<Future<?>> toRemove = new HashSet<Future<?>>();
+		for(final Future<?> f: futures) {
+			if (f.isDone()) {
+				toRemove.add(f);
 			}
 		}
-		return delegate.submit(callable);
+		Platform.runLater(() -> {
+			for(final Future<?> f: toRemove) {
+				futures.remove(f);
+			}
+		});
 	}
 }
