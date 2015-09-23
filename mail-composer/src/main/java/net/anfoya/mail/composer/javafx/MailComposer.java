@@ -324,7 +324,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 
 		try {
 			for(final String a: helper.getMailAddresses(message.getRecipients(MimeMessage.RecipientType.TO))) {
-				toListBox.add(a);
+				toListBox.addRecipient(a);
 			}
 		} catch (final MessagingException e) {
 			LOGGER.error("reading recipients");
@@ -333,7 +333,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		boolean displayCC = false;
 		try {
 			for(final String a: helper.getMailAddresses(message.getRecipients(MimeMessage.RecipientType.CC))) {
-				ccListBox.add(a);
+				ccListBox.addRecipient(a);
 				displayCC = true;
 			}
 		} catch (final MessagingException e) {
@@ -342,7 +342,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 
 		try {
 			for(final String a: helper.getMailAddresses(message.getRecipients(MimeMessage.RecipientType.BCC))) {
-				bccListBox.add(a);
+				bccListBox.addRecipient(a);
 				displayCC = true;
 			}
 		} catch (final MessagingException e) {

@@ -79,7 +79,7 @@ public class RecipientListPane<C extends Contact> extends HBox {
 				}
 			};
 		});
-		comboField.setOnAction(e -> add(comboField.getText()));
+		comboField.setOnAction(e -> addRecipient(comboField.getText()));
 		comboField.setOnBackspaceAction(e -> {
 			final int lastAddressIndex = flowPane.getChildren().size() - 2;
 			if (lastAddressIndex >= 0) {
@@ -119,9 +119,18 @@ public class RecipientListPane<C extends Contact> extends HBox {
 		widthProperty().addListener((ov, o, n) -> organise(null));
 	}
 
-	public void add(final String address) {
+	public String getTitle() {
+		return title.getText();
+	}
+
+	public void setTitle(final String title) {
+		this.title.setText(title);
+	}
+
+	public void addRecipient(final String address) {
 		final String text = addressContacts.containsKey(address)? addressContacts.get(address).getFullname(): address;
-		final RemoveLabel label = new RemoveLabel(text, address);
+		final String tooltip = "remove " + (text.contains("@")? "": "(" + address + ")");
+		final RemoveLabel label = new RemoveLabel(text, tooltip);
 		label.getStyleClass().add("address-label");
 
 		flowPane.getChildren().add(flowPane.getChildren().size() - 1, label);
@@ -129,16 +138,7 @@ public class RecipientListPane<C extends Contact> extends HBox {
 		updateHandler.handle(null);
 		organise(label);
 
-		label.setOnRemove(e -> {
-			remove(label);
-		});
-	}
-
-	public void remove(final Label label) {
-		flowPane.getChildren().remove(label);
-		selectedAdresses.remove(label.getTooltip().getText());
-		updateHandler.handle(null);
-		organise(null);
+		label.setOnRemove(e -> remove(label, address));
 	}
 
 	public Set<String> getRecipients() {
@@ -154,20 +154,30 @@ public class RecipientListPane<C extends Contact> extends HBox {
 		updateHandler = handler;
 	}
 
-	public String getTitle() {
-		return title.getText();
-	}
-
-	public void setTitle(final String title) {
-		this.title.setText(title);
-	}
-
 	public void setAddressContacts(final Map<String, C> addressContacts) {
 		if (!this.addressContacts.isEmpty()) {
 			throw new RuntimeException("addressContacts can only be set once");
 		}
 		this.addressContacts = addressContacts;
 		comboField.setItems(addressContacts.keySet());
+	}
+
+	private void remove(final Label label) {
+		String address;
+		if (label.getText().contains("@")) {
+			address = label.getText();
+		} else {
+			final String tooltip = label.getTooltip().getText();
+			address = tooltip.substring(tooltip.indexOf('('), tooltip.indexOf(')'));
+		}
+		remove(label, address);
+	}
+
+	private void remove(final Label label, final String address) {
+		flowPane.getChildren().remove(label);
+		selectedAdresses.remove(address);
+		updateHandler.handle(null);
+		organise(null);
 	}
 
 	private synchronized void organise(final Label lastAdded) {
