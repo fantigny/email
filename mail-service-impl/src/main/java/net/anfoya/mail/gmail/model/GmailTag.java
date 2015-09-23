@@ -13,6 +13,7 @@ public class GmailTag extends SimpleTag implements Tag {
 	public static final GmailTag INBOX_TAG = new GmailTag("INBOX", "Inbox", "INBOX", true);
 	public static final GmailTag SENT_TAG = new GmailTag("SENT", "Sent", "SENT", true);
 	public static final GmailTag STARRED_TAG = new GmailTag("STARRED", "Flagged", "STARRED", true);
+	public static final GmailTag SPAM_TAG = new GmailTag("SPAM", "Spam", "SPAM", true);
 
 	private final String path;
 

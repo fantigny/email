@@ -154,8 +154,8 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 
 	private void remove(final T tag) {
 		final Alert confirmDialog = new Alert(AlertType.CONFIRMATION, "", new ButtonType[] { ButtonType.OK, ButtonType.CANCEL });
-		confirmDialog.setTitle("Remove tag");
-		confirmDialog.setHeaderText("Remove tag: \"" + tag.getName() + "\"?");
+		confirmDialog.setTitle("Remove label");
+		confirmDialog.setHeaderText("Remove label: \"" + tag.getName() + "\"?");
 		confirmDialog.setContentText("");
 		final Optional<ButtonType> response = confirmDialog.showAndWait();
 		if (response.isPresent() && response.get() == ButtonType.OK) {
