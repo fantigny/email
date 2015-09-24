@@ -25,6 +25,7 @@ public class GmailTest {
 	@Test
 	public void clearCache() throws MailException, TagException {
 		final GmailService service = new GmailService();
+		service.connect("test");
 		service.clearCache();
 	}
 }
