@@ -4,7 +4,6 @@ import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.Tag;
 import net.anfoya.tag.service.TagException;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class GmailTest {
@@ -23,7 +22,7 @@ public class GmailTest {
 		}
 	}
 
-	@Ignore @Test
+	@Test
 	public void clearCache() throws MailException, TagException {
 		final GmailService service = new GmailService();
 		service.clearCache();
