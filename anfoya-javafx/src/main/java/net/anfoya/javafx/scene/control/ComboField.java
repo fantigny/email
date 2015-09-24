@@ -19,7 +19,7 @@ import javafx.scene.input.KeyCode;
 import javafx.stage.Popup;
 import javafx.util.Callback;
 import net.anfoya.java.lang.StringHelper;
-import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.javafx.util.ThreadPool;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

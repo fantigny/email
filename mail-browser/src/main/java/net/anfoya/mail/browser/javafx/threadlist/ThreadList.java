@@ -18,7 +18,7 @@ import javafx.event.EventHandler;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.input.KeyCode;
-import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.javafx.util.ThreadPool;
 import net.anfoya.mail.composer.javafx.MailComposer;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
 import net.anfoya.mail.model.SimpleThread.SortOrder;

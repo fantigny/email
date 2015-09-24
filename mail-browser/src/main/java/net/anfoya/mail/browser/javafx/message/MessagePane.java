@@ -30,8 +30,8 @@ import javafx.util.Duration;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
-import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.web.WebViewFitContent;
+import net.anfoya.javafx.util.ThreadPool;
 import net.anfoya.mail.browser.javafx.thread.ThreadDropPane;
 import net.anfoya.mail.composer.javafx.MailComposer;
 import net.anfoya.mail.mime.DateHelper;

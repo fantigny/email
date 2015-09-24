@@ -17,7 +17,7 @@ import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.util.Callback;
 import javafx.util.Duration;
 import net.anfoya.java.io.SerializedFile;
-import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.javafx.util.ThreadPool;
 import net.anfoya.mail.gmail.model.GmailTag;
 
 import org.slf4j.Logger;

@@ -1,4 +1,4 @@
-package net.anfoya.java.util.concurrent;
+package net.anfoya.javafx.util;
 
 import java.util.Iterator;
 import java.util.LinkedHashMap;

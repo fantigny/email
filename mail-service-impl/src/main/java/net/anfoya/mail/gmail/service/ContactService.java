@@ -7,7 +7,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.javafx.util.ThreadPool;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
