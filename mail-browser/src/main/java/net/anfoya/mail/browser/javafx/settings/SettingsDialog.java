@@ -1,8 +1,11 @@
 package net.anfoya.mail.browser.javafx.settings;
 
+import java.util.Map;
 import java.util.concurrent.Future;
 
-import javafx.collections.SetChangeListener.Change;
+import javafx.collections.MapChangeListener.Change;
+import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -23,7 +26,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import net.anfoya.java.util.concurrent.ThreadPool;
@@ -42,7 +44,6 @@ public class SettingsDialog extends Stage {
 
 	public SettingsDialog(final MailService<? extends Section, ? extends Tag, ? extends Thread, ? extends Message, ? extends Contact> mailService, final EventHandler<ActionEvent> logoutHandler) {
 		initStyle(StageStyle.UNIFIED);
-		initModality(Modality.APPLICATION_MODAL);
 		setOnCloseRequest(e -> Settings.getSettings().save());
 
 		this.mailService = mailService;
@@ -52,8 +53,10 @@ public class SettingsDialog extends Stage {
 		final Tab helpTab = new Tab("help", textArea);
 
 		taskList = new ListView<String>();
-		ThreadPool.getInstance().getFutures().addListener((final Change<? extends Future<?>> change) -> refreshTasks());
 		final Tab taskTab = new Tab("Tasks", taskList);
+		final ObservableMap<Future<?>, String> futureDesc = ThreadPool.getInstance().getFutureDescriptions();
+		refreshTasks(futureDesc);
+		futureDesc.addListener((final Change<? extends Future<?>, ? extends String> c) -> refreshTasks(c.getMap()));
 
 		final TabPane tabPane = new TabPane(buildSettingsTab(), helpTab, buildAboutTab(), taskTab);
 		tabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
@@ -61,10 +64,14 @@ public class SettingsDialog extends Stage {
 		setScene(new Scene(tabPane, 600, 400));
 	}
 
-	private void refreshTasks() {
-		taskList.getItems().clear();
-		for(final Future<?> f: ThreadPool.getInstance().getFutures()) {
-			taskList.getItems().add(f.toString());
+	private void refreshTasks(final Map<? extends Future<?>, ? extends String> futureDesc) {
+		final ObservableList<String> items = taskList.getItems();
+		items.clear();
+		for(final String desc: futureDesc.values()) {
+			items.add(desc);
+		}
+		if (items.isEmpty()) {
+			items.add("idle");
 		}
 	}
 

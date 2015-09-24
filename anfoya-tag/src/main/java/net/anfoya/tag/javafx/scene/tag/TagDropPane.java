@@ -113,8 +113,8 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 			}
 		};
 		task.setOnSucceeded(event -> onUpdateHandler.handle(null));
-		task.setOnFailed(e -> LOGGER.error("moving tag \"{}\" to new section \"{}\"", tag.getName(), finalAnswer, e.getSource().getException()));
-		ThreadPool.getInstance().submitHigh(task);
+		task.setOnFailed(e -> LOGGER.error("moving tag {} to new section {}", tag.getName(), finalAnswer, e.getSource().getException()));
+		ThreadPool.getInstance().submitHigh(task, "moving tag " + tag.getName() + " to new section " + finalAnswer);
 	}
 
 	private void rename(final T tag) {
@@ -148,8 +148,8 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 			}
 		};
 		task.setOnSucceeded(event -> onUpdateHandler.handle(null));
-		task.setOnFailed(e -> LOGGER.error("renaming tag \"{}\" to \"{}\"", tag.getName(), finalAnswer, e.getSource().getException()));
-		ThreadPool.getInstance().submitHigh(task);
+		task.setOnFailed(e -> LOGGER.error("renaming tag {} to {}", tag.getName(), finalAnswer, e.getSource().getException()));
+		ThreadPool.getInstance().submitHigh(task, "renaming tag " + tag.getName() + " to " + finalAnswer);
 	}
 
 	private void remove(final T tag) {
@@ -167,8 +167,8 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 				}
 			};
 			task.setOnSucceeded(event -> onUpdateHandler.handle(null));
-			task.setOnFailed(e -> LOGGER.error("removing tag \"{}\"", tag.getName(), e.getSource().getException()));
-			ThreadPool.getInstance().submitHigh(task);
+			task.setOnFailed(e -> LOGGER.error("removing tag {}", tag.getName(), e.getSource().getException()));
+			ThreadPool.getInstance().submitHigh(task, "removing tag " + tag.getName());
 		}
 	}
 

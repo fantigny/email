@@ -1,7 +1,7 @@
 package net.anfoya.java.util.concurrent;
 
 import java.util.HashSet;
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableSet;
+import javafx.collections.ObservableMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +57,7 @@ public final class ThreadPool {
 	private final ExecutorService delegateHigh;
 	private final ExecutorService delegateLow;
 
-	private final ObservableSet<Future<?>> futures = FXCollections.observableSet(new LinkedHashSet<Future<?>>());
+	private final ObservableMap<Future<?>, String> futureDesc = FXCollections.observableMap(new LinkedHashMap<Future<?>, String>());
 	private final Timer timer;
 
 	private ThreadPool() {
@@ -95,47 +95,47 @@ public final class ThreadPool {
 		}
 	}
 
-	public void submitHigh(final Runnable runnable) {
-		submit(delegateHigh, runnable);
+	public void submitHigh(final Runnable runnable, final String description) {
+		submit(delegateHigh, runnable, description);
 	}
 
-	public void submitLow(final Runnable runnable) {
-		submit(delegateLow, runnable);
+	public void submitLow(final Runnable runnable, final String description) {
+		submit(delegateLow, runnable, description);
 	}
 
-	public <T> Future<T> submitHigh(final Callable<T> callable) {
-		return submit(delegateHigh, callable);
+	public <T> Future<T> submitHigh(final Callable<T> callable, final String description) {
+		return submit(delegateHigh, callable, description);
 	}
 
-	public <T> Future<T> submitLow(final Callable<T> callable) {
-		return submit(delegateLow, callable);
+	public <T> Future<T> submitLow(final Callable<T> callable, final String description) {
+		return submit(delegateLow, callable, description);
 	}
 
-	public ObservableSet<Future<?>> getFutures() {
-		return futures;
+	public ObservableMap<Future<?>, String> getFutureDescriptions() {
+		return futureDesc;
 	}
 
-	private void submit(final ExecutorService delegate, final Runnable runnable) {
+	private void submit(final ExecutorService delegate, final Runnable runnable, final String description) {
 		final Future<?> future = delegate.submit(runnable);
-		futures.add(future);
+		futureDesc.put(future, description);
 	}
 
-	private <T> Future<T> submit(final ExecutorService delegate, final Callable<T> callable) {
+	private <T> Future<T> submit(final ExecutorService delegate, final Callable<T> callable, final String description) {
 		final Future<T> future = delegate.submit(callable);
-		futures.add(future);
+		futureDesc.put(future, description);
 		return future;
 	}
 
 	private void checkFutures() {
 		final Set<Future<?>> toRemove = new HashSet<Future<?>>();
-		for(final Future<?> f: futures) {
-			if (f.isDone()) {
+		for(final Future<?> f: futureDesc.keySet()) {
+			if (f!= null && f.isDone()) {
 				toRemove.add(f);
 			}
 		}
 		Platform.runLater(() -> {
 			for(final Future<?> f: toRemove) {
-				futures.remove(f);
+				futureDesc.remove(f);
 			}
 		});
 	}

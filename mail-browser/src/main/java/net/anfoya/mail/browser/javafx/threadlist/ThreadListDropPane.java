@@ -173,7 +173,7 @@ public class ThreadListDropPane<T extends Tag, H extends Thread, M extends Messa
 		};
 		task.setOnSucceeded(e -> updateHandler.handle(null));
 		task.setOnFailed(e -> LOGGER.error("adding {} to thread", flaggedTag, e.getSource().getException()));
-		ThreadPool.getInstance().submitHigh(task);
+		ThreadPool.getInstance().submitHigh(task, "flagging thread");
 	}
 
 	private void unread(final Set<H> threads) {
@@ -188,8 +188,8 @@ public class ThreadListDropPane<T extends Tag, H extends Thread, M extends Messa
 			unreadHandler.handle(null);
 			updateHandler.handle(null);
 		});
-		task.setOnFailed(e -> LOGGER.error("adding {} to thread", unreadTag, e.getSource().getException()));
-		ThreadPool.getInstance().submitHigh(task);
+		task.setOnFailed(e -> LOGGER.error("adding {} to threads", unreadTag, e.getSource().getException()));
+		ThreadPool.getInstance().submitHigh(task, "marking threads unread");
 	}
 
 	private void archive(final Set<H> threads) {
@@ -201,8 +201,8 @@ public class ThreadListDropPane<T extends Tag, H extends Thread, M extends Messa
 			}
 		};
 		task.setOnSucceeded(e -> updateHandler.handle(null));
-		task.setOnFailed(e -> LOGGER.error("archiving thread", e.getSource().getException()));
-		ThreadPool.getInstance().submitHigh(task);
+		task.setOnFailed(e -> LOGGER.error("archiving threads {}", threads, e.getSource().getException()));
+		ThreadPool.getInstance().submitHigh(task, "archiving threads");
 	}
 
 	private void trash(final Set<H> threads) {
@@ -214,8 +214,8 @@ public class ThreadListDropPane<T extends Tag, H extends Thread, M extends Messa
 			}
 		};
 		task.setOnSucceeded(e -> updateHandler.handle(null));
-		task.setOnFailed(e -> LOGGER.error("trashing thread", e.getSource().getException()));
-		ThreadPool.getInstance().submitHigh(task);
+		task.setOnFailed(e -> LOGGER.error("trashing threads", e.getSource().getException()));
+		ThreadPool.getInstance().submitHigh(task, "trashing threads");
 	}
 
 	public void setOnUpdate(final EventHandler<ActionEvent> handler) {

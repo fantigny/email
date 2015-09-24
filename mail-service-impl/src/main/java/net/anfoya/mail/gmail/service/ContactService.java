@@ -40,7 +40,7 @@ public class ContactService {
 			final Query query = new Query(new URL("https://www.google.com/m8/feeds/contacts/" + user + "/full"));
 			query.setMaxResults(10000);
 			return gcontact.query(query, ContactFeed.class).getEntries();
-		});
+		}, "getting contacts");
 		return this;
 	}
 

@@ -163,7 +163,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		};
 		titleTask.setOnSucceeded(e -> setTitle(getTitle() + " - " + e.getSource().getValue()));
 		titleTask.setOnFailed(e -> LOGGER.error("loading user's name", e.getSource().getException()));
-		ThreadPool.getInstance().submitLow(titleTask);
+		ThreadPool.getInstance().submitLow(titleTask, "loading user's name");
 	}
 
 	boolean refreshAfterTagSelected = true;

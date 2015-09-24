@@ -191,7 +191,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 			messageView.getEngine().loadContent(loadTask.getValue());
 			((JSObject) messageView.getEngine().executeScript("window")).setMember("attLoader", new AttachmentLoader<M>(mailService, messageId));
 		});
-		ThreadPool.getInstance().submitHigh(loadTask);
+		ThreadPool.getInstance().submitHigh(loadTask, "loading message id " + messageId);
 	}
 
 	public void setScrollHandler(final EventHandler<ScrollEvent> handler) {
@@ -226,12 +226,12 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		this.updateHandler = handler;
 	}
 
-	private void handleHyperlink(final String location) {
+	private void handleHyperlink(final String link) {
 		URI uri;
 		try {
-			uri = new URI(location);
+			uri = new URI(link);
 		} catch (final URISyntaxException e) {
-			LOGGER.error("raeding address \"{}\"", location, e);
+			LOGGER.error("reading address {}", link, e);
 			return;
 		}
 		final String scheme = uri.getScheme();
@@ -239,16 +239,16 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 			try {
 				new MailComposer<M, C>(mailService, updateHandler).newMessage(uri.getSchemeSpecificPart());
 			} catch (final MailException e) {
-				LOGGER.error("creating new mail to \"{}\"", location, e);
+				LOGGER.error("creating new mail to {}", link, e);
 			}
 		} else {
 			ThreadPool.getInstance().submitHigh(() -> {
 				try {
 					Desktop.getDesktop().browse(uri);
 				} catch (final Exception e) {
-					LOGGER.error("handling link \"{}\"", location, e);
+					LOGGER.error("handling link {}", link, e);
 				}
-			});
+			}, "handling link " + link);
 		}
 	}
 

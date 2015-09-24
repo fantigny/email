@@ -92,7 +92,7 @@ public class LocalCache<K, V> {
 						}
 					}
 				}
-			});
+			}, "clearing cache");
 		}
 	}
 

@@ -99,8 +99,8 @@ public class SectionDropPane<S extends Section> extends GridPane {
 			}
 		};
 		task.setOnSucceeded(e -> updateHandler.handle(null));
-		task.setOnFailed(e -> LOGGER.error("renaming section \"{}\" to \"{}\"", section.getName(), finalAnswer, e.getSource().getException()));
-		ThreadPool.getInstance().submitHigh(task);
+		task.setOnFailed(e -> LOGGER.error("renaming section {} to {}", section.getName(), finalAnswer, e.getSource().getException()));
+		ThreadPool.getInstance().submitHigh(task, "renaming section " + section.getName() + " to " + finalAnswer);
 	}
 
 	private void remove(final S section) {
@@ -118,8 +118,8 @@ public class SectionDropPane<S extends Section> extends GridPane {
 				}
 			};
 			task.setOnSucceeded(event -> updateHandler.handle(null));
-			task.setOnFailed(e -> LOGGER.error("removing section \"{}\"", section.getName(), e.getSource().getException()));
-			ThreadPool.getInstance().submitHigh(task);
+			task.setOnFailed(e -> LOGGER.error("removing section {}", section.getName(), e.getSource().getException()));
+			ThreadPool.getInstance().submitHigh(task, "removing section " + section.getName());
 		}
 	}
 }

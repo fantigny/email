@@ -226,7 +226,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		};
 		task.setOnFailed(e -> LOGGER.error("trashing threads", e.getSource().getException()));
 		task.setOnSucceeded(e -> updateHandler.handle(null));
-		ThreadPool.getInstance().submitHigh(task);
+		ThreadPool.getInstance().submitHigh(task, "trashing threads");
 	}
 
 	private void archiveSelected() {
@@ -239,7 +239,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		};
 		task.setOnFailed(e -> LOGGER.error("archiving threads", e.getSource().getException()));
 		task.setOnSucceeded(e -> updateHandler.handle(null));
-		ThreadPool.getInstance().submitHigh(task);
+		ThreadPool.getInstance().submitHigh(task, "archiving threads");
 	}
 
 	private void toggleFlag() {
@@ -269,9 +269,9 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 				return null;
 			}
 		};
-		task.setOnFailed(e -> LOGGER.error("adding tag", e.getSource().getException()));
+		task.setOnFailed(e -> LOGGER.error("adding tag {} for threads {}", tag, threads, e.getSource().getException()));
 		task.setOnSucceeded(e -> updateHandler.handle(null));
-		ThreadPool.getInstance().submitHigh(task);
+		ThreadPool.getInstance().submitHigh(task, "adding tag " + tag.getName() + " for threads");
 	}
 
 	private void removeTagForThreads(final T tag, final Set<H> threads) {
@@ -282,9 +282,9 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 				return null;
 			}
 		};
-		task.setOnFailed(e -> LOGGER.error("removing tag", e.getSource().getException()));
+		task.setOnFailed(e -> LOGGER.error("removing tag {}", tag.getName(), e.getSource().getException()));
 		task.setOnSucceeded(e -> updateHandler.handle(null));
-		ThreadPool.getInstance().submitHigh(task);
+		ThreadPool.getInstance().submitHigh(task, "removing tag " + tag.getName());
 	}
 
 	private void createTagForThreads(final String name, final Set<H> threads) {
@@ -301,7 +301,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		};
 		task.setOnFailed(e -> LOGGER.error("creating tag {}", name, e.getSource().getException()));
 		task.setOnSucceeded(e -> updateHandler.handle(null));
-		ThreadPool.getInstance().submitHigh(task);
+		ThreadPool.getInstance().submitHigh(task, "creating tag " + name);
 	}
 
 	public String getNamePattern() {

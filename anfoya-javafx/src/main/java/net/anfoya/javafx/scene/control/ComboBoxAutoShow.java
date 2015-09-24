@@ -53,8 +53,8 @@ public class ComboBoxAutoShow {
 					comboBox.show();
 				}
 			});
-			task.setOnFailed(e -> LOGGER.error("filtering items with \"{}\"", n, e.getSource().getException()));
-			ThreadPool.getInstance().submitHigh(task);
+			task.setOnFailed(e -> LOGGER.error("filtering items with {}", n, e.getSource().getException()));
+			ThreadPool.getInstance().submitHigh(task, "filtering items with " + n);
 		});
 	}
 }
