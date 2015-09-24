@@ -147,8 +147,11 @@ public class HistoryService extends TimerTask {
 					addedMessages.addAll(h.getMessagesAdded()
 							.stream()
 							.filter(a -> a.getMessage().getLabelIds() != null
-									&& !a.getMessage().getLabelIds().contains(GmailTag.DRAFT_TAG.getId())
-									&& !a.getMessage().getLabelIds().contains(GmailTag.SPAM_TAG.getId()))
+									&& a.getMessage().getLabelIds().contains(GmailTag.UNREAD.getId())
+									&& !a.getMessage().getLabelIds().contains(GmailTag.DRAFT.getId())
+									&& !a.getMessage().getLabelIds().contains(GmailTag.SPAM.getId())
+									&& !a.getMessage().getLabelIds().contains(GmailTag.TRASH.getId())
+									&& !a.getMessage().getLabelIds().contains(GmailTag.SENT.getId()))
 							.map(HistoryMessageAdded::getMessage)
 							.collect(Collectors.toSet()));
 				}
