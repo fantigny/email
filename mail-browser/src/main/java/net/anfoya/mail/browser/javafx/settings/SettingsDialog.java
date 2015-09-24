@@ -3,9 +3,8 @@ package net.anfoya.mail.browser.javafx.settings;
 import java.util.Map;
 import java.util.concurrent.Future;
 
-import javafx.collections.MapChangeListener.Change;
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -28,7 +27,7 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import net.anfoya.javafx.util.ThreadPool;
+import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.Message;
@@ -54,9 +53,10 @@ public class SettingsDialog extends Stage {
 
 		taskList = new ListView<String>();
 		final Tab taskTab = new Tab("Tasks", taskList);
-		final ObservableMap<Future<?>, String> futureDesc = ThreadPool.getInstance().getFutureDescriptions();
-		refreshTasks(futureDesc);
-		futureDesc.addListener((final Change<? extends Future<?>, ? extends String> c) -> refreshTasks(c.getMap()));
+		ThreadPool.getInstance().setOnChange(map -> {
+			Platform.runLater(() -> refreshTasks(map));
+			return null;
+		});
 
 		final TabPane tabPane = new TabPane(buildSettingsTab(), helpTab, buildAboutTab(), taskTab);
 		tabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);

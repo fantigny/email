@@ -49,8 +49,8 @@ import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 import javax.mail.internet.MimeUtility;
 
+import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.HtmlEditorListener;
-import net.anfoya.javafx.util.ThreadPool;
 import net.anfoya.mail.mime.MessageHelper;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;

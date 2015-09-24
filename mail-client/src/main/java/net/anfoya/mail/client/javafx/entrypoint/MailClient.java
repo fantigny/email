@@ -2,7 +2,7 @@ package net.anfoya.mail.client.javafx.entrypoint;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
-import net.anfoya.javafx.util.ThreadPool;
+import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.browser.javafx.MailBrowser;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.client.App;

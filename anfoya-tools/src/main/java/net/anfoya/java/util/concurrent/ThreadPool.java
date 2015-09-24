@@ -1,20 +1,20 @@
-package net.anfoya.javafx.util;
+package net.anfoya.java.util.concurrent;
 
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableMap;
-import net.anfoya.javafx.application.PlatformHelper;
+import javafx.util.Callback;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,14 +52,12 @@ public final class ThreadPool {
 	private final ExecutorService delegateHigh;
 	private final ExecutorService delegateLow;
 
-	private final ObservableMap<Future<?>, String> futureDesc;
+	private final Map<Future<?>, String> futureDesc;
+	private final Set<Callback<Map<Future<?>, String>, Void>> changeCallbacks;
 
 	private ThreadPool() {
-		if (PlatformHelper.isHeadless()) {
-			futureDesc = null;
-		} else {
-			futureDesc = FXCollections.observableMap(new LinkedHashMap<Future<?>, String>());
-		}
+		futureDesc = new ConcurrentHashMap<Future<?>, String>();
+		changeCallbacks = new HashSet<Callback<Map<Future<?>,String>,Void>>();
 //		delegateHigh = Executors.newCachedThreadPool(new NamedThreadFactory("high", Thread.NORM_PRIORITY));
 //		delegateLow = Executors.newCachedThreadPool(new NamedThreadFactory("low", Thread.MIN_PRIORITY));
 		delegateHigh = Executors.newFixedThreadPool(20, new NamedThreadFactory("norm-prority-threadpool", Thread.NORM_PRIORITY));
@@ -109,8 +107,9 @@ public final class ThreadPool {
 		return submit(delegateLow, callable, description);
 	}
 
-	public ObservableMap<Future<?>, String> getFutureDescriptions() {
-		return futureDesc;
+	public void setOnChange(final Callback<Map<Future<?>, String>, Void> callback) {
+		changeCallbacks.add(callback);
+		callback.call(futureDesc);
 	}
 
 	private void submit(final ExecutorService delegate, final Runnable runnable, final String description) {
@@ -122,25 +121,25 @@ public final class ThreadPool {
 	}
 
 	private <T> Future<T> addFuture(final Future<T> future, final String description) {
-		if (!PlatformHelper.isHeadless()) {
-			if (Platform.isFxApplicationThread()) {
-				futureDesc.put(future, description);
-			} else {
-				Platform.runLater(() -> futureDesc.put(future, description));
-			}
+		futureDesc.put(future, description);
+		for(final Callback<Map<Future<?>, String>, Void> callback: changeCallbacks) {
+			callback.call(futureDesc);
 		}
 		return future;
 	}
 
 	private void cleanupFutures() {
-		if (!PlatformHelper.isHeadless()) {
-			Platform.runLater(() -> {
-				for(final Iterator<Future<?>> i = futureDesc.keySet().iterator(); i.hasNext();) {
-					if (i.next().isDone()) {
-						i.remove();
-					}
-				}
-			});
+		boolean changed = false;
+		for(final Iterator<Future<?>> i = futureDesc.keySet().iterator(); i.hasNext();) {
+			if (i.next().isDone()) {
+				i.remove();
+				changed = true;
+			}
+		}
+		if (changed) {
+			for(final Callback<Map<Future<?>, String>, Void> callback: changeCallbacks) {
+				callback.call(futureDesc);
+			}
 		}
 	}
 }

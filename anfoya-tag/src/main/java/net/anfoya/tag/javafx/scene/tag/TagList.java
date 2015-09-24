@@ -17,7 +17,7 @@ import javafx.event.EventHandler;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.input.DataFormat;
-import net.anfoya.javafx.util.ThreadPool;
+import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.tag.service.Section;
 import net.anfoya.tag.service.Tag;
 import net.anfoya.tag.service.TagException;

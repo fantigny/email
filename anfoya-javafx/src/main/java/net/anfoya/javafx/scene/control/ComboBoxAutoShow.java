@@ -7,7 +7,7 @@ import javafx.concurrent.Task;
 import javafx.scene.control.ComboBox;
 import javafx.util.Callback;
 import net.anfoya.java.lang.StringHelper;
-import net.anfoya.javafx.util.ThreadPool;
+import net.anfoya.java.util.concurrent.ThreadPool;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

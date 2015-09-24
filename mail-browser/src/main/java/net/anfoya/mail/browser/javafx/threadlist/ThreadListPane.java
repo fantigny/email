@@ -29,9 +29,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
+import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.animation.DelayTimeline;
 import net.anfoya.javafx.scene.control.ResetTextField;
-import net.anfoya.javafx.util.ThreadPool;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.composer.javafx.MailComposer;
 import net.anfoya.mail.model.SimpleThread.SortOrder;
@@ -58,15 +58,22 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	private final ThreadList<S, T, H, M, C> threadList;
 	private final ResetTextField patternField;
 
+	private final T inbox;
+	private final T spam;
+	private final T flagged;
+
 	private DelayTimeline patternDelay;
 
 	private ThreadListDropPane<T, H, M, C> threadListDropPane;
 
 	private EventHandler<ActionEvent> updateHandler;
 
-
 	public ThreadListPane(final MailService<S, T, H, M, C> mailService) throws MailException {
 		this.mailService = mailService;
+
+		inbox = mailService.getSpecialTag(SpecialTag.INBOX);
+		spam = mailService.getSpecialTag(SpecialTag.SPAM);
+		flagged = mailService.getSpecialTag(SpecialTag.FLAGGED);
 
 		final StackPane stackPane = new StackPane();
 		stackPane.setAlignment(Pos.BOTTOM_CENTER);
@@ -249,9 +256,9 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		}
 		try {
 			if (threads.iterator().next().isFlagged()) {
-				removeTagForThreads(mailService.getSpecialTag(SpecialTag.FLAGGED), threads);
+				removeTagForThreads(flagged, threads);
 			} else {
-				addTagForThreads(mailService.getSpecialTag(SpecialTag.FLAGGED), threads);
+				addTagForThreads(flagged, threads);
 			}
 		} catch (final Exception e) {
 			LOGGER.error("adding flag", e);
@@ -264,11 +271,11 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 			return;
 		}
 		try {
-			final T spam = mailService.getSpecialTag(SpecialTag.SPAM);
 			if (threads.iterator().next().getTagIds().contains(spam.getId())) {
-				removeTagForThreads(mailService.getSpecialTag(SpecialTag.SPAM), threads);
+				removeTagForThreads(spam, threads);
+				addTagForThreads(inbox, threads);
 			} else {
-				addTagForThreads(mailService.getSpecialTag(SpecialTag.SPAM), threads);
+				addTagForThreads(spam, threads);
 			}
 		} catch (final Exception e) {
 			LOGGER.error("adding flag", e);

@@ -15,10 +15,10 @@ import javafx.scene.control.ListCell;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.ComboField;
 import net.anfoya.javafx.scene.control.RemoveLabel;
 import net.anfoya.javafx.util.LabelHelper;
-import net.anfoya.javafx.util.ThreadPool;
 import net.anfoya.mail.service.Contact;
 
 import org.slf4j.Logger;
