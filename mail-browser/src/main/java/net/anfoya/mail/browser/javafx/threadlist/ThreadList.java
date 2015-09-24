@@ -282,7 +282,8 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 			return;
 		}
 		if (prevIndex != -1 && newIndex == -1) {
-			new Timer(true).schedule(new TimerTask() {
+			//TODO remove all that
+			new Timer("threadlist-selection-schedule", true).schedule(new TimerTask() {
 				@Override
 				public void run() {
 					Platform.runLater(() -> {
