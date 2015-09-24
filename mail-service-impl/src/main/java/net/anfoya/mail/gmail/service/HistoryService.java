@@ -17,6 +17,7 @@ import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.util.Callback;
 import javafx.util.Duration;
 import net.anfoya.java.io.SerializedFile;
+import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.gmail.model.GmailTag;
 
 import org.slf4j.Logger;
@@ -26,7 +27,6 @@ import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.History;
 import com.google.api.services.gmail.model.HistoryMessageAdded;
 import com.google.api.services.gmail.model.ListHistoryResponse;
-import com.google.api.services.gmail.model.ListMessagesResponse;
 import com.google.api.services.gmail.model.Message;
 
 public class HistoryService extends TimerTask {
@@ -54,14 +54,11 @@ public class HistoryService extends TimerTask {
 		} catch (ClassNotFoundException | IOException e) {
 			historyId = null;
 		}
-		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					new SerializedFile<BigInteger>(FILE_PREFIX + user).save(historyId);
-				} catch (final IOException e) {
-					LOGGER.error("saving history id", e);
-				}
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			try {
+				new SerializedFile<BigInteger>(FILE_PREFIX + user).save(historyId);
+			} catch (final IOException e) {
+				LOGGER.error("saving history id", e);
 			}
 		}));
 
@@ -76,34 +73,24 @@ public class HistoryService extends TimerTask {
 		timer.schedule(this, period, period);
 	}
 
-	public void stop() {
-		timer.cancel();
-		timer = null;
-	}
-
 	@Override
 	public void run() {
-		try {
-			final List<History> histories = checkForUpdates();
-			if (!histories.isEmpty()) {
-				invokeCallbacks(histories);
+		ThreadPool.getInstance().submitLow(() -> {
+			try {
+				final List<History> updates = checkForUpdates();
+				invokeCallbacks(updates);
+			} catch (final HistoryException e) {
+				LOGGER.error("pull updates", e);
 			}
-		} catch (final HistoryException e) {
-			LOGGER.error("checking for updates", e);
-		}
+		}, "pull updates");
 	}
 
 	public List<History> checkForUpdates() throws HistoryException {
 		final long start = System.currentTimeMillis();
 		try {
 			if (historyId == null) {
-				final ListMessagesResponse response = gmail.users().messages().list(user).setMaxResults(1L).execute();
-				final String messageId = response.getMessages().iterator().next().getId();
-				final Message message = gmail.users().messages().get(user, messageId).execute();
-				historyId = message.getHistoryId();
-				updateLabelCallBacks.forEach(c -> c.call(null));
-				updateMessageCallBacks.forEach(c -> c.call(null));
-				return new ArrayList<History>();
+				historyId = gmail.users().getProfile(user).execute().getHistoryId();
+				return null;
 			}
 
 			final ListHistoryResponse response = gmail.users().history().list(user).setStartHistoryId(historyId).execute();
@@ -133,11 +120,21 @@ public class HistoryService extends TimerTask {
 		}
 	}
 
-	private void invokeCallbacks(final List<History> histories) {
+	private void invokeCallbacks(final List<History> updates) {
+		if (updates == null) {
+			updateLabelCallBacks.forEach(c -> c.call(null));
+			updateMessageCallBacks.forEach(c -> c.call(null));
+			return;
+		}
+
+		if (updates.isEmpty()) {
+			return;
+		}
+
 		final Set<String> updatedLabelIds = new LinkedHashSet<String>();
 		final Set<Message> updatedMessages = new LinkedHashSet<Message>();
 		final Set<Message> addedMessages = new LinkedHashSet<Message>();
-		for(final History h: histories) {
+		for(final History h: updates) {
 			if (h.getLabelsAdded() != null) {
 				h.getLabelsAdded().forEach(history -> updatedLabelIds.addAll(history.getLabelIds()));
 			}
