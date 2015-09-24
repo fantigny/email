@@ -85,7 +85,6 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 	private final RecipientListPane<C> bccListBox;
 
 	private final Button saveButton;
-	private final Button sendButton;
 
 	private M draft;
 
@@ -180,7 +179,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		saveButton.setOnAction(event -> save());
 		saveButton.disableProperty().bind(editedProperty.not());
 
-		sendButton = new Button("send");
+		final Button sendButton = new Button("send");
 		sendButton.setOnAction(e -> sendAndClose());
 
 		final HBox buttonBox = new HBox(10, discardButton, saveButton, sendButton);
@@ -279,8 +278,6 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 	}
 
 	public void reply(final M message, final boolean all) {
-		sendButton.setText("reply");
-
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
@@ -299,8 +296,6 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 	}
 
 	public void forward(final M message) {
-		sendButton.setText("forward");
-
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
