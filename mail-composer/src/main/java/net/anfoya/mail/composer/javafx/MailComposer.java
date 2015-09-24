@@ -101,7 +101,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		setTitle("FisherMail");
 
 		editedProperty = new SimpleBooleanProperty(false);
-		autosaveTimer = new Timer(true);
+		autosaveTimer = new Timer("autosave-draft-timer", true);
 
 		final Image icon = new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png"));
 		getIcons().add(icon);
