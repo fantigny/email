@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import net.anfoya.java.io.SerializedFile;
+import net.anfoya.java.util.concurrent.ThreadPool;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,7 +79,7 @@ public class LocalCache<K, V> {
 
 	private void clean() {
 		if (map.size() > limit) {
-			new Thread(() -> {
+			ThreadPool.getInstance().submitLow(() -> {
 				if (!cleaning.getAndSet(true)) {
 					try {
 						cleanAsync();
@@ -88,7 +89,7 @@ public class LocalCache<K, V> {
 						cleaning.set(false);
 					}
 				}
-			}).start();
+			}, "cleaning cache " + name);
 		}
 	}
 
