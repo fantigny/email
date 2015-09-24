@@ -109,7 +109,6 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 
 		threadListDropPane = new ThreadListDropPane<T, H, M, C>(mailService);
 		threadListDropPane.prefWidthProperty().bind(stackPane.widthProperty());
-		threadListDropPane.setOnUnread(e -> threadList.getSelectionModel().clearSelection());
 
 		final ThreadToolBar toolbar = new ThreadToolBar();
 		toolbar.setPadding(new Insets(0, 0, 3, 0));
@@ -119,6 +118,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		toolbar.setOnToggleFlag(e -> toggleFlag());
 		toolbar.setOnArchive(e -> archiveSelected());
 		toolbar.setOnTrash(e -> trashSelected());
+		toolbar.setOnSpam(e -> toggleSpam());
 
 		final BooleanProperty showToolbar = Settings.getSettings().showToolbar();
 		if (showToolbar.get()) {
@@ -252,6 +252,23 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 				removeTagForThreads(mailService.getSpecialTag(SpecialTag.FLAGGED), threads);
 			} else {
 				addTagForThreads(mailService.getSpecialTag(SpecialTag.FLAGGED), threads);
+			}
+		} catch (final Exception e) {
+			LOGGER.error("adding flag", e);
+		}
+	}
+
+	private void toggleSpam() {
+		final Set<H> threads = threadList.getSelectedThreads();
+		if (threads.isEmpty()) {
+			return;
+		}
+		try {
+			final T spam = mailService.getSpecialTag(SpecialTag.SPAM);
+			if (threads.iterator().next().getTagIds().contains(spam.getId())) {
+				removeTagForThreads(mailService.getSpecialTag(SpecialTag.SPAM), threads);
+			} else {
+				addTagForThreads(mailService.getSpecialTag(SpecialTag.SPAM), threads);
 			}
 		} catch (final Exception e) {
 			LOGGER.error("adding flag", e);

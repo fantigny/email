@@ -102,11 +102,11 @@ public class GmailThread extends SimpleThread {
 
 	@Override
 	public boolean isUnread() {
-		return getTagIds().contains(GmailTag.UNREAD_TAG.getId());
+		return getTagIds().contains(GmailTag.UNREAD.getId());
 	}
 
 	@Override
 	public boolean isFlagged() {
-		return getTagIds().contains(GmailTag.STARRED_TAG.getId());
+		return getTagIds().contains(GmailTag.STARRED.getId());
 	}
 }

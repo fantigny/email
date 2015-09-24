@@ -17,7 +17,6 @@ import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.Message;
 import net.anfoya.mail.service.Section;
-import net.anfoya.mail.service.SpecialTag;
 import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
 
@@ -29,10 +28,6 @@ public class ThreadListDropPane<T extends Tag, H extends Thread, M extends Messa
 
 	private final MailService<? extends Section, T, H, M, C> mailService;
 	private EventHandler<ActionEvent> updateHandler;
-	private EventHandler<ActionEvent> unreadHandler;
-
-	private final T flaggedTag;
-	private final T unreadTag;
 
 	public ThreadListDropPane(final MailService<? extends Section, T, H, M, C> mailService) throws MailException {
 		this.mailService = mailService;
@@ -40,37 +35,12 @@ public class ThreadListDropPane<T extends Tag, H extends Thread, M extends Messa
 		setMaxHeight(200);
 		getStyleClass().add("droparea-grid");
 
-		flaggedTag = mailService.getSpecialTag(SpecialTag.FLAGGED);
-		unreadTag = mailService.getSpecialTag(SpecialTag.UNREAD);
-
 		final DropArea archiveArea = new DropArea("archive", DND_THREADS_DATA_FORMAT);
 		archiveArea.setOnDragDropped(event -> {
 			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)) {
 				@SuppressWarnings("unchecked")
 				final Set<H> threads = (Set<H>) event.getDragboard().getContent(DND_THREADS_DATA_FORMAT);
 				archive(threads);
-				event.setDropCompleted(true);
-				event.consume();
-			}
-		});
-
-		final DropArea flagArea = new DropArea("flag", DND_THREADS_DATA_FORMAT);
-		flagArea.setOnDragDropped(event -> {
-			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)) {
-				@SuppressWarnings("unchecked")
-				final Set<H> threads = (Set<H>) event.getDragboard().getContent(DND_THREADS_DATA_FORMAT);
-				flag(threads);
-				event.setDropCompleted(true);
-				event.consume();
-			}
-		});
-
-		final DropArea trashArea = new DropArea("trash", DND_THREADS_DATA_FORMAT);
-		trashArea.setOnDragDropped(event -> {
-			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)) {
-				@SuppressWarnings("unchecked")
-				final Set<H> threads = (Set<H>) event.getDragboard().getContent(DND_THREADS_DATA_FORMAT);
-				trash(threads);
 				event.setDropCompleted(true);
 				event.consume();
 			}
@@ -109,40 +79,23 @@ public class ThreadListDropPane<T extends Tag, H extends Thread, M extends Messa
 			}
 		});
 
-		final DropArea unreadArea = new DropArea("unread", DND_THREADS_DATA_FORMAT);
-		unreadArea.setOnDragDropped(event -> {
-			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)) {
-				@SuppressWarnings("unchecked")
-				final Set<H> threads = (Set<H>) event.getDragboard().getContent(DND_THREADS_DATA_FORMAT);
-				unread(threads);
-				event.setDropCompleted(true);
-				event.consume();
-			}
-		});
-
 		int i=0;
-		addRow(i++, flagArea, unreadArea);
 		addRow(i++, replyArea);
 		addRow(i++, replyAllArea, forwardArea);
-		addRow(i++, archiveArea, trashArea);
+		addRow(i++, archiveArea);
 
-		setColumnSpan(replyArea, 2);
-
-		setHgrow(flagArea, Priority.ALWAYS);
-		setVgrow(flagArea, Priority.ALWAYS);
-		setHgrow(archiveArea, Priority.ALWAYS);
-		setVgrow(archiveArea, Priority.ALWAYS);
-		setHgrow(trashArea, Priority.ALWAYS);
-		setVgrow(trashArea, Priority.ALWAYS);
+		setColumnSpan(replyArea, 3);
 		setHgrow(replyArea, Priority.ALWAYS);
 		setVgrow(replyArea, Priority.ALWAYS);
+
 		setHgrow(replyAllArea, Priority.ALWAYS);
 		setVgrow(replyAllArea, Priority.ALWAYS);
 		setHgrow(forwardArea, Priority.ALWAYS);
 		setVgrow(forwardArea, Priority.ALWAYS);
-		setHgrow(unreadArea, Priority.ALWAYS);
-		setVgrow(unreadArea, Priority.ALWAYS);
 
+		setColumnSpan(archiveArea, 3);
+		setHgrow(archiveArea, Priority.ALWAYS);
+		setVgrow(archiveArea, Priority.ALWAYS);
 	}
 
 	private void forward(final Set<H> threads) {
@@ -163,35 +116,6 @@ public class ThreadListDropPane<T extends Tag, H extends Thread, M extends Messa
 		}
 	}
 
-	private void flag(final Set<H> threads) {
-		final Task<Void> task = new Task<Void>() {
-			@Override
-			protected Void call() throws Exception {
-				mailService.addTagForThreads(flaggedTag, threads);
-				return null;
-			}
-		};
-		task.setOnSucceeded(e -> updateHandler.handle(null));
-		task.setOnFailed(e -> LOGGER.error("adding {} to thread", flaggedTag, e.getSource().getException()));
-		ThreadPool.getInstance().submitHigh(task, "flagging thread");
-	}
-
-	private void unread(final Set<H> threads) {
-		final Task<Void> task = new Task<Void>() {
-			@Override
-			protected Void call() throws Exception {
-				mailService.addTagForThreads(unreadTag, threads);
-				return null;
-			}
-		};
-		task.setOnSucceeded(e -> {
-			unreadHandler.handle(null);
-			updateHandler.handle(null);
-		});
-		task.setOnFailed(e -> LOGGER.error("adding {} to threads", unreadTag, e.getSource().getException()));
-		ThreadPool.getInstance().submitHigh(task, "marking threads unread");
-	}
-
 	private void archive(final Set<H> threads) {
 		final Task<Void> task = new Task<Void>() {
 			@Override
@@ -205,24 +129,7 @@ public class ThreadListDropPane<T extends Tag, H extends Thread, M extends Messa
 		ThreadPool.getInstance().submitHigh(task, "archiving threads");
 	}
 
-	private void trash(final Set<H> threads) {
-		final Task<Void> task = new Task<Void>() {
-			@Override
-			protected Void call() throws Exception {
-				mailService.trash(threads);
-				return null;
-			}
-		};
-		task.setOnSucceeded(e -> updateHandler.handle(null));
-		task.setOnFailed(e -> LOGGER.error("trashing threads", e.getSource().getException()));
-		ThreadPool.getInstance().submitHigh(task, "trashing threads");
-	}
-
 	public void setOnUpdate(final EventHandler<ActionEvent> handler) {
 		this.updateHandler = handler;
-	}
-
-	public void setOnUnread(final EventHandler<ActionEvent> handler) {
-		this.unreadHandler = handler;
 	}
 }

@@ -18,6 +18,7 @@ public class ThreadToolBar extends ToolBar {
 	private final Button flagButton;
 	private final Button archiveButton;
 	private final Button trashButton;
+	private final Button spamButton;
 
 	public ThreadToolBar() {
 		replyButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("reply.png"))));
@@ -38,11 +39,14 @@ public class ThreadToolBar extends ToolBar {
 		trashButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("trash.png"))));
 		trashButton.setTooltip(new Tooltip("trash"));
 
+		spamButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("spam.png"))));
+		spamButton.setTooltip(new Tooltip("toggle spam"));
+
 		final HBox grow = new HBox();
 		HBox.setHgrow(grow, Priority.ALWAYS);
 
 		getItems().addAll(
-				archiveButton, flagButton, trashButton
+				archiveButton, flagButton, spamButton, trashButton
 				, grow
 				, replyButton, replyAllButton, forwardButton
 				);
@@ -70,5 +74,9 @@ public class ThreadToolBar extends ToolBar {
 
 	public void setOnTrash(final EventHandler<ActionEvent> handler) {
 		trashButton.setOnAction(handler);
+	}
+
+	public void setOnSpam(final EventHandler<ActionEvent> handler) {
+		spamButton.setOnAction(handler);
 	}
 }

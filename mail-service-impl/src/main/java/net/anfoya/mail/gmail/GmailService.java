@@ -290,7 +290,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			final Collection<Label> labels = labelService.getAll();
 			if (GmailSection.SYSTEM.equals(section)) {
 				final Set<GmailTag> alphaTags = new TreeSet<GmailTag>();
-				alphaTags.add(GmailTag.ALL_TAG);
+				alphaTags.add(GmailTag.ALL);
 				for(final Label label: labels) {
 					final String name = label.getName();
 					if (GmailTag.isHidden(label)) {
@@ -368,7 +368,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public int getCountForTags(final Set<GmailTag> includes, final Set<GmailTag> excludes, final String pattern) throws GMailException {
 		try {
-			if (includes.isEmpty() || includes.contains(GmailTag.ALL_TAG) || includes.contains(GmailTag.SENT_TAG)) { //TODO && excludes.isEmpty() && pattern.isEmpty()) {
+			if (includes.isEmpty() || includes.contains(GmailTag.ALL) || includes.contains(GmailTag.SENT)) { //TODO && excludes.isEmpty() && pattern.isEmpty()) {
 				return 0;
 			}
 
@@ -416,7 +416,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			, final String namePattern) throws GMailException {
 		try {
 			final Set<GmailTag> tags = getTags(section);
-			if (tags.isEmpty() || tags.contains(GmailTag.ALL_TAG) || tags.contains(GmailTag.SENT_TAG)) {
+			if (tags.isEmpty() || tags.contains(GmailTag.ALL) || tags.contains(GmailTag.SENT)) {
 				return 0;
 			}
 
@@ -593,7 +593,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		try {
 			final Set<String> ids = threads.stream().map(GmailThread::getId).collect(Collectors.toSet());
 			final Set<String> labelIds = new HashSet<String>();
-			labelIds.add(GmailTag.INBOX_TAG.getId());
+			labelIds.add(GmailTag.INBOX.getId());
 			threadService.update(ids, labelIds, false);
 		} catch (final ThreadException e) {
 			throw new GMailException("archiving threads " + threads, e);
@@ -721,11 +721,13 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public GmailTag getSpecialTag(final SpecialTag specialTag) throws MailException {
 		switch (specialTag) {
-		case ALL:		return GmailTag.ALL_TAG;
-		case FLAGGED:	return GmailTag.STARRED_TAG;
-		case INBOX:		return GmailTag.INBOX_TAG;
-		case SENT:		return GmailTag.SENT_TAG;
-		case UNREAD:	return GmailTag.UNREAD_TAG;
+		case ALL:		return GmailTag.ALL;
+		case FLAGGED:	return GmailTag.STARRED;
+		case INBOX:		return GmailTag.INBOX;
+		case SENT:		return GmailTag.SENT;
+		case UNREAD:	return GmailTag.UNREAD;
+		case SPAM:		return GmailTag.SPAM;
+		case TRASH:		return GmailTag.TRASH;
 		}
 		return null;
 	}
