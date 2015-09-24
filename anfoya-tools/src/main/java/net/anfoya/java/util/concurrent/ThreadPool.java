@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
+import net.anfoya.javafx.application.PlatformHelper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,16 +52,20 @@ public final class ThreadPool {
 	private final ExecutorService delegateHigh;
 	private final ExecutorService delegateLow;
 
-	private final ObservableMap<Future<?>, String> futureDesc = FXCollections.observableMap(new LinkedHashMap<Future<?>, String>());
-	private final Timer timer;
+	private final ObservableMap<Future<?>, String> futureDesc;
 
 	private ThreadPool() {
+		if (PlatformHelper.isHeadless()) {
+			futureDesc = null;
+		} else {
+			futureDesc = FXCollections.observableMap(new LinkedHashMap<Future<?>, String>());
+		}
 //		delegateHigh = Executors.newCachedThreadPool(new NamedThreadFactory("high", Thread.NORM_PRIORITY));
 //		delegateLow = Executors.newCachedThreadPool(new NamedThreadFactory("low", Thread.MIN_PRIORITY));
 		delegateHigh = Executors.newFixedThreadPool(20, new NamedThreadFactory("norm-prority-threadpool", Thread.NORM_PRIORITY));
 		delegateLow = Executors.newFixedThreadPool(10, new NamedThreadFactory(" min-prority-threadpool", Thread.MIN_PRIORITY));
 
-		timer = new Timer("threadpool-cleanup-timer", true);
+		final Timer timer = new Timer("threadpool-cleanup-timer", true);
 		timer.schedule(new TimerTask() {
 			@Override
 			public void run() {
@@ -74,7 +79,6 @@ public final class ThreadPool {
 	}
 
 	public void shutdown() {
-		timer.cancel();
 		shutdown(delegateHigh);
 		shutdown(delegateLow);
 	}
@@ -118,21 +122,25 @@ public final class ThreadPool {
 	}
 
 	private <T> Future<T> addFuture(final Future<T> future, final String description) {
-		if (Platform.isFxApplicationThread()) {
-			futureDesc.put(future, description);
-		} else {
-			Platform.runLater(() -> futureDesc.put(future, description));
+		if (!PlatformHelper.isHeadless()) {
+			if (Platform.isFxApplicationThread()) {
+				futureDesc.put(future, description);
+			} else {
+				Platform.runLater(() -> futureDesc.put(future, description));
+			}
 		}
 		return future;
 	}
 
 	private void cleanupFutures() {
-		Platform.runLater(() -> {
-			for(final Iterator<Future<?>> i = futureDesc.keySet().iterator(); i.hasNext();) {
-				if (i.next().isDone()) {
-					i.remove();
+		if (!PlatformHelper.isHeadless()) {
+			Platform.runLater(() -> {
+				for(final Iterator<Future<?>> i = futureDesc.keySet().iterator(); i.hasNext();) {
+					if (i.next().isDone()) {
+						i.remove();
+					}
 				}
-			}
-		});
+			});
+		}
 	}
 }
