@@ -168,7 +168,7 @@ public class RecipientListPane<C extends Contact> extends HBox {
 			address = label.getText();
 		} else {
 			final String tooltip = label.getTooltip().getText();
-			address = tooltip.substring(tooltip.indexOf('('), tooltip.indexOf(')'));
+			address = tooltip.substring(tooltip.indexOf('(') + 1, tooltip.indexOf(')'));
 		}
 		remove(label, address);
 	}
