@@ -1,8 +1,7 @@
 package net.anfoya.java.util.concurrent;
 
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Callable;
@@ -23,7 +22,6 @@ public final class ThreadPool {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadPool.class);
 
 	private static class NamedThreadFactory implements ThreadFactory {
-	    private static final AtomicInteger poolNumber = new AtomicInteger(1);
 	    private final ThreadGroup group;
 	    private final AtomicInteger threadNumber = new AtomicInteger(1);
 	    private final String namePrefix;
@@ -32,17 +30,13 @@ public final class ThreadPool {
 	    protected NamedThreadFactory(final String name, final int priority) {
 	        final SecurityManager s = System.getSecurityManager();
 	        group = s != null? s.getThreadGroup(): Thread.currentThread().getThreadGroup();
-	        namePrefix = "pool-" +
-	                      poolNumber.getAndIncrement() +
-	                     "-thread-" + name + "-";
+	        namePrefix = name + "-";
 	        this.priority = priority;
 	    }
 
 	    @Override
 		public Thread newThread(final Runnable r) {
-	        final Thread t = new Thread(group, r,
-	                              namePrefix + threadNumber.getAndIncrement(),
-	                              0);
+	        final Thread t = new Thread(group, r, namePrefix + threadNumber.getAndIncrement());
             t.setDaemon(true);
             t.setPriority(priority);
 	        return t;
@@ -63,8 +57,8 @@ public final class ThreadPool {
 	private ThreadPool() {
 //		delegateHigh = Executors.newCachedThreadPool(new NamedThreadFactory("high", Thread.NORM_PRIORITY));
 //		delegateLow = Executors.newCachedThreadPool(new NamedThreadFactory("low", Thread.MIN_PRIORITY));
-		delegateHigh = Executors.newFixedThreadPool(20, new NamedThreadFactory("high", Thread.NORM_PRIORITY));
-		delegateLow = Executors.newFixedThreadPool(10, new NamedThreadFactory("low", Thread.MIN_PRIORITY));
+		delegateHigh = Executors.newFixedThreadPool(20, new NamedThreadFactory("norm-prority-threadpool", Thread.NORM_PRIORITY));
+		delegateLow = Executors.newFixedThreadPool(10, new NamedThreadFactory(" min-prority-threadpool", Thread.MIN_PRIORITY));
 
 		timer = new Timer("threadpool-cleanup-timer", true);
 		timer.schedule(new TimerTask() {
@@ -116,26 +110,28 @@ public final class ThreadPool {
 	}
 
 	private void submit(final ExecutorService delegate, final Runnable runnable, final String description) {
-		final Future<?> future = delegate.submit(runnable);
-		futureDesc.put(future, description);
+		addFuture(delegate.submit(runnable), description);
 	}
 
 	private <T> Future<T> submit(final ExecutorService delegate, final Callable<T> callable, final String description) {
-		final Future<T> future = delegate.submit(callable);
-		futureDesc.put(future, description);
+		return addFuture(delegate.submit(callable), description);
+	}
+
+	private <T> Future<T> addFuture(final Future<T> future, final String description) {
+		if (Platform.isFxApplicationThread()) {
+			futureDesc.put(future, description);
+		} else {
+			Platform.runLater(() -> futureDesc.put(future, description));
+		}
 		return future;
 	}
 
 	private void cleanupFutures() {
-		final Set<Future<?>> toRemove = new HashSet<Future<?>>();
-		for(final Future<?> f: futureDesc.keySet()) {
-			if (f!= null && f.isDone()) {
-				toRemove.add(f);
-			}
-		}
 		Platform.runLater(() -> {
-			for(final Future<?> f: toRemove) {
-				futureDesc.remove(f);
+			for(final Iterator<Future<?>> i = futureDesc.keySet().iterator(); i.hasNext();) {
+				if (i.next().isDone()) {
+					i.remove();
+				}
 			}
 		});
 	}
