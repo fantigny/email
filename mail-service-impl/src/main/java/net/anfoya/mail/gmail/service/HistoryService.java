@@ -72,7 +72,7 @@ public class HistoryService extends TimerTask {
 
 	public void start(final Duration pullPeriod) {
 		final long period = (long) pullPeriod.toMillis();
-		timer = new Timer(true);
+		timer = new Timer("history-pull-timer", true);
 		timer.schedule(this, period, period);
 	}
 

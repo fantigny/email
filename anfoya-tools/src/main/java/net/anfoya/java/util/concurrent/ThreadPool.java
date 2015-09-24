@@ -66,11 +66,11 @@ public final class ThreadPool {
 		delegateHigh = Executors.newFixedThreadPool(20, new NamedThreadFactory("high", Thread.NORM_PRIORITY));
 		delegateLow = Executors.newFixedThreadPool(10, new NamedThreadFactory("low", Thread.MIN_PRIORITY));
 
-		timer = new Timer(true);
+		timer = new Timer("threadpool-cleanup-timer", true);
 		timer.schedule(new TimerTask() {
 			@Override
 			public void run() {
-				checkFutures();
+				cleanupFutures();
 			}
 		}, 1000, 1000);
 
@@ -126,7 +126,7 @@ public final class ThreadPool {
 		return future;
 	}
 
-	private void checkFutures() {
+	private void cleanupFutures() {
 		final Set<Future<?>> toRemove = new HashSet<Future<?>>();
 		for(final Future<?> f: futureDesc.keySet()) {
 			if (f!= null && f.isDone()) {

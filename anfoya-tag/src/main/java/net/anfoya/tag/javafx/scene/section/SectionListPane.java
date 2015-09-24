@@ -87,7 +87,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 		sectionAcc = new Accordion();
 		sectionAcc.expandedPaneProperty().addListener((ov, o, n) -> {
 			if (n == null && !sectionAcc.getPanes().isEmpty()) {
-				new Timer(true).schedule(new TimerTask() {
+				new Timer("section-auto-expand-timer", true).schedule(new TimerTask() {
 					@Override
 					public void run() {
 						if (sectionAcc.expandedPaneProperty().isNull().get()
