@@ -160,9 +160,7 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 		}
 		refreshing = false;
 
-		if (hasThisTag) {
-			initThisTag(includes, excludes, itemPattern);
-		}
+		initThisTag(includes, excludes, itemPattern);
 	}
 
 	private synchronized void initThisTag(final Set<T> includes, final Set<T> excludes, final String itemPattern) {
