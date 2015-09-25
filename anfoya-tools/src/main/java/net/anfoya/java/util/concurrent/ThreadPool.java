@@ -71,14 +71,12 @@ public final class ThreadPool {
 			}
 		}, 1000, 1000);
 
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdown()));
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			shutdown(delegateHigh);
+			shutdown(delegateLow);
+		}));
 
 		LOGGER.info("started!");
-	}
-
-	public void shutdown() {
-		shutdown(delegateHigh);
-		shutdown(delegateLow);
 	}
 
 	private void shutdown(final ExecutorService service) {

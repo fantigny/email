@@ -54,7 +54,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		initGui();
 
 		setOnShowing(e -> initData());
-		setOnCloseRequest(e ->Notifier.INSTANCE.stop());
+		setOnCloseRequest(e -> Notifier.INSTANCE.stop());
 	}
 
 	@Override

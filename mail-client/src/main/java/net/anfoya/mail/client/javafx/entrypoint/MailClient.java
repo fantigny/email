@@ -2,7 +2,6 @@ package net.anfoya.mail.client.javafx.entrypoint;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
-import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.browser.javafx.MailBrowser;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.client.App;
@@ -39,21 +38,23 @@ public class MailClient extends Application {
 
 	@Override
 	public void start(final Stage primaryStage) throws Exception {
-		primaryStage.setOnCloseRequest(e -> ThreadPool.getInstance().shutdown());
-
-		final MailBrowser<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact> mailBrowser =
-				new MailBrowser<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact>(gmail);
-		do {
+		for(;;) {
 			if (!gmail.disconnected().get()) {
+				final MailBrowser<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact> mailBrowser =
+						new MailBrowser<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact>(gmail);
 				mailBrowser.showAndWait();
-			}
-			if (!mailBrowser.isQuit()) {
-				try {
-					gmail.connect(App.MAIL_CLIENT);
-				} catch (final MailException e) {
-					throw new Exception("login failed", e);
+				if (mailBrowser.isQuit()) {
+					break;
 				}
 			}
-		} while (!gmail.disconnected().get() && !mailBrowser.isQuit());
+			try {
+				gmail.connect(App.MAIL_CLIENT);
+			} catch (final MailException e) {
+				throw new Exception("login failed", e);
+			}
+			if (gmail.disconnected().get()) {
+				break;
+			}
+		}
 	}
 }
