@@ -272,6 +272,5 @@ public class ThreadService {
 
 	public void clearCache() {
 		idThreads.clear();
-		LOGGER.debug("cache cleared");
 	}
 }

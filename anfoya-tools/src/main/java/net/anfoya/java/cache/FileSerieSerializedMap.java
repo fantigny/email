@@ -1,5 +1,6 @@
 package net.anfoya.java.cache;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -180,10 +181,26 @@ public class FileSerieSerializedMap<K extends Serializable, V extends Serializab
 
 	@Override
 	public synchronized void clear() {
+		LOGGER.info("clearing...");
+
 		delegate.clear();
 		dico.clear();
 		loaded.clear();
 		saved.clear();
+
+		new SerializedFile<List<K>>(dicoFilename).clear();
+		int fileIndex = 0;
+		for(;;) {
+			final String filename = String.format(filenamePattern, "" + fileIndex);
+			final File file = new SerializedFile<Map<K, V>>(filename);
+			if (file.exists()) {
+				LOGGER.info("deleting {}", filename);
+				file.delete();
+			} else {
+				break;
+			}
+			fileIndex++;
+		}
 	}
 
 	@Override

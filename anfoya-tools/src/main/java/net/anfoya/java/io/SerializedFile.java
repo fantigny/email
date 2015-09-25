@@ -53,4 +53,12 @@ public class SerializedFile<K> extends File {
 			return true;
 		}
 	}
+
+	public void clear() {
+		LOGGER.info("clearing {}", this);
+
+		if (exists()) {
+			delete();
+		}
+	}
 }

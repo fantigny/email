@@ -184,9 +184,14 @@ public class HistoryService extends TimerTask {
 
 	public void clearCache() {
 		historyId = null;
+		new SerializedFile<BigInteger>(FILE_PREFIX + user).clear();
 	}
 
 	public ReadOnlyBooleanProperty disconnected() {
 		return disconnected.getReadOnlyProperty();
+	}
+
+	public void stop() {
+		timer.cancel();
 	}
 }

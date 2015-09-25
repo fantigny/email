@@ -123,5 +123,6 @@ public class LabelService {
 
 	public void clearCache() {
 		idLabels.clear();
+		new SerializedFile<Map<String, CacheData<Label>>>(FILE_PREFIX + user).clear();
 	}
 }
