@@ -72,12 +72,17 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	private GmailContact contact;
 
 	public GmailService() {
-		disconnected = new ReadOnlyBooleanWrapper(false);
+		disconnected = new ReadOnlyBooleanWrapper(true);
 	}
 
 	@Override
 	public void connect(final String appName) throws GMailException {
-		connectionService = new ConnectionService(appName).connect();
+		connectionService = new ConnectionService(appName);
+		final boolean connected = connectionService.connect();
+		if (!connected) {
+			return;
+		}
+
 		final ContactsService gcontact = connectionService.getGcontactService();
 		final Gmail gmail = connectionService.getGmailService();
 
@@ -106,7 +111,10 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public void disconnect() {
 	    connectionService.disconnect();
-		clearCache();
+	    historyService.stop();
+	    disconnected.unbind();
+	    disconnected.set(true);
+	    clearCache();
 	}
 
 	@Override
@@ -711,10 +719,10 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 	@Override
 	public void clearCache() {
+		historyService.clearCache();
 		labelService.clearCache();
 		messageService.clearCache();
 		threadService.clearCache();
-		historyService.clearCache();
 		contactService.clearCache();
 	}
 

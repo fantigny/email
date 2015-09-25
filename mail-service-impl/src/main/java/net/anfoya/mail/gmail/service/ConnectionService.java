@@ -62,7 +62,7 @@ public class ConnectionService {
 		if (!HL) Platform.runLater(() -> progress = new ConnectionProgress());
 	}
 
-	public ConnectionService connect() throws GMailException {
+	public boolean connect() throws GMailException {
 		if (!HL) Platform.runLater(() -> progress.setValue(1/3d, "Google sign in..."));
 		try {
 			final BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(CLIENT_SECRET_PATH)));
@@ -89,6 +89,9 @@ public class ConnectionService {
 
 				// Generate Credential using login token.
 				final TokenResponse tokenResponse = new GmailLogin(clientSecrets).getTokenResponseCredentials();
+				if (tokenResponse == null) {
+					return false;
+				}
 				credential.setFromTokenResponse(tokenResponse);
 			}
 
@@ -110,7 +113,7 @@ public class ConnectionService {
 			if (!HL) Platform.runLater(() -> progress.hide());
 		}
 
-		return this;
+		return true;
 	}
 
 	public void disconnect() {
