@@ -140,7 +140,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 		setCenter(stackPane);
 
 		selectedTagsPane = new SelectedTagsPane<T>();
-		selectedTagsPane.setClearTagCallBack(tag -> {
+		selectedTagsPane.setRemoveTagCallBack(tag -> {
 			clear(tag.getName());
 			return null;
 		});

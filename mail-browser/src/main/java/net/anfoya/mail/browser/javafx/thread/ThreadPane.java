@@ -1,11 +1,11 @@
 package net.anfoya.mail.browser.javafx.thread;
 
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -23,6 +23,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.browser.javafx.message.MessagePane;
 import net.anfoya.mail.browser.javafx.settings.SettingsDialog;
 import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
@@ -235,14 +236,9 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 
 		try {
 			final T unread = mailService.getSpecialTag(SpecialTag.UNREAD);
-			if (thread.getTagIds().contains(unread.getId())) {
-				@SuppressWarnings("serial")
-				final Set<H> threads = new HashSet<H>() {{ add(thread); }};
-				mailService.removeTagForThreads(unread, threads);
-				updateHandler.handle(null);
-			}
+			remove(threads, unread);
 		} catch (final MailException e) {
-			LOGGER.error("marking thread id ({}) unread", thread.getId());
+			LOGGER.error("getting unread tag", e);
 		}
 	}
 
@@ -251,36 +247,43 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 	}
 
 	public void refreshTags() {
+		tagsPane.clear();
+
 		if (threads == null || threads.size() == 0) {
-			tagsPane.clear();
 			return;
 		}
 
-		final Set<T> tags = new LinkedHashSet<T>();
-		for(final H t: threads) {
-			for(final String id: t.getTagIds()) {
-				try {
-					tags.add(mailService.getTag(id));
-				} catch (final MailException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+		Platform.runLater(() -> {
+			//retrieve all tags for all threads
+			final Set<T> tags = new LinkedHashSet<T>();
+			for(final H t: threads) {
+				for(final String id: t.getTagIds()) {
+					try {
+						tags.add(mailService.getTag(id));
+					} catch (final MailException e) {
+						LOGGER.error("getting tag {}", id, e);
+					}
 				}
 			}
-			tagsPane.setClearTagCallBack(tag -> {
-				try {
-					mailService.removeTagForThreads(tag, threads);
-				} catch (final MailException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				updateHandler.handle(null);
-				return null;
-			});
+
+			tagsPane.setRemoveTagCallBack(t -> remove(threads, t));
 			tagsPane.refresh(tags);
-		}
+		});
 	}
 
 	public void setOnLogout(final EventHandler<ActionEvent> handler) {
 		logoutHandler = handler;
+	}
+
+	private Void remove(final Set<H> threads, final T tag) {
+		ThreadPool.getInstance().submitHigh(() -> {
+			try {
+				mailService.removeTagForThreads(tag, threads);
+			} catch (final MailException e) {
+				LOGGER.error("removing tag {} for threads", tag);
+			}
+			updateHandler.handle(null);
+		}, "removing tag " + tag.getName());
+		return null;
 	}
 }

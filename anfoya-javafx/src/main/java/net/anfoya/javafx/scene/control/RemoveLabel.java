@@ -13,8 +13,14 @@ public class RemoveLabel extends Label {
 	private static final Color REGULAR_CROSS = Color.DARKGRAY;
 	private static final Color HIGHLIGHT_CROSS = Color.BLACK;
 
+	public RemoveLabel(final String name) {
+		this(name, null);
+	}
+
 	public RemoveLabel(final String text, final String toolTip) {
-		setTooltip(new Tooltip(toolTip));
+		if (toolTip != null) {
+			setTooltip(new Tooltip(toolTip));
+		}
 
 		final Rectangle r1 = getCard(-45, REGULAR_CROSS);
 		final Rectangle r2 = getCard(45, REGULAR_CROSS);
