@@ -85,23 +85,24 @@ public class MessageHelper {
 
 	private StringBuilder toHtml(final Part part, boolean isHtml) throws IOException, MessagingException {
 		final String type = part.getContentType().replaceAll("\\r", "").replaceAll("\\n", "").replaceAll("\\t", " ");
+		final Object content = part.getContent();
 		isHtml = isHtml || type.contains("multipart/alternative");
-		if (part.getContent() instanceof String && type.contains("text/html")) {
+		if (content instanceof String && type.contains("text/html")) {
 			LOGGER.debug("++++ type {}", type);
-			return new StringBuilder((String) part.getContent());
-		} else if (part.getContent() instanceof String && type.contains("text/plain") && !isHtml) {
+			return new StringBuilder((String) content);
+		} else if (content instanceof String && type.contains("text/plain") && !isHtml) {
 			LOGGER.debug("++++ type {}", type);
-			return new StringBuilder("<pre>").append(part.getContent()).append("</pre>");
+			return new StringBuilder("<pre>").append(content).append("</pre>");
 		} else if (part instanceof Multipart || type.contains("multipart")) {
 			LOGGER.debug("++++ type {}", type);
-			final Multipart parts = (Multipart) part.getContent();
+			final Multipart parts = (Multipart) content;
 			final StringBuilder html = new StringBuilder();
 			for(int i=0, n=parts.getCount(); i<n; i++) {
 				html.append(toHtml(parts.getBodyPart(i), isHtml));
 			}
 			return html;
 		} else if (part instanceof MimeBodyPart
-				&& part.getContent() instanceof BASE64DecoderStream
+				&& content instanceof BASE64DecoderStream
 				&& ((MimeBodyPart)part).getContentID() != null) {
 			final MimeBodyPart bodyPart = (MimeBodyPart) part;
 			final String cid = bodyPart.getContentID().replaceAll("<", "").replaceAll(">", "");
@@ -111,7 +112,7 @@ public class MessageHelper {
 			cidFilenames.put(cid, tempFilename);
 			return new StringBuilder();
 		} else if (part instanceof MimeBodyPart
-				&& part.getContent() instanceof BASE64DecoderStream
+				&& content instanceof BASE64DecoderStream
 				&& MimeBodyPart.INLINE.equalsIgnoreCase(part.getDisposition())) {
 			final MimeBodyPart bodyPart = (MimeBodyPart) part;
 			final String tempFilename = TEMP + MimeUtility.decodeText(bodyPart.getFileName());
@@ -119,7 +120,7 @@ public class MessageHelper {
 			bodyPart.saveFile(tempFilename);
 			return new StringBuilder("<img src='file://").append(tempFilename).append("'>");
 		} else if (part instanceof MimeBodyPart
-				&& part.getContent() instanceof BASE64DecoderStream
+				&& content instanceof BASE64DecoderStream
 				&& part.getDisposition() == null || MimeBodyPart.ATTACHMENT.equalsIgnoreCase(part.getDisposition())) {
 			final MimeBodyPart bodyPart = (MimeBodyPart) part;
 			final String filename = MimeUtility.decodeText(bodyPart.getFileName());
