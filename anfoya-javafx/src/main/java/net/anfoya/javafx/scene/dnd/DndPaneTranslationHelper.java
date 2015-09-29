@@ -17,6 +17,11 @@ public class DndPaneTranslationHelper {
 
 		dndPane.setOnDragEntered(e -> delayedMove());
 		dndPane.setOnDragExited(e -> stopDelayedMove());
+		dndPane.parentProperty().addListener((ov, o, n) -> {
+			if (n == null) {
+				resetPosition();
+			}
+		});
 	}
 
 	private void delayedMove() {
@@ -31,6 +36,12 @@ public class DndPaneTranslationHelper {
 		}
 	}
 
+	private void resetPosition() {
+		if (dndPane.getTranslateY() != 0) {
+			move();
+		}
+	}
+
 	private void move() {
 		final TranslateTransition translate = new TranslateTransition(Duration.millis(50), dndPane);
 		translate.setInterpolator(Interpolator.EASE_BOTH);
@@ -38,7 +49,5 @@ public class DndPaneTranslationHelper {
 		translate.setByY(((int)dndPane.getTranslateY() == 0? -1: 1) * dndPane.getHeight());
 		translate.setOnFinished(e -> {});
 		translate.play();
-
-//		dndPane.fireEvent(new DragEvent(DragEvent.DRAG_EXITED_TARGET, null, 0, 0, 0, 0, null, null, null, null));
 	}
 }
