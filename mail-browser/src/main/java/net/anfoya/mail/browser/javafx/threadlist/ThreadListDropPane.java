@@ -84,7 +84,7 @@ public class ThreadListDropPane<T extends Tag, H extends Thread, M extends Messa
 		addRow(i++, replyAllArea, forwardArea);
 		addRow(i++, archiveArea);
 
-		setColumnSpan(replyArea, 3);
+		setColumnSpan(replyArea, 2);
 		setHgrow(replyArea, Priority.ALWAYS);
 		setVgrow(replyArea, Priority.ALWAYS);
 
@@ -93,7 +93,7 @@ public class ThreadListDropPane<T extends Tag, H extends Thread, M extends Messa
 		setHgrow(forwardArea, Priority.ALWAYS);
 		setVgrow(forwardArea, Priority.ALWAYS);
 
-		setColumnSpan(archiveArea, 3);
+		setColumnSpan(archiveArea, 2);
 		setHgrow(archiveArea, Priority.ALWAYS);
 		setVgrow(archiveArea, Priority.ALWAYS);
 	}
