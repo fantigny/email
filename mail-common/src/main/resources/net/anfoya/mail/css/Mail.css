@@ -105,7 +105,8 @@
     -fx-border-color: black;
 }
 
-.message-title-pane {
+.message-title-text {
+    -fx-padding: 5;
     -fx-background-color: lightgray;
 }
 

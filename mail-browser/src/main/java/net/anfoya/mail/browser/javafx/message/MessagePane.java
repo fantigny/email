@@ -4,6 +4,7 @@ import java.awt.Desktop;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Set;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -15,11 +16,17 @@ import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
+import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.input.TransferMode;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -43,7 +50,6 @@ import net.anfoya.mail.service.Message;
 import net.anfoya.mail.service.Section;
 import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
-import netscape.javascript.JSObject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,15 +66,16 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	private final String messageId;
 	private final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService;
 	private final BooleanProperty expanded;
+	private final BooleanProperty collapsible;
+
 	private final MessageHelper helper;
 
 	private final Text titleText;
-	private final HBox iconPane;
 	private final Text dateText;
+	private final FlowPane attachmentPane;
 	private final WebView snippetView;
+	private final VBox titlePane;
 	private final WebViewFitContent messageView;
-
-	private boolean collapsible;
 
 	private M message;
 	private Task<String> loadTask;
@@ -83,8 +90,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		this.mailService = mailService;
 		this.messageId = messageId;
 		expanded = new SimpleBooleanProperty(true);
-
-		collapsible = true;
+		collapsible = new SimpleBooleanProperty(true);
 		helper = new MessageHelper();
 
 		messageView = new WebViewFitContent();
@@ -100,17 +106,8 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		titleText = new Text("loading...");
 		dateText = new Text();
 
-		iconPane = new HBox();
-		iconPane.setAlignment(Pos.CENTER_LEFT);
-		HBox.setHgrow(iconPane, Priority.ALWAYS);
-		//TODO add attachment icon in this pane
-
-		final HBox titlePane = new HBox(titleText, iconPane, dateText);
-		titlePane.getStyleClass().add("message-title-pane");
-		titlePane.setPadding(new Insets(5));
-		titlePane.setAlignment(Pos.CENTER_LEFT);
-		titlePane.setMinHeight(30);
-		titlePane.setOnMouseClicked(event -> expanded.set(!expanded.get()));
+		final HBox hSpace = new HBox();
+		HBox.setHgrow(hSpace, Priority.ALWAYS);
 
 		snippetView = new WebView();
 		snippetView.prefWidthProperty().bind(widthProperty());
@@ -119,17 +116,34 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		snippetView.setMaxHeight(0);
 		snippetView.toBack();
 
+		attachmentPane = new FlowPane(Orientation.HORIZONTAL, 5, 0);
+		attachmentPane.setPadding(new Insets(0, 10, 0, 10));
+
+		final HBox title = new HBox(titleText, hSpace, dateText);
+		title.getStyleClass().add("message-title-text");
+		title.setOnMouseClicked(event -> expanded.set(!expanded.get()));
+		title.setCursor(Cursor.HAND);
+
+		titlePane = new VBox(title, attachmentPane, snippetView);
+		titlePane.setAlignment(Pos.CENTER_LEFT);
+
 		titlePane.setOnMouseEntered(e ->{
 			 setShowSnippet(expanded.not().get());
+			 if (expanded.not().get()) {
+				 setShowAttachment(true);
+			 }
 			 mouseOver = true;
 		});
 		titlePane.setOnMouseExited(e ->{
 			 setShowSnippet(false);
+			 if (expanded.not().get()) {
+				 setShowAttachment(false);
+			 }
 			 mouseOver = false;
 		});
 
 		expanded.addListener((ov, o, n) -> {
-			if (!collapsible) {
+			if (collapsible.not().get()) {
 				return;
 			}
 			setShowMessage(n);
@@ -137,10 +151,19 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 				snippetView.setMaxHeight(0);
 			} else {
 				setShowSnippet(mouseOver && !n);
+				setShowAttachment(mouseOver && !n);
 			}
 		});
 
-		getChildren().addAll(titlePane, snippetView, messageView);
+		collapsible.addListener((ov, o, n) -> {
+			if (n) {
+				titleText.setCursor(Cursor.HAND);
+			} else {
+				titleText.setCursor(Cursor.DEFAULT);
+			}
+		});
+
+		getChildren().addAll(titlePane, messageView);
 		setOnDragDetected(event -> {
 	        final ClipboardContent content = new ClipboardContent();
 	        content.put(ThreadDropPane.MESSAGE_DATA_FORMAT, message);
@@ -158,6 +181,14 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		final KeyFrame frame = new KeyFrame(Duration.millis(100 * (show? 1: .5)), values);
 		showSnippetTimeline = new Timeline(frame);
 		showSnippetTimeline.play();
+	}
+
+	private void setShowAttachment(final boolean show) {
+		if (show && !titlePane.getChildren().contains(attachmentPane)) {
+			titlePane.getChildren().add(1, attachmentPane);
+		} else if (!show && titlePane.getChildren().contains(attachmentPane)) {
+			titlePane.getChildren().remove(attachmentPane);
+		}
 	}
 
 	private void setShowMessage(final boolean show) {
@@ -189,7 +220,6 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		loadTask.setOnSucceeded(event -> {
 			refresh();
 			messageView.getEngine().loadContent(loadTask.getValue());
-			((JSObject) messageView.getEngine().executeScript("window")).setMember("attLoader", new AttachmentLoader<M>(mailService, messageId));
 		});
 		ThreadPool.getInstance().submitHigh(loadTask, "loading message id " + messageId);
 	}
@@ -215,10 +245,14 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	}
 
 	public void setCollapsible(final boolean collapsible) {
-		this.collapsible = collapsible;
+		this.collapsible.set(collapsible);
 	}
 
-	public boolean isCollapsble() {
+	public boolean isCollapsible() {
+		return collapsible.get();
+	}
+
+	public BooleanProperty collapsibleProperty() {
 		return collapsible;
 	}
 
@@ -272,5 +306,24 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		dateText.setText(date);
 
 		snippetView.getEngine().loadContent(CSS_DATA + message.getSnippet() + "...");
+
+		attachmentPane.getChildren().clear();
+		final Set<String> attachNames = helper.getAttachmentNames();
+		if (!attachNames.isEmpty()) {
+			final Image image = new Image(getClass().getResourceAsStream("attachment.png"));
+			for(final String name: attachNames) {
+				final HBox attachment = new HBox(3, new ImageView(image), new Label(name));
+				attachment.setPadding(new Insets(5));
+				attachment.setCursor(Cursor.HAND);
+				attachment.setOnMouseClicked(e -> {
+					try {
+						new AttachmentLoader<M>(mailService, message.getId()).start(name);
+					} catch (final Exception ex) {
+						LOGGER.error("loading ", ex);
+					}
+				});
+				attachmentPane.getChildren().add(attachment);
+			}
+		}
 	}
 }

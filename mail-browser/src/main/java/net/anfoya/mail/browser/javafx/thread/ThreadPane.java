@@ -114,16 +114,16 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 		scrollPane.setContent(messagesBox);
 		msgPanes = messagesBox.getChildren();
 
-		webScrollHandler = event -> {
+		webScrollHandler = e -> {
 			final double current = scrollPane.getVvalue();
 			final double maxPx = messagesBox.getHeight();
-			final double offset = event.getDeltaY() / maxPx * -1;
+			final double offset = e.getDeltaY() / maxPx * -1;
 			scrollPane.setVvalue(current + offset);
-			event.consume();
+			e.consume();
 
 			LOGGER.debug("[e {}, delta {}], [max {}, delta {}]"
 					, maxPx
-					, event.getDeltaY()
+					, e.getDeltaY()
 					, scrollPane.getVmax()
 					, offset);
 		};
@@ -132,6 +132,14 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 
 		tagsPane = new SelectedTagsPane<T>();
 		setBottom(tagsPane);
+	}
+
+	public void setOnUpdateThread(final EventHandler<ActionEvent> handler) {
+		this.updateHandler = handler;
+	}
+
+	public void setOnLogout(final EventHandler<ActionEvent> handler) {
+		logoutHandler = handler;
 	}
 
 	public void refresh(final Set<H> threads) {
@@ -157,6 +165,31 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 		} else {
 			loadThread();
 		}
+	}
+
+	private void refreshTags() {
+		tagsPane.clear();
+
+		if (threads == null || threads.size() == 0) {
+			return;
+		}
+
+		Platform.runLater(() -> {
+			//retrieve all tags for all threads
+			final Set<T> tags = new LinkedHashSet<T>();
+			for(final H t: threads) {
+				for(final String id: t.getTagIds()) {
+					try {
+						tags.add(mailService.getTag(id));
+					} catch (final MailException e) {
+						LOGGER.error("getting tag {}", id, e);
+					}
+				}
+			}
+
+			tagsPane.setRemoveTagCallBack(t -> remove(threads, t));
+			tagsPane.refresh(tags);
+		});
 	}
 
 	private void refreshIcons() {
@@ -194,17 +227,22 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 		for(final Iterator<String> i=new LinkedList<String>(thread.getMessageIds()).descendingIterator(); i.hasNext();) {
 			final String id = i.next();
 			@SuppressWarnings("unchecked")
-			MessagePane<M, C> messagePane = index < msgPanes.size()? (MessagePane<M, C>) msgPanes.get(index): null;
+			final MessagePane<M, C> messagePane = index >= msgPanes.size()? null: (MessagePane<M, C>) msgPanes.get(index);
 			if (messagePane == null || !id.equals(messagePane.getMessageId())) {
-				messagePane = new MessagePane<M, C>(id, mailService);
-				messagePane.setScrollHandler(webScrollHandler);
-				messagePane.setUpdateHandler(updateHandler);
-				messagePane.setExpanded(false);
-				msgPanes.add(index, messagePane);
-				messagePane.load();
+				msgPanes.add(index, createMessagePane(id));
 			}
 			index++;
 		}
+	}
+
+	private MessagePane<M, C> createMessagePane(final String id) {
+		final MessagePane<M, C> messagePane = new MessagePane<M, C>(id, mailService);
+		messagePane.setScrollHandler(webScrollHandler);
+		messagePane.setUpdateHandler(updateHandler);
+		messagePane.setExpanded(false);
+		messagePane.load();
+
+		return messagePane;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -212,13 +250,7 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 		scrollPane.setVvalue(0);
 		msgPanes.clear();
 		for(final String id: thread.getMessageIds()) {
-			final MessagePane<M, C> messagePane = new MessagePane<M, C>(id, mailService);
-			messagePane.setScrollHandler(webScrollHandler);
-			messagePane.setUpdateHandler(updateHandler);
-			messagePane.setExpanded(false);
-			messagePane.load();
-
-			msgPanes.add(0, messagePane);
+			msgPanes.add(0, createMessagePane(id));
 		}
 		if (!msgPanes.isEmpty()) {
 			MessagePane<M, C> messagePane = (MessagePane<M, C>) msgPanes.get(0);
@@ -240,39 +272,6 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 		} catch (final MailException e) {
 			LOGGER.error("getting unread tag", e);
 		}
-	}
-
-	public void setOnUpdateThread(final EventHandler<ActionEvent> handler) {
-		this.updateHandler = handler;
-	}
-
-	public void refreshTags() {
-		tagsPane.clear();
-
-		if (threads == null || threads.size() == 0) {
-			return;
-		}
-
-		Platform.runLater(() -> {
-			//retrieve all tags for all threads
-			final Set<T> tags = new LinkedHashSet<T>();
-			for(final H t: threads) {
-				for(final String id: t.getTagIds()) {
-					try {
-						tags.add(mailService.getTag(id));
-					} catch (final MailException e) {
-						LOGGER.error("getting tag {}", id, e);
-					}
-				}
-			}
-
-			tagsPane.setRemoveTagCallBack(t -> remove(threads, t));
-			tagsPane.refresh(tags);
-		});
-	}
-
-	public void setOnLogout(final EventHandler<ActionEvent> handler) {
-		logoutHandler = handler;
 	}
 
 	private Void remove(final Set<H> threads, final T tag) {

@@ -2,13 +2,14 @@ package net.anfoya.mail.mime;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.mail.Address;
 import javax.mail.MessagingException;
@@ -27,26 +28,13 @@ import com.sun.mail.util.BASE64DecoderStream;
 public class MessageHelper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessageHelper.class);
 	private static final String TEMP = System.getProperty("java.io.tmpdir") + File.separatorChar;
-	private static final String ATTACH_ICON_PATH = TEMP + "fishermail-attachment.png";
-
-	private static boolean copied = false;
-	/* prepare attachment icon */ {
-		if (!copied) {
-			copied = true;
-			try {
-				Files.copy(getClass().getResourceAsStream("attachment.png"), new File(ATTACH_ICON_PATH).toPath(), StandardCopyOption.REPLACE_EXISTING);
-			} catch (final IOException e) {
-				LOGGER.error("can't copy attachment icon");
-			}
-		}
-	}
 
 	private final Map<String, String> cidFilenames;
-	private final List<String> attachments;
+	private final Set<String> attachmentNames;
 
 	public MessageHelper() {
 		cidFilenames = new HashMap<String, String>();
-		attachments = new ArrayList<String>();
+		attachmentNames = new LinkedHashSet<String>();
 	}
 
 	public String[] getMailAddresses(final Address[] addresses) {
@@ -85,43 +73,7 @@ public class MessageHelper {
 		cidFilenames.clear();
 		String html = toHtml(message, false).toString();
 		html = replaceCids(html, cidFilenames);
-		html = addAttachments(html, attachments);
 		return html;
-	}
-
-	private String addAttachments(final String html, final List<String> attachNames) {
-		if (attachNames.isEmpty()) {
-			return html;
-		}
-
-		String attHtml = "";
-		attHtml += "<br>";
-		attHtml += "<hr>";
-		attHtml += "<br>";
-		attHtml += "<div style='position: absolute; left: 10; bottom: 10;'>";
-		attHtml += "<table cellspacing='5'><tr>";
-		for(final String name: attachNames) {
-			attHtml += "<td style='cursor: hand' align='center' onClick='attLoader.start(\"" + name + "\")'><img src='file://" + ATTACH_ICON_PATH + "'></td>";
-		}
-		attHtml += "</tr><tr>";
-		for(final String name: attachNames) {
-			attHtml += "<td style='font-size:12px' align='center' onClick='attLoader.start(\"" + name + "\")'>" + name + "</td>";
-		}
-		attHtml += "</tr></table>";
-		attHtml += "</div>";
-		LOGGER.debug(attHtml);
-
-		final String start, end;
-		final int pos = Math.max(html.lastIndexOf("</body>"), html.lastIndexOf("</BODY>"));
-		if (pos == -1) {
-			start = html;
-			end = "";
-		} else {
-			start = html.substring(0, pos);
-			end = html.substring(pos);
-		}
-
-		return start + attHtml + end;
 	}
 
 	private String replaceCids(String html, final Map<String, String> cidFilenames) {
@@ -172,11 +124,15 @@ public class MessageHelper {
 			final MimeBodyPart bodyPart = (MimeBodyPart) part;
 			final String filename = MimeUtility.decodeText(bodyPart.getFileName());
 			LOGGER.debug("++++ keep {}", filename);
-			attachments.add(filename);
+			attachmentNames.add(filename);
 			return new StringBuilder();
 		} else {
 			LOGGER.warn("---- type {}", type);
 			return new StringBuilder();
 		}
+	}
+
+	public Set<String> getAttachmentNames() {
+		return Collections.unmodifiableSet(attachmentNames);
 	}
 }
