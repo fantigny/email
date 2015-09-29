@@ -26,8 +26,8 @@ public class ThreadDropPane<H extends Thread, M extends Message> extends GridPan
 	private final DropArea newThreadArea;
 	private final DropArea addThreadArea;
 
-	public ThreadDropPane(final MailService<? extends Section, ? extends Tag, H, M, ? extends Contact> tagService) {
-		this.mailService = tagService;
+	public ThreadDropPane(final MailService<? extends Section, ? extends Tag, H, M, ? extends Contact> mailService) {
+		this.mailService = mailService;
 
 		setMaxHeight(50);
 		getStyleClass().add("droparea-grid");

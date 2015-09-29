@@ -315,8 +315,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
-				final T tag = mailService.addTag(name);
-				mailService.addTagForThreads(tag, threads);
+				mailService.addTagForThreads(mailService.addTag(name), threads);
 				if (ARCHIVE_ON_DROP.get()) {
 					mailService.archive(threads);
 				}
@@ -365,19 +364,17 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	}
 
 	public Set<T> getThreadsTags() {
-		try {
-			final Set<T> tags = new LinkedHashSet<T>();
-			for(final H t: getItems()) {
-				for(final String id: t.getTagIds()) {
+		final Set<T> tags = new LinkedHashSet<T>();
+		for(final H t: getItems()) {
+			for(final String id: t.getTagIds()) {
+				try {
 					tags.add(mailService.getTag(id));
+				} catch (final MailException e) {
+					LOGGER.error("getting tag {}", id, e);
 				}
 			}
-			return tags;
-		} catch (final MailException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return null;
 		}
+		return tags;
 	}
 
 	public void setOnUpdatePattern(final EventHandler<ActionEvent> handler) {

@@ -306,8 +306,8 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 				return null;
 			}
 		};
-		task.setOnSucceeded(event -> updateHandler.handle(null));
-		task.setOnFailed(event -> LOGGER.error("archiving threads {}", threads));
+		task.setOnSucceeded(e -> updateHandler.handle(null));
+		task.setOnFailed(e -> LOGGER.error("archiving threads {}", threads));
 		ThreadPool.getInstance().submitHigh(task, "archiving threads");
 	}
 }
