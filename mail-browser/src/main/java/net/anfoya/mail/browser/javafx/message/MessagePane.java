@@ -128,16 +128,16 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		titlePane.setAlignment(Pos.CENTER_LEFT);
 
 		titlePane.setOnMouseEntered(e ->{
-			 setShowSnippet(expanded.not().get());
+			 showSnippet(expanded.not().get());
 			 if (expanded.not().get()) {
-				 setShowAttachment(true);
+				 showAttachment(true);
 			 }
 			 mouseOver = true;
 		});
 		titlePane.setOnMouseExited(e ->{
-			 setShowSnippet(false);
+			 showSnippet(false);
 			 if (expanded.not().get()) {
-				 setShowAttachment(false);
+				 showAttachment(false);
 			 }
 			 mouseOver = false;
 		});
@@ -146,12 +146,13 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 			if (collapsible.not().get()) {
 				return;
 			}
-			setShowMessage(n);
+			showMessage(n);
+			showAttachment(n);
 			if (!o && n) {
 				snippetView.setMaxHeight(0);
 			} else {
-				setShowSnippet(mouseOver && !n);
-				setShowAttachment(mouseOver && !n);
+				showSnippet(mouseOver && !n);
+				showAttachment(mouseOver && !n);
 			}
 		});
 
@@ -172,7 +173,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		});
 	}
 
-	private void setShowSnippet(final boolean show) {
+	private void showSnippet(final boolean show) {
 		if (showSnippetTimeline != null) {
 			showSnippetTimeline.stop();
 		}
@@ -183,7 +184,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		showSnippetTimeline.play();
 	}
 
-	private void setShowAttachment(final boolean show) {
+	private void showAttachment(final boolean show) {
 		if (show && !titlePane.getChildren().contains(attachmentPane)) {
 			titlePane.getChildren().add(1, attachmentPane);
 		} else if (!show && titlePane.getChildren().contains(attachmentPane)) {
@@ -191,7 +192,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		}
 	}
 
-	private void setShowMessage(final boolean show) {
+	private void showMessage(final boolean show) {
 		if (showMessageTimeline != null) {
 			showMessageTimeline.stop();
 		}
@@ -210,7 +211,10 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		loadTask = new Task<String>() {
 			@Override
 			protected String call() throws MailException, MessagingException, IOException, URISyntaxException {
+				final long start = System.currentTimeMillis();
+				LOGGER.warn("load message...");
 				message = mailService.getMessage(messageId);
+				LOGGER.warn("load message in {}ms", System.currentTimeMillis() - start);
 			    return helper.toHtml(message.getMimeMessage());
 			}
 		};
