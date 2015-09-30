@@ -2,6 +2,8 @@ package net.anfoya.mail.browser.javafx;
 
 import static net.anfoya.mail.browser.javafx.threadlist.ThreadListPane.DND_THREADS_DATA_FORMAT;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import javafx.application.Platform;
@@ -25,6 +27,7 @@ import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.Message;
 import net.anfoya.mail.service.Section;
+import net.anfoya.mail.service.SpecialTag;
 import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
 import net.anfoya.tag.javafx.scene.section.SectionListPane;
@@ -178,6 +181,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 						, message));
 			}, "notifying new message");
 		});
+
 		return null;
 	}
 
@@ -204,6 +208,24 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
 			return null;
 		});
+
+		if (System.getProperty("os.name").contains("OS X")) {
+			ThreadPool.getInstance().submitLow(() -> {
+				final Set<T> includes = new HashSet<T>();
+				int unreadCount = 0;
+				try {
+					includes.add(mailService.getSpecialTag(SpecialTag.UNREAD));
+					unreadCount = mailService.findThreads(includes, Collections.emptySet(), "", 200).size();
+				} catch (final MailException e) {
+					LOGGER.error("counting unread messages", e);
+				}
+				if (unreadCount > 0) {
+					com.apple.eawt.Application.getApplication().setDockIconBadge("" + unreadCount);
+				} else {
+					com.apple.eawt.Application.getApplication().setDockIconBadge(null);
+				}
+			}, "counting unread messages");
+		}
 	}
 
 	private void refreshAfterSectionUpdate() {
