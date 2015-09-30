@@ -637,18 +637,22 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	@Override
-	public void addOnUnreadMessage(final Callback<Set<GmailThread>, Void> callback) {
+	public void addOnNewMessage(final Callback<Set<GmailThread>, Void> callback) {
 		historyService.addOnAddedMessage(mSet -> {
 			final Set<GmailThread> threads = new LinkedHashSet<GmailThread>();
 			mSet.forEach(m -> {
-				try {
-					final Thread t = threadService.get(m.getThreadId());
-					final GmailThread thread = new GmailThread(t);
-					if (thread.isUnread()) {
-						threads.add(thread);
+				final List<String> labelIds = m.getLabelIds();
+				if (labelIds.contains(GmailTag.UNREAD.getId())
+						&& !labelIds.contains(GmailTag.DRAFT.getId())
+						&& !labelIds.contains(GmailTag.SPAM.getId())
+						&& !labelIds.contains(GmailTag.TRASH.getId())
+						&& !labelIds.contains(GmailTag.SENT.getId())) {
+					try {
+						final Thread thread = threadService.get(m.getThreadId());
+						threads.add(new GmailThread(thread));
+					} catch (final Exception e) {
+						LOGGER.error("loading thread id {} for message id {}", m.getThreadId(), m.getId(), e);
 					}
-				} catch (final Exception e) {
-					LOGGER.error("loading thread id {} for message id {}", m.getThreadId(), m.getId(), e);
 				}
 			});
 			if (!threads.isEmpty()) {
@@ -736,6 +740,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		case UNREAD:	return GmailTag.UNREAD;
 		case SPAM:		return GmailTag.SPAM;
 		case TRASH:		return GmailTag.TRASH;
+		case DRAFT:		return GmailTag.DRAFT;
 		}
 		return null;
 	}

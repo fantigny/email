@@ -13,13 +13,13 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.javafx.scene.control.Notification;
 import net.anfoya.javafx.scene.control.Notification.Notifier;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
 import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
 import net.anfoya.mail.gmail.model.GmailSection;
+import net.anfoya.mail.mime.MessageHelper;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
@@ -138,17 +138,12 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 //		sectionListPane.init("Bank", "HK HSBC");
 		sectionListPane.init(GmailSection.SYSTEM.getName(), "Inbox");
 
-		mailService.addOnUpdateMessage(v -> {
+		mailService.addOnUpdateMessage(p -> {
 			Platform.runLater(() -> refreshAfterRemoteUpdate());
 			return null;
 		});
 
-		mailService.addOnUnreadMessage(tList -> {
-			final int count = tList.size();
-			final String message = count + " new message" + (count == 0? "": "s");
-			Platform.runLater(() -> Notifier.INSTANCE.notify("FisherMail", message, Notification.SUCCESS_ICON));
-			return null;
-		});
+		mailService.addOnNewMessage(p -> notify(p));
 
 		final Task<String> titleTask = new Task<String>() {
 			@Override
@@ -164,6 +159,26 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		titleTask.setOnSucceeded(e -> setTitle(getTitle() + " - " + e.getSource().getValue()));
 		titleTask.setOnFailed(e -> LOGGER.error("loading user's name", e.getSource().getException()));
 		ThreadPool.getInstance().submitLow(titleTask, "loading user's name");
+	}
+
+	private Void notify(final Set<H> threads) {
+		threads.forEach(t -> {
+			ThreadPool.getInstance().submitLow(() -> {
+				final String message;
+				try {
+					final M m = mailService.getMessage(t.getLastMessageId());
+					message = "from " + String.join(", ", MessageHelper.getNames(m.getMimeMessage().getFrom()))
+							+ "\r\n" + m.getSnippet();
+				} catch (final Exception e) {
+					LOGGER.error("notifying new message for thread {}", t.getId(), e);
+					return;
+				}
+				Platform.runLater(() -> Notifier.INSTANCE.notifySuccess(
+						t.getSubject()
+						, message));
+			}, "notifying new message");
+		});
+		return null;
 	}
 
 	boolean refreshAfterTagSelected = true;

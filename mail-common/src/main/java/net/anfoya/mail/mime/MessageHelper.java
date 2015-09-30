@@ -37,7 +37,7 @@ public class MessageHelper {
 		attachmentNames = new LinkedHashSet<String>();
 	}
 
-	public String[] getMailAddresses(final Address[] addresses) {
+	public static String[] getMailAddresses(final Address[] addresses) {
 		final List<String> mailAddresses = new ArrayList<String>();
 		if (addresses != null) {
 			for(final Address address: addresses) {
@@ -51,7 +51,7 @@ public class MessageHelper {
 		return mailAddresses.toArray(new String[mailAddresses.size()]);
 	}
 
-	public String[] getNames(final Address[] addresses) {
+	public static String[] getNames(final Address[] addresses) {
 		final List<String> names = new ArrayList<String>();
 		if (addresses != null) {
 			for(final Address address: addresses) {

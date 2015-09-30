@@ -294,8 +294,8 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		final StringBuilder title = new StringBuilder();
 		final MimeMessage mimeMessage = message.getMimeMessage();
 		try {
-			title.append(String.join(", ", helper.getNames(mimeMessage.getFrom())));
-			title.append(" to ").append(String.join(", ", helper.getNames(mimeMessage.getRecipients(MimeMessage.RecipientType.TO))));
+			title.append(String.join(", ", MessageHelper.getNames(mimeMessage.getFrom())));
+			title.append(" to ").append(String.join(", ", MessageHelper.getNames(mimeMessage.getRecipients(MimeMessage.RecipientType.TO))));
 		} catch (final MessagingException e) {
 			LOGGER.error("loading title data", e);
 		}

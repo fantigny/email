@@ -18,7 +18,6 @@ import javafx.util.Callback;
 import javafx.util.Duration;
 import net.anfoya.java.io.SerializedFile;
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.mail.gmail.model.GmailTag;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -146,12 +145,6 @@ public class HistoryService extends TimerTask {
 				if (h.getMessagesAdded() != null) {
 					addedMessages.addAll(h.getMessagesAdded()
 							.stream()
-							.filter(a -> a.getMessage().getLabelIds() != null
-									&& a.getMessage().getLabelIds().contains(GmailTag.UNREAD.getId())
-									&& !a.getMessage().getLabelIds().contains(GmailTag.DRAFT.getId())
-									&& !a.getMessage().getLabelIds().contains(GmailTag.SPAM.getId())
-									&& !a.getMessage().getLabelIds().contains(GmailTag.TRASH.getId())
-									&& !a.getMessage().getLabelIds().contains(GmailTag.SENT.getId()))
 							.map(HistoryMessageAdded::getMessage)
 							.collect(Collectors.toSet()));
 				}
@@ -167,7 +160,6 @@ public class HistoryService extends TimerTask {
 		if (!addedMessages.isEmpty()) {
 			addedMessageCallBacks.forEach(c -> c.call(addedMessages));
 		}
-
 	}
 
 	public void addOnUpdateMessage(final Callback<Set<Message>, Void> callback) {

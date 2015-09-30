@@ -1,5 +1,5 @@
 package net.anfoya.mail.service;
 
 public enum SpecialTag {
-	ALL, UNREAD, INBOX, SENT, FLAGGED, SPAM, TRASH
+	ALL, UNREAD, INBOX, SENT, FLAGGED, SPAM, TRASH, DRAFT
 }

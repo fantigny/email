@@ -22,7 +22,7 @@ public interface MailService<
 	public void clearCache();
 
 	public void addOnUpdateMessage(Callback<Void, Void> callback);
-	public void addOnUnreadMessage(Callback<Set<H>, Void> callback);
+	public void addOnNewMessage(Callback<Set<H>, Void> callback);
 
 	public T getTag(String id) throws MailException;
 	public T getSpecialTag(SpecialTag specialTag) throws MailException;
