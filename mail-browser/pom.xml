@@ -4,7 +4,7 @@
 	<groupId>net.anfoya</groupId>
 	<artifactId>mail-browser</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	
+
 	<build>
 		<plugins>
 			<plugin>
@@ -44,13 +44,13 @@
 			<groupId>net.anfoya</groupId>
 			<artifactId>mail-common</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
-		</dependency>	
+		</dependency>
 		<dependency>
 			<groupId>net.anfoya</groupId>
 			<artifactId>mail-composer</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
-		</dependency>	
-	
+		</dependency>
+
 		<!-- compile -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -62,6 +62,12 @@
 			<artifactId>slf4j-api</artifactId>
 			<version>1.7.10</version>
 		</dependency>
+		<dependency>
+			<groupId>com.apple</groupId>
+			<artifactId>AppleJavaExtensions</artifactId>
+			<version>1.4</version>
+		</dependency>
+
 
 		<!-- test -->
 		<dependency>
