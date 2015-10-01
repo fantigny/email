@@ -12,6 +12,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.SplitPane;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.Notification.Notifier;
@@ -34,9 +35,7 @@ import net.anfoya.tag.javafx.scene.section.SectionListPane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.apple.eawt.AppEvent.AppForegroundEvent;
 import com.apple.eawt.AppEvent.AppReOpenedEvent;
-import com.apple.eawt.AppForegroundListener;
 import com.apple.eawt.AppReOpenedListener;
 
 public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends Stage {
@@ -64,7 +63,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	}
 
 	private void initGui() throws MailException {
-//		initStyle(StageStyle.UNIFIED);
+		initStyle(StageStyle.UNIFIED);
 		setWidth(1400);
 		setHeight(800);
 		setTitle("FisherMail");
@@ -129,30 +128,24 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		if (!System.getProperty("os.name").contains("OS X")) {
 			return;
 		}
-		com.apple.eawt.Application.getApplication().addAppEventListener(new AppForegroundListener() {
-			@Override
-			public void appMovedToBackground(final AppForegroundEvent e) {
-				LOGGER.error("background");
-			}
-			@Override
-			public void appRaisedToForeground(final AppForegroundEvent e) {
-				LOGGER.error("foreground");
-			}
-		});
+		LOGGER.info("initialize OS X stage behaviour");
+		Platform.setImplicitExit(false);
 		com.apple.eawt.Application.getApplication().addAppEventListener(new AppReOpenedListener() {
 			@Override
 			public void appReOpened(final AppReOpenedEvent e) {
-				LOGGER.error("reopened");
+				LOGGER.info("OS X event AppReOpenedEvent");
+				if (!isShowing()) {
+					LOGGER.debug("OS X show()");
+					Platform.runLater(() -> show());
+				}
 				if (isIconified()) {
-					setIconified(false);
+					LOGGER.debug("OS X setIconified(false)");
+					Platform.runLater(() -> setIconified(false));
 				}
 				if (!isFocused()) {
-					requestFocus();
+					LOGGER.debug("OS X requestFocus()");
+					Platform.runLater(() -> requestFocus());
 				}
-				if (!isShowing()) {
-					show();
-				}
-				toFront();
 			}
 		});
 	}
