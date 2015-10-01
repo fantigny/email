@@ -211,10 +211,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		loadTask = new Task<String>() {
 			@Override
 			protected String call() throws MailException, MessagingException, IOException, URISyntaxException {
-				final long start = System.currentTimeMillis();
-				LOGGER.warn("load message...");
 				message = mailService.getMessage(messageId);
-				LOGGER.warn("load message in {}ms", System.currentTimeMillis() - start);
 			    return helper.toHtml(message.getMimeMessage());
 			}
 		};

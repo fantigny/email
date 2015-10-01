@@ -66,7 +66,7 @@ public class SettingsDialog extends Stage {
 	}
 
 	public void showAbout() {
-		tabPane.getSelectionModel().select(3);
+		tabPane.getSelectionModel().select(2);
 		show();
 	}
 

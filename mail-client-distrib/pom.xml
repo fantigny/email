@@ -39,9 +39,6 @@
 									shortversion="1.0"
 									copyright="ANFOYA.net"
 									mainclassname="net.anfoya.mail.client.javafx.entrypoint.MailClient">
-									<runtime dir="mac_jre1.8.0_60/Contents/Home">
-										<exclude name="Java IDL Server Tool" />
-									</runtime>
 									<classpath file="distrib/FisherMail.jar" />
 							        <option value="-Xmx1g"/>
 								</bundleapp>
