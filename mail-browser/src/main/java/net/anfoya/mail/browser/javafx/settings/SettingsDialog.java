@@ -40,6 +40,7 @@ public class SettingsDialog extends Stage {
 	private final EventHandler<ActionEvent> logoutHandler;
 
 	private final ListView<String> taskList;
+	private final TabPane tabPane;
 
 	public SettingsDialog(final MailService<? extends Section, ? extends Tag, ? extends Thread, ? extends Message, ? extends Contact> mailService, final EventHandler<ActionEvent> logoutHandler) {
 		initStyle(StageStyle.UNIFIED);
@@ -58,10 +59,15 @@ public class SettingsDialog extends Stage {
 			return null;
 		});
 
-		final TabPane tabPane = new TabPane(buildSettingsTab(), helpTab, buildAboutTab(), taskTab);
+		tabPane = new TabPane(buildSettingsTab(), helpTab, buildAboutTab(), taskTab);
 		tabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
 
 		setScene(new Scene(tabPane, 600, 400));
+	}
+
+	public void showAbout() {
+		tabPane.getSelectionModel().select(3);
+		show();
 	}
 
 	private void refreshTasks(final Map<? extends Future<?>, ? extends String> futureDesc) {

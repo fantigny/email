@@ -17,6 +17,7 @@ import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.Notification.Notifier;
 import net.anfoya.mail.browser.javafx.settings.Settings;
+import net.anfoya.mail.browser.javafx.settings.SettingsDialog;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
 import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
@@ -35,6 +36,8 @@ import net.anfoya.tag.javafx.scene.section.SectionListPane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.apple.eawt.AboutHandler;
+import com.apple.eawt.AppEvent.AboutEvent;
 import com.apple.eawt.AppEvent.AppReOpenedEvent;
 import com.apple.eawt.AppReOpenedListener;
 
@@ -130,7 +133,8 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		}
 		LOGGER.info("initialize OS X stage behaviour");
 		Platform.setImplicitExit(false);
-		com.apple.eawt.Application.getApplication().addAppEventListener(new AppReOpenedListener() {
+		final com.apple.eawt.Application macApplication = com.apple.eawt.Application.getApplication();
+		macApplication.addAppEventListener(new AppReOpenedListener() {
 			@Override
 			public void appReOpened(final AppReOpenedEvent e) {
 				LOGGER.info("OS X event AppReOpenedEvent");
@@ -146,6 +150,12 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 					LOGGER.debug("OS X requestFocus()");
 					Platform.runLater(() -> requestFocus());
 				}
+			}
+		});
+		macApplication.setAboutHandler(new AboutHandler() {
+			@Override
+			public void handleAbout(final AboutEvent aboutEvent) {
+				new SettingsDialog(mailService, e -> logout()).showAbout();
 			}
 		});
 	}
