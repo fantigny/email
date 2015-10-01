@@ -318,7 +318,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		updateHandler.handle(null);
 
 		try {
-			for(final String a: helper.getMailAddresses(message.getRecipients(MimeMessage.RecipientType.TO))) {
+			for(final String a: MessageHelper.getMailAddresses(message.getRecipients(MimeMessage.RecipientType.TO))) {
 				toListBox.addRecipient(a);
 			}
 		} catch (final MessagingException e) {
@@ -327,7 +327,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 
 		boolean displayCC = false;
 		try {
-			for(final String a: helper.getMailAddresses(message.getRecipients(MimeMessage.RecipientType.CC))) {
+			for(final String a: MessageHelper.getMailAddresses(message.getRecipients(MimeMessage.RecipientType.CC))) {
 				ccListBox.addRecipient(a);
 				displayCC = true;
 			}
@@ -336,7 +336,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		}
 
 		try {
-			for(final String a: helper.getMailAddresses(message.getRecipients(MimeMessage.RecipientType.BCC))) {
+			for(final String a: MessageHelper.getMailAddresses(message.getRecipients(MimeMessage.RecipientType.BCC))) {
 				bccListBox.addRecipient(a);
 				displayCC = true;
 			}
