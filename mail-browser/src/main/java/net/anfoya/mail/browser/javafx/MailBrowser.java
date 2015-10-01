@@ -12,7 +12,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.SplitPane;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.Notification.Notifier;
@@ -35,6 +34,11 @@ import net.anfoya.tag.javafx.scene.section.SectionListPane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.apple.eawt.AppEvent.AppForegroundEvent;
+import com.apple.eawt.AppEvent.AppReOpenedEvent;
+import com.apple.eawt.AppForegroundListener;
+import com.apple.eawt.AppReOpenedListener;
+
 public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends Stage {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailBrowser.class);
 
@@ -51,8 +55,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 
 	public MailBrowser(final MailService<S, T, H, M, C> mailService) throws MailException {
 		this.mailService = mailService;
-
-		quit = true;
+		this.quit = true;
 
 		initGui();
 
@@ -60,19 +63,8 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		setOnCloseRequest(e -> Notifier.INSTANCE.stop());
 	}
 
-	@Override
-	public void hide() {
-		//TODO
-		super.hide();
-//		if (OperatingSystem.getInstance().getFamily().equals(Family.MAC)) {
-//			setIconified(true);
-//		} else {
-//			super.hide();
-//		}
-	}
-
 	private void initGui() throws MailException {
-		initStyle(StageStyle.UNIFIED);
+//		initStyle(StageStyle.UNIFIED);
 		setWidth(1400);
 		setHeight(800);
 		setTitle("FisherMail");
@@ -128,7 +120,41 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
         Platform.runLater(() -> {
         	threadListPane.requestFocus();
     		toFront();
+
+    		initMacOs();
         });
+	}
+
+	private void initMacOs() {
+		if (!System.getProperty("os.name").contains("OS X")) {
+			return;
+		}
+		com.apple.eawt.Application.getApplication().addAppEventListener(new AppForegroundListener() {
+			@Override
+			public void appMovedToBackground(final AppForegroundEvent e) {
+				LOGGER.error("background");
+			}
+			@Override
+			public void appRaisedToForeground(final AppForegroundEvent e) {
+				LOGGER.error("foreground");
+			}
+		});
+		com.apple.eawt.Application.getApplication().addAppEventListener(new AppReOpenedListener() {
+			@Override
+			public void appReOpened(final AppReOpenedEvent e) {
+				LOGGER.error("reopened");
+				if (isIconified()) {
+					setIconified(false);
+				}
+				if (!isFocused()) {
+					requestFocus();
+				}
+				if (!isShowing()) {
+					show();
+				}
+				toFront();
+			}
+		});
 	}
 
 	private void logout() {
@@ -139,7 +165,11 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 
 	private void initData() {
 //		sectionListPane.init("Bank", "HK HSBC");
-		sectionListPane.init(GmailSection.SYSTEM.getName(), "Inbox");
+		try {
+			sectionListPane.init(GmailSection.SYSTEM.getName(), mailService.getSpecialTag(SpecialTag.INBOX).getName());
+		} catch (final MailException e) {
+			LOGGER.error("going to System / Inbox", e);
+		}
 
 		mailService.addOnUpdateMessage(p -> {
 			Platform.runLater(() -> refreshAfterRemoteUpdate());
