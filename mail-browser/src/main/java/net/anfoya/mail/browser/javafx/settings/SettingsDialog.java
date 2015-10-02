@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.concurrent.Future;
 
 import javafx.application.Platform;
+import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -17,6 +18,7 @@ import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
@@ -54,10 +56,7 @@ public class SettingsDialog extends Stage {
 
 		taskList = new ListView<String>();
 		final Tab taskTab = new Tab("Tasks", taskList);
-		ThreadPool.getInstance().setOnChange(map -> {
-			Platform.runLater(() -> refreshTasks(map));
-			return null;
-		});
+		ThreadPool.getInstance().setOnChange(map -> refreshTasks(map));
 
 		tabPane = new TabPane(buildSettingsTab(), helpTab, buildAboutTab(), taskTab);
 		tabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
@@ -70,15 +69,18 @@ public class SettingsDialog extends Stage {
 		show();
 	}
 
-	private void refreshTasks(final Map<? extends Future<?>, ? extends String> futureDesc) {
-		final ObservableList<String> items = taskList.getItems();
-		items.clear();
-		for(final String desc: futureDesc.values()) {
-			items.add(desc);
-		}
-		if (items.isEmpty()) {
-			items.add("idle");
-		}
+	private Void refreshTasks(final Map<? extends Future<?>, ? extends String> futureDesc) {
+		Platform.runLater(() -> {
+			final ObservableList<String> items = taskList.getItems();
+			items.clear();
+			for(final String desc: futureDesc.values()) {
+				items.add(desc);
+			}
+			if (items.isEmpty()) {
+				items.add("idle");
+			}
+		});
+		return null;
 	}
 
 	private Tab buildAboutTab() {
@@ -125,6 +127,16 @@ public class SettingsDialog extends Stage {
 		archOnDropButton.setSwitchOn(Settings.getSettings().showExcludeBox().get());
 		archOnDropButton.switchOnProperty().addListener((ov, o, n) -> Settings.getSettings().archiveOnDrop().set(n));
 
+		final TextField popupLifetimeField = new TextField("" + Settings.getSettings().popupLifetime().get());
+		popupLifetimeField.setPrefColumnCount(3);
+		popupLifetimeField.textProperty().addListener((ov, o, n) -> {
+			try {
+				final int delay = Integer.parseInt(n);
+				Settings.getSettings().popupLifetime().set(delay);
+			} catch (final Exception e) {
+				((StringProperty)ov).setValue(o);
+			}
+		});
 
 		final GridPane gridPane = new GridPane();
 		gridPane.setPadding(new Insets(5));
@@ -136,6 +148,7 @@ public class SettingsDialog extends Stage {
 		gridPane.addRow(i++, new Label("show tool bar"), toolButton);
 		gridPane.addRow(i++, new Label("show exclude box (restart needed)"), showExcButton);
 		gridPane.addRow(i++, new Label("archive on drop"), archOnDropButton);
+		gridPane.addRow(i++, new Label("popup lifetime in seconds (0 for permanent)"), popupLifetimeField);
 
 		return new Tab("settings", gridPane);
 	}

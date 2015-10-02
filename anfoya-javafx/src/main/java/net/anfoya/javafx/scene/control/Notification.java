@@ -22,11 +22,12 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -38,6 +39,7 @@ import javafx.stage.Popup;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.util.Callback;
 import javafx.util.Duration;
 
 
@@ -84,11 +86,12 @@ public class Notification {
         private static       double spacingY      = 5;
         private static       Pos    popupLocation = Pos.TOP_RIGHT;
         private static       Stage  stageRef      = null;
-        private Duration              popupLifetime;
         private Stage                 stage;
         private Scene                 scene;
         private ObservableList<Popup> popups;
 
+        private final IntegerProperty popupLifetime = new SimpleIntegerProperty();
+        private Callback<Void, Void> actionCallback = null;
 
         // ******************** Constructor ***************************************
         private Notifier() {
@@ -99,7 +102,7 @@ public class Notification {
 
         // ******************** Initialization ************************************
         private void init() {
-            popupLifetime = Duration.millis(5000);
+            popupLifetime.set(5000);
             popups = FXCollections.observableArrayList();
         }
 
@@ -183,21 +186,28 @@ public class Notification {
         }
 
         /**
+         * Set callback to be called when user click a notification
+         */
+        public void setCallback(final Callback<Void, Void> callback) {
+        	actionCallback = callback;
+        }
+
+        /**
          * Returns the Duration that the notification will stay on screen before it
          * will fade out.
          * @return the Duration the popup notification will stay on screen
          */
-        public Duration getPopupLifetime() {
-            return popupLifetime;
+        public int getPopupLifetime() {
+            return popupLifetime.get();
         }
 
         /**
          * Defines the Duration that the popup notification will stay on screen before it
-         * will fade out. The parameter is limited to values between 2 and 20 seconds.
+         * will fade out. Set 0 for permanent popup
          * @param POPUP_LIFETIME
          */
-        public void setPopupLifetime(final Duration POPUP_LIFETIME) {
-            popupLifetime = Duration.millis(clamp(2000, 20000, POPUP_LIFETIME.toMillis()));
+        public void setPopupLifetime(final int POPUP_LIFETIME) {
+            popupLifetime.set(POPUP_LIFETIME);
         }
 
         /**
@@ -207,6 +217,10 @@ public class Notification {
         public void notify(final Notification NOTIFICATION) {
             preOrder();
             showPopup(NOTIFICATION);
+        }
+
+        public IntegerProperty popupLifetime() {
+        	return popupLifetime;
         }
 
         /**
@@ -253,19 +267,6 @@ public class Notification {
          */
         public void notifyError(final String TITLE, final String MESSAGE) {
             notify(new Notification(TITLE, MESSAGE, Notification.ERROR_ICON));
-        }
-
-        /**
-         * Makes sure that the given VALUE is within the range of MIN to MAX
-         * @param MIN
-         * @param MAX
-         * @param VALUE
-         * @return
-         */
-        private double clamp(final double MIN, final double MAX, final double VALUE) {
-            if (VALUE < MIN) return MIN;
-            if (VALUE > MAX) return MAX;
-            return VALUE;
         }
 
         /**
@@ -320,15 +321,6 @@ public class Notification {
             final KeyFrame kfBegin = new KeyFrame(Duration.ZERO, fadeOutBegin);
             final KeyFrame kfEnd   = new KeyFrame(Duration.millis(500), fadeOutEnd);
 
-            final Timeline timeline = new Timeline(kfBegin, kfEnd);
-            timeline.setDelay(popupLifetime);
-            timeline.setOnFinished(actionEvent -> Platform.runLater(() -> {
-                POPUP.hide();
-                popups.remove(POPUP);
-            }));
-
-            popupContent.setOnMouseClicked(e -> ((Node)e.getSource()).getScene().getWindow().hide());
-
             // Move popup to the right during fade out
             POPUP.opacityProperty().addListener((observableValue, oldOpacity, opacity) -> POPUP.setX(POPUP.getX() + (1.0 - opacity.doubleValue()) * POPUP.getWidth()) );
 
@@ -340,7 +332,24 @@ public class Notification {
 
             POPUP.show(stage);
             Toolkit.getDefaultToolkit().beep();
-            timeline.play();
+
+            popupContent.setOnMouseClicked(e -> {
+            	POPUP.hide();
+                popups.remove(POPUP);
+                if (actionCallback != null) {
+                	actionCallback.call(null);
+                }
+            });
+
+            if (popupLifetime.get() > 0) {
+	            final Timeline timeline = new Timeline(kfBegin, kfEnd);
+	            timeline.setDelay(Duration.seconds(popupLifetime.get()));
+	            timeline.setOnFinished(actionEvent -> Platform.runLater(() -> {
+	                POPUP.hide();
+	                popups.remove(POPUP);
+	            }));
+	            timeline.play();
+            }
         }
 
         private double getX() {

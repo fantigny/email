@@ -13,7 +13,6 @@ import javafx.scene.control.SplitPane;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.Notification.Notifier;
 import net.anfoya.mail.browser.javafx.settings.Settings;
@@ -38,7 +37,6 @@ import org.slf4j.LoggerFactory;
 public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends Stage {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailBrowser.class);
 
-	private static final Duration NOTIFIER_LIFETIME = Duration.seconds(20);
 	private static final boolean SHOW_EXCLUDE_BOX = Settings.getSettings().showExcludeBox().get();
 
 	private final MailService<S, T, H, M, C> mailService;
@@ -112,7 +110,17 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 
         setScene(scene);
 
-		Notifier.INSTANCE.setPopupLifetime(NOTIFIER_LIFETIME);
+//		Notifier.INSTANCE.setPopupLifetime(Settings.getSettings().popupLifetime().get());
+		Notifier.INSTANCE.popupLifetime().bind(Settings.getSettings().popupLifetime());
+		Notifier.INSTANCE.setCallback(v -> {
+			if (isIconified()) {
+				setIconified(false);
+			}
+			if (!isFocused()) {
+				requestFocus();
+			}
+			return null;
+		});
 
         Platform.runLater(() -> {
         	threadListPane.requestFocus();

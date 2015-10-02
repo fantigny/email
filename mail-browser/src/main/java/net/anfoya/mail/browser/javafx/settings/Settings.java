@@ -9,7 +9,9 @@ import java.util.Iterator;
 import java.util.List;
 
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import net.anfoya.java.io.SerializedFile;
 
 import org.slf4j.Logger;
@@ -28,11 +30,13 @@ public class Settings implements Serializable {
 	private final BooleanProperty showToolbar;
 	private final BooleanProperty showExcludeBox;
 	private final BooleanProperty archiveOnDrop;
+	private final IntegerProperty popupLifetime;
 
 	public Settings() {
 		showToolbar = new SimpleBooleanProperty(true);
 		showExcludeBox = new SimpleBooleanProperty(false);
 		archiveOnDrop = new SimpleBooleanProperty(true);
+		popupLifetime = new SimpleIntegerProperty(20);
 	}
 
 	public BooleanProperty showToolbar() {
@@ -47,10 +51,14 @@ public class Settings implements Serializable {
 		return archiveOnDrop;
 	}
 
+	public IntegerProperty popupLifetime() {
+		return popupLifetime;
+	}
+
 	public static void load() {
-		final List<Object> s;
+		final List<Object> list;
 		try {
-			s = new SerializedFile<List<Object>>(FILENAME).load();
+			list = new SerializedFile<List<Object>>(FILENAME).load();
 		} catch (final FileNotFoundException e) {
 			LOGGER.warn("no settings found {}", FILENAME);
 			return;
@@ -59,7 +67,7 @@ public class Settings implements Serializable {
 			return;
 		}
 
-		final Iterator<Object> i = s.iterator();
+		final Iterator<Object> i = list.iterator();
 		if (i.hasNext()) {
 			SETTINGS.showToolbar.set((boolean) i.next());
 		}
@@ -69,17 +77,21 @@ public class Settings implements Serializable {
 		if (i.hasNext()) {
 			SETTINGS.archiveOnDrop.set((boolean) i.next());
 		}
+		if (i.hasNext()) {
+			SETTINGS.popupLifetime.set((int) i.next());
+		}
 	}
 
 	public void save() {
-		final List<Object> s = new ArrayList<Object>();
+		final List<Object> list = new ArrayList<Object>();
 
-		s.add(showToolbar.get());
-		s.add(showExcludeBox.get());
-		s.add(archiveOnDrop.get());
+		list.add(showToolbar.get());
+		list.add(showExcludeBox.get());
+		list.add(archiveOnDrop.get());
+		list.add(popupLifetime.get());
 
 		try {
-			new SerializedFile<List<Object>>(FILENAME).save(s);
+			new SerializedFile<List<Object>>(FILENAME).save(list);
 		} catch (final IOException e) {
 			LOGGER.error("saving settings {}", FILENAME, e);
 		}
