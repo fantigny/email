@@ -124,7 +124,7 @@ public class SettingsDialog extends Stage {
 		showExcButton.switchOnProperty().addListener((ov, o, n) -> Settings.getSettings().showExcludeBox().set(n));
 
 		final SwitchButton archOnDropButton = new SwitchButton();
-		archOnDropButton.setSwitchOn(Settings.getSettings().showExcludeBox().get());
+		archOnDropButton.setSwitchOn(Settings.getSettings().archiveOnDrop().get());
 		archOnDropButton.switchOnProperty().addListener((ov, o, n) -> Settings.getSettings().archiveOnDrop().set(n));
 
 		final TextField popupLifetimeField = new TextField("" + Settings.getSettings().popupLifetime().get());
