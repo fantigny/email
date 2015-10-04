@@ -142,6 +142,7 @@ public class SettingsDialog extends Stage {
 		gridPane.setPadding(new Insets(5));
 		gridPane.setVgap(5);
 		gridPane.setHgap(10);
+
 		int i = 0;
 		gridPane.addRow(i++, new Label("logout from this account"), logoutButton);
 		gridPane.addRow(i++, new Label("clear cache"), clearCacheButton);
