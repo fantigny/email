@@ -11,6 +11,22 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.mail.Address;
+import javax.mail.Message.RecipientType;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
+import javax.mail.internet.MimeUtility;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.sun.javafx.scene.web.skin.HTMLEditorSkin;
+
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -37,18 +53,6 @@ import javafx.scene.web.HTMLEditor;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-
-import javax.mail.Address;
-import javax.mail.Message.RecipientType;
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
-import javax.mail.internet.MimeUtility;
-
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.HtmlEditorListener;
 import net.anfoya.mail.mime.MessageHelper;
@@ -59,11 +63,6 @@ import net.anfoya.mail.service.Message;
 import net.anfoya.mail.service.Section;
 import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.sun.javafx.scene.web.skin.HTMLEditorSkin;
 
 public class MailComposer<M extends Message, C extends Contact> extends Stage {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailComposer.class);
@@ -89,14 +88,12 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 	private M draft;
 
 	private final BooleanProperty editedProperty;
-	private final Timer autosaveTimer;
+	private Timer autosaveTimer;
 
 	private final Map<String, C> addressContacts;
 
 	public MailComposer(final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService, final EventHandler<ActionEvent> updateHandler) {
 		super(StageStyle.UNIFIED);
-		setOnCloseRequest(e -> stopAutosave());
-
 		setTitle("FisherMail");
 
 		editedProperty = new SimpleBooleanProperty(false);
@@ -190,7 +187,18 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		editedProperty.addListener((ov, o, n) -> {
 			saveButton.setText(n? "save": "saved");
 			editorListener.editedProperty().set(n);
+			if (n) {
+				startAutosave();
+			} else {
+				stopAutosave();
+			}
 		});
+	}
+
+	@Override
+	public void close() {
+		stopAutosave();
+		super.close();
 	}
 
 	private void initContacts() {
@@ -397,23 +405,55 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 			}
 
 			// start auto save
-			startAutosave();
+			save();
 		});
 	}
 
-	private void startAutosave() {
-		autosaveTimer.schedule(new TimerTask() {
-			@Override
-			public void run() {
-				if (editedProperty.get()) {
-					save();
+	private synchronized void startAutosave() {
+		if (autosaveTimer == null) {
+			LOGGER.info("start auto save");
+			autosaveTimer = new Timer(true);
+			autosaveTimer.schedule(new TimerTask() {
+				@Override
+				public void run() {
+					if (editedProperty.get()) {
+						save();
+					}
 				}
-			}
-		}, 0, 60 * 1000);
+			}, 30 * 1000);
+		}
 	}
 
-	private void stopAutosave() {
-		autosaveTimer.cancel();
+	private synchronized void stopAutosave() {
+		if (autosaveTimer != null) {
+			LOGGER.info("stop auto save");
+			autosaveTimer.cancel();
+			autosaveTimer = null;
+		}
+	}
+
+	private void save() {
+		LOGGER.info("save draft");
+		stopAutosave();
+		Platform.runLater(() -> saveButton.setText("saving"));
+
+		final Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+			    draft.setMimeDraft(buildMessage());
+				mailService.save(draft);
+				return null;
+			}
+		};
+		task.setOnFailed(e -> {
+			editedProperty.set(true);
+			LOGGER.error("saving draft", e.getSource().getException());
+		});
+		task.setOnSucceeded(e -> {
+			editedProperty.set(false);
+			saveButton.setText("saved");
+		});
+		ThreadPool.getInstance().submitHigh(task, "saving draft");
 	}
 
 	private MimeMessage buildMessage() throws MessagingException {
@@ -494,29 +534,8 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		close();
 	}
 
-	private void save() {
-		Platform.runLater(() -> {
-			editedProperty.set(false);
-			saveButton.setText("saving");
-		});
-
-		final Task<Void> task = new Task<Void>() {
-			@Override
-			protected Void call() throws Exception {
-			    draft.setMimeDraft(buildMessage());
-				mailService.save(draft);
-				return null;
-			}
-		};
-		task.setOnFailed(e -> {
-			editedProperty.set(true);
-			LOGGER.error("saving draft", e.getSource().getException());
-		});
-		task.setOnSucceeded(e -> saveButton.setText("saved"));
-		ThreadPool.getInstance().submitHigh(task, "saving draft");
-	}
-
 	private void discardAndClose() {
+		LOGGER.debug("discard draft");
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
