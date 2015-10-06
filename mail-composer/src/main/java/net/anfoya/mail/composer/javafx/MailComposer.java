@@ -66,6 +66,7 @@ import net.anfoya.mail.service.Thread;
 
 public class MailComposer<M extends Message, C extends Contact> extends Stage {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailComposer.class);
+	private static final int AUTO_SAVE_DELAY = 30; // seconds
 
 	private final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService;
 	private final EventHandler<ActionEvent> updateHandler;
@@ -372,19 +373,18 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 				+ " color: #222222 !important;"
 				+ " background-color: #FDFDFD !important;}"
 				+ "p {"
-				+ " padding: 0 !important;"
+				+ " padding-left:1ex;"
 				+ " margin: 2px 0 !important; }"
 				+ "</style>";
 		try {
 			html += helper.toHtml(message);
-
 		} catch (IOException | MessagingException e) {
 			html = "";
 			LOGGER.error("getting html content", e);
 		}
 		if (!html.isEmpty() && quote) {
 			final StringBuffer sb = new StringBuffer("<br><br>");
-			sb.append("<blockquote class='fsm_quote' style='margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex'>");
+			sb.append("<blockquote class='gmail_quote' style='margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex'>");
 			sb.append(html);
 			sb.append("</blockquote>");
 			html = sb.toString();
@@ -408,16 +408,14 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 
 	private synchronized void startAutosave() {
 		if (autosaveTimer == null) {
-			LOGGER.info("start auto save");
+			LOGGER.info("start auto save ({}s)", AUTO_SAVE_DELAY);
 			autosaveTimer = new Timer("autosave-draft-timer", true);
 			autosaveTimer.schedule(new TimerTask() {
 				@Override
 				public void run() {
-					if (editedProperty.get()) {
-						save();
-					}
+					save();
 				}
-			}, 30 * 1000);
+			}, AUTO_SAVE_DELAY * 1000);
 		}
 	}
 
@@ -430,8 +428,8 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 	}
 
 	private void save() {
-		LOGGER.info("save draft");
 		stopAutosave();
+		LOGGER.info("save draft");
 		Platform.runLater(() -> saveButton.setText("saving"));
 
 		final Task<Void> task = new Task<Void>() {
@@ -456,6 +454,8 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 	private MimeMessage buildMessage() throws MessagingException {
 		final MimeBodyPart bodyPart = new MimeBodyPart();
 		bodyPart.setText(editor.getHtmlText(), StandardCharsets.UTF_8.name(), "html");
+
+		LOGGER.info(editor.getHtmlText());
 
 		final MimeMultipart multipart = new MimeMultipart();
 		multipart.addBodyPart(bodyPart);
