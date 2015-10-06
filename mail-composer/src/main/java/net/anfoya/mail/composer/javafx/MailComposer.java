@@ -97,7 +97,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		setTitle("FisherMail");
 
 		editedProperty = new SimpleBooleanProperty(false);
-		autosaveTimer = new Timer("autosave-draft-timer", true);
+		autosaveTimer = null;
 
 		final Image icon = new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png"));
 		getIcons().add(icon);
@@ -403,16 +403,13 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 			} else {
 				toListBox.requestFocus();
 			}
-
-			// start auto save
-			save();
 		});
 	}
 
 	private synchronized void startAutosave() {
 		if (autosaveTimer == null) {
 			LOGGER.info("start auto save");
-			autosaveTimer = new Timer(true);
+			autosaveTimer = new Timer("autosave-draft-timer", true);
 			autosaveTimer.schedule(new TimerTask() {
 				@Override
 				public void run() {
