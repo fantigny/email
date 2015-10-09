@@ -74,6 +74,7 @@
 							</classPath>
 							<icon>../mail-common/src/main/resources/net/anfoya/mail/image/Mail.ico</icon>
 							<jre>
+								<path>jre</path>
 								<minVersion>1.8.0</minVersion>
 								<initialHeapSize>128</initialHeapSize>
 								<maxHeapSize>1024</maxHeapSize>

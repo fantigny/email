@@ -11,10 +11,10 @@
 			<includes>
 				<include>distrib/FisherMail.exe</include>
 			</includes>
+			<outputDirectory>/</outputDirectory>
 		</fileSet>
 		<fileSet>
-			<directory> ../../jre/win_jre1.8.0_60</directory>
-			<outputDirectory>jre</outputDirectory>
+			<directory> ../../jre/win_jre1.8.0_60/jre</directory>
 		</fileSet>
 	</fileSets>
 </assembly>
