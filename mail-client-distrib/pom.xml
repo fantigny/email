@@ -37,7 +37,7 @@
 									copyright="ANFOYA.net" mainclassname="net.anfoya.mail.client.javafx.entrypoint.MailClient">
 									<classpath file="distrib/FisherMail.jar" />
 									<option value="-Xmx1g" />
-									<runtime dir="../jre/mac_jre1.8.0_60" />
+									<runtime dir="../jre/mac_jre1.8.0_60/Contents/Home" />
 								</bundleapp>
 							</target>
 						</configuration>
@@ -94,7 +94,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
+			<!-- plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
@@ -109,7 +109,7 @@
 						</goals>
 					</execution>
 				</executions>
-			</plugin>
+			</plugin -->
 		</plugins>
 	</build>
 
