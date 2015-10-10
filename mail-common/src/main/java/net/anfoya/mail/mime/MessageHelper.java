@@ -2,6 +2,7 @@ package net.anfoya.mail.mime;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -24,6 +25,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sun.mail.util.BASE64DecoderStream;
+
+import net.fortuna.ical4j.data.CalendarBuilder;
+import net.fortuna.ical4j.data.ParserException;
 
 public class MessageHelper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessageHelper.class);
@@ -106,26 +110,44 @@ public class MessageHelper {
 				&& ((MimeBodyPart)part).getContentID() != null) {
 			final MimeBodyPart bodyPart = (MimeBodyPart) part;
 			final String cid = bodyPart.getContentID().replaceAll("<", "").replaceAll(">", "");
-			final String tempFilename = TEMP + (part.getFileName() == null? cid: MimeUtility.decodeText(bodyPart.getFileName()));
-			LOGGER.debug("++++ save {}", tempFilename);
-			bodyPart.saveFile(tempFilename);
-			cidFilenames.put(cid, tempFilename);
+			final String filename = TEMP + (part.getFileName() == null? cid: MimeUtility.decodeText(bodyPart.getFileName()));
+			LOGGER.debug("++++ save {}", filename);
+			bodyPart.saveFile(filename);
+			cidFilenames.put(cid, filename);
 			return new StringBuilder();
 		} else if (part instanceof MimeBodyPart
 				&& content instanceof BASE64DecoderStream
 				&& MimeBodyPart.INLINE.equalsIgnoreCase(part.getDisposition())) {
 			final MimeBodyPart bodyPart = (MimeBodyPart) part;
-			final String tempFilename = TEMP + MimeUtility.decodeText(bodyPart.getFileName());
-			LOGGER.debug("++++ save {}", tempFilename);
-			bodyPart.saveFile(tempFilename);
-			return new StringBuilder("<img src='file://").append(tempFilename).append("'>");
+			String filename = bodyPart.getFileName();
+			if (filename != null) {
+				filename = TEMP + MimeUtility.decodeText(filename);
+				LOGGER.debug("++++ save {}", filename);
+				bodyPart.saveFile(filename);
+				return new StringBuilder("<img src='file://").append(filename).append("'>");
+			}
+			return new StringBuilder();
+		} else if (part instanceof MimeBodyPart
+				&& content instanceof BASE64DecoderStream
+				&& type.contains("text/calendar")) {
+			LOGGER.debug("++++ type {}", type);
+			try {
+				new CalendarBuilder().build((InputStream) content);
+				//TODO: render calendar
+			} catch (final ParserException e) {
+				LOGGER.error("parsing ICS", e);
+			}
+			return new StringBuilder();
 		} else if (part instanceof MimeBodyPart
 				&& content instanceof BASE64DecoderStream
 				&& part.getDisposition() == null || MimeBodyPart.ATTACHMENT.equalsIgnoreCase(part.getDisposition())) {
 			final MimeBodyPart bodyPart = (MimeBodyPart) part;
-			final String filename = MimeUtility.decodeText(bodyPart.getFileName());
-			LOGGER.debug("++++ keep {}", filename);
-			attachmentNames.add(filename);
+			String filename = bodyPart.getFileName();
+			if (filename != null) {
+				filename = MimeUtility.decodeText(filename);
+				LOGGER.debug("++++ keep {}", filename);
+				attachmentNames.add(filename);
+			}
 			return new StringBuilder();
 		} else {
 			LOGGER.warn("---- type {}", type);
