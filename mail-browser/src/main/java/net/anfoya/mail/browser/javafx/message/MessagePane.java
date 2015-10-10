@@ -96,8 +96,11 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		messageView.getEngine().setUserStyleSheetLocation(getClass().getResource("default.css").toExternalForm());
 		messageView.getEngine().setCreatePopupHandler(handler -> messageView.getEngine());
 		messageView.getEngine().locationProperty().addListener((ov, o, n) -> {
-			if (o != null) {
-				Platform.runLater(() -> messageView.getEngine().getLoadWorker().cancel());
+			if (!n.isEmpty()) {
+				Platform.runLater(() -> {
+					messageView.getEngine().getLoadWorker().cancel();
+					load();
+				});
 				handleHyperlink(n);
 			}
 		});
@@ -204,8 +207,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 
 	public synchronized void load() {
 		if (loadTask != null) {
-			//already loading;
-			return;
+			loadTask.cancel();
 		}
 		loadTask = new Task<String>() {
 			@Override
