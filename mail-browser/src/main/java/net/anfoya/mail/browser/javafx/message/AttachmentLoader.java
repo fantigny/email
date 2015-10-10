@@ -11,6 +11,11 @@ import javax.mail.Part;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeUtility;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.sun.mail.util.BASE64DecoderStream;
+
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
@@ -19,22 +24,21 @@ import net.anfoya.mail.service.Section;
 import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.sun.mail.util.BASE64DecoderStream;
-
 public class AttachmentLoader<M extends Message> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AttachmentLoader.class);
 	private static final String TEMP = System.getProperty("java.io.tmpdir") + File.separatorChar;
+	private static final String DOWNLOADS = System.getProperty("user.home") + File.separatorChar + "Downloads" + File.separatorChar;
 
 	private final MailService<? extends Section, ? extends Tag, ? extends Thread, M, ? extends Contact> mailService;
 	private final String messageId;
+	private final String destinationFolder;
 
 	public AttachmentLoader(final MailService<? extends Section, ? extends Tag, ? extends Thread, M, ? extends Contact> mailService
 			, final String messageId) {
 		this.mailService = mailService;
 		this.messageId = messageId;
+
+		destinationFolder = new File(DOWNLOADS).exists()? DOWNLOADS: TEMP;
 	}
 
 	public void start(final String name) throws MailException, UnsupportedEncodingException, IOException, MessagingException {
@@ -65,10 +69,12 @@ public class AttachmentLoader<M extends Message> {
 			final MimeBodyPart bodyPart = (MimeBodyPart) part;
 			final String filename = MimeUtility.decodeText(bodyPart.getFileName());
 			if (name.equals(filename)) {
-				final String tempFilename = TEMP + filename;
-				LOGGER.debug("++++ save {}", tempFilename);
-				bodyPart.saveFile(tempFilename);
-				return tempFilename;
+				final String path = destinationFolder + filename;
+				if (!new File(path).exists()) {
+					LOGGER.debug("++++ save {}", path);
+					bodyPart.saveFile(path);
+				}
+				return path;
 			} else {
 				return "";
 			}

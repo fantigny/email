@@ -318,7 +318,12 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		LOGGER.debug("refreshAfterThreadListLoad");
 
 		threadPane.refresh(threadListPane.getSelectedThreads());
-		sectionListPane.updateItemCount(threadListPane.getThreadsTags(), threadListPane.getNamePattern(), true);
+//		final String pattern = threadListPane.getNamePattern();
+//		if (pattern.isEmpty()) {
+			sectionListPane.updateItemCount(threadListPane.getThreadsTags(), threadListPane.getNamePattern(), true);
+//		} else {
+//			sectionListPane.refreshWithPattern(pattern);
+//		}
 	}
 
 	private void refreshAfterTagSelected() {
