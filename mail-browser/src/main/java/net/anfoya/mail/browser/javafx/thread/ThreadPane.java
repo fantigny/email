@@ -5,6 +5,9 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -36,9 +39,6 @@ import net.anfoya.mail.service.SpecialTag;
 import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
 import net.anfoya.tag.javafx.scene.section.SelectedTagsPane;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C extends Contact> extends BorderPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadPane.class);
@@ -266,11 +266,13 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 			}
 		}
 
-		try {
-			final T unread = mailService.getSpecialTag(SpecialTag.UNREAD);
-			remove(threads, unread);
-		} catch (final MailException e) {
-			LOGGER.error("getting unread tag", e);
+		if (thread.isUnread()) {
+			try {
+				final T unread = mailService.getSpecialTag(SpecialTag.UNREAD);
+				remove(threads, unread);
+			} catch (final MailException e) {
+				LOGGER.error("getting unread tag", e);
+			}
 		}
 	}
 
