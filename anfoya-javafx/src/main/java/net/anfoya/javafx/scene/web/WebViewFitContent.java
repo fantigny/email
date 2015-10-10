@@ -2,6 +2,9 @@ package net.anfoya.javafx.scene.web;
 
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javafx.collections.ListChangeListener;
 import javafx.event.EventDispatcher;
 import javafx.event.EventHandler;
@@ -15,9 +18,6 @@ import javafx.scene.layout.Region;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import netscape.javascript.JSException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public final class WebViewFitContent extends Region {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebViewFitContent.class);
@@ -87,7 +87,7 @@ public final class WebViewFitContent extends Region {
 	}
 
 	public int getVscrollMax() {
-		return (int) delegate.getEngine().executeScript("document.body.scrollHeight - document.body.scrollTop");
+		return Math.min(8192, (int) delegate.getEngine().executeScript("document.body.scrollHeight - document.body.scrollTop"));
 	}
 
 	public WebEngine getEngine() {
