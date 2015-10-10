@@ -88,7 +88,11 @@ public class MessageHelper {
 	}
 
 	private StringBuilder toHtml(final Part part, boolean isHtml) throws IOException, MessagingException {
-		final String type = part.getContentType().replaceAll("\\r", "").replaceAll("\\n", "").replaceAll("\\t", " ");
+		final String type = part.getContentType()
+				.toLowerCase()
+				.replaceAll("\\r", "")
+				.replaceAll("\\n", "")
+				.replaceAll("\\t", " ");
 		final Object content = part.getContent();
 		isHtml = isHtml || type.contains("multipart/alternative");
 		if (content instanceof String && type.contains("text/html")) {
