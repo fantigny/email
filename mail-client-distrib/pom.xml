@@ -39,19 +39,12 @@
 									<option value="-Xmx1g" />
 									<runtime dir="../../jre/mac_jre1.8.0_60/Contents/Home" />
 								</bundleapp>
+								<copydir src="../../jre/win_jre1.8.0_60/jre" dest="jre" />
 							</target>
 						</configuration>
 						<goals>
 							<goal>run</goal>
 						</goals>
-					</execution>
-					<execution>
-						<phase>package</phase>
-						<configuration>
-							<target>
-								  <copydir src="../../jre/win_jre1.8.0_60/jre" dest="jre" />
-							</target>
-						</configuration>
 					</execution>
 				</executions>
 				<dependencies>
