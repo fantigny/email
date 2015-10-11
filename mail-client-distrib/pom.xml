@@ -43,6 +43,10 @@
 									<zipfileset dir="../../jre/win64_jre1.8.0_60" prefix="jre"/>
 									<zipfileset dir="target" includes="FisherMail.exe" fullpath="FisherMail.exe" />
 								</zip>
+								<zip destfile="target/FisherMail-win32.zip">
+									<zipfileset dir="../../jre/win32_jre1.8.0_60" prefix="jre"/>
+									<zipfileset dir="target" includes="FisherMail.exe" fullpath="FisherMail.exe" />
+								</zip>
 							</target>
 						</configuration>
 						<goals>
@@ -78,7 +82,7 @@
 							</classPath>
 							<icon>../mail-common/src/main/resources/net/anfoya/mail/image/Mail.ico</icon>
 							<jre>
-								<path>win64_jre</path>
+								<path>jre</path>
 								<minVersion>1.8.0</minVersion>
 								<initialHeapSize>128</initialHeapSize>
 								<maxHeapSize>1024</maxHeapSize>
