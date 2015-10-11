@@ -5,6 +5,7 @@
 
 	<id>win64</id>
 	<baseDirectory>/</baseDirectory>
+	<includeBaseDirectory>false</includeBaseDirectory>
 
 	<formats>
 		<format>zip</format>
