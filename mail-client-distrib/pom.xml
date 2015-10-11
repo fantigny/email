@@ -30,12 +30,12 @@
 							<target>
 								<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
 									classpathref="maven.plugin.classpath" />
-								<bundleapp outputdirectory="distrib" name="FisherMail"
+								<bundleapp outputdirectory="target" name="FisherMail"
 									displayname="FisherMail"
 									icon="../mail-common/src/main/resources/net/anfoya/mail/image/Mail.icns"
 									identifier="net.anfoya.mail-client" shortversion="1.0"
 									copyright="ANFOYA.net" mainclassname="net.anfoya.mail.client.javafx.entrypoint.MailClient">
-									<classpath file="distrib/FisherMail.jar" />
+									<classpath file="target/FisherMail.jar" />
 									<option value="-Xmx1g" />
 									<runtime dir="../../jre/mac_jre1.8.0_60/Contents/Home" />
 								</bundleapp>
@@ -66,8 +66,8 @@
 						</goals>
 						<configuration>
 							<headerType>gui</headerType>
-							<outfile>distrib/FisherMail.exe</outfile>
-							<jar>distrib/FisherMail.jar</jar>
+							<outfile>target/FisherMail.exe</outfile>
+							<jar>target/FisherMail.jar</jar>
 							<errTitle>FisherMail Error</errTitle>
 							<classPath>
 								<mainClass>net.anfoya.mail.client.javafx.entrypoint.MailClient</mainClass>
