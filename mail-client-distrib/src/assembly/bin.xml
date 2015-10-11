@@ -13,7 +13,7 @@
 			</includes>
 		</fileSet>
 		<fileSet>
-			<directory>../../jre/win_jre1.8.0_60/jre</directory>
+			<directory>win64_jre</directory>
 		</fileSet>
 	</fileSets>
 </assembly>

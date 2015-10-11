@@ -39,7 +39,7 @@
 									<option value="-Xmx1g" />
 									<runtime dir="../../jre/mac_jre1.8.0_60/Contents/Home" />
 								</bundleapp>
-								<copydir src="../../jre/win_jre1.8.0_60/jre" dest="jre" />
+								<copydir src="../../jre/win_jre1.8.0_60/jre" dest="target/win64_jre" />
 							</target>
 						</configuration>
 						<goals>
@@ -75,7 +75,7 @@
 							</classPath>
 							<icon>../mail-common/src/main/resources/net/anfoya/mail/image/Mail.ico</icon>
 							<jre>
-								<path>jre</path>
+								<path>win64_jre</path>
 								<minVersion>1.8.0</minVersion>
 								<initialHeapSize>128</initialHeapSize>
 								<maxHeapSize>1024</maxHeapSize>
