@@ -40,8 +40,8 @@
 									<runtime dir="../../jre/mac_jre1.8.0_60/Contents/Home" />
 								</bundleapp>
 								<zip destfile="target/FisherMail-win64.zip">
-									<fileset dir="../../jre/win_jre1.8.0_60/jre" prefix="jre"/>
-									<fileset dir="target" includes="FisherMail.exe" />
+									<zipfileset dir="../../jre/win_jre1.8.0_60/jre" prefix="jre"/>
+									<zipfileset dir="target" includes="FisherMail.exe" fullpath="FisherMail.exe" />
 								</zip>
 							</target>
 						</configuration>
