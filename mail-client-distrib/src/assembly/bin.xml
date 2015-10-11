@@ -1,7 +1,8 @@
 <assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0 http://maven.apache.org/xsd/assembly-1.1.0.xsd">
 
-	<baseDirectory>/</baseDirectory>
+	<id>win64</id>
+	<baseDirectory>../distrib</baseDirectory>
 
 	<formats>
 		<format>zip</format>
@@ -9,12 +10,11 @@
 	<fileSets>
 		<fileSet>
 			<includes>
-				<include>distrib/FisherMail.exe</include>
+				<include>FisherMail.exe</include>
 			</includes>
-			<outputDirectory>/</outputDirectory>
 		</fileSet>
 		<fileSet>
-			<directory> ../../jre/win_jre1.8.0_60/jre</directory>
+			<directory>../../jre/win_jre1.8.0_60/jre</directory>
 		</fileSet>
 	</fileSets>
 </assembly>
