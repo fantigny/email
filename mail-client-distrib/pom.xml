@@ -39,9 +39,10 @@
 									<option value="-Xmx1g" />
 									<runtime dir="../../jre/mac_jre1.8.0_60/Contents/Home" />
 								</bundleapp>
-								<copy todir="target/win64_jre">
-									<fileset dir="../../jre/win_jre1.8.0_60/jre" />
-								</copy>
+								<zip destfile="target/FisherMail-win64.zip">
+									<fileset dir="../../jre/win_jre1.8.0_60/jre" prefix="jre"/>
+									<fileset dir="target" includes="FisherMail.exe" />
+								</zip>
 							</target>
 						</configuration>
 						<goals>
@@ -94,22 +95,6 @@
 								<originalFilename>FisherMail.exe</originalFilename>
 							</versionInfo>
 						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<configuration>
-					<descriptor>src/assembly/bin.xml</descriptor>
-					<finalName>FisherMail</finalName>
-				</configuration>
-				<executions>
-					<execution>
-						<phase>install</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
 					</execution>
 				</executions>
 			</plugin>
