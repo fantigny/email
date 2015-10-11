@@ -9,11 +9,11 @@
 	<fileSets>
 		<fileSet>
 			<includes>
-				<include>FisherMail.exe</include>
+				<include>target/FisherMail.exe</include>
 			</includes>
 		</fileSet>
 		<fileSet>
-			<directory>win64_jre</directory>
+			<directory>target/win64_jre</directory>
 		</fileSet>
 	</fileSets>
 </assembly>
