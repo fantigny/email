@@ -110,7 +110,6 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 
         setScene(scene);
 
-//		Notifier.INSTANCE.setPopupLifetime(Settings.getSettings().popupLifetime().get());
 		Notifier.INSTANCE.popupLifetime().bind(Settings.getSettings().popupLifetime());
 		Notifier.INSTANCE.setCallback(v -> {
 			if (isIconified()) {
