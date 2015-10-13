@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.regex.Matcher;
 
 import javax.mail.Address;
 import javax.mail.MessagingException;
@@ -82,7 +83,7 @@ public class MessageHelper {
 
 	private String replaceCids(String html, final Map<String, String> cidFilenames) {
 		for(final Entry<String, String> entry: cidFilenames.entrySet()) {
-			html = html.replaceAll("cid:" + entry.getKey(), "file://" + entry.getValue());
+			html = html.replaceAll("cid:" + Matcher.quoteReplacement(entry.getKey()), "file://" + entry.getValue());
 		}
 		return html;
 	}
@@ -98,7 +99,10 @@ public class MessageHelper {
 		if (content instanceof String && type.contains("text/html")) {
 			LOGGER.debug("++++ type {}", type);
 			return new StringBuilder((String) content);
-		} else if (content instanceof String && type.contains("text/plain") && !isHtml) {
+		} else if (content instanceof String && type.contains("text/plain")) {
+			if (isHtml) {
+				return new StringBuilder();
+			}
 			LOGGER.debug("++++ type {}", type);
 			return new StringBuilder("<pre>").append(content).append("</pre>");
 		} else if (part instanceof Multipart || type.contains("multipart")) {
