@@ -27,14 +27,18 @@ import net.anfoya.mail.service.Thread;
 public class AttachmentLoader<M extends Message> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AttachmentLoader.class);
 	private static final String TEMP = System.getProperty("java.io.tmpdir") + File.separatorChar;
+	private static final String DOWNLOADS = System.getProperty("user.home") + File.separatorChar + "Downloads" + File.separatorChar;
 
 	private final MailService<? extends Section, ? extends Tag, ? extends Thread, M, ? extends Contact> mailService;
 	private final String messageId;
+	private final String destinationFolder;
 
 	public AttachmentLoader(final MailService<? extends Section, ? extends Tag, ? extends Thread, M, ? extends Contact> mailService
 			, final String messageId) {
 		this.mailService = mailService;
 		this.messageId = messageId;
+
+		destinationFolder = new File(DOWNLOADS).exists()? DOWNLOADS: TEMP;
 	}
 
 	public void start(final String name) throws MailException, UnsupportedEncodingException, IOException, MessagingException {
@@ -78,13 +82,13 @@ public class AttachmentLoader<M extends Message> {
 	}
 
 	private String buildPath(String filename) {
-		String path = TEMP + filename;
+		String path = destinationFolder + filename;
 		int fileIndex = 1;
 		while (new File(path).exists()) {
 			if (filename.contains(".")) {
-				path = TEMP + filename.replace(".", "_" + fileIndex + ".");
+				path = destinationFolder + filename.replace(".", "_" + fileIndex + ".");
 			} else {
-				path = TEMP + filename + "_" + fileIndex;
+				path = destinationFolder + filename + "_" + fileIndex;
 			}
 			fileIndex++;
 		}
