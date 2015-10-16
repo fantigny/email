@@ -11,13 +11,24 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import javax.mail.MessagingException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.api.services.gmail.Gmail;
+import com.google.api.services.gmail.model.Draft;
+import com.google.api.services.gmail.model.Label;
+import com.google.api.services.gmail.model.Message;
+import com.google.api.services.gmail.model.Thread;
+import com.google.gdata.client.contacts.ContactsService;
+import com.google.gdata.data.contacts.ContactEntry;
+import com.google.gdata.data.extensions.Email;
+
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.util.Callback;
 import javafx.util.Duration;
-
-import javax.mail.MessagingException;
-
 import net.anfoya.mail.gmail.model.GmailContact;
 import net.anfoya.mail.gmail.model.GmailMessage;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
@@ -38,18 +49,6 @@ import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.SpecialTag;
 import net.anfoya.mail.service.Tag;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.api.services.gmail.Gmail;
-import com.google.api.services.gmail.model.Draft;
-import com.google.api.services.gmail.model.Label;
-import com.google.api.services.gmail.model.Message;
-import com.google.api.services.gmail.model.Thread;
-import com.google.gdata.client.contacts.ContactsService;
-import com.google.gdata.data.contacts.ContactEntry;
-import com.google.gdata.data.extensions.Email;
 
 public class GmailService implements MailService<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GmailService.class);
@@ -231,14 +230,14 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	public Set<GmailSection> getSections() throws GMailException {
 		try {
 			final Collection<Label> labels = labelService.getAll();
-			final Set<GmailSection> sectionTmp = new TreeSet<GmailSection>();
+			final Set<GmailSection> alphaSections = new TreeSet<GmailSection>();
 			for(final Label label: labels) {
 				if (!GmailSection.isHidden(label)) {
 					final GmailSection section = new GmailSection(label);
 					final String sectionName = section.getName() + "/";
 					for(final Label l: labels) {
 						if (l.getName().contains(sectionName)) {
-							sectionTmp.add(section);
+							alphaSections.add(section);
 							break;
 						}
 					}
@@ -247,7 +246,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 			final Set<GmailSection> sections = new LinkedHashSet<GmailSection>();
 			sections.add(GmailSection.SYSTEM);
-			sections.addAll(sectionTmp);
+			sections.addAll(alphaSections);
 
 			LOGGER.debug("get sections: {}", sections);
 			return sections;
@@ -344,9 +343,23 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 						final String name = label.getName();
 						if (section != null && name.equals(section.getPath())) {
 							tags.add(new GmailTag(label.getId(), Tag.THIS_NAME, label.getName(), false));
-						} else if (name.indexOf("/") == name.lastIndexOf("/")
-								&& section == null || name.startsWith(section.getName() + "/")) {
-							tags.add(new GmailTag(label));
+						} else {
+							final int pos = name.lastIndexOf("/");
+							if (pos > 0) {
+								if (section == null || section.getName().equals(name.substring(0, pos))) {
+									final String sectionName = name + "/";
+									boolean isSection = false;
+									for(final Label l: labels) {
+										if (l.getName().contains(sectionName)) {
+											isSection = true;
+											break;
+										}
+									}
+									if (!isSection) {
+										tags.add(new GmailTag(label));
+									}
+								}
+							}
 						}
 					}
 				}
