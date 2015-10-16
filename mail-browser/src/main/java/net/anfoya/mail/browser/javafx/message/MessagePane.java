@@ -96,8 +96,8 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	public MessagePane(final String messageId, final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService) {
 		this.mailService = mailService;
 		this.messageId = messageId;
-		expanded = new SimpleBooleanProperty(true);
-		collapsible = new SimpleBooleanProperty(true);
+		expanded = new SimpleBooleanProperty();
+		collapsible = new SimpleBooleanProperty();
 		helper = new MessageHelper();
 
 		messageView = new WebViewFitContent();
@@ -145,12 +145,14 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
         		return -90 * (1.0 - (isExpanded()? 1: 0));
         	}
         });
-        arrowRegion.getChildren().setAll(arrow);
 
 		final HBox title = new HBox(arrowRegion, titleText, iconBox, dateText);
 		title.getStyleClass().add("message-title-text");
-		title.setOnMouseClicked(event -> expanded.set(!expanded.get()));
-		title.setCursor(Cursor.HAND);
+		title.setOnMouseClicked(event -> {
+			if (collapsible.get()) {
+				expanded.set(!expanded.get());
+			}
+		});
 
 		titlePane = new VBox(title, attachmentPane, snippetView);
 		titlePane.setAlignment(Pos.CENTER_LEFT);
@@ -183,14 +185,18 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 				showAttachment(mouseOver && !n);
 			}
 		});
+		expanded.set(true);
 
 		collapsible.addListener((ov, o, n) -> {
 			if (n) {
-				titleText.setCursor(Cursor.HAND);
+				title.setCursor(Cursor.HAND);
+				arrowRegion.getChildren().setAll(arrow);
 			} else {
-				titleText.setCursor(Cursor.DEFAULT);
+				title.setCursor(Cursor.DEFAULT);
+				arrowRegion.getChildren().clear();
 			}
 		});
+		collapsible.set(true);
 
 		getChildren().addAll(titlePane, messageView);
 		setOnDragDetected(event -> {
