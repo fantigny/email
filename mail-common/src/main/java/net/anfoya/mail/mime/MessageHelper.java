@@ -89,12 +89,12 @@ public class MessageHelper {
 	}
 
 	private StringBuilder toHtml(final Part part, boolean isHtml) throws IOException, MessagingException {
+		final Object content = part.getContent();
 		final String type = part.getContentType()
 				.toLowerCase()
 				.replaceAll("\\r", "")
 				.replaceAll("\\n", "")
 				.replaceAll("\\t", " ");
-		final Object content = part.getContent();
 		isHtml = isHtml || type.contains("multipart/alternative");
 		if (content instanceof String && type.contains("text/html")) {
 			LOGGER.debug("++++ type {}", type);
@@ -113,50 +113,42 @@ public class MessageHelper {
 				html.append(toHtml(parts.getBodyPart(i), isHtml));
 			}
 			return html;
-		} else if (part instanceof MimeBodyPart
-				&& content instanceof BASE64DecoderStream
-				&& ((MimeBodyPart)part).getContentID() != null) {
-			final MimeBodyPart bodyPart = (MimeBodyPart) part;
-			final String cid = bodyPart.getContentID().replaceAll("<", "").replaceAll(">", "");
-			final String filename = TEMP + (part.getFileName() == null? cid: MimeUtility.decodeText(bodyPart.getFileName()));
-			LOGGER.debug("++++ save {}", filename);
-			bodyPart.saveFile(filename);
-			cidFilenames.put(cid, filename);
-			return new StringBuilder();
-		} else if (part instanceof MimeBodyPart
-				&& content instanceof BASE64DecoderStream
-				&& MimeBodyPart.INLINE.equalsIgnoreCase(part.getDisposition())) {
-			final MimeBodyPart bodyPart = (MimeBodyPart) part;
-			String filename = bodyPart.getFileName();
-			if (filename != null) {
-				filename = TEMP + MimeUtility.decodeText(filename);
+		} else if (part instanceof MimeBodyPart && content instanceof BASE64DecoderStream) {
+			if (((MimeBodyPart)part).getContentID() != null) {
+				final MimeBodyPart bodyPart = (MimeBodyPart) part;
+				final String cid = bodyPart.getContentID().replaceAll("<", "").replaceAll(">", "");
+				final String filename = TEMP + (part.getFileName() == null? cid: MimeUtility.decodeText(bodyPart.getFileName()));
 				LOGGER.debug("++++ save {}", filename);
 				bodyPart.saveFile(filename);
-				return new StringBuilder("<img src='file://").append(filename).append("'>");
+				cidFilenames.put(cid, filename);
+				return new StringBuilder();
+			} else if (type.contains("text/calendar")) {
+				LOGGER.debug("++++ type {}", type);
+				try {
+					new CalendarBuilder().build((InputStream) content);
+					//TODO: render calendar
+				} catch (final ParserException e) {
+					LOGGER.error("parsing ICS", e);
+				}
+				return new StringBuilder();
+			} else {
+				final MimeBodyPart bodyPart = (MimeBodyPart) part;
+				if (bodyPart.getFileName() == null) {
+					return new StringBuilder();
+				}
+				String filename = MimeUtility.decodeText(bodyPart.getFileName());
+				if (MimeBodyPart.INLINE.equals(part.getDisposition())) {
+					filename = TEMP + filename;
+					LOGGER.debug("++++ save {}", filename);
+					bodyPart.saveFile(filename);
+					return new StringBuilder("<img src='file://").append(filename).append("'>");
+				} else {
+					filename = MimeUtility.decodeText(filename);
+					LOGGER.debug("++++ keep {}", filename);
+					attachmentNames.add(filename);
+					return new StringBuilder();
+				}
 			}
-			return new StringBuilder();
-		} else if (part instanceof MimeBodyPart
-				&& content instanceof BASE64DecoderStream
-				&& type.contains("text/calendar")) {
-			LOGGER.debug("++++ type {}", type);
-			try {
-				new CalendarBuilder().build((InputStream) content);
-				//TODO: render calendar
-			} catch (final ParserException e) {
-				LOGGER.error("parsing ICS", e);
-			}
-			return new StringBuilder();
-		} else if (part instanceof MimeBodyPart
-				&& content instanceof BASE64DecoderStream
-				&& part.getDisposition() == null || MimeBodyPart.ATTACHMENT.equalsIgnoreCase(part.getDisposition())) {
-			final MimeBodyPart bodyPart = (MimeBodyPart) part;
-			String filename = bodyPart.getFileName();
-			if (filename != null) {
-				filename = MimeUtility.decodeText(filename);
-				LOGGER.debug("++++ keep {}", filename);
-				attachmentNames.add(filename);
-			}
-			return new StringBuilder();
 		} else {
 			LOGGER.warn("---- type {}", type);
 			return new StringBuilder();
