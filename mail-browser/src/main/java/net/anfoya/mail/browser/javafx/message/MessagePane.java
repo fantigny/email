@@ -16,6 +16,7 @@ import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.concurrent.Task;
@@ -35,6 +36,7 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.scene.web.WebView;
@@ -129,7 +131,23 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		attachmentPane = new FlowPane(Orientation.HORIZONTAL, 5, 0);
 		attachmentPane.setPadding(new Insets(0, 10, 0, 10));
 
-		final HBox title = new HBox(titleText, iconBox, dateText);
+        final StackPane arrowRegion = new StackPane();
+        arrowRegion.setId("arrowRegion");
+        arrowRegion.getStyleClass().setAll("titled-arrow-button");
+
+        final StackPane arrow = new StackPane();
+        arrow.getStyleClass().setAll("titled-arrow");
+        arrow.rotateProperty().bind(new DoubleBinding() {
+        	{
+        		bind(expandedProperty());
+        	}
+        	@Override protected double computeValue() {
+        		return -90 * (1.0 - (isExpanded()? 1: 0));
+        	}
+        });
+        arrowRegion.getChildren().setAll(arrow);
+
+		final HBox title = new HBox(arrowRegion, titleText, iconBox, dateText);
 		title.getStyleClass().add("message-title-text");
 		title.setOnMouseClicked(event -> expanded.set(!expanded.get()));
 		title.setCursor(Cursor.HAND);
