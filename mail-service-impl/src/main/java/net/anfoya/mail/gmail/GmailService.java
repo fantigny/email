@@ -645,6 +645,11 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	@Override
+	public void addOnUpdateTagOrSection(Callback<Void, Void> callback) {
+		historyService.addOnUpdateLabel(callback);
+	}
+
+	@Override
 	public void addOnUpdateMessage(final Callback<Void, Void> callback) {
 		historyService.addOnUpdateMessage(mList -> callback.call(null));
 	}

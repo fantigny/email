@@ -2,6 +2,8 @@ package net.anfoya.tag.service;
 
 import java.util.Set;
 
+import javafx.util.Callback;
+
 public interface TagService<S extends Section, T extends Tag> {
 
 	public S addSection(String name) throws TagException;
@@ -18,4 +20,6 @@ public interface TagService<S extends Section, T extends Tag> {
 	public int getCountForTags(Set<T> includes, Set<T> excludes, String pattern) throws TagException;
 
 	public T moveToSection(T tag, S section) throws TagException;
+
+	public void addOnUpdateTagOrSection(Callback<Void, Void> callback);
 }

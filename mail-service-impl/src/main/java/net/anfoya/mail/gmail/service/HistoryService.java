@@ -12,13 +12,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.stream.Collectors;
 
-import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.ReadOnlyBooleanWrapper;
-import javafx.util.Callback;
-import javafx.util.Duration;
-import net.anfoya.java.io.SerializedFile;
-import net.anfoya.java.util.concurrent.ThreadPool;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +20,13 @@ import com.google.api.services.gmail.model.History;
 import com.google.api.services.gmail.model.HistoryMessageAdded;
 import com.google.api.services.gmail.model.ListHistoryResponse;
 import com.google.api.services.gmail.model.Message;
+
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
+import javafx.util.Callback;
+import javafx.util.Duration;
+import net.anfoya.java.io.SerializedFile;
+import net.anfoya.java.util.concurrent.ThreadPool;
 
 public class HistoryService extends TimerTask {
 	private static final Logger LOGGER = LoggerFactory.getLogger(HistoryService.class);
@@ -37,7 +37,7 @@ public class HistoryService extends TimerTask {
 	private final ReadOnlyBooleanWrapper disconnected;
 	private final Set<Callback<Set<Message>, Void>> updateMessageCallBacks;
 	private final Set<Callback<Set<Message>, Void>> addedMessageCallBacks;
-	private final Set<Callback<Set<String>, Void>> updateLabelCallBacks;
+	private final Set<Callback<Void, Void>> updateLabelCallBacks;
 
 	private Timer timer;
 	private BigInteger historyId;
@@ -63,7 +63,7 @@ public class HistoryService extends TimerTask {
 
 		updateMessageCallBacks = new LinkedHashSet<Callback<Set<Message>, Void>>();
 		addedMessageCallBacks = new LinkedHashSet<Callback<Set<Message>, Void>>();
-		updateLabelCallBacks = new LinkedHashSet<Callback<Set<String>, Void>>();
+		updateLabelCallBacks = new LinkedHashSet<Callback<Void, Void>>();
 	}
 
 	public void start(final Duration pullPeriod) {
@@ -77,7 +77,9 @@ public class HistoryService extends TimerTask {
 		ThreadPool.getInstance().submitLow(() -> {
 			try {
 				final List<History> updates = checkForUpdates();
-				invokeCallbacks(updates);
+				if (updates != null) {
+					invokeCallbacks(updates);
+				}
 			} catch (final HistoryException e) {
 				LOGGER.error("pull updates", e);
 			}
@@ -99,18 +101,23 @@ public class HistoryService extends TimerTask {
 
 			final BigInteger previous = historyId;
 			historyId = response.getHistoryId();
-			if (historyId.equals(previous) || response.getHistory() == null) {
-				return new ArrayList<History>();
+			if (historyId.equals(previous)) {
+				return null;
 			}
 
-			return response.getHistory();
+			LOGGER.info("new historyId: {}", historyId);
+			if (response.getHistory() == null) {
+				return new ArrayList<History>();
+			} else {
+				return response.getHistory();
+			}
 		} catch (final Exception e) {
 			historyId = null;
 			if (e instanceof ConnectException) {
 				if (!disconnected.get()) {
 					disconnected.set(true);
 				}
-				return new ArrayList<History>();
+				return null;
 			} else {
 				throw new HistoryException("getting history id", e);
 			}
@@ -120,25 +127,19 @@ public class HistoryService extends TimerTask {
 	}
 
 	private void invokeCallbacks(final List<History> updates) {
-		if (updates == null) {
-			updateLabelCallBacks.forEach(c -> c.call(null));
-			updateMessageCallBacks.forEach(c -> c.call(null));
-			return;
-		}
-
 		if (updates.isEmpty()) {
+			updateLabelCallBacks.forEach(c -> c.call(null));
 			return;
 		}
 
-		final Set<String> updatedLabelIds = new LinkedHashSet<String>();
 		final Set<Message> updatedMessages = new LinkedHashSet<Message>();
 		final Set<Message> addedMessages = new LinkedHashSet<Message>();
 		for(final History h: updates) {
 			if (h.getLabelsAdded() != null) {
-				h.getLabelsAdded().forEach(history -> updatedLabelIds.addAll(history.getLabelIds()));
+				h.getLabelsAdded().forEach(history -> updatedMessages.add(history.getMessage()));
 			}
 			if (h.getLabelsRemoved() != null) {
-				h.getLabelsRemoved().forEach(history -> updatedLabelIds.addAll(history.getLabelIds()));
+				h.getLabelsRemoved().forEach(history -> updatedMessages.add(history.getMessage()));
 			}
 			if (h.getMessages() != null) {
 				h.getMessages().forEach(m -> updatedMessages.add(m));
@@ -151,9 +152,6 @@ public class HistoryService extends TimerTask {
 			}
 		}
 
-		if (!updatedLabelIds.isEmpty()) {
-			updateLabelCallBacks.forEach(c -> c.call(updatedLabelIds));
-		}
 		if (!updatedMessages.isEmpty()) {
 			updateMessageCallBacks.forEach(c -> c.call(updatedMessages));
 		}
@@ -170,7 +168,7 @@ public class HistoryService extends TimerTask {
 		addedMessageCallBacks.add(callback);
 	}
 
-	public void addOnUpdateLabel(final Callback<Set<String>, Void> callback) {
+	public void addOnUpdateLabel(final Callback<Void, Void> callback) {
 		updateLabelCallBacks.add(callback);
 	}
 

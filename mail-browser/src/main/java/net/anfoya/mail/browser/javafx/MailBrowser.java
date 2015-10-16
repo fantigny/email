@@ -173,7 +173,11 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		}
 
 		mailService.addOnUpdateMessage(p -> {
-			Platform.runLater(() -> refreshAfterRemoteUpdate());
+			Platform.runLater(() -> refreshAfterUpdateMessage());
+			return null;
+		});
+		mailService.addOnUpdateTagOrSection(p -> {
+			Platform.runLater(() -> refreshAfterUpdateTagOrSection());
 			return null;
 		});
 
@@ -226,14 +230,15 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	boolean refreshAfterSectionUpdate = true;
 	boolean refreshAfterThreadUpdate = true;
 	boolean refreshAfterPatternUpdate = true;
-	boolean refreshAfterRemoteUpdate = true;
+	boolean refreshAfterUpdateMessage = true;
+	boolean refreshAfterUpdateTagOrSection = true;
 
-	private void refreshAfterRemoteUpdate() {
-		if (!refreshAfterRemoteUpdate) {
+	private void refreshAfterUpdateMessage() {
+		if (!refreshAfterUpdateMessage) {
 			return;
 		}
-		LOGGER.debug("refreshAfterRemoteUpdate");
-		LOGGER.info("update detected");
+		LOGGER.debug("refreshAfterUpdateMessage");
+		LOGGER.info("message update detected");
 
 		sectionListPane.refreshAsync(v -> {
 			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
@@ -257,6 +262,16 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 				}
 			}, "counting unread messages");
 		}
+	}
+
+	private void refreshAfterUpdateTagOrSection() {
+		if (!refreshAfterUpdateTagOrSection) {
+			return;
+		}
+		LOGGER.debug("refreshAfterUpdateTagOrSection");
+		LOGGER.info("label update detected");
+
+		refreshAfterSectionUpdate();
 	}
 
 	private void refreshAfterSectionUpdate() {
