@@ -44,6 +44,7 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadPane.class);
 
     private static final Image FLAG = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/browser/javafx/threadlist/mini_flag.png"));
+    private static final Image ATTACHMENT = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/browser/javafx/threadlist/mini_attach.png"));
 
 	private final MailService<? extends Section, T, H, M, C> mailService;
 
@@ -66,7 +67,7 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 	public ThreadPane(final MailService<? extends Section, T, H, M, C> mailService) {
 		this.mailService = mailService;
 
-		iconBox = new HBox();
+		iconBox = new HBox(5);
 		iconBox.setAlignment(Pos.CENTER_LEFT);
 		iconBox.setPadding(new Insets(0,0,0, 5));
 
@@ -193,9 +194,8 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 	}
 
 	private void refreshIcons() {
-		iconBox.getChildren().clear();
-		if (threads.size() == 1 && threads.iterator().next().isFlagged()) {
-			iconBox.getChildren().add(new ImageView(FLAG));
+		if (threads.size() == 1) {
+			displayFlagIcon(threads.iterator().next().isFlagged());
 		}
 	}
 
@@ -240,9 +240,33 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 		messagePane.setScrollHandler(webScrollHandler);
 		messagePane.setUpdateHandler(updateHandler);
 		messagePane.setExpanded(false);
+		messagePane.onContainAttachment(e -> displayAttachmentIcon());
 		messagePane.load();
 
 		return messagePane;
+	}
+
+	private void displayAttachmentIcon() {
+		for(final Node n: iconBox.getChildren()) {
+			if (n instanceof ImageView && ((ImageView)n).getImage() == ATTACHMENT) {
+				return;
+			}
+		}
+		iconBox.getChildren().add(0, new ImageView(ATTACHMENT));
+	}
+
+	private void displayFlagIcon(boolean display) {
+		for(final Node n: iconBox.getChildren()) {
+			if (n instanceof ImageView && ((ImageView)n).getImage() == FLAG) {
+				if (!display) {
+					iconBox.getChildren().remove(n);
+				}
+				return;
+			}
+		}
+		if (display) {
+			iconBox.getChildren().add(new ImageView(FLAG));
+		}
 	}
 
 	@SuppressWarnings("unchecked")

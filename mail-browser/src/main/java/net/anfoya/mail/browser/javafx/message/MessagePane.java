@@ -42,6 +42,7 @@ import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.web.WebViewFitContent;
 import net.anfoya.mail.browser.javafx.thread.ThreadDropPane;
+import net.anfoya.mail.browser.javafx.thread.ThreadPane;
 import net.anfoya.mail.composer.javafx.MailComposer;
 import net.anfoya.mail.mime.DateHelper;
 import net.anfoya.mail.mime.MessageHelper;
@@ -55,6 +56,9 @@ import net.anfoya.mail.service.Thread;
 
 public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessagePane.class);
+
+    private static final Image ATTACHMENT = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/browser/javafx/threadlist/mini_attach.png"));
+
 	private static final String CSS_DATA = "<style> body {"
 			+ " margin: 7;"
 			+ " padding: 0;"
@@ -69,6 +73,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 
 	private final MessageHelper helper;
 
+	private final HBox iconBox;
 	private final Text titleText;
 	private final Text dateText;
 	private final FlowPane attachmentPane;
@@ -84,6 +89,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 
 	private Timeline showSnippetTimeline;
 	private Timeline showMessageTimeline;
+	private EventHandler<ActionEvent> attachmentHandler;
 
 	public MessagePane(final String messageId, final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService) {
 		this.mailService = mailService;
@@ -108,8 +114,10 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		titleText = new Text("loading...");
 		dateText = new Text();
 
-		final HBox hSpace = new HBox();
-		HBox.setHgrow(hSpace, Priority.ALWAYS);
+		iconBox = new HBox();
+		iconBox.setAlignment(Pos.BASELINE_RIGHT);
+		iconBox.setPadding(new Insets(3, 5, 0, 0));
+		HBox.setHgrow(iconBox, Priority.ALWAYS);
 
 		snippetView = new WebView();
 		snippetView.prefWidthProperty().bind(widthProperty());
@@ -121,7 +129,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		attachmentPane = new FlowPane(Orientation.HORIZONTAL, 5, 0);
 		attachmentPane.setPadding(new Insets(0, 10, 0, 10));
 
-		final HBox title = new HBox(titleText, hSpace, dateText);
+		final HBox title = new HBox(titleText, iconBox, dateText);
 		title.getStyleClass().add("message-title-text");
 		title.setOnMouseClicked(event -> expanded.set(!expanded.get()));
 		title.setCursor(Cursor.HAND);
@@ -326,6 +334,12 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 				});
 				attachmentPane.getChildren().add(attachment);
 			}
+			iconBox.getChildren().add(new ImageView(ATTACHMENT));
+			attachmentHandler.handle(null);
 		}
+	}
+
+	public void onContainAttachment(EventHandler<ActionEvent> handler) {
+		attachmentHandler = handler;
 	}
 }
