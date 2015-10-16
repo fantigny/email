@@ -194,8 +194,9 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 	}
 
 	private void refreshIcons() {
-		if (threads.size() == 1) {
-			displayFlagIcon(threads.iterator().next().isFlagged());
+		iconBox.getChildren().clear();
+		if (threads.size() == 1 && threads.iterator().next().isFlagged()) {
+			displayFlagIcon();
 		}
 	}
 
@@ -228,6 +229,9 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 			final String id = i.next();
 			@SuppressWarnings("unchecked")
 			final MessagePane<M, C> messagePane = index >= msgPanes.size()? null: (MessagePane<M, C>) msgPanes.get(index);
+			if (messagePane != null && messagePane.hasAttachment()) {
+				displayAttachmentIcon();
+			}
 			if (messagePane == null || !id.equals(messagePane.getMessageId())) {
 				msgPanes.add(index, createMessagePane(id));
 			}
@@ -255,18 +259,13 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 		iconBox.getChildren().add(0, new ImageView(ATTACHMENT));
 	}
 
-	private void displayFlagIcon(boolean display) {
+	private void displayFlagIcon() {
 		for(final Node n: iconBox.getChildren()) {
 			if (n instanceof ImageView && ((ImageView)n).getImage() == FLAG) {
-				if (!display) {
-					iconBox.getChildren().remove(n);
-				}
 				return;
 			}
 		}
-		if (display) {
-			iconBox.getChildren().add(new ImageView(FLAG));
-		}
+		iconBox.getChildren().add(new ImageView(FLAG));
 	}
 
 	@SuppressWarnings("unchecked")

@@ -366,4 +366,8 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	public void onContainAttachment(EventHandler<ActionEvent> handler) {
 		attachmentHandler = handler;
 	}
+
+	public boolean hasAttachment() {
+		return !helper.getAttachmentNames().isEmpty();
+	}
 }
