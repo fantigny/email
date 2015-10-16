@@ -76,7 +76,7 @@ public class HistoryService extends TimerTask {
 	public void run() {
 		ThreadPool.getInstance().submitLow(() -> {
 			try {
-				final List<History> updates = checkForUpdates();
+				final List<History> updates = getUpdates();
 				if (updates != null) {
 					invokeCallbacks(updates);
 				}
@@ -86,11 +86,12 @@ public class HistoryService extends TimerTask {
 		}, "pull updates");
 	}
 
-	public List<History> checkForUpdates() throws HistoryException {
+	public List<History> getUpdates() throws HistoryException {
 		final long start = System.currentTimeMillis();
 		try {
 			if (historyId == null) {
 				historyId = gmail.users().getProfile(user).execute().getHistoryId();
+				LOGGER.info("new historyId: {}", historyId);
 				return null;
 			}
 
@@ -105,7 +106,7 @@ public class HistoryService extends TimerTask {
 				return null;
 			}
 
-			LOGGER.info("new historyId: {}", historyId);
+			LOGGER.info("updated historyId: {}", historyId);
 			if (response.getHistory() == null) {
 				return new ArrayList<History>();
 			} else {
