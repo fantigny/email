@@ -59,7 +59,8 @@ import net.anfoya.mail.service.Thread;
 public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessagePane.class);
 
-    private static final Image ATTACHMENT = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/browser/javafx/threadlist/mini_attach.png"));
+    private static final Image ATTACHMENT = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/image/attachment.png"));
+    private static final Image MINI_ATTACHMENT = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/image/mini_attach.png"));
 
 	private static final String CSS_DATA = "<style> body {"
 			+ " margin: 7;"
@@ -344,9 +345,8 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		attachmentPane.getChildren().clear();
 		final Set<String> attachNames = helper.getAttachmentNames();
 		if (!attachNames.isEmpty()) {
-			final Image image = new Image(getClass().getResourceAsStream("attachment.png"));
 			for(final String name: attachNames) {
-				final HBox attachment = new HBox(3, new ImageView(image), new Label(name));
+				final HBox attachment = new HBox(3, new ImageView(ATTACHMENT), new Label(name));
 				attachment.setPadding(new Insets(5));
 				attachment.setCursor(Cursor.HAND);
 				attachment.setOnMouseClicked(e -> {
@@ -358,7 +358,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 				});
 				attachmentPane.getChildren().add(attachment);
 			}
-			iconBox.getChildren().add(new ImageView(ATTACHMENT));
+			iconBox.getChildren().add(new ImageView(MINI_ATTACHMENT));
 			attachmentHandler.handle(null);
 		}
 	}

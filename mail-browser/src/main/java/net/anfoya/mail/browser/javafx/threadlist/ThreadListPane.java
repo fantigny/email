@@ -3,6 +3,9 @@ package net.anfoya.mail.browser.javafx.threadlist;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.value.ChangeListener;
@@ -44,9 +47,6 @@ import net.anfoya.mail.service.SpecialTag;
 import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
 import net.anfoya.tag.javafx.scene.dnd.DndFormat;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends BorderPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadListPane.class);
@@ -174,7 +174,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		patternField.setPromptText("mail search");
 
 		final Button newButton = new Button();
-		newButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("new.png"))));
+		newButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/new.png"))));
 		newButton.setTooltip(new Tooltip("new mail"));
 		newButton.setOnAction(event -> {
 			try {

@@ -43,8 +43,8 @@ import net.anfoya.tag.javafx.scene.section.SelectedTagsPane;
 public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C extends Contact> extends BorderPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadPane.class);
 
-    private static final Image FLAG = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/browser/javafx/threadlist/mini_flag.png"));
-    private static final Image ATTACHMENT = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/browser/javafx/threadlist/mini_attach.png"));
+    private static final Image FLAG = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/image/mini_flag.png"));
+    private static final Image ATTACHMENT = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/image/mini_attach.png"));
 
 	private final MailService<? extends Section, T, H, M, C> mailService;
 
@@ -77,7 +77,7 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 		subjectField.setEditable(false);
 
 		final Button settingsButton = new Button();
-		settingsButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("settings.png"))));
+		settingsButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/settings.png"))));
 		settingsButton.setTooltip(new Tooltip("settings"));
 		settingsButton.setOnAction(event -> new SettingsDialog(mailService, logoutHandler).show());
 

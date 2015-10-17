@@ -1,6 +1,5 @@
 package net.anfoya.mail.composer.javafx;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
@@ -25,8 +24,6 @@ import javax.mail.internet.MimeUtility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sun.javafx.scene.web.skin.HTMLEditorSkin;
-
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -40,21 +37,13 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.web.HTMLEditor;
-import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.javafx.scene.control.HtmlEditorListener;
 import net.anfoya.mail.mime.MessageHelper;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
@@ -77,8 +66,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 	private final VBox headerBox;
 	private final TextField subjectField;
 
-	private final HTMLEditor editor;
-	private final HtmlEditorListener editorListener;
+	private final MailEditor editor;
 
 	private final RecipientListPane<C> toListBox;
 	private final RecipientListPane<C> ccListBox;
@@ -146,29 +134,10 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 
 		ccListBox.focusedProperty().addListener((ov, o, n) -> showBcc());
 
-		editor = new HTMLEditor();
-		editor.setStyle("-fx-background-color: transparent; -fx-border-width: 0 0 1 0; -fx-border-color: lightgray; -fx-font-size: 11px;");
-		editor.setOnDragOver(e -> {
-            if (e.getDragboard().hasFiles()) {
-                e.acceptTransferModes(TransferMode.COPY);
-            } else {
-                e.consume();
-            }
-        });
-		editor.setOnDragDropped(e -> {
-            final Dragboard dragboard = e.getDragboard();
-            if (dragboard.hasFiles()) {
-	            for (final File file: dragboard.getFiles()) {
-	            	addAttachment(file);
-	            }
-            }
-            e.setDropCompleted(dragboard.hasFiles());
-            e.consume();
-        });
-		mainPane.setCenter(editor);
+		editor = new MailEditor();
+		editor.editedProperty().addListener((ov, o, n) -> editedProperty.set(editedProperty.get() || n));
 
-		editorListener = new HtmlEditorListener(editor);
-		editorListener.editedProperty().addListener((ov, o, n) -> editedProperty.set(editedProperty.get() || n));
+		mainPane.setCenter(editor);
 
 		final Button discardButton = new Button("discard");
 		discardButton.setOnAction(event -> discardAndClose());
@@ -187,7 +156,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 
 		editedProperty.addListener((ov, o, n) -> {
 			saveButton.setText(n? "save": "saved");
-			editorListener.editedProperty().set(n);
+			editor.editedProperty().set(n);
 			if (n) {
 				startAutosave();
 			} else {
@@ -226,10 +195,6 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		});
 		contactTask.setOnFailed(e -> LOGGER.error("loading contacts", e.getSource().getException()));
 		ThreadPool.getInstance().submitHigh(contactTask, "loading contacts");
-	}
-
-	private void addAttachment(final File file) {
-
 	}
 
 	public void newMessage(final String recipient) throws MailException {
@@ -395,11 +360,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 
 		Platform.runLater(() -> {
 			if (quote) {
-				// send focus to html editor
-				final WebView view = (WebView) ((GridPane)((HTMLEditorSkin)editor.getSkin()).getChildren().get(0)).getChildren().get(2);
-				view.fireEvent(new MouseEvent(MouseEvent.MOUSE_PRESSED, 100, 100, 200, 200, MouseButton.PRIMARY, 1, false, false, false, false, false, false, false, false, false, false, null));
 				editor.requestFocus();
-				view.fireEvent(new MouseEvent(MouseEvent.MOUSE_RELEASED, 100, 100, 200, 200, MouseButton.PRIMARY, 1, false, false, false, false, false, false, false, false, false, false, null));
 			} else {
 				toListBox.requestFocus();
 			}
@@ -459,6 +420,17 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 
 		final MimeMultipart multipart = new MimeMultipart();
 		multipart.addBodyPart(bodyPart);
+
+		editor.getAttachments().forEach(f -> {
+			try {
+				final MimeBodyPart part = new MimeBodyPart();
+				part.attachFile(f);
+				part.setFileName(MimeUtility.encodeText(f.getName()));
+				multipart.addBodyPart(part);
+			} catch (final Exception e) {
+				LOGGER.error("attaching {}", f);
+			}
+		});
 
 		final MimeMessage message = new MimeMessage(Session.getDefaultInstance(new Properties()));
 		message.setSubject(subjectField.getText());
