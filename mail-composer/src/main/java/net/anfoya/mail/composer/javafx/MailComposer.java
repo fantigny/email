@@ -55,7 +55,7 @@ import net.anfoya.mail.service.Thread;
 
 public class MailComposer<M extends Message, C extends Contact> extends Stage {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailComposer.class);
-	private static final int AUTO_SAVE_DELAY = 30; // seconds
+	private static final int AUTO_SAVE_DELAY = 60; // seconds
 
 	private final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService;
 	private final EventHandler<ActionEvent> updateHandler;
@@ -66,20 +66,19 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 	private final VBox headerBox;
 	private final TextField subjectField;
 
-	private final MailEditor editor;
-
 	private final RecipientListPane<C> toListBox;
 	private final RecipientListPane<C> ccListBox;
 	private final RecipientListPane<C> bccListBox;
 
-	private final Button saveButton;
-
-	private M draft;
-
+	private final MailEditor editor;
 	private final BooleanProperty editedProperty;
 	private Timer autosaveTimer;
 
 	private final Map<String, C> addressContacts;
+
+	private final Button saveButton;
+
+	private M draft;
 
 	public MailComposer(final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService, final EventHandler<ActionEvent> updateHandler) {
 		super(StageStyle.UNIFIED);
@@ -413,22 +412,24 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 	}
 
 	private MimeMessage buildMessage() throws MessagingException {
-		final MimeBodyPart bodyPart = new MimeBodyPart();
-		bodyPart.setText(editor.getHtmlText(), StandardCharsets.UTF_8.name(), "html");
+		final String html = editor.getHtmlText();
+		LOGGER.debug(html);
 
-		LOGGER.info(editor.getHtmlText());
+		final MimeBodyPart bodyPart = new MimeBodyPart();
+		bodyPart.setText(html, StandardCharsets.UTF_8.name(), "html");
 
 		final MimeMultipart multipart = new MimeMultipart();
 		multipart.addBodyPart(bodyPart);
 
 		editor.getAttachments().forEach(f -> {
+			LOGGER.debug("adding attachment {}", f);
 			try {
 				final MimeBodyPart part = new MimeBodyPart();
 				part.attachFile(f);
 				part.setFileName(MimeUtility.encodeText(f.getName()));
 				multipart.addBodyPart(part);
 			} catch (final Exception e) {
-				LOGGER.error("attaching {}", f);
+				LOGGER.error("adding attachment {}", f);
 			}
 		});
 
@@ -437,9 +438,8 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		message.setContent(multipart);
 
 		Address from;
-		C contact;
 		try {
-			contact = mailService.getContact();
+			final C contact = mailService.getContact();
 			if (contact.getFullname().isEmpty()) {
 				from = new InternetAddress(contact.getEmail());
 			} else {
