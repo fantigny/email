@@ -37,48 +37,6 @@ public class MailEditor extends BorderPane {
     private static final Image ATTACHMENT = new Image(MailEditor.class.getResourceAsStream("/net/anfoya/mail/image/attachment.png"));
     private static final DataFormat DND_REMOVE_FILE_DATA_FORMAT = new DataFormat("DND_REMOVE_FILE_DATA_FORMAT");
 
-//	private static final String[] IMAGE_EXTENSIONS = { "jpg", "jpeg", "png", "gif" };
-
-//	public class LoggerBridge {
-//		public void info(String log) {
-//			LOGGER.info(log);
-//		}
-//		public void debug(String log) {
-//			LOGGER.info(log);
-//		}
-//	}
-
-//	private static final String ENABLE_CARET_MOVE_JS =
-//			"function mouseCoords(ev) {"
-//			+ "		logger.debug('mouseCoords');"
-//			+ "		if(ev.pageX || ev.pageY) {"
-//			+ "			return {x:ev.pageX, y:ev.pageY};"
-//			+ "		}"
-//			+ "		return {"
-//			+ "			x:ev.clientX + document.body.scrollLeft - document.body.clientLeft,"
-//			+ "			y:ev.clientY + document.body.scrollTop  - document.body.clientTop"
-//			+ "		};"
-//			+ "}"
-//			+ "logger.debug('JS mouseCoords done');"
-//			+ "function mouseMove(ev){"
-//			+ "		logger.debug('mouseMove');"
-//			+ "		ev = ev || window.event;"
-//			+ "		var mousePos = mouseCoords(ev);"
-//			+ "}"
-//			+ "logger.debug('JS mouseMove done');"
-//			+ "document.onmousemove = mouseMove;"
-//			+ "logger.debug('ENABLE_CARET_MOVE_JS done');";
-//
-//	private static final String ENABLE_CARET_MOVE_JS =
-//			"document.onmousemove = mouseMove;"
-//			+ "function mouseMove(ev) {"
-//			+ "		logger.debug('mouseMove');"
-//			+ "}"
-//			+ "logger.debug('JS mouseMove done');"
-//			+ "logger.debug('ENABLE_CARET_MOVE_JS done');";
-//	private static final String DISABLE_CARET_MOVE_JS = "document.onmousemove = null;"
-//			+ "logger.debug('DISABLE_CARET_MOVE_JS done');";
-
 	private final HTMLEditor editor;
 	private final WebView editorView;
 	private final BooleanProperty editedProperty;
@@ -97,24 +55,6 @@ public class MailEditor extends BorderPane {
 
 		editedProperty = new SimpleBooleanProperty();
 		editedProperty.bindBidirectional(new HtmlEditorListener(editor).editedProperty());
-
-		editorView = (WebView) editor.lookup(".web-view");
-		editorView.setOnDragOver(e -> {
-			final Dragboard db = e.getDragboard();
-			if (db.hasFiles()) {
-				e.acceptTransferModes(TransferMode.COPY);
-			} else if (db.hasContent(DND_REMOVE_FILE_DATA_FORMAT)) {
-				setCenter(removeAttachPane);
-			} else {
-				e.consume();
-			}
-		});
-		editorView.setOnDragDropped(e -> {
-			final Dragboard db = e.getDragboard();
-			db.getFiles().forEach(f -> addAttachment(f));
-			e.setDropCompleted(db.hasFiles());
-			e.consume();
-		});
 
 		attachmentPane = new FlowPane(Orientation.HORIZONTAL, 5, 0);
 		attachmentPane.setPadding(new Insets(0, 10, 0, 10));
@@ -141,47 +81,24 @@ public class MailEditor extends BorderPane {
 			e.consume();
 		});
 
-//		editorView.setOnDragEntered(e -> {
-//			final Dragboard db = e.getDragboard();
-//			if (db.hasContent(DataFormat.FILES)) {
-//				for(final File f: db.getFiles()) {
-//					final String filename = f.getName().toLowerCase();
-//					for(final String ext: IMAGE_EXTENSIONS) {
-//						if (filename.endsWith("." + ext)) {
-//							activateCaretDrop(true);
-//							break;
-//						}
-//					}
-//				}
-//			}
-//		});
-//		editorView.setOnDragExited(e -> activateCaretDrop(false));
-//
-//		editorEngine = editorView.getEngine();
-//		editorEngine.getLoadWorker().stateProperty().addListener((ov, o, n) -> {
-//			if (n == State.SUCCEEDED) {
-//				((JSObject) editorEngine.executeScript("window")).setMember("logger", new LoggerBridge());
-//				LOGGER.debug("JS logger bridge installed");
-//			}
-//		});
+		editorView = (WebView) editor.lookup(".web-view");
+		editorView.setOnDragOver(e -> {
+			final Dragboard db = e.getDragboard();
+			if (db.hasFiles()) {
+				e.acceptTransferModes(TransferMode.COPY);
+			} else if (db.hasContent(DND_REMOVE_FILE_DATA_FORMAT)) {
+				setCenter(removeAttachPane);
+			} else {
+				e.consume();
+			}
+		});
+		editorView.setOnDragDropped(e -> {
+			final Dragboard db = e.getDragboard();
+			db.getFiles().forEach(f -> addAttachment(f));
+			e.setDropCompleted(db.hasFiles());
+			e.consume();
+		});
 	}
-
-//	private void activateCaretDrop(boolean activate) {
-//		if (activate) {
-//			LOGGER.info("activate");
-//			editorEngine.executeScript(ENABLE_CARET_MOVE_JS);
-//			final Document doc = editorEngine.getDocument();
-//			final EventListener listener = new EventListener() {
-//			    @Override
-//				public void handleEvent(Event ev) {
-//			        LOGGER.info("{}", ev);
-//			    }
-//			};
-//			((EventTarget) doc.getDocumentElement()).addEventListener("click", listener, false);
-//		} else {
-//			editorEngine.executeScript(DISABLE_CARET_MOVE_JS);
-//		}
-//	}
 
 	@Override
 	public void requestFocus() {
