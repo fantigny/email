@@ -21,15 +21,16 @@ import netscape.javascript.JSException;
 
 public final class WebViewFitContent extends Region {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebViewFitContent.class);
+	private static final int MAX_RENDERING_PIXELS = 8192;
 
 	private final WebView delegate;
 
 	public WebViewFitContent() {
 		delegate = new WebView();
 
-		widthProperty().addListener((ov, oldVal, newVal) -> {
+		widthProperty().addListener((ov, o, n) -> {
 			LOGGER.debug("widthProperty() change");
-			delegate.setPrefWidth((Double) newVal);
+			delegate.setPrefWidth(Math.min(MAX_RENDERING_PIXELS, n.intValue()));
 			adjustHeight();
 		});
 		delegate.getChildrenUnmodifiable().addListener(new ListChangeListener<Node>() {
@@ -87,7 +88,8 @@ public final class WebViewFitContent extends Region {
 	}
 
 	public int getVscrollMax() {
-		return Math.min(8192, (int) delegate.getEngine().executeScript("document.body.scrollHeight - document.body.scrollTop"));
+		final Object o = delegate.getEngine().executeScript("document.body.scrollHeight - document.body.scrollTop");
+		return Math.min(MAX_RENDERING_PIXELS, (int) o);
 	}
 
 	public WebEngine getEngine() {

@@ -39,6 +39,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import javafx.scene.web.WebView;
 import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
@@ -77,7 +78,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	private final MessageHelper helper;
 
 	private final HBox iconBox;
-	private final Text titleText;
+	private final TextFlow recipientFlow;
 	private final Text dateText;
 	private final FlowPane attachmentPane;
 	private final WebView snippetView;
@@ -93,6 +94,8 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	private Timeline showSnippetTimeline;
 	private Timeline showMessageTimeline;
 	private EventHandler<ActionEvent> attachmentHandler;
+
+	private StackPane arrowRegion;
 
 	public MessagePane(final String messageId, final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService) {
 		this.mailService = mailService;
@@ -114,13 +117,13 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 			}
 		});
 
-		titleText = new Text("loading...");
+		recipientFlow = new TextFlow();
+
 		dateText = new Text();
 
 		iconBox = new HBox();
 		iconBox.setAlignment(Pos.BASELINE_RIGHT);
 		iconBox.setPadding(new Insets(3, 5, 0, 0));
-		HBox.setHgrow(iconBox, Priority.ALWAYS);
 
 		snippetView = new WebView();
 		snippetView.prefWidthProperty().bind(widthProperty());
@@ -132,7 +135,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		attachmentPane = new FlowPane(Orientation.HORIZONTAL, 5, 0);
 		attachmentPane.setPadding(new Insets(0, 10, 0, 10));
 
-        final StackPane arrowRegion = new StackPane();
+        arrowRegion = new StackPane();
         arrowRegion.setId("arrowRegion");
         arrowRegion.getStyleClass().setAll("titled-arrow-button");
 
@@ -147,7 +150,8 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
         	}
         });
 
-		final HBox title = new HBox(arrowRegion, titleText, iconBox, dateText);
+		final HBox title = new HBox(arrowRegion, recipientFlow, iconBox, dateText);
+		HBox.setHgrow(iconBox, Priority.ALWAYS);
 		title.getStyleClass().add("message-title-text");
 		title.setOnMouseClicked(event -> {
 			if (collapsible.get()) {
@@ -322,15 +326,17 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	}
 
 	private void refresh() {
-		final StringBuilder title = new StringBuilder();
+		recipientFlow.getChildren().clear();
 		final MimeMessage mimeMessage = message.getMimeMessage();
 		try {
-			title.append(String.join(", ", MessageHelper.getNames(mimeMessage.getFrom())));
-			title.append(" to ").append(String.join(", ", MessageHelper.getNames(mimeMessage.getRecipients(MimeMessage.RecipientType.TO))));
+			recipientFlow.getChildren().add(new Text(MessageHelper.getNames(mimeMessage.getFrom())[0] + " to "));
+			final boolean first = true;
+			for(final String r: MessageHelper.getNames(mimeMessage.getRecipients(MimeMessage.RecipientType.TO))) {
+				recipientFlow.getChildren().add(new Text((first? "": ", ") + r));
+			}
 		} catch (final MessagingException e) {
 			LOGGER.error("loading title data", e);
 		}
-		titleText.setText(title.toString());
 
 		String date = "";
 		try {
