@@ -117,8 +117,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 			}
 		});
 
-		recipientFlow = new TextFlow();
-
+		recipientFlow = new TextFlow(new Text("loading..."));
 		dateText = new Text();
 
 		iconBox = new HBox();
@@ -326,10 +325,9 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	}
 
 	private void refresh() {
-		recipientFlow.getChildren().clear();
 		final MimeMessage mimeMessage = message.getMimeMessage();
 		try {
-			recipientFlow.getChildren().add(new Text(MessageHelper.getNames(mimeMessage.getFrom())[0] + " to "));
+			recipientFlow.getChildren().setAll(new Text(MessageHelper.getNames(mimeMessage.getFrom())[0] + " to "));
 			final boolean first = true;
 			for(final String r: MessageHelper.getNames(mimeMessage.getRecipients(MimeMessage.RecipientType.TO))) {
 				recipientFlow.getChildren().add(new Text((first? "": ", ") + r));

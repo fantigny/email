@@ -67,6 +67,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	private ThreadListDropPane<T, H, M, C> threadListDropPane;
 
 	private EventHandler<ActionEvent> updateHandler;
+	private S currentSection;
 
 	public ThreadListPane(final MailService<S, T, H, M, C> mailService) throws MailException {
 		this.mailService = mailService;
@@ -315,7 +316,11 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
-				mailService.addTagForThreads(mailService.addTag(name), threads);
+				final T tag = mailService.addTag(name);
+				if (currentSection != null && !currentSection.isSystem()) {
+					mailService.moveToSection(tag, currentSection);
+				}
+				mailService.addTagForThreads(tag, threads);
 				if (ARCHIVE_ON_DROP.get()) {
 					mailService.archive(threads);
 				}
@@ -391,5 +396,9 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		updateHandler = handler;
 		threadListDropPane.setOnUpdate(handler);
 		threadList.setOnUpdate(handler);
+	}
+
+	public void setCurrentSection(S section) {
+		currentSection = section;
 	}
 }

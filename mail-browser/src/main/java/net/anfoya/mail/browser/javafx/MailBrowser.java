@@ -86,6 +86,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 			sectionListPane.setSectionDisableWhenZero(false);
 			sectionListPane.setLazyCount(true);
 			sectionListPane.setOnSelectTag(e -> refreshAfterTagSelected());
+			sectionListPane.setOnSelectSection(e -> refreshAfterSectionSelect());
 			sectionListPane.setOnUpdateSection(e -> refreshAfterSectionUpdate());
 			sectionListPane.setOnUpdateTag(e -> refreshAfterTagUpdate());
 			splitPane.getItems().add(sectionListPane);
@@ -228,6 +229,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 
 	boolean refreshAfterTagUpdate = true;
 	boolean refreshAfterSectionUpdate = true;
+	boolean refreshAfterSectionSelect = true;
 	boolean refreshAfterThreadUpdate = true;
 	boolean refreshAfterPatternUpdate = true;
 	boolean refreshAfterUpdateMessage = true;
@@ -284,6 +286,15 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
 			return null;
 		});
+	}
+
+	private void refreshAfterSectionSelect() {
+		if (!refreshAfterSectionSelect) {
+			return;
+		}
+		LOGGER.debug("refreshAfterSectionSelect");
+
+		threadListPane.setCurrentSection(sectionListPane.getSelectedSection());
 	}
 
 	private void refreshAfterTagUpdate() {

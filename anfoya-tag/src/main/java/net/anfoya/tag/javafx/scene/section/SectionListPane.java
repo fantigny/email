@@ -47,6 +47,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 
 	private Set<S> sections;
 	private EventHandler<ActionEvent> selectTagHandler;
+	private EventHandler<ActionEvent> selectSectionHandler;
 	private EventHandler<ActionEvent> updateSectionHandler;
 
 	private boolean sectionDisableWhenZero;
@@ -98,6 +99,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 				}, 500);
 			}
 		});
+		sectionAcc.expandedPaneProperty().addListener((ov, o, n) -> selectSectionHandler.handle(null));
 
 		final StackPane stackPane = new StackPane(sectionAcc);
 		stackPane.setAlignment(Pos.BOTTOM_CENTER);
@@ -443,5 +445,15 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 				sectionPane.clearSelection();
 			}
 		}
+	}
+
+	public void setOnSelectSection(EventHandler<ActionEvent> handler) {
+		selectSectionHandler = handler;
+	}
+
+	public S getSelectedSection() {
+		@SuppressWarnings("unchecked")
+		final SectionPane<S, T> sectionPane = (SectionPane<S, T>) sectionAcc.getExpandedPane();
+		return sectionPane == null? null: sectionPane.getSection();
 	}
 }

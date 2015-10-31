@@ -2,6 +2,9 @@ package net.anfoya.tag.javafx.scene.section;
 
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -26,9 +29,6 @@ import net.anfoya.tag.service.Section;
 import net.anfoya.tag.service.Tag;
 import net.anfoya.tag.service.TagException;
 import net.anfoya.tag.service.TagService;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SectionPane.class);
