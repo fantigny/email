@@ -34,11 +34,11 @@ public class MessageHelper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessageHelper.class);
 	private static final String TEMP = System.getProperty("java.io.tmpdir") + File.separatorChar;
 
-	private final Map<String, String> cidFilenames;
+	private final Map<String, String> cidUris;
 	private final Set<String> attachmentNames;
 
 	public MessageHelper() {
-		cidFilenames = new HashMap<String, String>();
+		cidUris = new HashMap<String, String>();
 		attachmentNames = new LinkedHashSet<String>();
 	}
 
@@ -75,15 +75,18 @@ public class MessageHelper {
 	}
 
 	public String toHtml(final MimeMessage message) throws IOException, MessagingException {
-		cidFilenames.clear();
+		cidUris.clear();
 		String html = toHtml(message, false).toString();
-		html = replaceCids(html, cidFilenames);
+		html = replaceCids(html, cidUris);
+		LOGGER.debug("{}", html);
 		return html;
 	}
 
 	private String replaceCids(String html, final Map<String, String> cidFilenames) {
 		for(final Entry<String, String> entry: cidFilenames.entrySet()) {
-			html = html.replaceAll("cid:" + Matcher.quoteReplacement(entry.getKey()), "file://" + entry.getValue());
+			String cid = Matcher.quoteReplacement("cid:" + entry.getKey());
+			String uri = Matcher.quoteReplacement(entry.getValue());
+			html = html.replaceAll(cid, uri);
 		}
 		return html;
 	}
@@ -96,34 +99,28 @@ public class MessageHelper {
 				.replaceAll("\\n", "")
 				.replaceAll("\\t", " ");
 		isHtml = isHtml || type.contains("multipart/alternative");
-		if (content instanceof String && type.contains("text/html")) {
-			LOGGER.debug("++++ type {}", type);
-			return new StringBuilder((String) content);
-		} else if (content instanceof String && type.contains("text/plain")) {
-			if (isHtml) {
-				return new StringBuilder();
-			}
-			LOGGER.debug("++++ type {}", type);
-			return new StringBuilder("<pre>").append(content).append("</pre>");
-		} else if (part instanceof Multipart || type.contains("multipart")) {
-			LOGGER.debug("++++ type {}", type);
+		LOGGER.info("isHtml({}) type({}) class({})", isHtml, type, content.getClass());
+		if (part instanceof Multipart || type.contains("multipart")) {
 			final Multipart parts = (Multipart) content;
 			final StringBuilder html = new StringBuilder();
 			for(int i=0, n=parts.getCount(); i<n; i++) {
 				html.append(toHtml(parts.getBodyPart(i), isHtml));
 			}
 			return html;
-		} else if (part instanceof MimeBodyPart && content instanceof BASE64DecoderStream) {
-			if (((MimeBodyPart)part).getContentID() != null) {
-				final MimeBodyPart bodyPart = (MimeBodyPart) part;
-				final String cid = bodyPart.getContentID().replaceAll("<", "").replaceAll(">", "");
-				final String filename = TEMP + (part.getFileName() == null? cid: MimeUtility.decodeText(bodyPart.getFileName()));
-				LOGGER.debug("++++ save {}", filename);
-				bodyPart.saveFile(filename);
-				cidFilenames.put(cid, filename);
-				return new StringBuilder();
-			} else if (type.contains("text/calendar")) {
-				LOGGER.debug("++++ type {}", type);
+		}
+		if (content instanceof String) {
+			if (type.contains("text/html")) {
+				return new StringBuilder((String) content);
+			} else if (type.contains("text/plain")) {
+				if (isHtml) {
+					LOGGER.info("discarding html part");
+					return new StringBuilder();
+				}
+				return new StringBuilder("<pre>").append(content).append("</pre>");
+			}			
+		}
+		if (part instanceof MimeBodyPart && content instanceof BASE64DecoderStream) {
+			if (type.contains("text/calendar")) {
 				try {
 					new CalendarBuilder().build((InputStream) content);
 					//TODO: render calendar
@@ -131,28 +128,34 @@ public class MessageHelper {
 					LOGGER.error("parsing ICS", e);
 				}
 				return new StringBuilder();
-			} else {
-				final MimeBodyPart bodyPart = (MimeBodyPart) part;
-				if (bodyPart.getFileName() == null) {
-					return new StringBuilder();
-				}
-				String filename = MimeUtility.decodeText(bodyPart.getFileName());
-				if (MimeBodyPart.INLINE.equals(part.getDisposition())) {
-					filename = TEMP + filename;
-					LOGGER.debug("++++ save {}", filename);
-					bodyPart.saveFile(filename);
-					return new StringBuilder("<img src='file://").append(filename).append("'>");
-				} else {
-					filename = MimeUtility.decodeText(filename);
-					LOGGER.debug("++++ keep {}", filename);
-					attachmentNames.add(filename);
-					return new StringBuilder();
-				}
 			}
-		} else {
-			LOGGER.warn("---- type {}", type);
-			return new StringBuilder();
+			final MimeBodyPart bodyPart = (MimeBodyPart) part;
+			if (bodyPart.getContentID() != null) {
+				final String cid = bodyPart.getContentID().replaceAll("[<,>]", "");
+				final File file = new File(TEMP + cid);
+				LOGGER.info("saving cid {}", file);
+				bodyPart.saveFile(file);
+				cidUris.put(cid, file.toURI().toString());
+				return new StringBuilder();
+			}
+			if (bodyPart.getFileName() == null) {
+				return new StringBuilder();
+			}
+			String filename = MimeUtility.decodeText(bodyPart.getFileName());
+			if (MimeBodyPart.INLINE.equals(part.getDisposition())) {
+				filename = new File(TEMP + filename).toURI().toString();
+				LOGGER.info("saving inline attachment {}", filename);
+				bodyPart.saveFile(filename);
+				return new StringBuilder("<img src='").append(filename).append("'>");
+			} else {
+				LOGGER.info("saving reference to attachment {}", filename);
+				attachmentNames.add(filename);
+				return new StringBuilder();
+			}
 		}
+		
+		LOGGER.warn("not handled {}/{}", type, content.getClass());
+		return new StringBuilder();
 	}
 
 	public Set<String> getAttachmentNames() {
