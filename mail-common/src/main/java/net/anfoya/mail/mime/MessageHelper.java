@@ -99,7 +99,7 @@ public class MessageHelper {
 				.replaceAll("\\n", "")
 				.replaceAll("\\t", " ");
 		isHtml = isHtml || type.contains("multipart/alternative");
-		LOGGER.info("isHtml({}) type({}) class({})", isHtml, type, content.getClass());
+		LOGGER.info("isHtml({}) type({}) part/content({}/{})", isHtml, type, part.getClass(), content.getClass());
 		if (part instanceof Multipart || type.contains("multipart")) {
 			final Multipart parts = (Multipart) content;
 			final StringBuilder html = new StringBuilder();
@@ -113,7 +113,7 @@ public class MessageHelper {
 				return new StringBuilder((String) content);
 			} else if (type.contains("text/plain")) {
 				if (isHtml) {
-					LOGGER.info("discarding html part");
+					LOGGER.info("discarding plain text part");
 					return new StringBuilder();
 				}
 				return new StringBuilder("<pre>").append(content).append("</pre>");
@@ -130,7 +130,8 @@ public class MessageHelper {
 				return new StringBuilder();
 			}
 			final MimeBodyPart bodyPart = (MimeBodyPart) part;
-			if (bodyPart.getContentID() != null) {
+			if (bodyPart.getContentID() != null
+					&& !MimeBodyPart.ATTACHMENT.equals(bodyPart.getDisposition())) {
 				final String cid = bodyPart.getContentID().replaceAll("[<,>]", "");
 				final File file = new File(TEMP + cid);
 				LOGGER.info("saving cid {}", file);
@@ -138,19 +139,19 @@ public class MessageHelper {
 				cidUris.put(cid, file.toURI().toString());
 				return new StringBuilder();
 			}
-			if (bodyPart.getFileName() == null) {
-				return new StringBuilder();
-			}
-			String filename = MimeUtility.decodeText(bodyPart.getFileName());
-			if (MimeBodyPart.INLINE.equals(part.getDisposition())) {
-				filename = new File(TEMP + filename).toURI().toString();
-				LOGGER.info("saving inline attachment {}", filename);
-				bodyPart.saveFile(filename);
-				return new StringBuilder("<img src='").append(filename).append("'>");
-			} else {
-				LOGGER.info("saving reference to attachment {}", filename);
-				attachmentNames.add(filename);
-				return new StringBuilder();
+			if (bodyPart.getFileName() != null) {
+				String filename = MimeUtility.decodeText(bodyPart.getFileName());
+				if (MimeBodyPart.INLINE.equals(bodyPart.getDisposition())) {
+					File file = new File(TEMP + filename);
+					LOGGER.info("saving inline file {}", file);
+					bodyPart.saveFile(file);
+					return new StringBuilder("<img src='").append(file.toURI()).append("'>");
+				}
+				if (MimeBodyPart.ATTACHMENT.equals(bodyPart.getDisposition())) {
+					LOGGER.info("saving reference to attachment {}", filename);
+					attachmentNames.add(filename);
+					return new StringBuilder();
+				}
 			}
 		}
 		
