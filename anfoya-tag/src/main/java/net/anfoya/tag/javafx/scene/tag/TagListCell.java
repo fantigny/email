@@ -1,27 +1,27 @@
 package net.anfoya.tag.javafx.scene.tag;
 
-import javafx.scene.control.cell.CheckBoxListCell;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ListCell;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import net.anfoya.javafx.scene.control.ExcludeBox;
 import net.anfoya.tag.javafx.scene.dnd.DndFormat;
 import net.anfoya.tag.service.Tag;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-class TagListCell<T extends Tag> extends CheckBoxListCell<TagListItem<T>> {
+class TagListCell<T extends Tag> extends ListCell<TagListItem<T>> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TagListCell.class);
 	private boolean showExcludeBox;
 
 	public TagListCell(final boolean showExcludeBox) {
 		super();
 		this.showExcludeBox = showExcludeBox;
-		setSelectedStateCallback(item -> item.includedProperty());
+//		setSelectedStateCallback(item -> item.includedProperty());
 	}
 
 	public TagListCell(final DataFormat dataFormat, final boolean withExcludeBox) {
@@ -74,24 +74,30 @@ class TagListCell<T extends Tag> extends CheckBoxListCell<TagListItem<T>> {
         super.updateItem(item, empty);
 
     	if (item == null || empty) {
+            setText("");
             setGraphic(null);
         } else {
-	        final ExcludeBox excludeBox = new ExcludeBox();
-	        excludeBox.setExcluded(item.excludedProperty().get());
-	        excludeBox.excludedProperty().addListener((ov, oldVal, newVal) -> item.excludedProperty().set(newVal));
+            setFocusTraversable(item.focusTraversableProperty().get());
+            setTextFill(item.getTag().isSystem()? Color.DARKBLUE: Color.BLACK);
+        	setText(item.toString());
 
-        	final BorderPane pane = new BorderPane();
-        	pane.setCenter(getGraphic());
-        	if (showExcludeBox) {
-        		pane.setRight(excludeBox);
-        	}
+            final CheckBox checkBox = new CheckBox();
+            checkBox.setFocusTraversable(isFocusTraversable());
+            checkBox.setSelected(item.includedProperty().get());
+            checkBox.selectedProperty().addListener((ov, oldVal, newVal) -> item.includedProperty().set(newVal));
+	        setGraphic(checkBox);
+
+	        if (showExcludeBox) {
+	            final ExcludeBox excludeBox = new ExcludeBox();
+	            excludeBox.setFocusTraversable(isFocusTraversable());
+		        excludeBox.setExcluded(item.excludedProperty().get());
+		        excludeBox.excludedProperty().addListener((ov, oldVal, newVal) -> item.excludedProperty().set(newVal));
+		        checkBox.setGraphic(excludeBox);
+	        }
 
 	        item.textProperty().addListener((ov, oldVal, newVal) -> updateItem(item, empty));
 
-        	setGraphic(pane);
         	//TODO: setDisable(item.disableProperty().get());
-	        //TODO: setTextFill(isDisabled()? Color.GRAY: Color.BLACK);
-	        setTextFill(item.getTag().isSystem()? Color.DARKBLUE: Color.BLACK);
         }
 	}
 }

@@ -10,6 +10,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javafx.beans.value.ChangeListener;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
@@ -22,9 +25,6 @@ import net.anfoya.tag.service.Section;
 import net.anfoya.tag.service.Tag;
 import net.anfoya.tag.service.TagException;
 import net.anfoya.tag.service.TagService;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 //TODO use tag id instead of tag name
@@ -125,6 +125,7 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 		final List<TagListItem<T>> items = new ArrayList<TagListItem<T>>();
 		for(final T tag: tags) {
 			final TagListItem<T> item = new TagListItem<T>(tag);
+			item.focusTraversableProperty().bind(focusTraversableProperty());
 			if (includes.contains(tag)) {
 				item.includedProperty().set(true);
 			} else if (excludes.contains(tag)) {

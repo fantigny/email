@@ -59,7 +59,7 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 	private final ScrollPane scrollPane;
 	private final EventHandler<ScrollEvent> webScrollHandler;
 
-	private final ObservableList<Node> msgPanes;
+	private final ObservableList<Node> messagePanes;
 
 	private EventHandler<ActionEvent> updateHandler;
 	private EventHandler<ActionEvent> logoutHandler;
@@ -72,11 +72,13 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 		iconBox.setPadding(new Insets(0,0,0, 5));
 
 		subjectField = new TextField();
+		subjectField.setFocusTraversable(false);
 		subjectField.setPromptText("select a mail");
 		subjectField.prefWidthProperty().bind(widthProperty());
 		subjectField.setEditable(false);
 
 		final Button settingsButton = new Button();
+		settingsButton.setFocusTraversable(false);
 		settingsButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/settings.png"))));
 		settingsButton.setTooltip(new Tooltip("settings"));
 		settingsButton.setOnAction(event -> new SettingsDialog(mailService, logoutHandler).show());
@@ -106,6 +108,7 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 		setCenter(stackPane);
 
 		scrollPane = new ScrollPane();
+		scrollPane.setFocusTraversable(false);
 		scrollPane.setFitToWidth(true);
 		scrollPane.getStyleClass().add("edge-to-edge");
 		scrollPane.getStyleClass().add("box-underline");
@@ -113,7 +116,7 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 		messagesBox = new VBox();
 		messagesBox.minHeightProperty().bind(scrollPane.heightProperty());
 		scrollPane.setContent(messagesBox);
-		msgPanes = messagesBox.getChildren();
+		messagePanes = messagesBox.getChildren();
 
 		webScrollHandler = e -> {
 			final double current = scrollPane.getVvalue();
@@ -155,7 +158,7 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 	private void refreshThread() {
 		if (threads.size() != 1) {
 			thread = null;
-			msgPanes.clear();
+			messagePanes.clear();
 			return;
 		}
 
@@ -216,7 +219,7 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 
 	private void refreshCurrentThread() {
 		final Set<String> messageIds = thread.getMessageIds();
-		for (final Iterator<Node> i = msgPanes.iterator(); i.hasNext();) {
+		for (final Iterator<Node> i = messagePanes.iterator(); i.hasNext();) {
 			@SuppressWarnings("unchecked")
 			final String id = ((MessagePane<M, C>) i.next()).getMessageId();
 			if (!messageIds.contains(id)) {
@@ -228,12 +231,12 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 		for(final Iterator<String> i=new LinkedList<String>(thread.getMessageIds()).descendingIterator(); i.hasNext();) {
 			final String id = i.next();
 			@SuppressWarnings("unchecked")
-			final MessagePane<M, C> messagePane = index >= msgPanes.size()? null: (MessagePane<M, C>) msgPanes.get(index);
+			final MessagePane<M, C> messagePane = index >= messagePanes.size()? null: (MessagePane<M, C>) messagePanes.get(index);
 			if (messagePane != null && messagePane.hasAttachment()) {
 				displayAttachmentIcon();
 			}
 			if (messagePane == null || !id.equals(messagePane.getMessageId())) {
-				msgPanes.add(index, createMessagePane(id));
+				messagePanes.add(index, createMessagePane(id));
 			}
 			index++;
 		}
@@ -241,6 +244,7 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 
 	private MessagePane<M, C> createMessagePane(final String id) {
 		final MessagePane<M, C> messagePane = new MessagePane<M, C>(id, mailService);
+		messagePane.focusTraversableProperty().bind(focusTraversableProperty());
 		messagePane.setScrollHandler(webScrollHandler);
 		messagePane.setUpdateHandler(updateHandler);
 		messagePane.setExpanded(false);
@@ -271,19 +275,20 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 	@SuppressWarnings("unchecked")
 	private void loadThread() {
 		scrollPane.setVvalue(0);
-		msgPanes.clear();
-		for(final String id: thread.getMessageIds()) {
-			msgPanes.add(0, createMessagePane(id));
-		}
-		if (!msgPanes.isEmpty()) {
-			MessagePane<M, C> messagePane = (MessagePane<M, C>) msgPanes.get(0);
+		messagePanes.clear();
+
+		if (!thread.getMessageIds().isEmpty()) {
+			for(final String id: thread.getMessageIds()) {
+				messagePanes.add(0, createMessagePane(id));
+			}
+			MessagePane<M, C> messagePane = (MessagePane<M, C>) messagePanes.get(0);
 			messagePane.setExpanded(true);
-			if (msgPanes.size() == 1) {
+			if (messagePanes.size() == 1) {
 				// only one message, not collapsible
 				messagePane.setCollapsible(false);
 			} else {
 				// last message is not collapsible
-				messagePane = (MessagePane<M, C>) msgPanes.get(msgPanes.size()-1);
+				messagePane = (MessagePane<M, C>) messagePanes.get(messagePanes.size()-1);
 				messagePane.setExpanded(true);
 				messagePane.setCollapsible(false);
 			}

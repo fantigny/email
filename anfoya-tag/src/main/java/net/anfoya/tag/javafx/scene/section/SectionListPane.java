@@ -86,6 +86,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 		setTop(new HBox(5, patternField));
 
 		sectionAcc = new Accordion();
+		sectionAcc.focusTraversableProperty().bind(focusTraversableProperty());
 		sectionAcc.expandedPaneProperty().addListener((ov, o, n) -> {
 			if (n == null && !sectionAcc.getPanes().isEmpty()) {
 				new Timer("section-auto-expand-timer", true).schedule(new TimerTask() {
@@ -272,6 +273,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 		for(final S section: sections) {
 			if (!existingSections.contains(section)) {
 				final SectionPane<S, T> sectionPane = new SectionPane<S, T>(tagService, section, showExcludeBox);
+				sectionPane.focusTraversableProperty().bind(focusTraversableProperty());
 				sectionPane.setDisableWhenZero(sectionDisableWhenZero);
 				sectionPane.setLazyCount(lazyCount);
 				sectionPane.setOnSelectTag(selectTagHandler);

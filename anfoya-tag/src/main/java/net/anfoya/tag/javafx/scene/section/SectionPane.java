@@ -62,6 +62,7 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 		}
 
 		tagList = new TagList<S, T>(tagService, section, showExcludeBox);
+		tagList.focusTraversableProperty().bind(focusTraversableProperty());
 		setContent(tagList);
 
 		isTag = false;

@@ -27,6 +27,7 @@ public final class WebViewFitContent extends Region {
 
 	public WebViewFitContent() {
 		delegate = new WebView();
+		delegate.focusTraversableProperty().bind(focusTraversableProperty());
 
 		widthProperty().addListener((ov, o, n) -> {
 			LOGGER.debug("widthProperty() change");

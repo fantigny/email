@@ -75,40 +75,35 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 			splitPane.setDividerPosition(1, .32);
 		}
 
+		sectionListPane = new SectionListPane<S, T>(mailService, DND_THREADS_DATA_FORMAT, SHOW_EXCLUDE_BOX);
+		sectionListPane.setFocusTraversable(false);
+		sectionListPane.prefHeightProperty().bind(sectionListPane.heightProperty());
+		sectionListPane.setSectionDisableWhenZero(false);
+		sectionListPane.setLazyCount(true);
+		sectionListPane.setOnSelectTag(e -> refreshAfterTagSelected());
+		sectionListPane.setOnSelectSection(e -> refreshAfterSectionSelect());
+		sectionListPane.setOnUpdateSection(e -> refreshAfterSectionUpdate());
+		sectionListPane.setOnUpdateTag(e -> refreshAfterTagUpdate());
+		splitPane.getItems().add(sectionListPane);
+
+		threadListPane = new ThreadListPane<S, T, H, M, C>(mailService);
+		threadListPane.prefHeightProperty().bind(splitPane.heightProperty());
+		threadListPane.setOnSelectThread(e -> refreshAfterThreadSelected());
+		threadListPane.setOnLoadThreadList(e -> refreshAfterThreadListLoad());
+		threadListPane.setOnUpdatePattern(e -> refreshAfterPatternUpdate());
+		threadListPane.setOnUpdateThread(e -> refreshAfterThreadUpdate());
+		splitPane.getItems().add(threadListPane);
+
+		threadPane = new ThreadPane<T, H, M, C>(mailService);
+		threadPane.setFocusTraversable(false);
+		threadPane.setOnUpdateThread(e -> refreshAfterThreadUpdate());
+		threadPane.setOnLogout(e -> logout());
+		splitPane.getItems().add(threadPane);
+
 		final Scene scene = new Scene(splitPane);
 		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/excludebox.css").toExternalForm());
 		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/button_flat.css").toExternalForm());
 		scene.getStylesheets().add(getClass().getResource("/net/anfoya/mail/css/Mail.css").toExternalForm());
-
-		/* section+tag list */ {
-			sectionListPane = new SectionListPane<S, T>(mailService, DND_THREADS_DATA_FORMAT, SHOW_EXCLUDE_BOX);
-			sectionListPane.prefHeightProperty().bind(sectionListPane.heightProperty());
-			sectionListPane.setSectionDisableWhenZero(false);
-			sectionListPane.setLazyCount(true);
-			sectionListPane.setOnSelectTag(e -> refreshAfterTagSelected());
-			sectionListPane.setOnSelectSection(e -> refreshAfterSectionSelect());
-			sectionListPane.setOnUpdateSection(e -> refreshAfterSectionUpdate());
-			sectionListPane.setOnUpdateTag(e -> refreshAfterTagUpdate());
-			splitPane.getItems().add(sectionListPane);
-		}
-
-		/* thread list */ {
-			threadListPane = new ThreadListPane<S, T, H, M, C>(mailService);
-			threadListPane.prefHeightProperty().bind(splitPane.heightProperty());
-			threadListPane.setOnSelectThread(e -> refreshAfterThreadSelected());
-			threadListPane.setOnLoadThreadList(e -> refreshAfterThreadListLoad());
-			threadListPane.setOnUpdatePattern(e -> refreshAfterPatternUpdate());
-			threadListPane.setOnUpdateThread(e -> refreshAfterThreadUpdate());
-			splitPane.getItems().add(threadListPane);
-		}
-
-		/* thread panel */ {
-			threadPane = new ThreadPane<T, H, M, C>(mailService);
-			threadPane.setOnUpdateThread(e -> refreshAfterThreadUpdate());
-			threadPane.setOnLogout(e -> logout());
-			splitPane.getItems().add(threadPane);
-		}
-
         setScene(scene);
 
 		Notifier.INSTANCE.popupLifetime().bind(Settings.getSettings().popupLifetime());
@@ -121,11 +116,6 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 			}
 			return null;
 		});
-
-        Platform.runLater(() -> {
-        	threadListPane.requestFocus();
-    		toFront();
-        });
 	}
 
 	private void initMacOs() {

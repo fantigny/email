@@ -50,6 +50,9 @@ public class ThreadToolBar extends ToolBar {
 				, grow
 				, replyButton, replyAllButton, forwardButton
 				);
+
+		setFocusTraversable(true);
+		focusTraversableProperty().addListener((ov, o, n) -> getItems().forEach(node -> node.setFocusTraversable(n)));
 	}
 
 	public void setOnReply(final EventHandler<ActionEvent> handler) {

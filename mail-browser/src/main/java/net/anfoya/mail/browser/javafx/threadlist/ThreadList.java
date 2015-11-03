@@ -10,7 +10,11 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javafx.application.Platform;
+import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
@@ -30,9 +34,6 @@ import net.anfoya.mail.service.Section;
 import net.anfoya.mail.service.SpecialTag;
 import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ThreadList<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends ListView<H> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadList.class);
@@ -54,6 +55,8 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 	private EventHandler<ActionEvent> loadHandler;
 	private EventHandler<ActionEvent> updateHandler;
 
+	private boolean firstLoad = true;
+
 	public ThreadList(final MailService<S, T, H, M, C> mailService) {
 		this.mailService = mailService;
 
@@ -64,6 +67,7 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 
 		refreshing = false;
 		resetSelection = true;
+
 
 		setCellFactory(param -> new ThreadListCell<H>());
 		setOnKeyPressed(event -> {
@@ -84,6 +88,8 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 
 		getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 		getSelectionModel().selectedIndexProperty().addListener((ov, o, n) -> checkForSelection(o.intValue(), n.intValue()));
+
+		getItems().addListener((Change<? extends H> c) -> setFocusTraversable(!getItems().isEmpty()));
 	}
 
 	public void setOnLoad(final EventHandler<ActionEvent> handler) {
@@ -245,9 +251,12 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 		}
 		refreshing = false;
 
-		if (pattern.isEmpty()) {
-			// request focus if no pattern search
-			requestFocus();
+		if (firstLoad) {
+			firstLoad  = false;
+			if (focusTraversableProperty().get()) {
+				// TODO request focus
+//				requestFocus();
+			}
 		}
 
 		loadHandler.handle(null);

@@ -38,6 +38,10 @@ import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
 
 public class SettingsDialog extends Stage {
+	private static final String HELP_TAB = "Focus!\n"
+			+ "\tpress Tab once to search mails\n"
+			+ "\tpress Tab again to search tags";
+
 	private final MailService<? extends Section, ? extends Tag, ? extends Thread, ? extends Message, ? extends Contact> mailService;
 	private final EventHandler<ActionEvent> logoutHandler;
 
@@ -51,7 +55,7 @@ public class SettingsDialog extends Stage {
 		this.mailService = mailService;
 		this.logoutHandler = logoutHandler;
 
-		final TextArea textArea = new TextArea("Take your mail bait and fish some action!");
+		final TextArea textArea = new TextArea(HELP_TAB);
 		final Tab helpTab = new Tab("help", textArea);
 
 		taskList = new ListView<String>();

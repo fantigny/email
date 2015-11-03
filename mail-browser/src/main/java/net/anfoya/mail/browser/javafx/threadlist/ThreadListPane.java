@@ -31,6 +31,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.animation.DelayTimeline;
@@ -76,12 +77,55 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		spam = mailService.getSpecialTag(SpecialTag.SPAM);
 		flagged = mailService.getSpecialTag(SpecialTag.FLAGGED);
 
-		final StackPane stackPane = new StackPane();
-		stackPane.setAlignment(Pos.BOTTOM_CENTER);
-		setCenter(stackPane);
+		patternField = new ResetTextField();
+		patternField.setPromptText("mail search");
 
-		final BorderPane threadListPane = new BorderPane();
-		stackPane.getChildren().add(threadListPane);
+		final Button newButton = new Button();
+		newButton.setFocusTraversable(false);
+		newButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/new.png"))));
+		newButton.setTooltip(new Tooltip("new mail"));
+		newButton.setOnAction(event -> {
+			try {
+				new MailComposer<M, C>(mailService, updateHandler).newMessage("");
+			} catch (final Exception e) {
+				LOGGER.error("loading new message composer", e);
+			}
+		});
+
+		final StackPane centerPane = new StackPane();
+		centerPane.setAlignment(Pos.BOTTOM_CENTER);
+		setCenter(centerPane);
+
+		final VBox topBox = new VBox();
+		setTop(topBox);
+
+		final HBox firstLineBox = new HBox(patternField, newButton);
+		firstLineBox.setAlignment(Pos.CENTER_LEFT);
+		HBox.setHgrow(patternField, Priority.ALWAYS);
+		topBox.getChildren().add(firstLineBox);
+
+		final ThreadToolBar toolbar = new ThreadToolBar();
+		toolbar.setFocusTraversable(false);
+		toolbar.setPadding(new Insets(0));
+		toolbar.setOnReply(e -> replySelected(false));
+		toolbar.setOnReplyAll(e -> replySelected(true));
+		toolbar.setOnForward(e -> forwardSelected());
+		toolbar.setOnToggleFlag(e -> toggleFlag());
+		toolbar.setOnArchive(e -> archiveSelected());
+		toolbar.setOnTrash(e -> trashSelected());
+		toolbar.setOnSpam(e -> toggleSpam());
+
+		final BooleanProperty showToolbar = Settings.getSettings().showToolbar();
+		if (showToolbar.get()) {
+			topBox.getChildren().add(toolbar);
+		}
+		showToolbar.addListener((ov, o, n) -> {
+			if (n) {
+				topBox.getChildren().add(toolbar);
+			} else {
+				topBox.getChildren().remove(toolbar);
+			}
+		});
 
 		threadList = new ThreadList<S, T, H, M, C>(mailService);
 		threadList.setOnDragDetected(event -> {
@@ -113,53 +157,33 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 				event.consume();
 			}
 		});
-		threadListPane.setCenter(threadList);
+		centerPane.getChildren().add(threadList);
 
 		threadListDropPane = new ThreadListDropPane<T, H, M, C>(mailService);
-		threadListDropPane.prefWidthProperty().bind(stackPane.widthProperty());
+		threadListDropPane.prefWidthProperty().bind(centerPane.widthProperty());
 
-		final ThreadToolBar toolbar = new ThreadToolBar();
-		toolbar.setPadding(new Insets(0, 0, 3, 0));
-		toolbar.setOnReply(e -> replySelected(false));
-		toolbar.setOnReplyAll(e -> replySelected(true));
-		toolbar.setOnForward(e -> forwardSelected());
-		toolbar.setOnToggleFlag(e -> toggleFlag());
-		toolbar.setOnArchive(e -> archiveSelected());
-		toolbar.setOnTrash(e -> trashSelected());
-		toolbar.setOnSpam(e -> toggleSpam());
-
-		final BooleanProperty showToolbar = Settings.getSettings().showToolbar();
-		if (showToolbar.get()) {
-			threadListPane.setTop(toolbar);
-		}
-		showToolbar.addListener((ov, o, n) -> {
-			if (n) {
-				threadListPane.setTop(toolbar);
-			} else {
-				threadListPane.getChildren().remove(toolbar);
-			}
-		});
-
-		stackPane.setOnDragEntered(event -> {
+		centerPane.setOnDragEntered(event -> {
 			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)
-					&& !stackPane.getChildren().contains(threadListDropPane)) {
-				stackPane.getChildren().add(threadListDropPane);
+					&& !centerPane.getChildren().contains(threadListDropPane)) {
+				centerPane.getChildren().add(threadListDropPane);
 			}
 
 		});
-		stackPane.setOnDragExited(event -> {
+		centerPane.setOnDragExited(event -> {
 			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)
-					&& stackPane.getChildren().contains(threadListDropPane)) {
-				stackPane.getChildren().remove(threadListDropPane);
+					&& centerPane.getChildren().contains(threadListDropPane)) {
+				centerPane.getChildren().remove(threadListDropPane);
 			}
 		});
 
 		final ToggleGroup toggleGroup = new ToggleGroup();
 
 		final RadioButton nameSortButton = new RadioButton("sender");
+		nameSortButton.setFocusTraversable(false);
 		nameSortButton.setToggleGroup(toggleGroup);
 
 		final RadioButton dateSortButton = new RadioButton("date");
+		dateSortButton.setFocusTraversable(false);
 		dateSortButton.setToggleGroup(toggleGroup);
 
 		toggleGroup.selectedToggleProperty().addListener((ChangeListener<Toggle>) (ov, oldVal, newVal) -> threadList.setOrder(nameSortButton.isSelected()
@@ -170,27 +194,6 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		final HBox sortBox = new HBox(5, new Label("sort by "), nameSortButton, dateSortButton);
 		sortBox.setAlignment(Pos.CENTER);
 		setBottom(sortBox);
-
-		patternField = new ResetTextField();
-		patternField.setPromptText("mail search");
-
-		final Button newButton = new Button();
-		newButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/new.png"))));
-		newButton.setTooltip(new Tooltip("new mail"));
-		newButton.setOnAction(event -> {
-			try {
-				new MailComposer<M, C>(mailService, updateHandler).newMessage("");
-			} catch (final Exception e) {
-				LOGGER.error("loading new message composer", e);
-			}
-		});
-
-		final HBox patternBox = new HBox(patternField, newButton);
-		patternBox.setAlignment(Pos.CENTER_LEFT);
-		HBox.setHgrow(patternField, Priority.ALWAYS);
-		setTop(patternBox);
-
-		setMargin(patternField, new Insets(0, 5, 0, 0));
 		setMargin(sortBox, new Insets(5));
 	}
 

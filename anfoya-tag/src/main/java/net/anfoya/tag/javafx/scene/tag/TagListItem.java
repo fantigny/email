@@ -19,6 +19,9 @@ public class TagListItem<T extends Tag> {
 	private final BooleanProperty includedProperty;
 	private final BooleanProperty excludedProperty;
 	private final IntegerProperty countProperty;
+
+	private final BooleanProperty focusTraversableProperty;
+
 	public TagListItem(final T tag) {
 		this.tag = tag;
 		textProperty = new SimpleStringProperty(tag.getName());
@@ -54,6 +57,8 @@ public class TagListItem<T extends Tag> {
 				}
 			};
 		});
+
+		focusTraversableProperty = new SimpleBooleanProperty(true);
 	}
 
 	@Override
@@ -87,5 +92,9 @@ public class TagListItem<T extends Tag> {
 		}
 
 		return countProperty.get() == 0? "": String.format(COUNT_STRING, countProperty.get());
+	}
+
+	public BooleanProperty focusTraversableProperty() {
+		return focusTraversableProperty;
 	}
 }

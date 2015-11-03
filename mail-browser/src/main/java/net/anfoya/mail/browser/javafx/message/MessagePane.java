@@ -105,6 +105,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		helper = new MessageHelper();
 
 		messageView = new WebViewFitContent();
+		messageView.focusTraversableProperty().bind(focusTraversableProperty());
 		messageView.getEngine().setUserStyleSheetLocation(getClass().getResource("default.css").toExternalForm());
 		messageView.getEngine().setCreatePopupHandler(handler -> messageView.getEngine());
 		messageView.getEngine().locationProperty().addListener((ov, o, n) -> {
@@ -125,6 +126,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		iconBox.setPadding(new Insets(3, 5, 0, 0));
 
 		snippetView = new WebView();
+		snippetView.setFocusTraversable(false);
 		snippetView.prefWidthProperty().bind(widthProperty());
 		snippetView.setPrefHeight(30);
 		snippetView.setMinHeight(0);
@@ -328,9 +330,10 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		final MimeMessage mimeMessage = message.getMimeMessage();
 		try {
 			recipientFlow.getChildren().setAll(new Text(MessageHelper.getNames(mimeMessage.getFrom())[0] + " to "));
-			final boolean first = true;
+			boolean first = true;
 			for(final String r: MessageHelper.getNames(mimeMessage.getRecipients(MimeMessage.RecipientType.TO))) {
 				recipientFlow.getChildren().add(new Text((first? "": ", ") + r));
+				first = false;
 			}
 		} catch (final MessagingException e) {
 			LOGGER.error("loading title data", e);
