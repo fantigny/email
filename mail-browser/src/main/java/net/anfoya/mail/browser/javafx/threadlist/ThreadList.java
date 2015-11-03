@@ -181,6 +181,7 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 		// get previously selected threads
 		final Set<H> selectedThreads = new HashSet<H>(getSelectedThreads());
 		final int selectedIndex = getSelectionModel().getSelectedIndex();
+		final List<H> previousThreads = new ArrayList<H>(getItems());
 
 		// get list
 		final List<H> sortedThreads = new ArrayList<H>(threads);
@@ -234,9 +235,13 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 					index++;
 				}
 				if (after != -1) {
-					getSelectionModel().select(after);
+					if (previousThreads.contains(getItems().get(after))) {
+						getSelectionModel().select(after);
+					}
 				} else if (before != -1) {
-					getSelectionModel().select(before);
+					if (previousThreads.contains(getItems().get(before))) {
+						getSelectionModel().select(before);
+					}
 				}
 			}
 			if (getSelectionModel().isEmpty()) {

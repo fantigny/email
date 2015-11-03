@@ -29,9 +29,13 @@ class TagListCell<T extends Tag> extends IncExcListCell<TagListItem<T>> {
 		});
 		setOnDragOver(event -> {
 			if (getItem() != null && event.getDragboard().hasContent(dataFormat)) {
+				setOpacity(.7);
 				event.acceptTransferModes(TransferMode.ANY);
 				event.consume();
 			}
+		});
+		setOnDragExited(e -> {
+			setOpacity(1);
 		});
 		setOnDragDropped(event -> {
 			final Dragboard db = event.getDragboard();

@@ -38,6 +38,7 @@ public class IncExcListCell<I extends IncExcListItem> extends ListCell<I> {
 	        }
 
 	        item.textProperty().addListener((ov, oldVal, newVal) -> updateItem(item, empty));
+	        item.focusTraversableProperty().addListener((ov, o, n) -> setFocusTraversable(n));
 
         	//TODO: setDisable(item.disableProperty().get());
         }
