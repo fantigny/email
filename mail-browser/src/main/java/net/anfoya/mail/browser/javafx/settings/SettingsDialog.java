@@ -17,7 +17,6 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -27,6 +26,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import net.anfoya.java.util.concurrent.ThreadPool;
@@ -38,10 +38,6 @@ import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
 
 public class SettingsDialog extends Stage {
-	private static final String HELP_TAB = "Focus!\n"
-			+ "\tpress Tab once to search mails\n"
-			+ "\tpress Tab again to search tags";
-
 	private final MailService<? extends Section, ? extends Tag, ? extends Thread, ? extends Message, ? extends Contact> mailService;
 	private final EventHandler<ActionEvent> logoutHandler;
 
@@ -55,14 +51,11 @@ public class SettingsDialog extends Stage {
 		this.mailService = mailService;
 		this.logoutHandler = logoutHandler;
 
-		final TextArea textArea = new TextArea(HELP_TAB);
-		final Tab helpTab = new Tab("help", textArea);
-
 		taskList = new ListView<String>();
 		final Tab taskTab = new Tab("Tasks", taskList);
 		ThreadPool.getInstance().setOnChange(map -> refreshTasks(map));
 
-		tabPane = new TabPane(buildSettingsTab(), helpTab, buildAboutTab(), taskTab);
+		tabPane = new TabPane(buildSettingsTab(), buildAboutTab(), buildHelpTab(), taskTab);
 		tabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
 
 		setScene(new Scene(tabPane, 600, 400));
@@ -71,6 +64,18 @@ public class SettingsDialog extends Stage {
 	public void showAbout() {
 		tabPane.getSelectionModel().select(2);
 		show();
+	}
+
+	private Tab buildHelpTab() {
+		final WebView help = new WebView();
+		help.getEngine().loadContent("<html>"
+				+ "<h4>Focus!</h4>"
+				+ "<ul>	<li>press <b>Tab</b> once to search mails</li>"
+				+ "		<li>press Tab again to search <b>tags</b></li>"
+				+ "<ul>"
+				+ "</html>");
+
+		return new Tab("help", help);
 	}
 
 	private Void refreshTasks(final Map<? extends Future<?>, ? extends String> futureDesc) {
