@@ -255,7 +255,7 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 			firstLoad  = false;
 			if (focusTraversableProperty().get()) {
 				// TODO request focus
-//				requestFocus();
+				requestFocus();
 			}
 		}
 
