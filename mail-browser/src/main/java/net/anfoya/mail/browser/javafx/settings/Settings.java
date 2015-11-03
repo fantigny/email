@@ -8,14 +8,14 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import net.anfoya.java.io.SerializedFile;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("serial")
 public class Settings implements Serializable {
@@ -31,12 +31,14 @@ public class Settings implements Serializable {
 	private final BooleanProperty showExcludeBox;
 	private final BooleanProperty archiveOnDrop;
 	private final IntegerProperty popupLifetime;
+	private final BooleanProperty replyAllDblClick;
 
 	public Settings() {
 		showToolbar = new SimpleBooleanProperty(true);
 		showExcludeBox = new SimpleBooleanProperty(false);
 		archiveOnDrop = new SimpleBooleanProperty(true);
 		popupLifetime = new SimpleIntegerProperty(20);
+		replyAllDblClick = new SimpleBooleanProperty(false);
 	}
 
 	public BooleanProperty showToolbar() {
@@ -53,6 +55,10 @@ public class Settings implements Serializable {
 
 	public IntegerProperty popupLifetime() {
 		return popupLifetime;
+	}
+
+	public BooleanProperty replyAllDblClick() {
+		return replyAllDblClick;
 	}
 
 	public static void load() {

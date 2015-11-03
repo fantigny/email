@@ -38,6 +38,13 @@ import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
 
 public class SettingsDialog extends Stage {
+	private static final String CSS_DATA = "<style> body {"
+			+ " margin: 7;"
+			+ " padding: 0;"
+			+ " font-family: Arial, Helvetica, sans-serif;"
+			+ " font-size: 12px;"
+			+ "} </style>";
+
 	private final MailService<? extends Section, ? extends Tag, ? extends Thread, ? extends Message, ? extends Contact> mailService;
 	private final EventHandler<ActionEvent> logoutHandler;
 
@@ -69,10 +76,22 @@ public class SettingsDialog extends Stage {
 	private Tab buildHelpTab() {
 		final WebView help = new WebView();
 		help.getEngine().loadContent("<html>"
-				+ "<h4>Focus!</h4>"
-				+ "<ul>	<li>press <b>Tab</b> once to search mails</li>"
-				+ "		<li>press Tab again to search <b>tags</b></li>"
-				+ "<ul>"
+				+ CSS_DATA
+				+ "<h4>Drag to drop</h4>"
+				+ "<ul>	<li>when looking for something to do, drag the source (tag, mail, etc) and drag to the dedicated areas on the bottom</li>"
+				+ "		<li>disable the toolbar in settings for a <b>full DnD experience</b> yay! :p</li>"
+				+ "</ul>"
+				+ "<h4>Press Tab</h4>"
+				+ "<ul>	<li>once to search mails</li>"
+				+ "		<li>again to search tags</li>"
+				+ "</ul>"
+				+ "<h4>Unread me</h4>"
+				+ "<ul>	<li>by dragging the thread to <b>Unread</b> tag</li>"
+				+ "</ul>"
+				+ "<h4>Double click</h4>"
+				+ "<ul>	<li>on the threadlist to <b>reply</b> a thread</li>"
+				+ "		<li><b>Reply all</b> to be activated in settings</li>"
+				+ "</ul>"
 				+ "</html>");
 
 		return new Tab("help", help);
@@ -132,6 +151,10 @@ public class SettingsDialog extends Stage {
 		showExcButton.setSwitchOn(Settings.getSettings().showExcludeBox().get());
 		showExcButton.switchOnProperty().addListener((ov, o, n) -> Settings.getSettings().showExcludeBox().set(n));
 
+		final SwitchButton replyAllDblClickButton = new SwitchButton();
+		replyAllDblClickButton.setSwitchOn(Settings.getSettings().replyAllDblClick().get());
+		replyAllDblClickButton.switchOnProperty().addListener((ov, o, n) -> Settings.getSettings().replyAllDblClick().set(n));
+
 		final SwitchButton archOnDropButton = new SwitchButton();
 		archOnDropButton.setSwitchOn(Settings.getSettings().archiveOnDrop().get());
 		archOnDropButton.switchOnProperty().addListener((ov, o, n) -> Settings.getSettings().archiveOnDrop().set(n));
@@ -157,6 +180,7 @@ public class SettingsDialog extends Stage {
 		gridPane.addRow(i++, new Label("clear cache"), clearCacheButton);
 		gridPane.addRow(i++, new Label("show tool bar"), toolButton);
 		gridPane.addRow(i++, new Label("show exclude box (restart needed)"), showExcButton);
+		gridPane.addRow(i++, new Label("reply all on thread list double click"), replyAllDblClickButton);
 		gridPane.addRow(i++, new Label("archive on drop"), archOnDropButton);
 		gridPane.addRow(i++, new Label("popup lifetime in seconds (0 for permanent)"), popupLifetimeField);
 

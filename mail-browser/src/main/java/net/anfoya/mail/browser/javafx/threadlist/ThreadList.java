@@ -23,6 +23,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.input.KeyCode;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.composer.javafx.MailComposer;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
 import net.anfoya.mail.model.SimpleThread.SortOrder;
@@ -81,7 +82,7 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 				final Set<H> threads = getSelectedThreads();
 				if (threads.size() > 0 && threads.iterator().next().getMessageIds().size() > 0) {
 					final String id = threads.iterator().next().getLastMessageId();
-					new MailComposer<M, C>(mailService, updateHandler).editOrReply(id);
+					new MailComposer<M, C>(mailService, updateHandler).editOrReply(id, Settings.getSettings().replyAllDblClick().get());
 				}
 			}
 		});
@@ -178,10 +179,10 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 	}
 
 	private void refresh(final Set<H> threads) {
-		// get previously selected threads
-		final Set<H> selectedThreads = new HashSet<H>(getSelectedThreads());
-		final int selectedIndex = getSelectionModel().getSelectedIndex();
-		final List<H> previousThreads = new ArrayList<H>(getItems());
+		// keep previous selection data
+		final List<H> oldThreads = new ArrayList<H>(getItems());
+		final int oldSelectedIndex = getSelectionModel().getSelectedIndex();
+		final Set<H> oldSelectedThreads = new HashSet<H>(getSelectedThreads());
 
 		// get list
 		final List<H> sortedThreads = new ArrayList<H>(threads);
@@ -193,67 +194,7 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 		refreshing = true;
 		resetSelection = true;
 		getItems().setAll(sortedThreads);
-
-		// restore selection
-		getSelectionModel().clearSelection();
-		if (!getItems().isEmpty()) {
-			if (!selectedThreads.isEmpty()) {
-				LOGGER.debug("selected threads {}", threads);
-				final int[] indices = new int[selectedThreads.size()];
-				Arrays.fill(indices, -1);
-				if (selectedThreads.size() == 1 && selectedThreads.iterator().next() instanceof GmailMoreThreads) {
-					// user wants to see more threads, select first of the "next threads"
-					indices[0] = selectedIndex;
-					scrollTo(indices[0]);
-				} else {
-					// find thread(s) previously selected in the new thread list
-					int itemIndex = 0, arrayIndex = 0;
-					for (final H t : getItems()) {
-						if (selectedThreads.contains(t) && !t.isUnread()) {
-							indices[arrayIndex] = itemIndex;
-							arrayIndex++;
-						}
-						itemIndex++;
-					}
-				}
-				if (indices[0] != -1) {
-					getSelectionModel().selectIndices(indices[0], indices);
-				}
-			}
-			if (getSelectionModel().isEmpty() && selectedIndex != -1) {
-				// select the closest to previous selection
-				int before = -1, after = -1, index = 0;
-				for(final H t: getItems()) {
-					if (!(t instanceof GmailMoreThreads)) { //TODO: put MoreThread in the API
-						if (index < selectedIndex) {
-							before = index;
-						} else {
-							after = index;
-							break;
-						}
-					}
-					index++;
-				}
-				if (after != -1) {
-					if (previousThreads.contains(getItems().get(after))) {
-						getSelectionModel().select(after);
-					}
-				} else if (before != -1) {
-					if (previousThreads.contains(getItems().get(before))) {
-						getSelectionModel().select(before);
-					}
-				}
-			}
-			if (getSelectionModel().isEmpty()) {
-				// select the first unread
-				for(final H t: getItems()) {
-					if (!t.isUnread() && !(t instanceof GmailMoreThreads)) { //TODO: put MoreThread in the API
-						getSelectionModel().select(t);
-						break;
-					}
-				}
-			}
-		}
+		restoreSelection(oldThreads, oldSelectedIndex, oldSelectedThreads);
 		refreshing = false;
 
 		if (firstLoad) {
@@ -265,6 +206,67 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 		}
 
 		loadHandler.handle(null);
+	}
+
+	private void restoreSelection(List<H> oldList, int oldSelectedIndex, Set<H> oldSelectedList) {
+		getSelectionModel().clearSelection();
+
+		if (getItems().isEmpty()) {
+			return;
+		}
+
+		if (!oldSelectedList.isEmpty()) {
+			LOGGER.debug("selected threads {}", oldList);
+			final int[] indices = new int[oldSelectedList.size()];
+			Arrays.fill(indices, -1);
+			if (oldSelectedList.size() == 1 && oldSelectedList.iterator().next() instanceof GmailMoreThreads) {
+				// user wants to see more threads, select first of the "next threads"
+				indices[0] = oldSelectedIndex;
+				scrollTo(indices[0]);
+			} else {
+				// find thread(s) previously selected in the new thread list
+				int itemIndex = 0, arrayIndex = 0;
+				for (final H t: getItems()) {
+					if (oldSelectedList.contains(t) && !t.isUnread()) {
+						indices[arrayIndex] = itemIndex;
+						arrayIndex++;
+					}
+					itemIndex++;
+				}
+			}
+			if (indices[0] != -1) {
+				getSelectionModel().selectIndices(indices[0], indices);
+			}
+		}
+		if (getSelectionModel().isEmpty() && oldSelectedIndex != -1) {
+			// select the closest to previous selection
+			int before = -1, after = -1, index = 0;
+			for(final H t: getItems()) {
+				if (!(t instanceof GmailMoreThreads)) { //TODO: put MoreThread in the API
+					if (index < oldSelectedIndex) {
+						before = index;
+					} else {
+						after = index;
+						break;
+					}
+				}
+				index++;
+			}
+			if (after != -1 && oldList.contains(getItems().get(after))) {
+				getSelectionModel().select(after);
+			} else if (before != -1 && oldList.contains(getItems().get(before))) {
+				getSelectionModel().select(before);
+			}
+		}
+		if (getSelectionModel().isEmpty()) {
+			// select the first unread
+			for(final H t: getItems()) {
+				if (!t.isUnread() && !(t instanceof GmailMoreThreads)) { //TODO: put MoreThreads in the API
+					getSelectionModel().select(t);
+					break;
+				}
+			}
+		}
 	}
 
 	private void tweakUnreadMessage(final Set<H> threads) {

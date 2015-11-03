@@ -229,7 +229,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		ThreadPool.getInstance().submitHigh(task, "creating draft");
 	}
 
-	public void editOrReply(final String id) {
+	public void editOrReply(final String id, boolean all) {
 		// try to find a draft with this id
 		try {
 			draft = mailService.getDraft(id);
@@ -243,7 +243,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 			// reply
 			try {
 				final M message = mailService.getMessage(id);
-				reply(message, false);
+				reply(message, all);
 			} catch (final MailException e) {
 				LOGGER.error("loading message for id {}", id, e);
 			}
