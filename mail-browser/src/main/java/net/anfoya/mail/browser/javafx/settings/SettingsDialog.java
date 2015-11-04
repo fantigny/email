@@ -6,8 +6,6 @@ import java.util.concurrent.Future;
 import javafx.application.Platform;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.VPos;
 import javafx.scene.Scene;
@@ -46,23 +44,16 @@ public class SettingsDialog extends Stage {
 			+ "} </style>";
 
 	private final MailService<? extends Section, ? extends Tag, ? extends Thread, ? extends Message, ? extends Contact> mailService;
-	private final EventHandler<ActionEvent> logoutHandler;
 
-	private final ListView<String> taskList;
 	private final TabPane tabPane;
 
-	public SettingsDialog(final MailService<? extends Section, ? extends Tag, ? extends Thread, ? extends Message, ? extends Contact> mailService, final EventHandler<ActionEvent> logoutHandler) {
+	public SettingsDialog(final MailService<? extends Section, ? extends Tag, ? extends Thread, ? extends Message, ? extends Contact> mailService) {
 		initStyle(StageStyle.UNIFIED);
 		setOnCloseRequest(e -> Settings.getSettings().save());
 
 		this.mailService = mailService;
-		this.logoutHandler = logoutHandler;
 
-		taskList = new ListView<String>();
-		final Tab taskTab = new Tab("Tasks", taskList);
-		ThreadPool.getInstance().setOnChange(map -> refreshTasks(map));
-
-		tabPane = new TabPane(buildSettingsTab(), buildAboutTab(), buildHelpTab(), taskTab);
+		tabPane = new TabPane(buildSettingsTab(), buildAboutTab(), buildHelpTab(), buildTaskTab());
 		tabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
 
 		setScene(new Scene(tabPane, 600, 400));
@@ -73,12 +64,23 @@ public class SettingsDialog extends Stage {
 		show();
 	}
 
+	private Tab buildTaskTab() {
+		final ListView<String> taskList = new ListView<String>();
+		ThreadPool.getInstance().setOnChange(map -> refreshTasks(taskList.getItems(), map));
+		return new Tab("tasks", taskList);
+	}
+
 	private Tab buildHelpTab() {
 		final WebView help = new WebView();
 		help.getEngine().loadContent("<html>"
 				+ CSS_DATA
+				+ "<h4>In theory</h4>"
+				+ "<ul>	<li>Tags are grouped by section</li>"
+				+ "		<li>Messages are grouped by thread</li>"
+				+ "		<li>Threads are meant to be sorted</li>"
+				+ "</ul>"
 				+ "<h4>Drag to drop</h4>"
-				+ "<ul>	<li>Drag down your <b>thread</b> to reply, forward, archive</li>"
+				+ "<ul>	<li><b>Drag down</b> your thread to reply, forward, archive</li>"
 				+ "		<li>Drag a thread on the left to <b>sort</b></li>"
 				+ "		<li>Drag a <b>tag</b> to customize</li>"
 				+ "		<li>...</li>"
@@ -110,15 +112,14 @@ public class SettingsDialog extends Stage {
 		return new Tab("help", help);
 	}
 
-	private Void refreshTasks(final Map<? extends Future<?>, ? extends String> futureDesc) {
+	private Void refreshTasks(ObservableList<String> taskList, final Map<? extends Future<?>, ? extends String> futureDesc) {
 		Platform.runLater(() -> {
-			final ObservableList<String> items = taskList.getItems();
-			items.clear();
+			taskList.clear();
 			for(final String desc: futureDesc.values()) {
-				items.add(desc);
+				taskList.add(desc);
 			}
-			if (items.isEmpty()) {
-				items.add("idle");
+			if (taskList.isEmpty()) {
+				taskList.add("idle");
 			}
 		});
 		return null;
@@ -147,12 +148,6 @@ public class SettingsDialog extends Stage {
 	}
 
 	private Tab buildSettingsTab() {
-		final Button logoutButton = new Button("logout");
-		logoutButton.setOnAction(e -> {
-			close();
-			logoutHandler.handle(null);
-		});
-
 		final Button clearCacheButton = new Button("clear cache");
 		clearCacheButton.setOnAction(e -> mailService.clearCache());
 
@@ -189,7 +184,6 @@ public class SettingsDialog extends Stage {
 		gridPane.setHgap(10);
 
 		int i = 0;
-		gridPane.addRow(i++, new Label("logout from this account"), logoutButton);
 		gridPane.addRow(i++, new Label("clear cache"), clearCacheButton);
 		gridPane.addRow(i++, new Label("show tool bar"), toolButton);
 		gridPane.addRow(i++, new Label("show exclude box (restart needed)"), showExcButton);

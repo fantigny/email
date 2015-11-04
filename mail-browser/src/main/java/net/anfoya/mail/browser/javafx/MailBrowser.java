@@ -12,6 +12,9 @@ import org.slf4j.LoggerFactory;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.SplitPane;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
@@ -97,7 +100,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		threadPane = new ThreadPane<T, H, M, C>(mailService);
 		threadPane.setFocusTraversable(false);
 		threadPane.setOnUpdateThread(e -> refreshAfterThreadUpdate());
-		threadPane.setOnLogout(e -> logout());
+		threadPane.setOnLogout(e -> signout());
 		splitPane.getItems().add(threadPane);
 
 		final Scene scene = new Scene(splitPane);
@@ -149,10 +152,17 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 //		Toolkit.getToolkit().getSystemMenu().setMenus(menus);
 	}
 
-	private void logout() {
-		quit = false;
-		mailService.disconnect();
-		close();
+	private void signout() {
+		final Alert alert = new Alert(AlertType.CONFIRMATION, "Are you sure you want to sign out?");
+		alert.setTitle("signing out");
+		alert.setHeaderText(null);
+		alert.showAndWait()
+			.filter(response -> response == ButtonType.OK)
+			.ifPresent(response -> {
+				quit = false;
+				mailService.disconnect();
+				close();
+			});
 	}
 
 	private void initData() {
@@ -172,7 +182,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 			return null;
 		});
 
-		mailService.addOnNewMessage(p -> notify(p));
+		mailService.addOnNewMessage(p -> notifyAfterNewMessage(p));
 
 		final Task<String> titleTask = new Task<String>() {
 			@Override
@@ -190,7 +200,28 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		ThreadPool.getInstance().submitLow(titleTask, "loading user's name");
 	}
 
-	private Void notify(final Set<H> threads) {
+	private final boolean notifyAfterNewMessage = true;
+
+	private final boolean refreshAfterTagSelected = true;
+	private final boolean refreshAfterThreadSelected = true;
+	private final boolean refreshAfterMoreResultsSelected = true;
+
+	private final boolean refreshAfterThreadListLoad = true;
+
+	private final boolean refreshAfterTagUpdate = true;
+	private final boolean refreshAfterSectionUpdate = true;
+	private final boolean refreshAfterSectionSelect = true;
+	private final boolean refreshAfterThreadUpdate = true;
+	private final boolean refreshAfterPatternUpdate = true;
+	private final boolean refreshAfterUpdateMessage = true;
+	private final boolean refreshAfterUpdateTagOrSection = true;
+
+	private Void notifyAfterNewMessage(final Set<H> threads) {
+		if (!notifyAfterNewMessage) {
+			return null;
+		}
+		LOGGER.debug("notifyAfterNewMessage");
+
 		threads.forEach(t -> {
 			ThreadPool.getInstance().submitLow(() -> {
 				final String message;
@@ -210,20 +241,6 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 
 		return null;
 	}
-
-	boolean refreshAfterTagSelected = true;
-	boolean refreshAfterThreadSelected = true;
-	boolean refreshAfterMoreResultsSelected = true;
-
-	boolean refreshAfterThreadListLoad = true;
-
-	boolean refreshAfterTagUpdate = true;
-	boolean refreshAfterSectionUpdate = true;
-	boolean refreshAfterSectionSelect = true;
-	boolean refreshAfterThreadUpdate = true;
-	boolean refreshAfterPatternUpdate = true;
-	boolean refreshAfterUpdateMessage = true;
-	boolean refreshAfterUpdateTagOrSection = true;
 
 	private void refreshAfterUpdateMessage() {
 		if (!refreshAfterUpdateMessage) {

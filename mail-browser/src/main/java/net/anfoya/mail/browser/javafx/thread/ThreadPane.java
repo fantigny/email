@@ -81,9 +81,15 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 		settingsButton.setFocusTraversable(false);
 		settingsButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/settings.png"))));
 		settingsButton.setTooltip(new Tooltip("settings"));
-		settingsButton.setOnAction(event -> new SettingsDialog(mailService, logoutHandler).show());
+		settingsButton.setOnAction(event -> new SettingsDialog(mailService).show());
 
-		final HBox subjectBox = new HBox(iconBox, subjectField, settingsButton);
+		final Button signoutButton = new Button();
+		signoutButton.setFocusTraversable(false);
+		signoutButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/signout.png"))));
+		signoutButton.setTooltip(new Tooltip("sign out"));
+		signoutButton.setOnAction(event -> logoutHandler.handle(null));
+
+		final HBox subjectBox = new HBox(iconBox, subjectField, settingsButton, signoutButton);
 		setTop(subjectBox);
 
 		final StackPane stackPane = new StackPane();
