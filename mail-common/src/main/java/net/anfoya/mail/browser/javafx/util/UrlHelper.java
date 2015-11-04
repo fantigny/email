@@ -13,6 +13,10 @@ import net.anfoya.java.util.concurrent.ThreadPool;
 public class UrlHelper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UrlHelper.class);
 
+	public static void open(String url) {
+		open(url, null);
+	}
+
 	public static void open(String url, Callback<String, Void> onMailto) {
 		URI uri;
 		try {

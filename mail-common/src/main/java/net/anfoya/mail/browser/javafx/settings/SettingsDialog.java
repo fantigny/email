@@ -7,7 +7,9 @@ import javafx.application.Platform;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.geometry.VPos;
+import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -19,8 +21,11 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -29,6 +34,8 @@ import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.javafx.scene.control.Notification.Notifier;
+import net.anfoya.mail.browser.javafx.util.UrlHelper;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.Message;
@@ -58,6 +65,13 @@ public class SettingsDialog extends Stage {
 		tabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
 
 		setScene(new Scene(tabPane, 600, 400));
+
+		Platform.runLater(() -> {
+			final VersionChecker checker = new VersionChecker();
+			if (!checker.isLastVersion()) {
+				Notifier.INSTANCE.notifyInfo("FisherMail " + checker.getLastestVesion(), "available at fishermail.wordpress.com");
+			}
+		});
 	}
 
 	public void showAbout() {
@@ -129,15 +143,16 @@ public class SettingsDialog extends Stage {
 	private Tab buildAboutTab() {
 		final ImageView image = new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png")));
 
-		final Package p = getClass().getPackage();
-		final String version = p.getImplementationVersion();
-
-		final Text text = new Text("FisherMail " + version + "\rby Frederic Antigny");
+		final Text text = new Text("FisherMail " + new VersionChecker().getVersion() + "\rby Frederic Antigny");
 		text.setFont(Font.font("Amble Cn", FontWeight.BOLD, 24));
 		text.setFill(Color.web("#bbbbbb"));
 
+		final StackPane stackPane = new StackPane();
+		stackPane.setAlignment(Pos.CENTER);
+
 		final GridPane gridPane = new GridPane();
 		gridPane.setStyle("-fx-background-color: #4d4d4d;");
+		stackPane.getChildren().add(gridPane);
 
 		gridPane.addColumn(0, image);
 		GridPane.setMargin(image, new Insets(20));
@@ -148,7 +163,24 @@ public class SettingsDialog extends Stage {
 		GridPane.setVgrow(text, Priority.ALWAYS);
 		GridPane.setValignment(text, VPos.CENTER);
 
-		return new Tab("about", gridPane);
+		final VersionChecker checker = new VersionChecker();
+		if (!checker.isLastVersion()) {
+			final Label newLabel = new Label("new version (" + checker.getLastestVesion() + ") available at ");
+			newLabel.setTextFill(Color.WHITE);
+			final Label urlLabel = new Label("fishermail.wordpress.com");
+			urlLabel.setTextFill(Color.WHITE);
+			urlLabel.setCursor(Cursor.HAND);
+			urlLabel.setOnMouseClicked(e -> {
+				if (e.getClickCount() == 1 && e.getButton() == MouseButton.PRIMARY) {
+					UrlHelper.open("http://fishermail.wordpress.com");
+				}
+			});
+			final HBox textBox = new HBox(newLabel, urlLabel);
+			textBox.setPadding(new Insets(5, 0, 0, 10));
+			stackPane.getChildren().add(textBox);
+		}
+
+		return new Tab("about", stackPane);
 	}
 
 	private Tab buildSettingsTab() {
