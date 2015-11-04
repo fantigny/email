@@ -22,6 +22,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -143,9 +144,20 @@ public class SettingsDialog extends Stage {
 	private Tab buildAboutTab() {
 		final ImageView image = new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png")));
 
-		final Text text = new Text("FisherMail " + new VersionChecker().getVersion() + "\rby Frederic Antigny");
-		text.setFont(Font.font("Amble Cn", FontWeight.BOLD, 24));
-		text.setFill(Color.web("#bbbbbb"));
+		final Text fishermail = new Text("FisherMail ");
+		fishermail.setFont(Font.font("Amble Cn", FontWeight.BOLD, 24));
+		fishermail.setFill(Color.web("#bbbbbb"));
+
+		final Text version = new Text(new VersionChecker().getVersion());
+		version.setFont(Font.font("Amble Cn", FontWeight.BOLD, 14));
+		version.setFill(Color.web("#bbbbbb"));
+
+		final Text author = new Text("by Frederic Antigny");
+		author.setFont(Font.font("Amble Cn", FontWeight.BOLD, 24));
+		author.setFill(Color.web("#bbbbbb"));
+
+		final FlowPane text = new FlowPane(fishermail, version, author);
+		text.setPadding(new Insets(150, 0,0,0));
 
 		final StackPane stackPane = new StackPane();
 		stackPane.setAlignment(Pos.CENTER);
@@ -155,6 +167,7 @@ public class SettingsDialog extends Stage {
 		stackPane.getChildren().add(gridPane);
 
 		gridPane.addColumn(0, image);
+		GridPane.setRowSpan(image, 2);
 		GridPane.setMargin(image, new Insets(20));
 		GridPane.setVgrow(image, Priority.ALWAYS);
 		GridPane.setValignment(image, VPos.CENTER);
