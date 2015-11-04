@@ -129,7 +129,10 @@ public class SettingsDialog extends Stage {
 	private Tab buildAboutTab() {
 		final ImageView image = new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png")));
 
-		final Text text = new Text("FisherMail 1.0\u03B1\rby Frederic Antigny");
+		final Package p = getClass().getPackage();
+		final String version = p.getImplementationVersion();
+
+		final Text text = new Text("FisherMail " + version + "\rby Frederic Antigny");
 		text.setFont(Font.font("Amble Cn", FontWeight.BOLD, 24));
 		text.setFill(Color.web("#bbbbbb"));
 

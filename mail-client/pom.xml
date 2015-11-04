@@ -19,6 +19,18 @@
 				</configuration>
 			</plugin>
 			<plugin>
+				<artifactId>maven-scm-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>getting-scm.revision</id>
+						<phase>install</phase>
+						<goals>
+							<goal>update</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		 	<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
 				<version>2.4</version>
@@ -35,6 +47,11 @@
 									</manifestEntries>
 								</transformer>
 							</transformers>
+							<archive>
+								<manifestEntries>
+									<Implementation-Version>${this.version}.${scm.revision}</Implementation-Version>
+								</manifestEntries>
+							</archive>
 						</configuration>
 						<goals>
 							<goal>shade</goal>
