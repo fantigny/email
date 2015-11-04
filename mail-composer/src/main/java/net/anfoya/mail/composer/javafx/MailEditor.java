@@ -10,6 +10,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Insets;
@@ -30,7 +31,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.HTMLEditor;
 import javafx.scene.web.WebView;
+import javafx.util.Callback;
 import net.anfoya.javafx.scene.control.HtmlEditorListener;
+import net.anfoya.mail.browser.javafx.util.UrlHelper;
 
 public class MailEditor extends BorderPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailEditor.class);
@@ -45,6 +48,8 @@ public class MailEditor extends BorderPane {
 	private final Set<File> attachments;
 
 	private final StackPane removeAttachPane;
+
+	private Callback<String, Void> onMailtoCallback;
 
 	public MailEditor() {
 		removeAttachPane = new StackPane();
@@ -97,6 +102,16 @@ public class MailEditor extends BorderPane {
 			db.getFiles().forEach(f -> addAttachment(f));
 			e.setDropCompleted(db.hasFiles());
 			e.consume();
+		});
+		editorView.getEngine().locationProperty().addListener((ov, o, n) -> {
+			if (!n.isEmpty()) {
+				final String html = editor.getHtmlText();
+				Platform.runLater(() -> {
+					editorView.getEngine().getLoadWorker().cancel();
+					editorView.getEngine().loadContent(html);
+				});
+				UrlHelper.open(n, p -> onMailtoCallback == null? null: onMailtoCallback.call(p));
+			}
 		});
 	}
 
@@ -162,5 +177,9 @@ public class MailEditor extends BorderPane {
 			}
 			index++;
 		}
+	}
+
+	public void setOnMailtoCallback(Callback<String, Void> callback) {
+		this.onMailtoCallback = callback;
 	}
 }

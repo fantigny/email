@@ -1,8 +1,6 @@
 package net.anfoya.mail.browser.javafx.message;
 
-import java.awt.Desktop;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Set;
 
@@ -46,6 +44,7 @@ import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.web.WebViewFitContent;
 import net.anfoya.mail.browser.javafx.thread.ThreadDropPane;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
+import net.anfoya.mail.browser.javafx.util.UrlHelper;
 import net.anfoya.mail.composer.javafx.MailComposer;
 import net.anfoya.mail.mime.DateHelper;
 import net.anfoya.mail.mime.MessageHelper;
@@ -114,7 +113,14 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 					messageView.getEngine().getLoadWorker().cancel();
 					load();
 				});
-				handleHyperlink(n);
+				UrlHelper.open(n, p -> {
+					try {
+						new MailComposer<M, C>(mailService, updateHandler).newMessage(p);
+					} catch (final MailException e) {
+						LOGGER.error("creating new mail to {}", p, e);
+					}
+					return null;
+				});
 			}
 		});
 
@@ -298,32 +304,6 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 
 	public void setUpdateHandler(final EventHandler<ActionEvent> handler) {
 		this.updateHandler = handler;
-	}
-
-	private void handleHyperlink(final String link) {
-		URI uri;
-		try {
-			uri = new URI(link);
-		} catch (final URISyntaxException e) {
-			LOGGER.error("reading address {}", link, e);
-			return;
-		}
-		final String scheme = uri.getScheme();
-		if (scheme.equals("mailto")) {
-			try {
-				new MailComposer<M, C>(mailService, updateHandler).newMessage(uri.getSchemeSpecificPart());
-			} catch (final MailException e) {
-				LOGGER.error("creating new mail to {}", link, e);
-			}
-		} else {
-			ThreadPool.getInstance().submitHigh(() -> {
-				try {
-					Desktop.getDesktop().browse(uri);
-				} catch (final Exception e) {
-					LOGGER.error("handling link {}", link, e);
-				}
-			}, "handling link " + link);
-		}
 	}
 
 	private void refresh() {

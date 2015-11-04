@@ -136,6 +136,14 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 
 		editor = new MailEditor();
 		editor.editedProperty().addListener((ov, o, n) -> editedProperty.set(editedProperty.get() || n));
+		editor.setOnMailtoCallback(p -> {
+			try {
+				new MailComposer<M, C>(mailService, updateHandler).newMessage(p);
+			} catch (final MailException e) {
+				LOGGER.error("creating new mail to {}", p, e);
+			}
+			return null;
+		});
 
 		mainPane.setCenter(editor);
 
@@ -330,19 +338,9 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		}
 		subjectField.setText(subject);
 
-		String html = "<style>"
-				+ "html {"
-				+ " line-height: 1em !important;"
-				+ " font-size: 14px !important;"
-				+ " font-family: Lucida Grande !important;"
-				+ " color: #222222 !important;"
-				+ " background-color: #FDFDFD !important; }"
-				+ "p {"
-				+ " padding-left:1ex;"
-				+ " margin: 2px 0 !important; }"
-				+ "</style>";
+		String html;
 		try {
-			html += helper.toHtml(message);
+			html = helper.toHtml(message);
 		} catch (IOException | MessagingException e) {
 			html = "";
 			LOGGER.error("getting html content", e);
@@ -357,6 +355,18 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		if (signature) {
 			html = "<p>" + Settings.getSettings().htmlSignature().get() + "</p>" + html;
 		}
+		html = "<style>"
+				+ "html,body {"
+				+ " line-height: 1em !important;"
+				+ " font-size: 14px !important;"
+				+ " font-family: Lucida Grande !important;"
+				+ " color: #222222 !important;"
+				+ " background-color: #FDFDFD !important; }"
+				+ "p {"
+				+ " padding-left:1ex;"
+				+ " margin: 2px 0 !important; }"
+				+ "</style>"
+				+ html;
 		editor.setHtmlText(html);
 
 		show();
