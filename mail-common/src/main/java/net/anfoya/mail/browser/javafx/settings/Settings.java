@@ -15,6 +15,8 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import net.anfoya.java.io.SerializedFile;
 
 @SuppressWarnings("serial")
@@ -32,6 +34,7 @@ public class Settings implements Serializable {
 	private final BooleanProperty archiveOnDrop;
 	private final IntegerProperty popupLifetime;
 	private final BooleanProperty replyAllDblClick;
+	private final StringProperty htmlSignature;
 
 	public Settings() {
 		showToolbar = new SimpleBooleanProperty(true);
@@ -39,26 +42,7 @@ public class Settings implements Serializable {
 		archiveOnDrop = new SimpleBooleanProperty(true);
 		popupLifetime = new SimpleIntegerProperty(20);
 		replyAllDblClick = new SimpleBooleanProperty(false);
-	}
-
-	public BooleanProperty showToolbar() {
-		return showToolbar;
-	}
-
-	public BooleanProperty showExcludeBox() {
-		return showExcludeBox;
-	}
-
-	public BooleanProperty archiveOnDrop() {
-		return archiveOnDrop;
-	}
-
-	public IntegerProperty popupLifetime() {
-		return popupLifetime;
-	}
-
-	public BooleanProperty replyAllDblClick() {
-		return replyAllDblClick;
+		htmlSignature = new SimpleStringProperty("");
 	}
 
 	public static void load() {
@@ -86,6 +70,9 @@ public class Settings implements Serializable {
 		if (i.hasNext()) {
 			SETTINGS.popupLifetime.set((int) i.next());
 		}
+		if (i.hasNext()) {
+			SETTINGS.htmlSignature.set((String) i.next());
+		}
 	}
 
 	public void save() {
@@ -95,11 +82,36 @@ public class Settings implements Serializable {
 		list.add(showExcludeBox.get());
 		list.add(archiveOnDrop.get());
 		list.add(popupLifetime.get());
+		list.add(htmlSignature.get());
 
 		try {
 			new SerializedFile<List<Object>>(FILENAME).save(list);
 		} catch (final IOException e) {
 			LOGGER.error("saving settings {}", FILENAME, e);
 		}
+	}
+
+	public BooleanProperty showToolbar() {
+		return showToolbar;
+	}
+
+	public BooleanProperty showExcludeBox() {
+		return showExcludeBox;
+	}
+
+	public BooleanProperty archiveOnDrop() {
+		return archiveOnDrop;
+	}
+
+	public IntegerProperty popupLifetime() {
+		return popupLifetime;
+	}
+
+	public BooleanProperty replyAllDblClick() {
+		return replyAllDblClick;
+	}
+
+	public StringProperty htmlSignature() {
+		return htmlSignature;
 	}
 }

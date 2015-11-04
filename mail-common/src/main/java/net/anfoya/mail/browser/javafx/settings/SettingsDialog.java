@@ -15,6 +15,7 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -178,6 +179,16 @@ public class SettingsDialog extends Stage {
 			}
 		});
 
+		final TextArea signatureHtml = new TextArea(Settings.getSettings().
+				htmlSignature().get().replaceAll("<br>", "\n"));
+		signatureHtml.setPrefRowCount(5);
+		signatureHtml.setPrefColumnCount(20);
+		signatureHtml.textProperty().addListener((ov, o, n) -> {
+			Settings.getSettings().htmlSignature().set(n
+					.replaceAll("<[Bb][Rr]>\\n", "<br>")
+					.replaceAll("\\n", "<br>"));
+		});
+
 		final GridPane gridPane = new GridPane();
 		gridPane.setPadding(new Insets(5));
 		gridPane.setVgap(5);
@@ -190,6 +201,7 @@ public class SettingsDialog extends Stage {
 		gridPane.addRow(i++, new Label("reply all on thread list double click"), replyAllDblClickButton);
 		gridPane.addRow(i++, new Label("archive on drop"), archOnDropButton);
 		gridPane.addRow(i++, new Label("popup lifetime in seconds (0 for permanent)"), popupLifetimeField);
+		gridPane.addRow(i++, new Label("signature (html is welcome)"), signatureHtml);
 
 		return new Tab("settings", gridPane);
 	}

@@ -44,6 +44,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.mime.MessageHelper;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
@@ -225,7 +226,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 			}
 		};
 		task.setOnFailed(e -> LOGGER.error("creating draft", e.getSource().getException()));
-		task.setOnSucceeded(e -> initComposer(false));
+		task.setOnSucceeded(e -> initComposer(false, true));
 		ThreadPool.getInstance().submitHigh(task, "creating draft");
 	}
 
@@ -238,7 +239,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		}
 		if (draft != null) {
 			// edit
-			initComposer(false);
+			initComposer(false, false);
 		} else {
 			// reply
 			try {
@@ -264,7 +265,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 			}
 		};
 		task.setOnFailed(event -> LOGGER.error("creating reply draft", event.getSource().getException()));
-		task.setOnSucceeded(e -> initComposer(true));
+		task.setOnSucceeded(e -> initComposer(true, true));
 		ThreadPool.getInstance().submitHigh(task, "creating reply draft");
 	}
 
@@ -282,11 +283,11 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 			}
 		};
 		task.setOnFailed(event -> LOGGER.error("creating forward draft", event.getSource().getException()));
-		task.setOnSucceeded(e -> initComposer(true));
+		task.setOnSucceeded(e -> initComposer(true, true));
 		ThreadPool.getInstance().submitHigh(task, "creating forward draft");
 	}
 
-	private void initComposer(final boolean quote) {
+	private void initComposer(final boolean quote, final boolean signature) {
 		final MimeMessage message = draft.getMimeMessage();
 		updateHandler.handle(null);
 
@@ -335,7 +336,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 				+ " font-size: 14px !important;"
 				+ " font-family: Lucida Grande !important;"
 				+ " color: #222222 !important;"
-				+ " background-color: #FDFDFD !important;}"
+				+ " background-color: #FDFDFD !important; }"
 				+ "p {"
 				+ " padding-left:1ex;"
 				+ " margin: 2px 0 !important; }"
@@ -352,6 +353,9 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 			sb.append(html);
 			sb.append("</blockquote>");
 			html = sb.toString();
+		}
+		if (signature) {
+			html = "<p>" + Settings.getSettings().htmlSignature().get() + "</p>" + html;
 		}
 		editor.setHtmlText(html);
 
