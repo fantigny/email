@@ -6,6 +6,7 @@ import java.util.concurrent.Future;
 import javafx.application.Platform;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
+import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
@@ -24,9 +25,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -156,25 +155,20 @@ public class SettingsDialog extends Stage {
 		author.setFont(Font.font("Amble Cn", FontWeight.BOLD, 24));
 		author.setFill(Color.web("#bbbbbb"));
 
-		final FlowPane text = new FlowPane(fishermail, version, author);
-		text.setPadding(new Insets(150, 0,0,0));
-
-		final StackPane stackPane = new StackPane();
-		stackPane.setAlignment(Pos.CENTER);
+		final FlowPane textPane = new FlowPane(fishermail, version, author);
+		textPane.setAlignment(Pos.CENTER_LEFT);
 
 		final GridPane gridPane = new GridPane();
 		gridPane.setStyle("-fx-background-color: #4d4d4d;");
-		stackPane.getChildren().add(gridPane);
 
-		gridPane.addColumn(0, image);
 		GridPane.setRowSpan(image, 2);
 		GridPane.setMargin(image, new Insets(20));
 		GridPane.setVgrow(image, Priority.ALWAYS);
 		GridPane.setValignment(image, VPos.CENTER);
+		gridPane.add(image, 0, 0);
 
-		gridPane.addColumn(1, text);
-		GridPane.setVgrow(text, Priority.ALWAYS);
-		GridPane.setValignment(text, VPos.CENTER);
+		GridPane.setVgrow(textPane, Priority.ALWAYS);
+		gridPane.add(textPane, 1, 0);
 
 		final VersionChecker checker = new VersionChecker();
 		if (!checker.isLastVersion()) {
@@ -188,12 +182,15 @@ public class SettingsDialog extends Stage {
 					UrlHelper.open("http://fishermail.wordpress.com");
 				}
 			});
-			final HBox textBox = new HBox(newLabel, urlLabel);
-			textBox.setPadding(new Insets(5, 0, 0, 10));
-			stackPane.getChildren().add(textBox);
+
+			final FlowPane newVersionPane = new FlowPane(newLabel, urlLabel);
+			newVersionPane.setPadding(new Insets(0, 0, 5, 10));
+			GridPane.setColumnSpan(newVersionPane, 2);
+			GridPane.setHalignment(newVersionPane, HPos.CENTER);
+			gridPane.add(newVersionPane, 0, 2);
 		}
 
-		return new Tab("about", stackPane);
+		return new Tab("about", gridPane);
 	}
 
 	private Tab buildSettingsTab() {
