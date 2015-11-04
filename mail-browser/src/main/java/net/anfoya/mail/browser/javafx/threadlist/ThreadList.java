@@ -112,10 +112,14 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 	}
 
 	public void load(final Set<T> includes, final Set<T> excludes, final String pattern) {
+		if (!includes.equals(this.includes)
+				|| !excludes.equals(this.excludes)
+				|| !pattern.equals(this.pattern)) {
+			this.page = 1;
+		}
 		this.includes = includes;
 		this.excludes = excludes;
 		this.pattern = pattern;
-		this.page = 1; //TODO check on external refresh >> extra list would disappear?
 		load();
 	}
 
