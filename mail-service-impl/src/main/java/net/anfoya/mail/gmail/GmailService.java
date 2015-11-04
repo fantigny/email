@@ -58,6 +58,16 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 	private static final Duration PULL_PERIOD = Duration.seconds(5);
 
+	private static final GmailTag[] SYSTEM_TAG_ORDER = {
+			GmailTag.INBOX
+			, GmailTag.UNREAD
+			, GmailTag.STARRED
+			, GmailTag.DRAFT
+			, GmailTag.SENT
+			, GmailTag.ALL
+			, GmailTag.TRASH
+	};
+
 	private ConnectionService connectionService;
 	private LabelService labelService;
 	private MessageService messageService;
@@ -331,6 +341,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 						tags.add(t);
 					}
 				}
+				sortSystemTags(tags);
 				for(final GmailTag t: alphaTags) {
 					if (!t.isSystem()) {
 						tags.add(t);
@@ -370,6 +381,19 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		} catch (final LabelException e) {
 			throw new GMailException("getting tags for section " + section.getName() + " and pattern \"", e);
 		}
+	}
+
+	private void sortSystemTags(Set<GmailTag> tags) {
+		final Set<GmailTag> sorted = new LinkedHashSet<GmailTag>();
+		for(final GmailTag t: SYSTEM_TAG_ORDER) {
+			if (tags.contains(t)) {
+				sorted.add(t);
+				tags.remove(t);
+			}
+		}
+		sorted.addAll(tags);
+		tags.clear();
+		tags.addAll(sorted);
 	}
 
 	@Override
