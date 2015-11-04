@@ -4,11 +4,11 @@ import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import net.anfoya.mail.model.SimpleThread;
-
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.MessagePartHeader;
 import com.google.api.services.gmail.model.Thread;
+
+import net.anfoya.mail.model.SimpleThread;
 
 @SuppressWarnings("serial")
 public class GmailThread extends SimpleThread {
@@ -18,9 +18,9 @@ public class GmailThread extends SimpleThread {
 			thread.getId()
 			, findSubject(thread)
 			, getMessageIds(thread)
-			, getLabelIds(thread)
-			, findFrom(thread)
-			, findDate(thread));
+			, getTagIds(thread)
+			, findSender(thread)
+			, findReceivedDate(thread));
 	}
 
 	public GmailThread(final String id, final String subject
@@ -33,7 +33,7 @@ public class GmailThread extends SimpleThread {
 		return findHeader(thread, "Subject");
 	}
 
-	private static String findFrom(final Thread thread) {
+	private static String findSender(final Thread thread) {
 		String from = findHeader(thread, "From");
 		if (from.contains(" <")) {
 			from = from.substring(0, from.indexOf(" <"));
@@ -41,7 +41,7 @@ public class GmailThread extends SimpleThread {
 		return from.replaceAll("\"", "");
 	}
 
-	private static Date findDate(final Thread thread) {
+	private static Date findReceivedDate(final Thread thread) {
 		if (thread.getMessages() != null) {
 			Date d = null;
 			for(final Message m: thread.getMessages()) {
@@ -68,15 +68,15 @@ public class GmailThread extends SimpleThread {
 		return messageIds;
 	}
 
-	private static Set<String> getLabelIds(final Thread thread) {
-		final Set<String> labelIds = new LinkedHashSet<String>();
+	private static Set<String> getTagIds(final Thread thread) {
+		final Set<String> tagIds = new LinkedHashSet<String>();
 		if (thread.getMessages() != null) {
 			for(final Message m: thread.getMessages()) {
-				labelIds.addAll(m.getLabelIds());
+				tagIds.addAll(m.getLabelIds());
 			}
 		}
 
-		return labelIds;
+		return tagIds;
 	}
 
 	private static String findHeader(final Thread thread, final String key) {
@@ -91,7 +91,7 @@ public class GmailThread extends SimpleThread {
 		final Set<String> headers = new LinkedHashSet<String>();
 		if (thread.getMessages() != null && !thread.getMessages().isEmpty()) {
 			for(final MessagePartHeader h:thread.getMessages().get(0).getPayload().getHeaders()) {
-				if (key.equals(h.getName())) {
+				if (key.equalsIgnoreCase(h.getName()) && !h.getValue().isEmpty()) {
 					headers.add(h.getValue());
 				}
 			}
