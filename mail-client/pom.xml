@@ -5,7 +5,7 @@
 	<groupId>net.anfoya</groupId>
 	<artifactId>mail-client</artifactId>
 	<packaging>jar</packaging>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.151104-alpha</version>
 	
 	<build>
 		<plugins>
@@ -17,18 +17,6 @@
 					<source>1.8</source>
 					<target>1.8</target>
 				</configuration>
-			</plugin>
-			<plugin>
-				<artifactId>maven-scm-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>getting-scm.revision</id>
-						<phase>install</phase>
-						<goals>
-							<goal>update</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 		 	<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -49,7 +37,7 @@
 							</transformers>
 							<archive>
 								<manifestEntries>
-									<Implementation-Version>${this.version}.${scm.revision}</Implementation-Version>
+									<Implementation-Version>${this.version}</Implementation-Version>
 								</manifestEntries>
 							</archive>
 						</configuration>
