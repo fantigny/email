@@ -65,13 +65,6 @@ public class SettingsDialog extends Stage {
 		tabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
 
 		setScene(new Scene(tabPane, 600, 400));
-
-		Platform.runLater(() -> {
-			final VersionChecker checker = new VersionChecker();
-			if (!checker.isLastVersion()) {
-				Notifier.INSTANCE.notifyInfo("FisherMail " + checker.getLastestVesion(), "available at fishermail.wordpress.com");
-			}
-		});
 	}
 
 	public void showAbout() {
@@ -177,25 +170,31 @@ public class SettingsDialog extends Stage {
 		GridPane.setVgrow(textPane, Priority.ALWAYS);
 		gridPane.add(textPane, 1, 0);
 
-		final VersionChecker checker = new VersionChecker();
-		if (!checker.isLastVersion()) {
-			final Label newLabel = new Label("new version (" + checker.getLastestVesion() + ") available at ");
-			newLabel.setTextFill(Color.WHITE);
-			final Label urlLabel = new Label("fishermail.wordpress.com");
-			urlLabel.setTextFill(Color.WHITE);
-			urlLabel.setCursor(Cursor.HAND);
-			urlLabel.setOnMouseClicked(e -> {
-				if (e.getClickCount() == 1 && e.getButton() == MouseButton.PRIMARY) {
-					UrlHelper.open("http://fishermail.wordpress.com");
-				}
-			});
+		ThreadPool.getInstance().submitLow(() -> {
+			final VersionChecker checker = new VersionChecker();
+			if (!checker.isLastVersion()) {
+				Platform.runLater(() -> {
+					Notifier.INSTANCE.notifyInfo("FisherMail " + checker.getLastestVesion(), "available at fishermail.wordpress.com");
 
-			final FlowPane newVersionPane = new FlowPane(newLabel, urlLabel);
-			newVersionPane.setPadding(new Insets(0, 0, 5, 10));
-			GridPane.setColumnSpan(newVersionPane, 2);
-			GridPane.setHalignment(newVersionPane, HPos.CENTER);
-			gridPane.add(newVersionPane, 0, 2);
-		}
+					final Label newLabel = new Label("new version (" + checker.getLastestVesion() + ") available at ");
+					newLabel.setTextFill(Color.WHITE);
+					final Label urlLabel = new Label("fishermail.wordpress.com");
+					urlLabel.setTextFill(Color.WHITE);
+					urlLabel.setCursor(Cursor.HAND);
+					urlLabel.setOnMouseClicked(e -> {
+						if (e.getClickCount() == 1 && e.getButton() == MouseButton.PRIMARY) {
+							UrlHelper.open("http://fishermail.wordpress.com");
+						}
+					});
+
+					final FlowPane newVersionPane = new FlowPane(newLabel, urlLabel);
+					newVersionPane.setPadding(new Insets(0, 0, 5, 10));
+					GridPane.setColumnSpan(newVersionPane, 2);
+					GridPane.setHalignment(newVersionPane, HPos.CENTER);
+					gridPane.add(newVersionPane, 0, 2);
+				});
+			}
+		}, "checking version");
 
 		return new Tab("about", gridPane);
 	}
