@@ -198,6 +198,7 @@ public class SettingsDialog extends Stage {
 
 		int i = 0;
 		gridPane.addRow(i++, new Label("signature (html is welcome)"), signatureHtml);
+		i += 3; GridPane.setRowSpan(signatureHtml, 3);
 		gridPane.addRow(i++, new Label("popup lifetime in seconds (0 for permanent)"), popupLifetimeField);
 		gridPane.addRow(i++, new Label("show tool bar"), toolButton);
 		gridPane.addRow(i++, new Label("show exclude box (restart needed)"), showExcButton);
