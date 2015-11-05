@@ -32,9 +32,9 @@ import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.Message;
 import net.anfoya.mail.service.Section;
-import net.anfoya.mail.service.SpecialTag;
 import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
+import net.anfoya.tag.model.SpecialTag;
 
 public class ThreadList<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends ListView<H> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadList.class);

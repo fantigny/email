@@ -35,18 +35,18 @@ import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.Message;
 import net.anfoya.mail.service.Section;
-import net.anfoya.mail.service.SpecialTag;
 import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
 import net.anfoya.tag.javafx.scene.section.SelectedTagsPane;
+import net.anfoya.tag.model.SpecialTag;
 
-public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C extends Contact> extends BorderPane {
+public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends BorderPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadPane.class);
 
     private static final Image FLAG = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/image/mini_flag.png"));
     private static final Image ATTACHMENT = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/image/mini_attach.png"));
 
-	private final MailService<? extends Section, T, H, M, C> mailService;
+	private final MailService<S, T, H, M, C> mailService;
 
 	private final HBox iconBox;
 	private final TextField subjectField;
@@ -64,7 +64,7 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 	private EventHandler<ActionEvent> updateHandler;
 	private EventHandler<ActionEvent> logoutHandler;
 
-	public ThreadPane(final MailService<? extends Section, T, H, M, C> mailService) {
+	public ThreadPane(final MailService<S, T, H, M, C> mailService) {
 		this.mailService = mailService;
 
 		iconBox = new HBox(5);
@@ -81,7 +81,7 @@ public class ThreadPane<T extends Tag, H extends Thread, M extends Message, C ex
 		settingsButton.setFocusTraversable(false);
 		settingsButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/settings.png"))));
 		settingsButton.setTooltip(new Tooltip("settings"));
-		settingsButton.setOnAction(event -> new SettingsDialog().show());
+		settingsButton.setOnAction(event -> new SettingsDialog<S, T>(mailService).show());
 
 		final Button signoutButton = new Button();
 		signoutButton.setFocusTraversable(false);

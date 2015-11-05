@@ -47,8 +47,8 @@ import net.anfoya.mail.gmail.service.ThreadException;
 import net.anfoya.mail.gmail.service.ThreadService;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
-import net.anfoya.mail.service.SpecialTag;
 import net.anfoya.mail.service.Tag;
+import net.anfoya.tag.model.SpecialTag;
 
 public class GmailService implements MailService<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GmailService.class);
@@ -266,6 +266,31 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	@Override
+	public Set<GmailSection> getHiddenSections() throws GMailException {
+		try {
+			final Collection<Label> labels = labelService.getAll();
+			final Set<GmailSection> hiddenSections = new TreeSet<GmailSection>();
+			for(final Label label: labels) {
+				if (GmailSection.isHidden(label)) {
+					final GmailSection section = new GmailSection(label);
+					final String sectionName = section.getName() + "/";
+					for(final Label l: labels) {
+						if (l.getName().contains(sectionName)) {
+							hiddenSections.add(section);
+							break;
+						}
+					}
+				}
+			}
+
+			LOGGER.debug("get hidden sections: {}", hiddenSections);
+			return hiddenSections;
+		} catch (final LabelException e) {
+			throw new GMailException("getting hidden sections", e);
+		}
+	}
+
+	@Override
 	public GmailTag getTag(final String id) throws GMailException {
 		try {
 			return new GmailTag(labelService.get(id));
@@ -298,6 +323,21 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			throw new GMailException("getting tags for patterns " + patterns.toString(), e);
 		}
 		return tags;
+	}
+
+	@Override
+	public Set<GmailTag> getHiddenTags() throws GMailException {
+		try {
+			final Set<GmailTag> tags = new HashSet<GmailTag>();
+			for(final Label l: labelService.getAll()) {
+				if (GmailTag.isHidden(l)) {
+					tags.add(new GmailTag(l));
+				}
+			}
+			return tags;
+		} catch (final LabelException e) {
+			throw new GMailException("getting hidden tags", e);
+		}
 	}
 
 	@Override
@@ -379,7 +419,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			LOGGER.debug("tags for section({}) tagPattern({}): {}", section == null? "": section.getPath(), tags);
 			return tags;
 		} catch (final LabelException e) {
-			throw new GMailException("getting tags for section " + section.getName() + " and pattern \"", e);
+			throw new GMailException("getting tags for section " + section.getName(), e);
 		}
 	}
 
@@ -413,7 +453,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public int getCountForTags(final Set<GmailTag> includes, final Set<GmailTag> excludes, final String pattern) throws GMailException {
 		try {
-			if (includes.isEmpty() || includes.contains(GmailTag.ALL) || includes.contains(GmailTag.SENT)) { //TODO && excludes.isEmpty() && pattern.isEmpty()) {
+			if (includes.isEmpty() ){//|| includes.contains(GmailTag.ALL) || includes.contains(GmailTag.SENT)) { //TODO && excludes.isEmpty() && pattern.isEmpty()) {
 				return 0;
 			}
 
@@ -539,6 +579,42 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			threadService.update(threadIds, labelIds, false);
 		} catch (final ThreadException e) {
 			throw new GMailException("removing tag " + tag.getName(), e);
+		}
+	}
+
+	@Override
+	public void hide(final GmailTag tag) throws GMailException {
+		try {
+			labelService.hide(tag.getId());
+		} catch (final LabelException e) {
+			throw new GMailException("hiding tag " + tag.getName(), e);
+		}
+	}
+
+	@Override
+	public void show(final GmailTag tag) throws GMailException {
+		try {
+			labelService.show(tag.getId());
+		} catch (final LabelException e) {
+			throw new GMailException("showing tag " + tag.getName(), e);
+		}
+	}
+
+	@Override
+	public void hide(final GmailSection section) throws GMailException {
+		try {
+			labelService.hide(section.getId());
+		} catch (final LabelException e) {
+			throw new GMailException("hiding section " + section.getName(), e);
+		}
+	}
+
+	@Override
+	public void show(final GmailSection section) throws GMailException {
+		try {
+			labelService.show(section.getId());
+		} catch (final LabelException e) {
+			throw new GMailException("showing section " + section.getName(), e);
 		}
 	}
 
@@ -765,11 +841,11 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 	@Override
 	public void clearCache() {
-		historyService.clearCache();
 		labelService.clearCache();
 		messageService.clearCache();
 		threadService.clearCache();
 		contactService.clearCache();
+		historyService.clearCache();
 	}
 
 	@Override

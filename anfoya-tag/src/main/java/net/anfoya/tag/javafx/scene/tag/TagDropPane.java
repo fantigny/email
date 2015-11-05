@@ -2,6 +2,9 @@ package net.anfoya.tag.javafx.scene.tag;
 
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -20,9 +23,6 @@ import net.anfoya.tag.service.Section;
 import net.anfoya.tag.service.Tag;
 import net.anfoya.tag.service.TagService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SectionDropPane.class);
 
@@ -32,7 +32,7 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 	public TagDropPane(final TagService<S, T> tagService) {
 		this.tagService = tagService;
 
-		setMaxHeight(100);
+		setMaxHeight(150);
 		getStyleClass().add("droparea-grid");
 		new DndPaneTranslationHelper(this);
 
@@ -53,6 +53,17 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 				@SuppressWarnings("unchecked")
 				final T tag = (T) e.getDragboard().getContent(DndFormat.TAG_DATA_FORMAT);
 				rename(tag);
+				e.setDropCompleted(true);
+				e.consume();
+			}
+		});
+
+		final DropArea hideArea = new DropArea("hide", DndFormat.TAG_DATA_FORMAT);
+		hideArea.setOnDragDropped(e -> {
+			if (e.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT)) {
+				@SuppressWarnings("unchecked")
+				final T tag = (T) e.getDragboard().getContent(DndFormat.TAG_DATA_FORMAT);
+				hide(tag);
 				e.setDropCompleted(true);
 				e.consume();
 			}
@@ -79,6 +90,11 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 		setColumnSpan(newSectionArea, 2);
 		setHgrow(newSectionArea, Priority.ALWAYS);
 		setVgrow(newSectionArea, Priority.ALWAYS);
+
+		addRow(2, hideArea);
+		setColumnSpan(hideArea, 2);
+		setHgrow(hideArea, Priority.ALWAYS);
+		setVgrow(hideArea, Priority.ALWAYS);
 	}
 
 	private void newSection(final T tag) {
@@ -170,6 +186,19 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 			task.setOnFailed(e -> LOGGER.error("removing tag {}", tag.getName(), e.getSource().getException()));
 			ThreadPool.getInstance().submitHigh(task, "removing tag " + tag.getName());
 		}
+	}
+
+	private void hide(final T tag) {
+		final Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				tagService.hide(tag);
+				return null;
+			}
+		};
+		task.setOnSucceeded(event -> onUpdateHandler.handle(null));
+		task.setOnFailed(e -> LOGGER.error("hiding tag {}", tag.getName(), e.getSource().getException()));
+		ThreadPool.getInstance().submitHigh(task, "hiding tag " + tag.getName());
 	}
 
 	public void setOnUpdate(final EventHandler<ActionEvent> handler) {

@@ -4,6 +4,7 @@ import java.util.Set;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.util.Callback;
+import net.anfoya.tag.model.SpecialTag;
 import net.anfoya.tag.service.TagService;
 
 public interface MailService<
@@ -24,13 +25,12 @@ public interface MailService<
 	public void addOnUpdateMessage(Callback<Void, Void> callback);
 	public void addOnNewMessage(Callback<Set<H>, Void> callback);
 
-	public T getTag(String id) throws MailException;
-	public T getSpecialTag(SpecialTag specialTag) throws MailException;
-	public T findTag(String name) throws MailException;
+	public Set<S> getHiddenSections() throws MailException;
+
+	public Set<H> findThreads(Set<T> includes, Set<T> excludes, String pattern, int pageMax) throws MailException;
 	public void addTagForThreads(T tag, Set<H> threads) throws MailException;
 	public void removeTagForThreads(T tag, Set<H> thread) throws MailException;
 
-	public Set<H> findThreads(Set<T> includes, Set<T> excludes, String pattern, int pageMax) throws MailException;
 	public void archive(Set<H> threads) throws MailException;
 	public void trash(Set<H> threads) throws MailException;
 
@@ -44,4 +44,33 @@ public interface MailService<
 
 	public C getContact();
 	public Set<C> getContacts() throws MailException;
+
+	@Override public Set<S> getSections() throws MailException;
+	@Override public int getCountForSection(S section, Set<T> includes, Set<T> excludes, String itemPattern) throws MailException;
+
+	@Override public S addSection(String name) throws MailException;
+	@Override public void remove(S Section) throws MailException;
+	@Override public S rename(S Section, String name) throws MailException;
+	@Override public void hide(S Section) throws MailException;
+	@Override public void show(S Section) throws MailException;
+
+	@Override public T findTag(String name) throws MailException;
+	@Override public T getTag(String id) throws MailException;
+	@Override public Set<T> getTags(S section) throws MailException;
+	@Override public Set<T> getTags(String pattern) throws MailException;
+	@Override public int getCountForTags(Set<T> includes, Set<T> excludes, String pattern) throws MailException;
+
+	@Override public Set<T> getHiddenTags() throws MailException;
+	@Override public T getSpecialTag(SpecialTag specialTag) throws MailException;
+
+	@Override public T addTag(String name) throws MailException;
+	@Override public void remove(T tag) throws MailException;
+	@Override public T rename(T tag, String name) throws MailException;
+	@Override public void hide(T tag) throws MailException;
+	@Override public void show(T tag) throws MailException;
+
+	@Override public T moveToSection(T tag, S section) throws MailException;
+
+	@Override public void addOnUpdateTagOrSection(Callback<Void, Void> callback);
+
 }

@@ -1,9 +1,9 @@
 package net.anfoya.mail.gmail.model;
 
+import com.google.api.services.gmail.model.Label;
+
 import net.anfoya.mail.model.SimpleSection;
 import net.anfoya.mail.service.Section;
-
-import com.google.api.services.gmail.model.Label;
 
 @SuppressWarnings("serial")
 public class GmailSection extends SimpleSection implements Section {

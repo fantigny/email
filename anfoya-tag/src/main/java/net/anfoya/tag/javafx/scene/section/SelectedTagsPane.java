@@ -13,7 +13,6 @@ import net.anfoya.tag.service.Tag;
 
 public class SelectedTagsPane<T extends Tag> extends FlowPane {
 
-	protected static final String CROSS = " X";
 	private Callback<T, Void> removeTagCallBack;
 
 	public SelectedTagsPane() {

@@ -176,6 +176,7 @@ public class HistoryService extends TimerTask {
 	public void clearCache() {
 		historyId = null;
 		new SerializedFile<BigInteger>(FILE_PREFIX + user).clear();
+		updateLabelCallBacks.forEach(c -> c.call(null));
 	}
 
 	public ReadOnlyBooleanProperty disconnected() {

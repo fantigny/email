@@ -8,15 +8,15 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-import net.anfoya.java.io.SerializedFile;
-import net.anfoya.mail.gmail.cache.CacheData;
-import net.anfoya.mail.gmail.cache.CacheException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Label;
+
+import net.anfoya.java.io.SerializedFile;
+import net.anfoya.mail.gmail.cache.CacheData;
+import net.anfoya.mail.gmail.cache.CacheException;
 
 public class LabelService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LabelService.class);
@@ -83,7 +83,7 @@ public class LabelService {
 			gmail.users().labels().update(user, labelId, label).execute();
 			return label;
 		} catch (final IOException e) {
-			throw new LabelException("renaming label (id: " + labelId + ") to \"" + name + "\"", e);
+			throw new LabelException("renaming (id: " + labelId + ") to \"" + name + "\"", e);
 		}
 	}
 
@@ -109,6 +109,36 @@ public class LabelService {
 			gmail.users().labels().delete(user, labelId).execute();
 		} catch (final IOException e) {
 			throw new LabelException("removing \"" + labelId + "\"", e);
+		}
+	}
+
+	public void hide(final String labelId) throws LabelException {
+		if (!idLabels.containsKey(labelId)) {
+			return;
+		}
+
+		try {
+			final Label label = idLabels.get(labelId);
+			label.setLabelListVisibility("labelHide");
+			label.setMessageListVisibility("hide");
+			gmail.users().labels().update(user, labelId, label).execute();
+		} catch (final IOException e) {
+			throw new LabelException("hiding \"" + labelId + "\"", e);
+		}
+	}
+
+	public void show(final String labelId) throws LabelException {
+		if (!idLabels.containsKey(labelId)) {
+			return;
+		}
+
+		try {
+			final Label label = idLabels.get(labelId);
+			label.setLabelListVisibility("labelShow");
+			label.setMessageListVisibility("show");
+			gmail.users().labels().update(user, labelId, label).execute();
+		} catch (final IOException e) {
+			throw new LabelException("showing \"" + labelId + "\"", e);
 		}
 	}
 

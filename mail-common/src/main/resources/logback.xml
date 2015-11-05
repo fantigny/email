@@ -11,6 +11,7 @@
 		</encoder>
 	</appender>
 
+  <logger name="net.anfoya.mail.gmail.service.ThreadService" level="DEBUG"/>  
 
   <!--
   <logger name="net.anfoya.mail.mime.MessageHelper" level="DEBUG"/>  

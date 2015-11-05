@@ -2,6 +2,9 @@ package net.anfoya.tag.javafx.scene.section;
 
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -18,9 +21,6 @@ import net.anfoya.tag.service.Section;
 import net.anfoya.tag.service.Tag;
 import net.anfoya.tag.service.TagService;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class SectionDropPane<S extends Section> extends GridPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SectionDropPane.class);
 
@@ -31,7 +31,6 @@ public class SectionDropPane<S extends Section> extends GridPane {
 	public SectionDropPane(final TagService<S, ? extends Tag> tagService) {
 		this.tagService = tagService;
 
-		setMaxHeight(50);
 		getStyleClass().add("droparea-grid");
 
 		final DropArea removeArea = new DropArea("remove", DndFormat.SECTION_DATA_FORMAT);
@@ -56,12 +55,30 @@ public class SectionDropPane<S extends Section> extends GridPane {
 			}
 		});
 
-		addRow(0, renameArea, removeArea);
+		final DropArea hideArea = new DropArea("hide", DndFormat.SECTION_DATA_FORMAT);
+		hideArea.setOnDragDropped(e -> {
+			if (e.getDragboard().hasContent(DndFormat.SECTION_DATA_FORMAT)) {
+				@SuppressWarnings("unchecked")
+				final S section = (S) e.getDragboard().getContent(DndFormat.SECTION_DATA_FORMAT);
+				hide(section);
+				e.setDropCompleted(true);
+				e.consume();
+			}
+		});
+
+		int i = 0;
+		addRow(i++, renameArea);
+		setColumnSpan(renameArea, 2);
 		setHgrow(renameArea, Priority.ALWAYS);
 		setVgrow(renameArea, Priority.ALWAYS);
+
+		addRow(i++, hideArea, removeArea);
+		setHgrow(hideArea, Priority.ALWAYS);
+		setVgrow(hideArea, Priority.ALWAYS);
 		setHgrow(removeArea, Priority.ALWAYS);
 		setVgrow(removeArea, Priority.ALWAYS);
 
+		setMaxHeight(50 * i);
 	}
 
 	public void setOnUpdateSection(final EventHandler<ActionEvent> handler) {
@@ -121,5 +138,18 @@ public class SectionDropPane<S extends Section> extends GridPane {
 			task.setOnFailed(e -> LOGGER.error("removing section {}", section.getName(), e.getSource().getException()));
 			ThreadPool.getInstance().submitHigh(task, "removing section " + section.getName());
 		}
+	}
+
+	private void hide(final S section) {
+		final Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				tagService.hide(section);
+				return null;
+			}
+		};
+		task.setOnSucceeded(event -> updateHandler.handle(null));
+		task.setOnFailed(e -> LOGGER.error("hiding section {}", section.getName(), e.getSource().getException()));
+		ThreadPool.getInstance().submitHigh(task, "hiding section " + section.getName());
 	}
 }

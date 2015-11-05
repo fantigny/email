@@ -10,11 +10,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
-import net.anfoya.java.cache.FileSerieSerializedMap;
-import net.anfoya.mail.gmail.cache.CacheData;
-import net.anfoya.mail.gmail.cache.CacheException;
-import net.anfoya.mail.gmail.model.GmailThread;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +22,11 @@ import com.google.api.services.gmail.model.ListThreadsResponse;
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.ModifyThreadRequest;
 import com.google.api.services.gmail.model.Thread;
+
+import net.anfoya.java.cache.FileSerieSerializedMap;
+import net.anfoya.mail.gmail.cache.CacheData;
+import net.anfoya.mail.gmail.cache.CacheException;
+import net.anfoya.mail.gmail.model.GmailThread;
 
 public class ThreadService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadService.class);
@@ -140,6 +140,7 @@ public class ThreadService {
 	}
 
 	public int count(final String query) throws ThreadException {
+		final Long COUNT_MAX = Long.valueOf(1000);
 		if (query.isEmpty()) {
 			throw new ThreadException("empty query forbidden");
 		}
@@ -148,9 +149,10 @@ public class ThreadService {
 			int count = 0;
 			ListThreadsResponse response = gmail.users().threads().list(user)
 					.setFields("nextPageToken,threads(id)")
+					.setMaxResults(COUNT_MAX)
 					.setQ(query.toString())
 					.execute();
-			while(response.getThreads() != null) {
+			while(response.getThreads() != null && count < COUNT_MAX) {
 				count += response.getThreads().size();
 				if (response.getNextPageToken() != null) {
 					final String pageToken = response.getNextPageToken();

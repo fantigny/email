@@ -4,7 +4,7 @@ import net.anfoya.javafx.scene.control.IncExcListItem;
 import net.anfoya.tag.service.Tag;
 
 public class TagListItem<T extends Tag> extends IncExcListItem {
-	private static final String COUNT_STRING = " (%d)";
+	private static final String COUNT_STRING = " (%d%s)";
 
 	private final T tag;
 
@@ -36,8 +36,9 @@ public class TagListItem<T extends Tag> extends IncExcListItem {
 
 	private void setText() {
 		String text = getTag().getName();
-		if (countProperty().get() != 0) {
-			text += String.format(COUNT_STRING, countProperty().get());
+		final int count = countProperty().get();
+		if (count != 0) {
+			text += String.format(COUNT_STRING, countProperty().get(), count < 1000? "": "+");
 		}
 		textProperty().set(text);
 	}

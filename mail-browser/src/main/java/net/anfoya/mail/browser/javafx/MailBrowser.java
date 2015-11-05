@@ -34,10 +34,10 @@ import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.Message;
 import net.anfoya.mail.service.Section;
-import net.anfoya.mail.service.SpecialTag;
 import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
 import net.anfoya.tag.javafx.scene.section.SectionListPane;
+import net.anfoya.tag.model.SpecialTag;
 
 public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends Stage {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailBrowser.class);
@@ -48,7 +48,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 
 	private SectionListPane<S, T> sectionListPane;
 	private ThreadListPane<S, T, H, M, C> threadListPane;
-	private ThreadPane<T, H, M, C> threadPane;
+	private ThreadPane<S, T, H, M, C> threadPane;
 
 	private boolean quit;
 
@@ -99,7 +99,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		threadListPane.setOnUpdateThread(e -> refreshAfterThreadUpdate());
 		splitPane.getItems().add(threadListPane);
 
-		threadPane = new ThreadPane<T, H, M, C>(mailService);
+		threadPane = new ThreadPane<S, T, H, M, C>(mailService);
 		threadPane.setFocusTraversable(false);
 		threadPane.setOnUpdateThread(e -> refreshAfterThreadUpdate());
 		threadPane.setOnLogout(e -> signout());

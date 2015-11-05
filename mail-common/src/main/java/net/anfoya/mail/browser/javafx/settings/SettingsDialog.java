@@ -16,6 +16,7 @@ import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Tab;
@@ -37,27 +38,85 @@ import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.javafx.scene.control.RemoveLabel;
 import net.anfoya.mail.browser.javafx.util.UrlHelper;
+import net.anfoya.mail.service.Contact;
+import net.anfoya.mail.service.MailService;
+import net.anfoya.mail.service.Message;
+import net.anfoya.mail.service.Section;
+import net.anfoya.mail.service.Tag;
+import net.anfoya.mail.service.Thread;
+import net.anfoya.tag.service.TagException;
 
-public class SettingsDialog extends Stage {
+public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SettingsDialog.class);
 
+	private final MailService<S, T, ? extends Thread, ? extends Message, ? extends Contact> mailService;
 	private final TabPane tabPane;
 
-	public SettingsDialog() {
+	private FlowPane hiddenSectionsPane;
+	private FlowPane hiddenTagsPane;
+
+	public SettingsDialog(MailService<S, T, ? extends Thread, ? extends Message, ? extends Contact> mailService) {
 		initStyle(StageStyle.UNIFIED);
 		setTitle("FisherMail - profile");
 		setOnCloseRequest(e -> Settings.getSettings().save());
 
+		this.mailService = mailService;
+
 		tabPane = new TabPane(buildSettingsTab(), buildAboutTab(), buildHelpTab(), buildTaskTab());
 		tabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
 
-		setScene(new Scene(tabPane, 600, 400));
+		final Scene scene = new Scene(tabPane, 600, 400);
+		scene.getStylesheets().add(getClass().getResource("/net/anfoya/mail/css/Mail.css").toExternalForm());
+
+		setScene(scene);
 	}
 
 	public void showAbout() {
 		tabPane.getSelectionModel().select(2);
 		show();
+	}
+
+	private void refreshHidden() {
+		try {
+			hiddenSectionsPane.getChildren().clear();
+			mailService.getHiddenSections().forEach(s -> {
+				final RemoveLabel label = new RemoveLabel(s.getName(), "show");
+				label.getStyleClass().add("address-label");
+				label.setOnMouseClicked(e -> {
+					try {
+						mailService.show(s);
+						refreshHidden();
+					} catch (final Exception ex) {
+						// TODO Auto-generated catch block
+						ex.printStackTrace();
+					}
+				});
+				hiddenSectionsPane.getChildren().add(label);
+			});
+		} catch (final TagException e) {
+			LOGGER.error("loading hidden sections", e);
+		}
+		try {
+			hiddenTagsPane.getChildren().clear();
+			mailService.getHiddenTags().forEach(t -> {
+				final RemoveLabel label = new RemoveLabel(t.getName(), "show");
+				label.getStyleClass().add("address-label");
+				label.setOnMouseClicked(e -> {
+					try {
+						mailService.show(t);
+						refreshHidden();
+					} catch (final Exception ex) {
+						// TODO Auto-generated catch block
+						ex.printStackTrace();
+					}
+				});
+				hiddenTagsPane.getChildren().add(label);
+			});
+		} catch (final TagException e) {
+			LOGGER.error("loading hidden tags", e);
+		}
 	}
 
 	private Tab buildTaskTab() {
@@ -191,6 +250,17 @@ public class SettingsDialog extends Stage {
 					.replaceAll("\\n", "<br>"));
 		});
 
+		hiddenSectionsPane = new FlowPane(3, 1);
+		hiddenSectionsPane.setMaxWidth(300);
+		hiddenTagsPane = new FlowPane(3, 1);
+		hiddenTagsPane.setMaxWidth(300);
+
+		final Button refreshButton = new Button("refresh");
+		refreshButton.setOnAction(e -> {
+			mailService.clearCache();
+			refreshHidden();
+		});
+
 		final GridPane gridPane = new GridPane();
 		gridPane.setPadding(new Insets(5));
 		gridPane.setVgap(5);
@@ -204,6 +274,11 @@ public class SettingsDialog extends Stage {
 		gridPane.addRow(i++, new Label("show exclude box (restart needed)"), showExcButton);
 		gridPane.addRow(i++, new Label("thread list double click replies all"), replyAllDblClickButton);
 		gridPane.addRow(i++, new Label("archive on drop"), archOnDropButton);
+		gridPane.addRow(i++, new Label("show hidden section"), hiddenSectionsPane);
+		gridPane.addRow(i++, new Label("show hidden tag"), hiddenTagsPane);
+		gridPane.addRow(i++, new Label("force data refresh"), refreshButton);
+
+		refreshHidden();
 
 		return new Tab("settings", gridPane);
 	}
