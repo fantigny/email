@@ -42,17 +42,11 @@ import net.anfoya.mail.browser.javafx.util.UrlHelper;
 public class SettingsDialog extends Stage {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SettingsDialog.class);
 
-	private static final String CSS_DATA = "<style> body {"
-			+ " margin: 7;"
-			+ " padding: 0;"
-			+ " font-family: Arial, Helvetica, sans-serif;"
-			+ " font-size: 12px;"
-			+ "} </style>";
-
 	private final TabPane tabPane;
 
 	public SettingsDialog() {
 		initStyle(StageStyle.UNIFIED);
+		setTitle("FisherMail - profile");
 		setOnCloseRequest(e -> Settings.getSettings().save());
 
 		tabPane = new TabPane(buildSettingsTab(), buildAboutTab(), buildHelpTab(), buildTaskTab());
@@ -74,49 +68,7 @@ public class SettingsDialog extends Stage {
 
 	private Tab buildHelpTab() {
 		final WebView help = new WebView();
-		help.getEngine().loadContent("<html>"
-				+ CSS_DATA
-				+ "<h4>in theory</h4>"
-				+ "<ul>	<li>tags are grouped by section</li>"
-				+ "		<li>messages are grouped by thread</li>"
-				+ "		<li>threads are meant to be sorted</li>"
-				+ "</ul>"
-				+ "<h4>drag to drop</h4>"
-				+ "<ul>	<li><b>drag down</b> your thread to reply, forward, archive</li>"
-				+ "		<li>drag a thread on the left to <b>sort</b></li>"
-				+ "		<li>drag a <b>tag</b> to customize</li>"
-				+ "		<li>...</li>"
-				+ "</ul>"
-				+ "<h4>press tab</h4>"
-				+ "<ul>	<li>once to search mails</li>"
-				+ "		<li>again to search tags</li>"
-				+ "</ul>"
-				+ "<h4>blue</h4>"
-				+ "<ul>	<li>is a color for <b>system</b> tags</li>"
-				+ "		<li>can't move them</li>"
-				+ "		<li>can't rename them</li>"
-				+ "		<li>can't delete them</li>"
-				+ "		<li>pfff...</li>"
-				+ "</ul>"
-				+ "<h4>unread me</h4>"
-				+ "<ul>	<li>by dragging the thread to <b>Unread</b> tag</li>"
-				+ "</ul>"
-				+ "<h4>be advanced</h4>"
-				+ "<ul>	<li><b>check</b> a tag to keep it in the selection</li>"
-				+ "		<li>check another tag to reduce the thread set</li>"
-				+ "</ul>"
-				+ "<h4>double click</h4>"
-				+ "<ul>	<li>on the threadlist to <b>reply</b> a thread</li>"
-				+ "		<li><b>Reply all</b> to be activated in settings</li>"
-				+ "</ul>"
-				+ "<h4>be extreme</h4>"
-				+ "<ul>	<li>show exclude box in settings and restart</li>"
-				+ "		<li>include and exclude tags as you wish</li>"
-				+ "		<li>deactivate archive on drop from settings</li>"
-				+ "		<li>hide toolbar if you dare</li>"
-				+ "		<li>cruise extreme mode</li>"
-				+ "</ul>"
-				+ "</html>");
+		help.getEngine().load(getClass().getResource("/net/anfoya/mail/javafx/settings/help.html").toString());
 
 		return new Tab("help", help);
 	}
