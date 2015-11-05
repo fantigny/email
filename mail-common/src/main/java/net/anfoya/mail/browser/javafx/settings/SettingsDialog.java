@@ -12,7 +12,6 @@ import javafx.geometry.Pos;
 import javafx.geometry.VPos;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Tab;
@@ -36,14 +35,9 @@ import javafx.stage.StageStyle;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.Notification.Notifier;
 import net.anfoya.mail.browser.javafx.util.UrlHelper;
-import net.anfoya.mail.service.Contact;
-import net.anfoya.mail.service.MailService;
-import net.anfoya.mail.service.Message;
-import net.anfoya.mail.service.Section;
-import net.anfoya.mail.service.Tag;
-import net.anfoya.mail.service.Thread;
 
 public class SettingsDialog extends Stage {
+	private static final String FISHERMAIL_URL = "fishermail.wordpress.com";
 	private static final String CSS_DATA = "<style> body {"
 			+ " margin: 7;"
 			+ " padding: 0;"
@@ -51,15 +45,11 @@ public class SettingsDialog extends Stage {
 			+ " font-size: 12px;"
 			+ "} </style>";
 
-	private final MailService<? extends Section, ? extends Tag, ? extends Thread, ? extends Message, ? extends Contact> mailService;
-
 	private final TabPane tabPane;
 
-	public SettingsDialog(final MailService<? extends Section, ? extends Tag, ? extends Thread, ? extends Message, ? extends Contact> mailService) {
+	public SettingsDialog() {
 		initStyle(StageStyle.UNIFIED);
 		setOnCloseRequest(e -> Settings.getSettings().save());
-
-		this.mailService = mailService;
 
 		tabPane = new TabPane(buildSettingsTab(), buildAboutTab(), buildHelpTab(), buildTaskTab());
 		tabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
@@ -141,13 +131,14 @@ public class SettingsDialog extends Stage {
 	}
 
 	private Tab buildAboutTab() {
+		final VersionChecker checker = new VersionChecker();
 		final ImageView image = new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png")));
 
 		final Text fishermail = new Text("FisherMail ");
 		fishermail.setFont(Font.font("Amble Cn", FontWeight.BOLD, 24));
 		fishermail.setFill(Color.web("#bbbbbb"));
 
-		final Text version = new Text(new VersionChecker().getVersion());
+		final Text version = new Text(checker.getVersion());
 		version.setFont(Font.font("Amble Cn", FontWeight.BOLD, 14));
 		version.setFill(Color.web("#bbbbbb"));
 
@@ -171,27 +162,11 @@ public class SettingsDialog extends Stage {
 		gridPane.add(textPane, 1, 0);
 
 		ThreadPool.getInstance().submitLow(() -> {
-			final VersionChecker checker = new VersionChecker();
 			if (!checker.isLastVersion()) {
+				final String latest = checker.getLastestVesion();
 				Platform.runLater(() -> {
-					Notifier.INSTANCE.notifyInfo("FisherMail " + checker.getLastestVesion(), "available at fishermail.wordpress.com");
-
-					final Label newLabel = new Label("new version (" + checker.getLastestVesion() + ") available at ");
-					newLabel.setTextFill(Color.WHITE);
-					final Label urlLabel = new Label("fishermail.wordpress.com");
-					urlLabel.setTextFill(Color.WHITE);
-					urlLabel.setCursor(Cursor.HAND);
-					urlLabel.setOnMouseClicked(e -> {
-						if (e.getClickCount() == 1 && e.getButton() == MouseButton.PRIMARY) {
-							UrlHelper.open("http://fishermail.wordpress.com");
-						}
-					});
-
-					final FlowPane newVersionPane = new FlowPane(newLabel, urlLabel);
-					newVersionPane.setPadding(new Insets(0, 0, 5, 10));
-					GridPane.setColumnSpan(newVersionPane, 2);
-					GridPane.setHalignment(newVersionPane, HPos.CENTER);
-					gridPane.add(newVersionPane, 0, 2);
+					Notifier.INSTANCE.notifyInfo("FisherMail " + latest, "available at " + FISHERMAIL_URL);
+					addVersionMessage(gridPane, latest);
 				});
 			}
 		}, "checking version");
@@ -199,10 +174,26 @@ public class SettingsDialog extends Stage {
 		return new Tab("about", gridPane);
 	}
 
-	private Tab buildSettingsTab() {
-		final Button clearCacheButton = new Button("clear cache");
-		clearCacheButton.setOnAction(e -> mailService.clearCache());
+	private void addVersionMessage(GridPane gridPane, String version) {
+		final Label newLabel = new Label("new version (" + version + ") available at ");
+		newLabel.setTextFill(Color.WHITE);
+		final Label urlLabel = new Label(FISHERMAIL_URL);
+		urlLabel.setTextFill(Color.WHITE);
+		urlLabel.setCursor(Cursor.HAND);
+		urlLabel.setOnMouseClicked(e -> {
+			if (e.getClickCount() == 1 && e.getButton() == MouseButton.PRIMARY) {
+				UrlHelper.open("http://" + FISHERMAIL_URL);
+			}
+		});
 
+		final FlowPane newVersionPane = new FlowPane(newLabel, urlLabel);
+		newVersionPane.setPadding(new Insets(0, 0, 5, 10));
+		GridPane.setColumnSpan(newVersionPane, 2);
+		GridPane.setHalignment(newVersionPane, HPos.CENTER);
+		gridPane.add(newVersionPane, 0, 2);
+	}
+
+	private Tab buildSettingsTab() {
 		final SwitchButton toolButton = new SwitchButton();
 		toolButton.setSwitchOn(Settings.getSettings().showToolbar().get());
 		toolButton.switchOnProperty().addListener((ov, o, n) -> Settings.getSettings().showToolbar().set(n));
@@ -246,13 +237,12 @@ public class SettingsDialog extends Stage {
 		gridPane.setHgap(10);
 
 		int i = 0;
-		gridPane.addRow(i++, new Label("clear cache"), clearCacheButton);
+		gridPane.addRow(i++, new Label("signature (html is welcome)"), signatureHtml);
+		gridPane.addRow(i++, new Label("popup lifetime in seconds (0 for permanent)"), popupLifetimeField);
 		gridPane.addRow(i++, new Label("show tool bar"), toolButton);
 		gridPane.addRow(i++, new Label("show exclude box (restart needed)"), showExcButton);
-		gridPane.addRow(i++, new Label("reply all on thread list double click"), replyAllDblClickButton);
+		gridPane.addRow(i++, new Label("thread list double click replies all"), replyAllDblClickButton);
 		gridPane.addRow(i++, new Label("archive on drop"), archOnDropButton);
-		gridPane.addRow(i++, new Label("popup lifetime in seconds (0 for permanent)"), popupLifetimeField);
-		gridPane.addRow(i++, new Label("signature (html is welcome)"), signatureHtml);
 
 		return new Tab("settings", gridPane);
 	}
