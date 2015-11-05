@@ -3,9 +3,13 @@ package net.anfoya.mail.browser.javafx.settings;
 import java.util.Map;
 import java.util.concurrent.Future;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javafx.application.Platform;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -33,11 +37,11 @@ import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.javafx.scene.control.Notification.Notifier;
 import net.anfoya.mail.browser.javafx.util.UrlHelper;
 
 public class SettingsDialog extends Stage {
-	private static final String FISHERMAIL_URL = "fishermail.wordpress.com";
+	private static final Logger LOGGER = LoggerFactory.getLogger(SettingsDialog.class);
+
 	private static final String CSS_DATA = "<style> body {"
 			+ " margin: 7;"
 			+ " padding: 0;"
@@ -161,15 +165,19 @@ public class SettingsDialog extends Stage {
 		GridPane.setVgrow(textPane, Priority.ALWAYS);
 		gridPane.add(textPane, 1, 0);
 
-		ThreadPool.getInstance().submitLow(() -> {
-			if (!checker.isLastVersion()) {
-				final String latest = checker.getLastestVesion();
-				Platform.runLater(() -> {
-					Notifier.INSTANCE.notifyInfo("FisherMail " + latest, "available at " + FISHERMAIL_URL);
-					addVersionMessage(gridPane, latest);
-				});
+		final Task<Boolean> isLatestTask = new Task<Boolean>() {
+			@Override
+			protected Boolean call() throws Exception {
+				return checker.isLastVersion();
 			}
-		}, "checking version");
+		};
+		isLatestTask.setOnSucceeded(e -> {
+			if (!(boolean)e.getSource().getValue()) {
+				addVersionMessage(gridPane, checker.getLastestVesion());
+			}
+		});
+		isLatestTask.setOnFailed(e -> LOGGER.error("getting latest version info", e));
+		ThreadPool.getInstance().submitLow(isLatestTask, "checking version");
 
 		return new Tab("about", gridPane);
 	}
@@ -177,12 +185,12 @@ public class SettingsDialog extends Stage {
 	private void addVersionMessage(GridPane gridPane, String version) {
 		final Label newLabel = new Label("new version (" + version + ") available at ");
 		newLabel.setTextFill(Color.WHITE);
-		final Label urlLabel = new Label(FISHERMAIL_URL);
+		final Label urlLabel = new Label(Settings.URL);
 		urlLabel.setTextFill(Color.WHITE);
 		urlLabel.setCursor(Cursor.HAND);
 		urlLabel.setOnMouseClicked(e -> {
 			if (e.getClickCount() == 1 && e.getButton() == MouseButton.PRIMARY) {
-				UrlHelper.open("http://" + FISHERMAIL_URL);
+				UrlHelper.open("http://" + Settings.URL);
 			}
 		});
 

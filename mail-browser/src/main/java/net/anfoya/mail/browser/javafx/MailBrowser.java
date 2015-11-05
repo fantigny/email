@@ -22,8 +22,10 @@ import javafx.stage.StageStyle;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.Notification.Notifier;
 import net.anfoya.mail.browser.javafx.settings.Settings;
+import net.anfoya.mail.browser.javafx.settings.VersionChecker;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
 import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
+import net.anfoya.mail.browser.javafx.util.UrlHelper;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
 import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.mime.MessageHelper;
@@ -110,15 +112,6 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
         setScene(scene);
 
 		Notifier.INSTANCE.popupLifetime().bind(Settings.getSettings().popupLifetime());
-		Notifier.INSTANCE.setCallback(v -> {
-			if (isIconified()) {
-				setIconified(false);
-			}
-			if (!isFocused()) {
-				requestFocus();
-			}
-			return null;
-		});
 	}
 
 	private void initMacOs() {
@@ -198,6 +191,27 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		titleTask.setOnSucceeded(e -> setTitle(getTitle() + " - " + e.getSource().getValue()));
 		titleTask.setOnFailed(e -> LOGGER.error("loading user's name", e.getSource().getException()));
 		ThreadPool.getInstance().submitLow(titleTask, "loading user's name");
+
+		final VersionChecker checker = new VersionChecker();
+		final Task<Boolean> isLatestTask = new Task<Boolean>() {
+			@Override
+			protected Boolean call() throws Exception {
+				return checker.isLastVersion();
+			}
+		};
+		isLatestTask.setOnSucceeded(e -> {
+			if (!(boolean)e.getSource().getValue()) {
+				Notifier.INSTANCE.notifyInfo(
+						"FisherMail " + checker.getLastestVesion()
+						, "available at " + Settings.URL
+						, v -> {
+							UrlHelper.open("http://" + Settings.URL);
+							return null;
+						});
+			}
+		});
+		isLatestTask.setOnFailed(e -> LOGGER.error("getting latest version info", e));
+		ThreadPool.getInstance().submitLow(isLatestTask, "checking version");
 	}
 
 	private final boolean notifyAfterNewMessage = true;
@@ -235,7 +249,16 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 				}
 				Platform.runLater(() -> Notifier.INSTANCE.notifySuccess(
 						t.getSubject()
-						, message));
+						, message
+						, v -> {
+							if (isIconified()) {
+								setIconified(false);
+							}
+							if (!isFocused()) {
+								requestFocus();
+							}
+							return null;
+						}));
 			}, "notifying new message");
 		});
 

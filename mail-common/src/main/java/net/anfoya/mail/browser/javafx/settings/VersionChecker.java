@@ -11,46 +11,48 @@ import org.slf4j.LoggerFactory;
 
 public class VersionChecker {
 	private static final Logger LOGGER = LoggerFactory.getLogger(VersionChecker.class);
-	private static final String VERSION_FILEPATH = "/version.txt";
-	private static final String VERSION_URL = "http://81.108.162.255/version.txt";
 
 	private static String version;
+	private static String latest;
 
 	public String getVersion() {
-		if (version != null) {
-			return version;
-		}
-
-		final StringBuilder sb = new StringBuilder();
-		final InputStream in = getClass().getResourceAsStream(VERSION_FILEPATH);
-		try (BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
-			String line;
-			while ((line = reader.readLine()) != null) {
-				sb.append(line);
+		if (version == null) {
+			final StringBuilder sb = new StringBuilder();
+			final InputStream in = getClass().getResourceAsStream(Settings.VERSION_FILEPATH);
+			try (BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
+				String line;
+				while ((line = reader.readLine()) != null) {
+					sb.append(line);
+				}
+			} catch (final IOException e) {
+				LOGGER.error("error reading version from {}", Settings.VERSION_FILEPATH, e);
 			}
-		} catch (final IOException e) {
-			LOGGER.error("error reading version from {}", VERSION_FILEPATH, e);
-		}
-		if (sb.length() != 0) {
-			version = sb.toString();
+			if (sb.length() > 0) {
+				version = sb.toString();
+			}
 		}
 
 		return version;
 	}
 
 	public String getLastestVesion() {
-		final StringBuilder sb = new StringBuilder();
-		try (BufferedReader reader = new BufferedReader(new InputStreamReader(
-				new URL(VERSION_URL).openStream()))) {
-			String line;
-			while ((line = reader.readLine()) != null) {
-				sb.append(line);
+		if (latest == null) {
+			final StringBuilder sb = new StringBuilder();
+			try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+					new URL(Settings.VERSION_URL).openStream()))) {
+				String line;
+				while ((line = reader.readLine()) != null) {
+					sb.append(line);
+				}
+			} catch (final IOException e) {
+				LOGGER.error("error reading version from {}", Settings.VERSION_URL, e);
 			}
-		} catch (final IOException e) {
-			LOGGER.error("error reading version from {}", VERSION_URL, e);
+			if (sb.length() > 0) {
+				latest = sb.toString();
+			}
 		}
 
-		return sb.toString();
+		return latest;
 	}
 
 	public boolean isLastVersion() {

@@ -57,19 +57,30 @@ public class Notification {
     public final String       TITLE;
     public final String       MESSAGE;
     public final Image        IMAGE;
+	public final Callback<Void, Void> CALLBACK;
 
 
     // ******************** Constructors **************************************
     public Notification(final String TITLE, final String MESSAGE) {
-        this(TITLE, MESSAGE, null);
+        this(TITLE, MESSAGE, null, null);
+    }
+    public Notification(final String TITLE, final String MESSAGE, final Callback<Void, Void> CALLBACK) {
+        this(TITLE, MESSAGE, null, CALLBACK);
     }
     public Notification(final String MESSAGE, final Image IMAGE) {
-        this("", MESSAGE, IMAGE);
+        this("", MESSAGE, IMAGE, null);
+    }
+    public Notification(final String MESSAGE, final Image IMAGE, final Callback<Void, Void> CALLBACK) {
+        this("", MESSAGE, IMAGE, CALLBACK);
     }
     public Notification(final String TITLE, final String MESSAGE, final Image IMAGE) {
+        this(TITLE, MESSAGE, IMAGE, null);
+    }
+    public Notification(final String TITLE, final String MESSAGE, final Image IMAGE, final Callback<Void, Void> CALLBACK) {
         this.TITLE   = TITLE;
         this.MESSAGE = MESSAGE;
         this.IMAGE   = IMAGE;
+        this.CALLBACK = CALLBACK;
     }
 
 
@@ -91,7 +102,6 @@ public class Notification {
         private ObservableList<Popup> popups;
 
         private final IntegerProperty popupLifetime = new SimpleIntegerProperty();
-        private Callback<Void, Void> actionCallback = null;
 
         // ******************** Constructor ***************************************
         private Notifier() {
@@ -186,13 +196,6 @@ public class Notification {
         }
 
         /**
-         * Set callback to be called when user click a notification
-         */
-        public void setCallback(final Callback<Void, Void> callback) {
-        	actionCallback = callback;
-        }
-
-        /**
          * Returns the Duration that the notification will stay on screen before it
          * will fade out.
          * @return the Duration the popup notification will stay on screen
@@ -230,7 +233,10 @@ public class Notification {
          * @param IMAGE
          */
         public void notify(final String TITLE, final String MESSAGE, final Image IMAGE) {
-            notify(new Notification(TITLE, MESSAGE, IMAGE));
+        	notify(TITLE, MESSAGE, IMAGE);
+        }
+        public void notify(final String TITLE, final String MESSAGE, final Image IMAGE, Callback<Void, Void> CALLBACK) {
+            notify(new Notification(TITLE, MESSAGE, IMAGE, CALLBACK));
         }
 
         /**
@@ -239,7 +245,10 @@ public class Notification {
          * @param MESSAGE
          */
         public void notifyInfo(final String TITLE, final String MESSAGE) {
-            notify(new Notification(TITLE, MESSAGE, Notification.INFO_ICON));
+        	notifyInfo(TITLE, MESSAGE, null);
+        }
+        public void notifyInfo(final String TITLE, final String MESSAGE, Callback<Void, Void> CALLBACK) {
+            notify(new Notification(TITLE, MESSAGE, Notification.INFO_ICON, CALLBACK));
         }
 
         /**
@@ -248,7 +257,10 @@ public class Notification {
          * @param MESSAGE
          */
         public void notifyWarning(final String TITLE, final String MESSAGE) {
-            notify(new Notification(TITLE, MESSAGE, Notification.WARNING_ICON));
+        	notifyWarning(TITLE, MESSAGE, null);
+        }
+        public void notifyWarning(final String TITLE, final String MESSAGE, Callback<Void, Void> CALLBACK) {
+            notify(new Notification(TITLE, MESSAGE, Notification.WARNING_ICON, CALLBACK));
         }
 
         /**
@@ -257,7 +269,10 @@ public class Notification {
          * @param MESSAGE
          */
         public void notifySuccess(final String TITLE, final String MESSAGE) {
-            notify(new Notification(TITLE, MESSAGE, Notification.SUCCESS_ICON));
+        	notifySuccess(TITLE, MESSAGE, null);
+        }
+        public void notifySuccess(final String TITLE, final String MESSAGE, Callback<Void, Void> CALLBACK) {
+            notify(new Notification(TITLE, MESSAGE, Notification.SUCCESS_ICON, CALLBACK));
         }
 
         /**
@@ -266,7 +281,10 @@ public class Notification {
          * @param MESSAGE
          */
         public void notifyError(final String TITLE, final String MESSAGE) {
-            notify(new Notification(TITLE, MESSAGE, Notification.ERROR_ICON));
+        	notifyError(TITLE, MESSAGE, null);
+        }
+        public void notifyError(final String TITLE, final String MESSAGE, Callback<Void, Void> CALLBACK) {
+            notify(new Notification(TITLE, MESSAGE, Notification.ERROR_ICON, CALLBACK));
         }
 
         /**
@@ -336,8 +354,8 @@ public class Notification {
             popupContent.setOnMouseClicked(e -> {
             	POPUP.hide();
                 popups.remove(POPUP);
-                if (actionCallback != null) {
-                	actionCallback.call(null);
+                if (NOTIFICATION.CALLBACK != null) {
+                	NOTIFICATION.CALLBACK.call(null);
                 }
             });
 

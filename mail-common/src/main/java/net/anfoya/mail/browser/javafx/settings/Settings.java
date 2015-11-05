@@ -21,6 +21,11 @@ import net.anfoya.java.io.SerializedFile;
 
 @SuppressWarnings("serial")
 public class Settings implements Serializable {
+
+	public static final String URL = "fishermail.wordpress.com";
+	public static final String VERSION_FILEPATH = "/version.txt";
+	public static final String VERSION_URL = "http://81.108.162.255/version.txt";
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(Settings.class);
 	private static final String FILENAME = System.getProperty("java.io.tmpdir") + File.separatorChar + "fsm-settings";
 
