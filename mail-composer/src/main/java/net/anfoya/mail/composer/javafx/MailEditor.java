@@ -33,6 +33,8 @@ import javafx.scene.web.HTMLEditor;
 import javafx.scene.web.WebView;
 import javafx.util.Callback;
 import net.anfoya.javafx.scene.control.HtmlEditorListener;
+import net.anfoya.javafx.scene.control.HtmlEditorToolBarHelper;
+import net.anfoya.javafx.scene.control.HtmlEditorToolBarHelper.Line;
 import net.anfoya.mail.browser.javafx.util.UrlHelper;
 
 public class MailEditor extends BorderPane {
@@ -55,6 +57,7 @@ public class MailEditor extends BorderPane {
 		removeAttachPane = new StackPane();
 
 		editor = new HTMLEditor();
+		editor.needsLayoutProperty().addListener((ov, o, n) -> cleanToolBar());
 		editor.setStyle("-fx-background-color: transparent; -fx-border-width: 0 0 1 0; -fx-border-color: lightgray; -fx-font-size: 11px;");
 		setCenter(editor);
 
@@ -126,6 +129,10 @@ public class MailEditor extends BorderPane {
 				, 1, false, false, false, false, false, false, false, false, false, false, null));
 	}
 
+	public void setOnMailtoCallback(Callback<String, Void> callback) {
+		this.onMailtoCallback = callback;
+	}
+
 	public BooleanProperty editedProperty() {
 		return editedProperty;
 	}
@@ -179,7 +186,24 @@ public class MailEditor extends BorderPane {
 		}
 	}
 
-	public void setOnMailtoCallback(Callback<String, Void> callback) {
-		this.onMailtoCallback = callback;
+	private boolean toolbarCleaned = false;
+	private synchronized void cleanToolBar() {
+		if (toolbarCleaned) {
+			return;
+		}
+		toolbarCleaned = true;
+
+		final HtmlEditorToolBarHelper helper = new HtmlEditorToolBarHelper(editor);
+		helper.hideToolBar(Line.TOP);
+
+		helper.removeItem(Line.BOTTOM, 0); //paragraph
+		helper.removeItem(Line.BOTTOM, 2); //separator
+		helper.removeItem(Line.BOTTOM, 6); //separator
+		helper.removeItem(Line.BOTTOM, 6); //insert line
+
+		helper.moveToolbarItem(Line.TOP, 15, Line.BOTTOM, 6); //bg color
+		helper.moveToolbarItem(Line.TOP, 15, Line.BOTTOM, 7); //fg color
+		helper.moveToolbarItem(Line.TOP, 12, Line.BOTTOM, 8); //bullet
+		helper.moveToolbarItem(Line.TOP, 12, Line.BOTTOM, 9); //number
 	}
 }
