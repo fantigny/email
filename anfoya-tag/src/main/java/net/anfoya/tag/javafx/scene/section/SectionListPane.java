@@ -357,9 +357,12 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 			refreshTask.cancel();
 		}
 
-		SearchPane<S, T> searchPane = null;
-		if (sectionAcc.getPanes().size() != 1
-				|| !(sectionAcc.getPanes().get(0) instanceof SearchPane)) {
+		final SearchPane<S, T> searchPane;
+		if (sectionAcc.getPanes().size() == 1 && sectionAcc.getPanes().get(0) instanceof SearchPane) {
+			@SuppressWarnings("unchecked")
+			SearchPane<S, T> sp = (SearchPane<S, T>) sectionAcc.getPanes().get(0);
+			searchPane = sp;
+		} else {
 			searchPane = new SearchPane<S, T>(tagService, showExcludeBox);
 			searchPane.setOnSelectTag(selectTagHandler);
 			searchPane.setOnUpdateSection(updateSectionHandler);
