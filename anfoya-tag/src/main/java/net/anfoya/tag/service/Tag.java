@@ -12,5 +12,6 @@ public interface Tag extends Serializable {
 	public SimpleTag copyWithId(final String id);
 	public String getId();
 	public String getName();
+	public String getPath();
 	public boolean isSystem();
 }

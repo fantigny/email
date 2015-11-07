@@ -327,10 +327,13 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public Set<GmailTag> getHiddenTags() throws GMailException {
 		try {
-			final Set<GmailTag> tags = new HashSet<GmailTag>();
-			for(final Label l: labelService.getAll()) {
+			final Set<GmailTag> tags = new TreeSet<GmailTag>();
+			final Collection<Label> labels = labelService.getAll();
+			for(final Label l: labels) {
 				if (GmailTag.isHidden(l)) {
-					tags.add(new GmailTag(l));
+					if (!hasSubLabel(l, labels)) {
+						tags.add(new GmailTag(l));
+					}
 				}
 			}
 			return tags;
@@ -359,17 +362,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 					}
 					if (!name.contains("/")) {
 						// root tags, put them here if no sub-tag
-						boolean hasSubTag = false;
-						for(final Label l: labels) {
-							final String n = l.getName();
-							if (!n.equals(name)
-									&& n.contains(name + "/")
-									&& name.indexOf("/") == name.lastIndexOf("/")) {
-								hasSubTag = true;
-								break;
-							}
-						}
-						if (!hasSubTag) {
+						if (!hasSubLabel(label, labels)) {
 							alphaTags.add(new GmailTag(label));
 						}
 					}
@@ -420,6 +413,19 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		} catch (final LabelException e) {
 			throw new GMailException("getting tags for section " + section.getName(), e);
 		}
+	}
+
+	private boolean hasSubLabel(Label label, Collection<Label> labels) {
+		final String name = label.getName();
+		for(final Label l: labels) {
+			final String n = l.getName();
+			if (!n.equals(name)
+					&& n.contains(name + "/")
+					&& name.indexOf("/") == name.lastIndexOf("/")) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private void sortSystemTags(Set<GmailTag> tags) {

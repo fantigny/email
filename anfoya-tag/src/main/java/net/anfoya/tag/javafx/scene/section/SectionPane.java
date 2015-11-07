@@ -58,7 +58,7 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 		if (section == null) {
 			this.sectionItem = null;
 		} else {
-			this.sectionItem = new TagListItem<Tag>(new SimpleTag(section.getId(), section.getName(), section.isSystem()));
+			this.sectionItem = new TagListItem<Tag>(new SimpleTag(section.getId(), section.getName(), section.getName(), section.isSystem()));
 		}
 
 		tagList = new TagList<S, T>(tagService, section, showExcludeBox);
@@ -215,7 +215,8 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 			}
 			incExcBox.includedProperty().bindBidirectional(sectionItem.includedProperty());
 			incExcBox.excludedProperty().bindBidirectional(sectionItem.excludedProperty());
-			this.sectionItem = new TagListItem<Tag>(new SimpleTag(sectionItem.getTag().getId(), sectionItem.getTag().getName(), true));
+			final Tag tag = sectionItem.getTag();
+			this.sectionItem = new TagListItem<Tag>(new SimpleTag(tag.getId(), tag.getName(), tag.getName(), true));
 		}
 	}
 

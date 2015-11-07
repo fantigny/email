@@ -24,7 +24,7 @@ public class MailClient extends Application {
 
 	@Override
 	public void init() throws Exception {
-		Settings.load();
+		Settings.getSettings().load();
 		gmail = new GmailService();
 		try {
 			gmail.connect(App.MAIL_CLIENT);

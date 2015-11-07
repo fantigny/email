@@ -50,7 +50,7 @@ public class Settings implements Serializable {
 		htmlSignature = new SimpleStringProperty("");
 	}
 
-	public static void load() {
+	public void load() {
 		final List<Object> list;
 		try {
 			list = new SerializedFile<List<Object>>(FILENAME).load();
@@ -64,22 +64,22 @@ public class Settings implements Serializable {
 
 		final Iterator<Object> i = list.iterator();
 		if (i.hasNext()) {
-			SETTINGS.showToolbar.set((boolean) i.next());
+			showToolbar.set((boolean) i.next());
 		}
 		if (i.hasNext()) {
-			SETTINGS.showExcludeBox.set((boolean) i.next());
+			showExcludeBox.set((boolean) i.next());
 		}
 		if (i.hasNext()) {
-			SETTINGS.archiveOnDrop.set((boolean) i.next());
+			archiveOnDrop.set((boolean) i.next());
 		}
 		if (i.hasNext()) {
-			SETTINGS.popupLifetime.set((int) i.next());
+			popupLifetime.set((int) i.next());
 		}
 		if (i.hasNext()) {
-			SETTINGS.htmlSignature.set((String) i.next());
+			htmlSignature.set((String) i.next());
 		}
 		if (i.hasNext()) {
-			SETTINGS.replyAllDblClick.set((Boolean) i.next());
+			replyAllDblClick.set((Boolean) i.next());
 		}
 	}
 

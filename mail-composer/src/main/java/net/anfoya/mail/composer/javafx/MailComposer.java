@@ -114,9 +114,11 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		ccListBox = new RecipientListPane<C>("cc/bcc: ");
 		ccListBox.setFocusTraversable(false);
 		ccListBox.setOnUpdateList(e -> editedProperty.set(true));
+		HBox.setHgrow(ccListBox, Priority.ALWAYS);
 
 		bccListBox = new RecipientListPane<C>("bcc: ");
 		bccListBox.setOnUpdateList(e -> editedProperty.set(true));
+		HBox.setHgrow(bccListBox, Priority.ALWAYS);
 
 		final Label subject = new Label("subject:");
 		subject.setStyle("-fx-text-fill: gray");
@@ -263,7 +265,6 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
-				LOGGER.warn(message.getMimeMessage().getReplyTo()[0].toString());
 				final MimeMessage reply = (MimeMessage) message.getMimeMessage().reply(all);
 				reply.setContent(message.getMimeMessage().getContent(), message.getMimeMessage().getContentType());
 				reply.saveChanges();

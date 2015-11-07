@@ -1,9 +1,9 @@
 package net.anfoya.mail.gmail.model;
 
+import com.google.api.services.gmail.model.Label;
+
 import net.anfoya.mail.model.SimpleTag;
 import net.anfoya.mail.service.Tag;
-
-import com.google.api.services.gmail.model.Label;
 
 @SuppressWarnings("serial")
 public class GmailTag extends SimpleTag implements Tag {
@@ -15,8 +15,6 @@ public class GmailTag extends SimpleTag implements Tag {
 	public static final GmailTag STARRED = new GmailTag("STARRED", "Flagged", "STARRED", true);
 	public static final GmailTag SPAM = new GmailTag("SPAM", "Spam", "SPAM", true);
 	public static final GmailTag TRASH = new GmailTag("TRASH", "Bin", "TRASH", true);
-
-	private final String path;
 
 	public static boolean isHidden(final Label label) {
 		return label != null
@@ -36,15 +34,16 @@ public class GmailTag extends SimpleTag implements Tag {
 		if (isSystem(label)) {
 			name = name.contains("CATEGORY_")? name.substring(9): name;
 			name = name.charAt(0) + name.substring(1).toLowerCase();
-			if (ALL.getId().equals(label.getId())) {
+			final String labelId = label.getId();
+			if (ALL.getId().equals(labelId)) {
 				name = ALL.getName();
-			} else if (UNREAD.getId().equals(label.getId())) {
+			} else if (UNREAD.getId().equals(labelId)) {
 				name = UNREAD.getName();
-			} else if (INBOX.getId().equals(label.getId())) {
+			} else if (INBOX.getId().equals(labelId)) {
 				name = INBOX.getName();
-			} else if (SENT.getId().equals(label.getId())) {
+			} else if (SENT.getId().equals(labelId)) {
 				name = SENT.getName();
-			} else if (STARRED.getId().equals(label.getId())) {
+			} else if (STARRED.getId().equals(labelId)) {
 				name = STARRED.getName();
 			}
 		}
@@ -56,11 +55,6 @@ public class GmailTag extends SimpleTag implements Tag {
 	}
 
 	public GmailTag(final String id, final String name, final String path, final boolean system) {
-		super(id, name, system);
-		this.path = path;
-	}
-
-	public String getPath() {
-		return path;
+		super(id, name, path, system);
 	}
 }

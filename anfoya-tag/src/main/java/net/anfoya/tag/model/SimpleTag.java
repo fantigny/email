@@ -8,15 +8,17 @@ public class SimpleTag implements Tag, Comparable<SimpleTag> {
 
 	private final String id;
 	private final String name;
+	private final String path;
 	private final boolean system;
 	private final int hash;
 
 	public SimpleTag() {
-		this("n/d", "n/d", false);
+		this("n/d", "n/d", "n/d", false);
 	}
-	public SimpleTag(final String id, final String name, final boolean system) {
+	public SimpleTag(final String id, final String name, String path, final boolean system) {
 		this.id = id;
 		this.name = name;
+		this.path = path;
 		this.system = system;
 		this.hash = id.hashCode();
 	}
@@ -49,7 +51,7 @@ public class SimpleTag implements Tag, Comparable<SimpleTag> {
 
 	@Override
 	public SimpleTag copyWithId(final String id) {
-		return new SimpleTag(id, getName(), isSystem());
+		return new SimpleTag(id, getName(), getPath(), isSystem());
 	}
 
 	//TODO should not need an id?
@@ -61,6 +63,11 @@ public class SimpleTag implements Tag, Comparable<SimpleTag> {
 	@Override
 	public String getName() {
 		return name;
+	}
+
+	@Override
+	public String getPath() {
+		return path;
 	}
 
 	@Override

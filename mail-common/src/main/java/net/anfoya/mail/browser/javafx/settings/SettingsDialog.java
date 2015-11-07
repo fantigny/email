@@ -19,6 +19,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TabPane.TabClosingPolicy;
@@ -76,47 +77,6 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 	public void showAbout() {
 		tabPane.getSelectionModel().select(2);
 		show();
-	}
-
-	private void refreshHidden() {
-		try {
-			hiddenSectionsPane.getChildren().clear();
-			mailService.getHiddenSections().forEach(s -> {
-				final RemoveLabel label = new RemoveLabel(s.getName(), "show");
-				label.getStyleClass().add("address-label");
-				label.setOnMouseClicked(e -> {
-					try {
-						mailService.show(s);
-						refreshHidden();
-					} catch (final Exception ex) {
-						// TODO Auto-generated catch block
-						ex.printStackTrace();
-					}
-				});
-				hiddenSectionsPane.getChildren().add(label);
-			});
-		} catch (final TagException e) {
-			LOGGER.error("loading hidden sections", e);
-		}
-		try {
-			hiddenTagsPane.getChildren().clear();
-			mailService.getHiddenTags().forEach(t -> {
-				final RemoveLabel label = new RemoveLabel(t.getName(), "show");
-				label.getStyleClass().add("address-label");
-				label.setOnMouseClicked(e -> {
-					try {
-						mailService.show(t);
-						refreshHidden();
-					} catch (final Exception ex) {
-						// TODO Auto-generated catch block
-						ex.printStackTrace();
-					}
-				});
-				hiddenTagsPane.getChildren().add(label);
-			});
-		} catch (final TagException e) {
-			LOGGER.error("loading hidden tags", e);
-		}
 	}
 
 	private Tab buildTaskTab() {
@@ -267,19 +227,76 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		gridPane.setHgap(10);
 
 		int i = 0;
-		gridPane.addRow(i++, new Label("signature (html is welcome)"), signatureHtml);
-		i += 3; GridPane.setRowSpan(signatureHtml, 3);
-		gridPane.addRow(i++, new Label("popup lifetime in seconds (0 for permanent)"), popupLifetimeField);
-		gridPane.addRow(i++, new Label("show tool bar"), toolButton);
-		gridPane.addRow(i++, new Label("show exclude box (restart needed)"), showExcButton);
-		gridPane.addRow(i++, new Label("thread list double click replies all"), replyAllDblClickButton);
-		gridPane.addRow(i++, new Label("archive on drop"), archOnDropButton);
-		gridPane.addRow(i++, new Label("hidden section"), hiddenSectionsPane);
-		gridPane.addRow(i++, new Label("hidden tag"), hiddenTagsPane);
-		gridPane.addRow(i++, new Label("reset cached data"), refreshButton);
+		gridPane.add(new Label("signature (html is welcome)")					, 0, i, 1, 1);
+		gridPane.add(signatureHtml												, 1, i, 1, 2);
+		i += 2;
+		gridPane.add(new Label("popup lifetime in seconds (0 for permanent)")	, 0, i, 1, 1);
+		gridPane.add(popupLifetimeField											, 1, i, 1, 1);
+		i++;
+		gridPane.add(new Label("show tool bar")									, 0, i, 1, 1);
+		gridPane.add(toolButton													, 1, i, 1, 1);
+		i++;
+		gridPane.add(new Label("show exclude box (restart needed)")				, 0, i, 1, 1);
+		gridPane.add(showExcButton												, 1, i, 1, 1);
+		i++;
+		gridPane.add(new Label("thread list double click replies all")			, 0, i, 1, 1);
+		gridPane.add(replyAllDblClickButton										, 1, i, 1, 1);
+		i++;
+		gridPane.add(new Label("archive on drop")								, 0, i, 1, 1);
+		gridPane.add(archOnDropButton											, 1, i, 1, 1);
+		i++;
+		gridPane.add(new Label("hidden section")								, 0, i, 1, 1);
+		gridPane.add(hiddenSectionsPane											, 1, i, 1, 2);
+		i += 2;
+		gridPane.add(new Label("hidden tag")									, 0, i, 1, 1);
+		gridPane.add(hiddenTagsPane												, 1, i, 1, 2);
+		i += 2;
+		gridPane.add(new Label("reset cached data")								, 0, i, 1, 1);
+		gridPane.add(refreshButton												, 1, i, 1, 1);
 
 		refreshHidden();
 
-		return new Tab("settings", gridPane);
+		return new Tab("settings", new ScrollPane(gridPane));
+	}
+
+	private void refreshHidden() {
+		try {
+			hiddenSectionsPane.getChildren().clear();
+			mailService.getHiddenSections().forEach(s -> {
+				final RemoveLabel label = new RemoveLabel(s.getName(), "show");
+				label.getStyleClass().add("address-label");
+				label.setOnMouseClicked(e -> {
+					try {
+						mailService.show(s);
+						refreshHidden();
+					} catch (final Exception ex) {
+						// TODO Auto-generated catch block
+						ex.printStackTrace();
+					}
+				});
+				hiddenSectionsPane.getChildren().add(label);
+			});
+		} catch (final TagException e) {
+			LOGGER.error("loading hidden sections", e);
+		}
+		try {
+			hiddenTagsPane.getChildren().clear();
+			mailService.getHiddenTags().forEach(t -> {
+				final RemoveLabel label = new RemoveLabel(t.getPath(), "show");
+				label.getStyleClass().add("address-label");
+				label.setOnMouseClicked(e -> {
+					try {
+						mailService.show(t);
+						refreshHidden();
+					} catch (final Exception ex) {
+						// TODO Auto-generated catch block
+						ex.printStackTrace();
+					}
+				});
+				hiddenTagsPane.getChildren().add(label);
+			});
+		} catch (final TagException e) {
+			LOGGER.error("loading hidden tags", e);
+		}
 	}
 }
