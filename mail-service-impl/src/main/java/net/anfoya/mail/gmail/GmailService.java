@@ -78,7 +78,6 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	private final ReadOnlyBooleanWrapper disconnected;
 
 	private String address;
-	private GmailContact contact;
 
 	public GmailService() {
 		disconnected = new ReadOnlyBooleanWrapper(true);
@@ -453,7 +452,11 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public int getCountForTags(final Set<GmailTag> includes, final Set<GmailTag> excludes, final String pattern) throws GMailException {
 		try {
-			if (includes.isEmpty() ){//|| includes.contains(GmailTag.ALL) || includes.contains(GmailTag.SENT)) { //TODO && excludes.isEmpty() && pattern.isEmpty()) {
+			if (includes.isEmpty()){//|| ) { //TODO && excludes.isEmpty() && pattern.isEmpty()) {
+				return 0;
+			}
+			if ((includes.contains(GmailTag.ALL) || includes.contains(GmailTag.SENT))
+					&& pattern.isEmpty()) {
 				return 0;
 			}
 
@@ -799,6 +802,20 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	@Override
+	public synchronized GmailContact getContact() {
+		try {
+			for(final GmailContact c: getContacts()) {
+				if (c.getEmail().equals(address)) {
+					return c;
+				}
+			}
+		} catch (final GMailException e) {
+			LOGGER.error("loading personal contact", e);
+		}
+		return new GmailContact(address, "");
+	}
+
+	@Override
 	public Set<GmailContact> getContacts() throws GMailException {
 		try {
 			final Set<GmailContact> contacts = new LinkedHashSet<GmailContact>();
@@ -861,25 +878,5 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		case DRAFT:		return GmailTag.DRAFT;
 		}
 		return null;
-	}
-
-	@Override
-	public synchronized GmailContact getContact() {
-		if (contact == null) {
-			try {
-				for(final GmailContact c: getContacts()) {
-					if (c.getEmail().equals(address)) {
-						contact = c;
-						break;
-					}
-				}
-			} catch (final GMailException e) {
-				LOGGER.error("loading personal contact", e);
-			}
-			if (contact == null) {
-				contact = new GmailContact(address, "");
-			}
-		}
-		return contact;
 	}
 }
