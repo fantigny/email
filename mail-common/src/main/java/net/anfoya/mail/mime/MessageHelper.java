@@ -95,8 +95,7 @@ public class MessageHelper {
 		final Object content = part.getContent();
 		final String type = part.getContentType()
 				.toLowerCase()
-				.replaceAll("\\r", "")
-				.replaceAll("\\n", "")
+				.replaceAll("[\\r,\\n]", "")
 				.replaceAll("\\t", " ");
 		isHtml = isHtml || type.contains("multipart/alternative");
 		LOGGER.info("isHtml({}) type({}) part/content({}/{})", isHtml, type, part.getClass(), content.getClass());

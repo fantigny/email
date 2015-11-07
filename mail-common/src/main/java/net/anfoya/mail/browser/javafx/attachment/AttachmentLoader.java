@@ -1,4 +1,4 @@
-package net.anfoya.mail.browser.javafx.message;
+package net.anfoya.mail.browser.javafx.attachment;
 
 import java.awt.Desktop;
 import java.io.File;
@@ -41,28 +41,36 @@ public class AttachmentLoader<M extends Message> {
 		destinationFolder = new File(DOWNLOADS).exists()? DOWNLOADS: TEMP;
 	}
 
-	public void start(final String name) throws MailException, UnsupportedEncodingException, IOException, MessagingException {
+	public void start(final String filename) throws MailException, UnsupportedEncodingException, IOException, MessagingException {
+		LOGGER.info("opening attachment {} for message {}", filename, messageId);
+		final String filepath = saveAttachment(filename);
+		LOGGER.info("starting {}", filepath);
+		try {
+			Desktop.getDesktop().open(new File(filepath));
+		} catch (final IOException e) {
+			LOGGER.error("starting {}", filepath, e);
+		}
+	}
+	
+	public String saveAttachment(final String name) throws MailException, UnsupportedEncodingException, IOException, MessagingException {
 		LOGGER.info("downloading attachment {} for message {}", name, messageId);
 		final M message = mailService.getMessage(messageId);
-		final String filename = saveAttachment(message.getMimeMessage(), name);
-		LOGGER.info("starting {}", filename);
-		try {
-			Desktop.getDesktop().open(new File(filename));
-		} catch (final IOException e) {
-			LOGGER.error("starting {}", filename, e);
-		}
+		return saveAttachment(message.getMimeMessage(), name);
 	}
 
 	private String saveAttachment(final Part part, final String name) throws UnsupportedEncodingException, IOException, MessagingException {
-		final String type = part.getContentType().replaceAll("\\r", "").replaceAll("\\n", "").replaceAll("\\t", " ");
+		final String type = part.getContentType()
+				.toLowerCase()
+				.replaceAll("[\\r,\\n]", "")
+				.replaceAll("\\t", " ");
 		if (part instanceof Multipart || type.contains("multipart")) {
 			LOGGER.debug("++++ type {}", type);
 			final Multipart parts = (Multipart) part.getContent();
-			String html = "";
+			String path = "";
 			for(int i=0, n=parts.getCount(); i<n; i++) {
-				html += saveAttachment(parts.getBodyPart(i), name);
+				path += saveAttachment(parts.getBodyPart(i), name);
 			}
-			return html;
+			return path;
 		} else if (part instanceof MimeBodyPart
 				&& part.getContent() instanceof BASE64DecoderStream
 				&& part.getDisposition() == null || MimeBodyPart.ATTACHMENT.equalsIgnoreCase(part.getDisposition())) {

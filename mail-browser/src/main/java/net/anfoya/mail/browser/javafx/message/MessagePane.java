@@ -42,6 +42,7 @@ import javafx.scene.web.WebView;
 import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.web.WebViewFitContent;
+import net.anfoya.mail.browser.javafx.attachment.AttachmentLoader;
 import net.anfoya.mail.browser.javafx.thread.ThreadDropPane;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
 import net.anfoya.mail.browser.javafx.util.UrlHelper;

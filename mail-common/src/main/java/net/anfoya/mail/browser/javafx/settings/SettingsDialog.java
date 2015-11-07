@@ -255,7 +255,7 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		hiddenTagsPane = new FlowPane(3, 1);
 		hiddenTagsPane.setMaxWidth(300);
 
-		final Button refreshButton = new Button("refresh");
+		final Button refreshButton = new Button("boom!");
 		refreshButton.setOnAction(e -> {
 			mailService.clearCache();
 			refreshHidden();
@@ -274,9 +274,9 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		gridPane.addRow(i++, new Label("show exclude box (restart needed)"), showExcButton);
 		gridPane.addRow(i++, new Label("thread list double click replies all"), replyAllDblClickButton);
 		gridPane.addRow(i++, new Label("archive on drop"), archOnDropButton);
-		gridPane.addRow(i++, new Label("show hidden section"), hiddenSectionsPane);
-		gridPane.addRow(i++, new Label("show hidden tag"), hiddenTagsPane);
-		gridPane.addRow(i++, new Label("force data refresh"), refreshButton);
+		gridPane.addRow(i++, new Label("hidden section"), hiddenSectionsPane);
+		gridPane.addRow(i++, new Label("hidden tag"), hiddenTagsPane);
+		gridPane.addRow(i++, new Label("reset cached data"), refreshButton);
 
 		refreshHidden();
 

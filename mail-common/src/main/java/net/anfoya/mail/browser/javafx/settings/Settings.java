@@ -78,6 +78,9 @@ public class Settings implements Serializable {
 		if (i.hasNext()) {
 			SETTINGS.htmlSignature.set((String) i.next());
 		}
+		if (i.hasNext()) {
+			SETTINGS.replyAllDblClick.set((Boolean) i.next());
+		}
 	}
 
 	public void save() {
@@ -88,6 +91,7 @@ public class Settings implements Serializable {
 		list.add(archiveOnDrop.get());
 		list.add(popupLifetime.get());
 		list.add(htmlSignature.get());
+		list.add(replyAllDblClick.get());
 
 		try {
 			new SerializedFile<List<Object>>(FILENAME).save(list);
