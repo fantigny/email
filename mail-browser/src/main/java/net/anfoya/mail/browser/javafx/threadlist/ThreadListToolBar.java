@@ -10,7 +10,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 
-public class ThreadToolBar extends ToolBar {
+public class ThreadListToolBar extends ToolBar {
 
 	private final Button replyButton;
 	private final Button replyAllButton;
@@ -20,7 +20,7 @@ public class ThreadToolBar extends ToolBar {
 	private final Button trashButton;
 	private final Button spamButton;
 
-	public ThreadToolBar() {
+	public ThreadListToolBar() {
 		replyButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/reply.png"))));
 		replyButton.setTooltip(new Tooltip("reply"));
 

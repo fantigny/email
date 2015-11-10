@@ -104,7 +104,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		HBox.setHgrow(patternField, Priority.ALWAYS);
 		topBox.getChildren().add(firstLineBox);
 
-		final ThreadToolBar toolbar = new ThreadToolBar();
+		final ThreadListToolBar toolbar = new ThreadListToolBar();
 		toolbar.setFocusTraversable(false);
 		toolbar.setPadding(new Insets(0));
 		toolbar.setOnReply(e -> replySelected(false));
