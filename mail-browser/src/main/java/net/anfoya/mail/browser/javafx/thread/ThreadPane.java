@@ -99,15 +99,15 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		threadDropPane.prefWidthProperty().bind(stackPane.widthProperty());
 
 		stackPane.setOnDragEntered(e -> {
-			if ((e.getDragboard().hasContent(ThreadListPane.DND_THREADS_DATA_FORMAT) || e.getDragboard().hasContent(ThreadDropPane.MESSAGE_DATA_FORMAT))
+			if ((e.getDragboard().hasContent(ThreadListPane.DND_THREADS_DATA_FORMAT)
+						|| e.getDragboard().hasContent(ThreadDropPane.MESSAGE_DATA_FORMAT))
 					&& !stackPane.getChildren().contains(threadDropPane)) {
 				threadDropPane.init(e.getDragboard());
 				stackPane.getChildren().add(threadDropPane);
 			}
 		});
 		stackPane.setOnDragExited(e -> {
-			if ((e.getDragboard().hasContent(ThreadListPane.DND_THREADS_DATA_FORMAT) || e.getDragboard().hasContent(ThreadDropPane.MESSAGE_DATA_FORMAT))
-					&& stackPane.getChildren().contains(threadDropPane)) {
+			if (stackPane.getChildren().contains(threadDropPane)) {
 				stackPane.getChildren().remove(threadDropPane);
 			}
 		});

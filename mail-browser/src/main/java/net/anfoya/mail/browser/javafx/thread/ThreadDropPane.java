@@ -4,8 +4,6 @@ import static net.anfoya.mail.browser.javafx.threadlist.ThreadListPane.DND_THREA
 
 import java.util.Set;
 
-import javax.mail.internet.MimeMessage;
-
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
 import javafx.scene.layout.GridPane;
@@ -15,7 +13,7 @@ import net.anfoya.mail.service.Message;
 import net.anfoya.mail.service.Thread;
 
 public class ThreadDropPane<H extends Thread, M extends Message> extends GridPane {
-	public static final DataFormat MESSAGE_DATA_FORMAT = new DataFormat(MimeMessage.class.getCanonicalName());
+	public static final DataFormat MESSAGE_DATA_FORMAT = new DataFormat("MESSAGE_DATA_FORMAT");
 	private final DropArea newThreadArea;
 	private final DropArea addThreadArea;
 

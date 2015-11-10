@@ -15,12 +15,12 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
+import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
@@ -40,7 +40,6 @@ import net.anfoya.mail.browser.javafx.util.UrlHelper;
 public class MailEditor extends BorderPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailEditor.class);
     private static final Image ATTACHMENT = new Image(MailEditor.class.getResourceAsStream("/net/anfoya/mail/image/attachment.png"));
-    private static final DataFormat DND_REMOVE_FILE_DATA_FORMAT = new DataFormat("DND_REMOVE_FILE_DATA_FORMAT");
 
 	private final HTMLEditor editor;
 	private final WebView editorView;
@@ -49,17 +48,17 @@ public class MailEditor extends BorderPane {
 	private final FlowPane attachmentPane;
 	private final Set<File> attachments;
 
-	private final StackPane removeAttachPane;
-
 	private Callback<String, Void> onMailtoCallback;
 
 	public MailEditor() {
-		removeAttachPane = new StackPane();
+		final StackPane stackPane = new StackPane();
+		stackPane.setAlignment(Pos.BOTTOM_CENTER);
+		setCenter(stackPane);
 
 		editor = new HTMLEditor();
 		editor.needsLayoutProperty().addListener((ov, o, n) -> cleanToolBar());
 		editor.setStyle("-fx-background-color: transparent; -fx-border-width: 0 0 1 0; -fx-border-color: lightgray; -fx-font-size: 11px;");
-		setCenter(editor);
+		stackPane.getChildren().add(editor);
 
 		editedProperty = new SimpleBooleanProperty();
 		editedProperty.bindBidirectional(new HtmlEditorListener(editor).editedProperty());
@@ -69,24 +68,14 @@ public class MailEditor extends BorderPane {
 
 		attachments = new LinkedHashSet<File>();
 
-		removeAttachPane.setStyle("-fx-background-color: grey");
-		removeAttachPane.setOnDragExited(e -> setCenter(editor));
-		removeAttachPane.setOnDragOver(e -> {
-			final Dragboard db = e.getDragboard();
-			if (db.hasContent(DND_REMOVE_FILE_DATA_FORMAT)) {
-				e.acceptTransferModes(TransferMode.COPY);
-			} else {
-				e.consume();
+		final AttchDropPane attachDropPane = new AttchDropPane();
+		attachDropPane.prefWidthProperty().bind(stackPane.widthProperty());
+		attachDropPane.setOnRemove(f -> removeAttachment(f));
+
+		stackPane.setOnDragExited(e -> {
+			if (stackPane.getChildren().contains(attachDropPane)) {
+				stackPane.getChildren().remove(attachDropPane);
 			}
-		});
-		removeAttachPane.setOnDragDropped(e -> {
-			final Dragboard db = e.getDragboard();
-			final boolean remove = db.hasContent(DND_REMOVE_FILE_DATA_FORMAT);
-			if (remove) {
-				removeAttachment((File) db.getContent(DND_REMOVE_FILE_DATA_FORMAT));
-			}
-			e.setDropCompleted(remove);
-			e.consume();
 		});
 
 		editorView = (WebView) editor.lookup(".web-view");
@@ -94,8 +83,9 @@ public class MailEditor extends BorderPane {
 			final Dragboard db = e.getDragboard();
 			if (db.hasFiles()) {
 				e.acceptTransferModes(TransferMode.COPY);
-			} else if (db.hasContent(DND_REMOVE_FILE_DATA_FORMAT)) {
-				setCenter(removeAttachPane);
+			} else if (db.hasContent(AttchDropPane.FILE_DATA_FORMAT)
+					&& !stackPane.getChildren().contains(attachDropPane)) {
+				stackPane.getChildren().add(attachDropPane);
 			} else {
 				e.consume();
 			}
@@ -167,13 +157,13 @@ public class MailEditor extends BorderPane {
 		});
 		attachment.setOnDragDetected(e -> {
 			final ClipboardContent content = new ClipboardContent();
-			content.put(DND_REMOVE_FILE_DATA_FORMAT, file);
+			content.put(AttchDropPane.FILE_DATA_FORMAT, file);
 			attachment.startDragAndDrop(TransferMode.ANY).setContent(content);
 		});
 		attachmentPane.getChildren().add(attachment);
 	}
 
-	private void removeAttachment(File attachment) {
+	private Void removeAttachment(File attachment) {
 		int index = 0;
 		for(final Iterator<File> i = attachments.iterator(); i.hasNext();) {
 			final File file = i.next();
@@ -184,6 +174,7 @@ public class MailEditor extends BorderPane {
 			}
 			index++;
 		}
+		return null;
 	}
 
 	private boolean toolbarCleaned = false;
