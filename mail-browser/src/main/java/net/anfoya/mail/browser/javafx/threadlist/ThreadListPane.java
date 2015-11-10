@@ -65,7 +65,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 
 	private DelayTimeline patternDelay;
 
-	private ThreadListDropPane<T, H, M, C> threadListDropPane;
+	private ThreadListDropPane threadListDropPane;
 
 	private EventHandler<ActionEvent> updateHandler;
 	private S currentSection;
@@ -129,12 +129,8 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 
 		threadList = new ThreadList<S, T, H, M, C>(mailService);
 		threadList.setOnDragDetected(event -> {
-			final Set<H> threads = getSelectedThreads();
-			if (threads.isEmpty()) {
-				return;
-			}
 	        final ClipboardContent content = new ClipboardContent();
-	        content.put(DND_THREADS_DATA_FORMAT, threads);
+	        content.put(DND_THREADS_DATA_FORMAT, "");
 	        final Dragboard db = threadList.startDragAndDrop(TransferMode.ANY);
 	        db.setContent(content);
 		});
@@ -159,8 +155,14 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		});
 		centerPane.getChildren().add(threadList);
 
-		threadListDropPane = new ThreadListDropPane<T, H, M, C>(mailService);
+		threadListDropPane = new ThreadListDropPane();
 		threadListDropPane.prefWidthProperty().bind(centerPane.widthProperty());
+		threadListDropPane.setOnArchive(e -> archiveSelected());
+		threadListDropPane.setOnForward(e -> forwardSelected());
+		threadListDropPane.setOnReply(all -> {
+			replySelected(all);
+			return null;
+		});
 
 		centerPane.setOnDragEntered(event -> {
 			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)
@@ -241,10 +243,11 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	}
 
 	private void archiveSelected() {
+		final Set<H> threads = threadList.getSelectedThreads();
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
-				mailService.archive(threadList.getSelectedThreads());
+				mailService.archive(threads);
 				return null;
 			}
 		};
@@ -397,7 +400,6 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 
 	public void setOnUpdateThread(final EventHandler<ActionEvent> handler) {
 		updateHandler = handler;
-		threadListDropPane.setOnUpdate(handler);
 		threadList.setOnUpdate(handler);
 	}
 

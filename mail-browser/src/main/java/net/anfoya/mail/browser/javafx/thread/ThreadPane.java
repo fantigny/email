@@ -95,7 +95,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		final StackPane stackPane = new StackPane();
 		stackPane.setAlignment(Pos.BOTTOM_CENTER);
 
-		final ThreadDropPane<H, M> threadDropPane = new ThreadDropPane<H, M>(mailService);
+		final ThreadDropPane<H, M> threadDropPane = new ThreadDropPane<H, M>();
 		threadDropPane.prefWidthProperty().bind(stackPane.widthProperty());
 
 		stackPane.setOnDragEntered(e -> {

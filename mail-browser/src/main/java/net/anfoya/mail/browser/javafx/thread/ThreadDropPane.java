@@ -4,31 +4,22 @@ import static net.anfoya.mail.browser.javafx.threadlist.ThreadListPane.DND_THREA
 
 import java.util.Set;
 
+import javax.mail.internet.MimeMessage;
+
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
-
-import javax.mail.internet.MimeMessage;
-
 import net.anfoya.javafx.scene.dnd.DropArea;
-import net.anfoya.mail.service.Contact;
-import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.Message;
-import net.anfoya.mail.service.Section;
-import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
 
 public class ThreadDropPane<H extends Thread, M extends Message> extends GridPane {
 	public static final DataFormat MESSAGE_DATA_FORMAT = new DataFormat(MimeMessage.class.getCanonicalName());
-	@SuppressWarnings("unused")
-	private final MailService<? extends Section, ? extends Tag, H, M, ? extends Contact> mailService;
 	private final DropArea newThreadArea;
 	private final DropArea addThreadArea;
 
-	public ThreadDropPane(final MailService<? extends Section, ? extends Tag, H, M, ? extends Contact> mailService) {
-		this.mailService = mailService;
-
+	public ThreadDropPane() {
 		setMaxHeight(50);
 		getStyleClass().add("droparea-grid");
 
@@ -62,12 +53,7 @@ public class ThreadDropPane<H extends Thread, M extends Message> extends GridPan
 	}
 
 	public void init(final Dragboard db) {
-		if (getChildren().contains(newThreadArea)) {
-			getChildren().remove(newThreadArea);
-		}
-		if (getChildren().contains(addThreadArea)) {
-			getChildren().remove(addThreadArea);
-		}
+		getChildren().clear();
 
 		if (db.hasContent(MESSAGE_DATA_FORMAT)) {
 			addRow(0, newThreadArea);
