@@ -59,7 +59,6 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		setOnShowing(e -> initData());
 		setOnCloseRequest(e -> Notifier.INSTANCE.stop());
 
-		initMacOs();
 		initGui();
 	}
 
@@ -112,37 +111,6 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
         setScene(scene);
 
 		Notifier.INSTANCE.popupLifetime().bind(Settings.getSettings().popupLifetime());
-	}
-
-	private void initMacOs() {
-		if (!System.getProperty("os.name").contains("OS X")) {
-			return;
-		}
-		LOGGER.info("initialize OS X stage behaviour");
-//		Platform.setImplicitExit(false);
-//		com.apple.eawt.Application.getApplication().addAppEventListener(new AppReOpenedListener() {
-//			@Override
-//			public void appReOpened(final AppReOpenedEvent e) {
-//				LOGGER.info("OS X AppReOpenedListener");
-//				if (!isShowing()) {
-//					LOGGER.debug("OS X show()");
-//					Platform.runLater(() -> show());
-//				}
-//				if (isIconified()) {
-//					LOGGER.debug("OS X setIconified(false)");
-//					Platform.runLater(() -> setIconified(false));
-//				}
-//				if (!isFocused()) {
-//					LOGGER.debug("OS X requestFocus()");
-//					Platform.runLater(() -> requestFocus());
-//				}
-//			}
-//		});
-
-//		final List<MenuBase> menus = new ArrayList<>();
-//		menus.add(GlobalMenuAdapter.adapt(new Menu("Test")));
-//
-//		Toolkit.getToolkit().getSystemMenu().setMenus(menus);
 	}
 
 	private void signout() {

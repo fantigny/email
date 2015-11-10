@@ -7,13 +7,6 @@ import java.net.CookieManager;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
-import javafx.application.Platform;
-import net.anfoya.javafx.application.PlatformHelper;
-import net.anfoya.mail.gmail.GMailException;
-import net.anfoya.mail.gmail.GmailService;
-import net.anfoya.mail.gmail.javafx.ConnectionProgress;
-import net.anfoya.mail.gmail.javafx.GmailLogin;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +21,13 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.gmail.Gmail;
 import com.google.gdata.client.contacts.ContactsService;
+
+import javafx.application.Platform;
+import net.anfoya.javafx.application.PlatformHelper;
+import net.anfoya.mail.gmail.GMailException;
+import net.anfoya.mail.gmail.GmailService;
+import net.anfoya.mail.gmail.javafx.ConnectionProgress;
+import net.anfoya.mail.gmail.javafx.GmailLogin;
 
 public class ConnectionService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GmailService.class);

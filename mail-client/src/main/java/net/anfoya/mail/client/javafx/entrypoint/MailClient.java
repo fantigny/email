@@ -21,6 +21,7 @@ public class MailClient extends Application {
 	}
 
 	private GmailService gmail;
+	private MailBrowser<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact> mailBrowser;
 
 	@Override
 	public void init() throws Exception {
@@ -39,10 +40,10 @@ public class MailClient extends Application {
 	@Override
 	public void start(final Stage primaryStage) throws Exception {
 		primaryStage.close();
+		initMacOs();
 		for(;;) {
 			if (!gmail.disconnected().get()) {
-				final MailBrowser<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact> mailBrowser =
-						new MailBrowser<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact>(gmail);
+				mailBrowser = new MailBrowser<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact>(gmail);
 				mailBrowser.showAndWait();
 				if (mailBrowser.isQuit()) {
 					break;
@@ -57,5 +58,37 @@ public class MailClient extends Application {
 				break;
 			}
 		}
+	}
+
+	private void initMacOs() {
+//		if (!System.getProperty("os.name").contains("OS X")) {
+//			return;
+//		}
+//		LOGGER.info("initialize OS X stage behaviour");
+//		Platform.setImplicitExit(false);
+//		com.apple.eawt.Application.getApplication().addAppEventListener(new AppReOpenedListener() {
+//			@Override
+//			public void appReOpened(final AppReOpenedEvent e) {
+//				LOGGER.info("OS X AppReOpenedListener");
+//				if (!mailBrowser.isShowing()) {
+//					LOGGER.debug("OS X show()");
+//					Platform.runLater(() -> mailBrowser.show());
+//				}
+//				if (mailBrowser.isIconified()) {
+//					LOGGER.debug("OS X setIconified(false)");
+//					Platform.runLater(() -> mailBrowser.setIconified(false));
+//				}
+//				if (!mailBrowser.isFocused()) {
+//					LOGGER.debug("OS X requestFocus()");
+//					Platform.runLater(() -> mailBrowser.requestFocus());
+//				}
+//			}
+//		});
+//
+//		final List<MenuBase> menus = new ArrayList<>();
+//		menus.add(GlobalMenuAdapter.adapt(new Menu("java")));
+//
+//		final TKSystemMenu menu = Toolkit.getToolkit().getSystemMenu();
+//		menu.setMenus(menus);
 	}
 }

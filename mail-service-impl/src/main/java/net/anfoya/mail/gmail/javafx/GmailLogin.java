@@ -8,17 +8,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 
-import javafx.application.Platform;
-import javafx.concurrent.Worker.State;
-import javafx.scene.Scene;
-import javafx.scene.image.Image;
-import javafx.scene.web.WebEngine;
-import javafx.scene.web.WebView;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
-import net.anfoya.javafx.application.PlatformHelper;
-import net.anfoya.mail.gmail.GMailException;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -32,13 +23,27 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 
+import javafx.application.Platform;
+import javafx.concurrent.Worker.State;
+import javafx.scene.Scene;
+import javafx.scene.image.Image;
+import javafx.scene.web.WebEngine;
+import javafx.scene.web.WebView;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import net.anfoya.javafx.application.PlatformHelper;
+import net.anfoya.mail.gmail.GMailException;
+
 public class GmailLogin {
+
+	public static final String TEST_ID = "test";
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(GmailLogin.class);
 	private static final List<String> SCOPE = Arrays.asList(new String[] {
 			"https://www.googleapis.com/auth/gmail.modify"
 			, "https://www.googleapis.com/auth/gmail.labels"
 			, "https://www.googleapis.com/auth/contacts.readonly" });
 	private static final String LOGIN_SUCESS_PREFIX = "Success code=";
-	public static final String TEST_ID = "test";
 
 	private final GoogleClientSecrets clientSecrets;
 	private final HttpTransport httpTransport;
@@ -120,8 +125,7 @@ public class GmailLogin {
 		try {
 			fxLock.await();
 		} catch (final InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LOGGER.error("waiting for credentials", e);
 		}
 		return sb.toString();
 	}
