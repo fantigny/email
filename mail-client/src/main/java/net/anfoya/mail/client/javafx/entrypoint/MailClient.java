@@ -38,6 +38,7 @@ public class MailClient extends Application {
 
 	@Override
 	public void start(final Stage primaryStage) throws Exception {
+		primaryStage.close();
 		for(;;) {
 			if (!gmail.disconnected().get()) {
 				final MailBrowser<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact> mailBrowser =
