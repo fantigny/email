@@ -20,7 +20,7 @@ import javafx.scene.input.TransferMode;
 import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.IncExcBox;
-import net.anfoya.tag.javafx.scene.dnd.DndFormat;
+import net.anfoya.tag.javafx.scene.dnd.ExtItemDropPane;
 import net.anfoya.tag.javafx.scene.tag.TagList;
 import net.anfoya.tag.javafx.scene.tag.TagListItem;
 import net.anfoya.tag.model.SimpleTag;
@@ -79,7 +79,7 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 		});
 		setOnDragEntered(event -> {
 			final Dragboard db = event.getDragboard();
-			if (db.hasContent(DndFormat.ADD_TAG_DATA_FORMAT)) {
+			if (db.hasContent(ExtItemDropPane.ADD_TAG_DATA_FORMAT)) {
 				if (!isExpanded()) {
 					event.acceptTransferModes(TransferMode.ANY);
 					expandDelay = expandAfterDelay();
@@ -98,13 +98,13 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 					event.acceptTransferModes(TransferMode.ANY);
 					event.consume();
 				}
-			} else if (db.hasContent(DndFormat.ADD_TAG_DATA_FORMAT) && !SectionPane.this.isExpanded()) {
+			} else if (db.hasContent(ExtItemDropPane.ADD_TAG_DATA_FORMAT) && !SectionPane.this.isExpanded()) {
 				SectionPane.this.setOpacity(.5);
 			}
 		});
 		setOnDragExited(event -> {
 			final Dragboard db = event.getDragboard();
-			if (db.hasContent(DndFormat.ADD_TAG_DATA_FORMAT)) {
+			if (db.hasContent(ExtItemDropPane.ADD_TAG_DATA_FORMAT)) {
 				expandDelay = null;
 				SectionPane.this.setOpacity(1);
 				event.consume();

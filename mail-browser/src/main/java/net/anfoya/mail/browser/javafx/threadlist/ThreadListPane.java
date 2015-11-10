@@ -46,7 +46,7 @@ import net.anfoya.mail.service.Message;
 import net.anfoya.mail.service.Section;
 import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
-import net.anfoya.tag.javafx.scene.dnd.DndFormat;
+import net.anfoya.tag.javafx.scene.dnd.ExtItemDropPane;
 import net.anfoya.tag.model.SpecialTag;
 
 public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends BorderPane {
@@ -130,7 +130,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		threadList = new ThreadList<S, T, H, M, C>(mailService);
 		threadList.setOnDragDetected(event -> {
 	        final ClipboardContent content = new ClipboardContent();
-	        content.put(DndFormat.ADD_TAG_DATA_FORMAT, "");
+	        content.put(ExtItemDropPane.ADD_TAG_DATA_FORMAT, "");
 	        final Dragboard db = threadList.startDragAndDrop(TransferMode.ANY);
 	        db.setContent(content);
 		});
@@ -140,8 +140,8 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 				@SuppressWarnings("unchecked")
 				final T tag = (T) db.getContent(Tag.TAG_DATA_FORMAT);
 				addTagForThreads(tag, getSelectedThreads());
-			} else if (db.hasContent(DndFormat.TAG_NAME_DATA_FORMAT)) {
-				final String name = (String) db.getContent(DndFormat.TAG_NAME_DATA_FORMAT);
+			} else if (db.hasContent(ExtItemDropPane.TAG_NAME_DATA_FORMAT)) {
+				final String name = (String) db.getContent(ExtItemDropPane.TAG_NAME_DATA_FORMAT);
 				createTagForThreads(name, getSelectedThreads());
 			}
 			e.consume();

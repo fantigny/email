@@ -25,7 +25,6 @@ import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.animation.DelayTimeline;
 import net.anfoya.javafx.scene.control.ResetTextField;
-import net.anfoya.tag.javafx.scene.dnd.DndFormat;
 import net.anfoya.tag.javafx.scene.dnd.ExtItemDropPane;
 import net.anfoya.tag.javafx.scene.tag.TagDropPane;
 import net.anfoya.tag.javafx.scene.tag.TagList;
@@ -114,7 +113,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 			} else if (e.getDragboard().hasContent(Tag.TAG_DATA_FORMAT)
 					&& !stackPane.getChildren().contains(tagDropPane)) {
 				stackPane.getChildren().add(tagDropPane);
-			} else if (e.getDragboard().hasContent(DndFormat.ADD_TAG_DATA_FORMAT)
+			} else if (e.getDragboard().hasContent(ExtItemDropPane.ADD_TAG_DATA_FORMAT)
 					&& !stackPane.getChildren().contains(newTagDropPane)) {
 				stackPane.getChildren().add(newTagDropPane);
 			}

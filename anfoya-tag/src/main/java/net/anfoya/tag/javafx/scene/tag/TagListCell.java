@@ -5,7 +5,7 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.paint.Color;
 import net.anfoya.javafx.scene.control.IncExcListCell;
-import net.anfoya.tag.javafx.scene.dnd.DndFormat;
+import net.anfoya.tag.javafx.scene.dnd.ExtItemDropPane;
 import net.anfoya.tag.service.Tag;
 
 class TagListCell<T extends Tag> extends IncExcListCell<TagListItem<T>> {
@@ -23,7 +23,7 @@ class TagListCell<T extends Tag> extends IncExcListCell<TagListItem<T>> {
 			}
 		});
 		setOnDragOver(event -> {
-			if (getItem() != null && event.getDragboard().hasContent(DndFormat.ADD_TAG_DATA_FORMAT)) {
+			if (getItem() != null && event.getDragboard().hasContent(ExtItemDropPane.ADD_TAG_DATA_FORMAT)) {
 				setOpacity(.7);
 				event.acceptTransferModes(TransferMode.ANY);
 				event.consume();
@@ -34,7 +34,7 @@ class TagListCell<T extends Tag> extends IncExcListCell<TagListItem<T>> {
 		});
 		setOnDragDropped(event -> {
 			final Dragboard db = event.getDragboard();
-			if (getItem() != null && db.hasContent(DndFormat.ADD_TAG_DATA_FORMAT)) {
+			if (getItem() != null && db.hasContent(ExtItemDropPane.ADD_TAG_DATA_FORMAT)) {
 				final ClipboardContent content = new ClipboardContent();
 				content.put(Tag.TAG_DATA_FORMAT, getItem().getTag());
 				db.setContent(content);
