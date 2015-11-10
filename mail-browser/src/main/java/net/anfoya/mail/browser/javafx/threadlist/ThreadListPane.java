@@ -65,7 +65,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 
 	private DelayTimeline patternDelay;
 
-	private ThreadListDropPane threadListDropPane;
+	private final ThreadListDropPane threadListDropPane;
 
 	private EventHandler<ActionEvent> updateHandler;
 	private S currentSection;
@@ -130,28 +130,21 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		threadList = new ThreadList<S, T, H, M, C>(mailService);
 		threadList.setOnDragDetected(event -> {
 	        final ClipboardContent content = new ClipboardContent();
-	        content.put(DND_THREADS_DATA_FORMAT, "");
+	        content.put(DndFormat.ADD_TAG_DATA_FORMAT, "");
 	        final Dragboard db = threadList.startDragAndDrop(TransferMode.ANY);
 	        db.setContent(content);
 		});
-		threadList.setOnDragDone(event -> {
-			final Dragboard db = event.getDragboard();
-			if (db.hasContent(ThreadListPane.DND_THREADS_DATA_FORMAT)
-					&& db.hasContent(DndFormat.TAG_DATA_FORMAT)) {
+		threadList.setOnDragDone(e -> {
+			final Dragboard db = e.getDragboard();
+			if (db.hasContent(Tag.TAG_DATA_FORMAT)) {
 				@SuppressWarnings("unchecked")
-				final Set<H> threads = (Set<H>) db.getContent(DND_THREADS_DATA_FORMAT);
-				@SuppressWarnings("unchecked")
-				final T tag = (T) db.getContent(DndFormat.TAG_DATA_FORMAT);
-				addTagForThreads(tag, threads);
-				event.consume();
-			} else if (db.hasContent(ThreadListPane.DND_THREADS_DATA_FORMAT)
-					&& db.hasContent(DndFormat.TAG_NAME_DATA_FORMAT)) {
-				@SuppressWarnings("unchecked")
-				final Set<H> threads = (Set<H>) db.getContent(DND_THREADS_DATA_FORMAT);
+				final T tag = (T) db.getContent(Tag.TAG_DATA_FORMAT);
+				addTagForThreads(tag, getSelectedThreads());
+			} else if (db.hasContent(DndFormat.TAG_NAME_DATA_FORMAT)) {
 				final String name = (String) db.getContent(DndFormat.TAG_NAME_DATA_FORMAT);
-				createTagForThreads(name, threads);
-				event.consume();
+				createTagForThreads(name, getSelectedThreads());
 			}
+			e.consume();
 		});
 		centerPane.getChildren().add(threadList);
 
@@ -159,10 +152,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		threadListDropPane.prefWidthProperty().bind(centerPane.widthProperty());
 		threadListDropPane.setOnArchive(e -> archiveSelected());
 		threadListDropPane.setOnForward(e -> forwardSelected());
-		threadListDropPane.setOnReply(all -> {
-			replySelected(all);
-			return null;
-		});
+		threadListDropPane.setOnReply(all -> replySelected(all));
 
 		centerPane.setOnDragEntered(event -> {
 			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)
@@ -218,7 +208,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		}
 	}
 
-	private void replySelected(final boolean all) {
+	private Void replySelected(final boolean all) {
 		try {
 			for(final H t: threadList.getSelectedThreads()) {
 				final M m = getLastMessage(t);
@@ -227,6 +217,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		} catch (final Exception e) {
 			LOGGER.error("loading reply{} composer", all? " all": "", e);
 		}
+		return null;
 	}
 
 	private void trashSelected() {

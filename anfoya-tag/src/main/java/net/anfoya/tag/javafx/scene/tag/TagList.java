@@ -19,7 +19,6 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
-import javafx.scene.input.DataFormat;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.tag.service.Section;
 import net.anfoya.tag.service.Tag;
@@ -35,7 +34,6 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 	private final TagService<S, T> tagService;
 
 	private final S section;
-	private final boolean withExcludeBox;
 
 	private final Map<String, TagListItem<T>> nameTags;
 
@@ -53,12 +51,11 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 	public TagList(final TagService<S, T> tagService, final S section, final boolean showExcludeBox) {
 		this.tagService = tagService;
 		this.section = section;
-		this.withExcludeBox = showExcludeBox;
 
 		nameTags = new HashMap<String, TagListItem<T>>();
 		updateCountTasks = new HashSet<Task<Integer>>();
 
-		getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+		getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 		setCellFactory(list -> new TagListCell<T>(showExcludeBox));
 	}
 
@@ -303,10 +300,6 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 
 	public boolean isStandAloneSectionTag() {
 		return getSectionItem() != null && getItems().size() == 1;
-	}
-
-	public void setExtItemDataFormat(final DataFormat dataFormat) {
-		setCellFactory(l -> new TagListCell<T>(dataFormat, withExcludeBox));
 	}
 
 	public boolean hasCheckedTag() {

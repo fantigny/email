@@ -16,7 +16,6 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.dnd.DropArea;
-import net.anfoya.tag.javafx.scene.dnd.DndFormat;
 import net.anfoya.tag.service.Section;
 import net.anfoya.tag.service.Tag;
 import net.anfoya.tag.service.TagService;
@@ -33,33 +32,33 @@ public class SectionDropPane<S extends Section> extends GridPane {
 
 		getStyleClass().add("droparea-grid");
 
-		final DropArea removeArea = new DropArea("remove", DndFormat.SECTION_DATA_FORMAT);
+		final DropArea removeArea = new DropArea("remove", Section.SECTION_DATA_FORMAT);
 		removeArea.setOnDragDropped(e -> {
-			if (e.getDragboard().hasContent(DndFormat.SECTION_DATA_FORMAT)) {
+			if (e.getDragboard().hasContent(Section.SECTION_DATA_FORMAT)) {
 				@SuppressWarnings("unchecked")
-				final S section = (S) e.getDragboard().getContent(DndFormat.SECTION_DATA_FORMAT);
+				final S section = (S) e.getDragboard().getContent(Section.SECTION_DATA_FORMAT);
 				remove(section);
 				e.setDropCompleted(true);
 				e.consume();
 			}
 		});
 
-		final DropArea renameArea = new DropArea("rename", DndFormat.SECTION_DATA_FORMAT);
+		final DropArea renameArea = new DropArea("rename", Section.SECTION_DATA_FORMAT);
 		renameArea.setOnDragDropped(e -> {
-			if (e.getDragboard().hasContent(DndFormat.SECTION_DATA_FORMAT)) {
+			if (e.getDragboard().hasContent(Section.SECTION_DATA_FORMAT)) {
 				@SuppressWarnings("unchecked")
-				final S section = (S) e.getDragboard().getContent(DndFormat.SECTION_DATA_FORMAT);
+				final S section = (S) e.getDragboard().getContent(Section.SECTION_DATA_FORMAT);
 				rename(section);
 				e.setDropCompleted(true);
 				e.consume();
 			}
 		});
 
-		final DropArea hideArea = new DropArea("hide", DndFormat.SECTION_DATA_FORMAT);
+		final DropArea hideArea = new DropArea("hide", Section.SECTION_DATA_FORMAT);
 		hideArea.setOnDragDropped(e -> {
-			if (e.getDragboard().hasContent(DndFormat.SECTION_DATA_FORMAT)) {
+			if (e.getDragboard().hasContent(Section.SECTION_DATA_FORMAT)) {
 				@SuppressWarnings("unchecked")
-				final S section = (S) e.getDragboard().getContent(DndFormat.SECTION_DATA_FORMAT);
+				final S section = (S) e.getDragboard().getContent(Section.SECTION_DATA_FORMAT);
 				hide(section);
 				e.setDropCompleted(true);
 				e.consume();

@@ -17,7 +17,6 @@ import javafx.scene.layout.Priority;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.dnd.DndPaneTranslationHelper;
 import net.anfoya.javafx.scene.dnd.DropArea;
-import net.anfoya.tag.javafx.scene.dnd.DndFormat;
 import net.anfoya.tag.javafx.scene.section.SectionDropPane;
 import net.anfoya.tag.service.Section;
 import net.anfoya.tag.service.Tag;
@@ -36,33 +35,33 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 		getStyleClass().add("droparea-grid");
 		new DndPaneTranslationHelper(this);
 
-		final DropArea removeArea = new DropArea("remove", DndFormat.TAG_DATA_FORMAT);
+		final DropArea removeArea = new DropArea("remove", Tag.TAG_DATA_FORMAT);
 		removeArea.setOnDragDropped(e -> {
-			if (e.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT)) {
+			if (e.getDragboard().hasContent(Tag.TAG_DATA_FORMAT)) {
 				@SuppressWarnings("unchecked")
-				final T tag = (T) e.getDragboard().getContent(DndFormat.TAG_DATA_FORMAT);
+				final T tag = (T) e.getDragboard().getContent(Tag.TAG_DATA_FORMAT);
 				remove(tag);
 				e.setDropCompleted(true);
 				e.consume();
 			}
 		});
 
-		final DropArea renameArea = new DropArea("rename", DndFormat.TAG_DATA_FORMAT);
+		final DropArea renameArea = new DropArea("rename", Tag.TAG_DATA_FORMAT);
 		renameArea.setOnDragDropped(e -> {
-			if (e.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT)) {
+			if (e.getDragboard().hasContent(Tag.TAG_DATA_FORMAT)) {
 				@SuppressWarnings("unchecked")
-				final T tag = (T) e.getDragboard().getContent(DndFormat.TAG_DATA_FORMAT);
+				final T tag = (T) e.getDragboard().getContent(Tag.TAG_DATA_FORMAT);
 				rename(tag);
 				e.setDropCompleted(true);
 				e.consume();
 			}
 		});
 
-		final DropArea hideArea = new DropArea("hide", DndFormat.TAG_DATA_FORMAT);
+		final DropArea hideArea = new DropArea("hide", Tag.TAG_DATA_FORMAT);
 		hideArea.setOnDragDropped(e -> {
-			if (e.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT)) {
+			if (e.getDragboard().hasContent(Tag.TAG_DATA_FORMAT)) {
 				@SuppressWarnings("unchecked")
-				final T tag = (T) e.getDragboard().getContent(DndFormat.TAG_DATA_FORMAT);
+				final T tag = (T) e.getDragboard().getContent(Tag.TAG_DATA_FORMAT);
 				hide(tag);
 				e.setDropCompleted(true);
 				e.consume();
@@ -75,11 +74,11 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 		setHgrow(removeArea, Priority.ALWAYS);
 		setVgrow(removeArea, Priority.ALWAYS);
 
-		final DropArea newSectionArea = new DropArea("new section", DndFormat.TAG_DATA_FORMAT);
+		final DropArea newSectionArea = new DropArea("new section", Tag.TAG_DATA_FORMAT);
 		newSectionArea.setOnDragDropped(e -> {
-			if (e.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT)) {
+			if (e.getDragboard().hasContent(Tag.TAG_DATA_FORMAT)) {
 				@SuppressWarnings("unchecked")
-				final T tag = (T) e.getDragboard().getContent(DndFormat.TAG_DATA_FORMAT);
+				final T tag = (T) e.getDragboard().getContent(Tag.TAG_DATA_FORMAT);
 				newSection(tag);
 				e.setDropCompleted(true);
 				e.consume();

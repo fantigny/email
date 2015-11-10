@@ -6,7 +6,6 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
@@ -15,25 +14,25 @@ import net.anfoya.javafx.scene.dnd.DropArea;
 import net.anfoya.tag.service.Tag;
 
 public class ExtItemDropPane<T extends Tag> extends GridPane {
-	public ExtItemDropPane(final DataFormat extItemDataFormat) {
+	public ExtItemDropPane() {
 		setMaxHeight(50);
 		getStyleClass().add("droparea-grid");
 		new DndPaneTranslationHelper(this);
 
-		final DropArea newTagArea = new DropArea("add new tag", extItemDataFormat);
+		final DropArea newTagArea = new DropArea("add new tag", DndFormat.ADD_TAG_DATA_FORMAT);
 		newTagArea.setOnDragDropped(e -> {
 			final Dragboard db = e.getDragboard();
-			if (db.hasContent(extItemDataFormat)) {
+			if (db.hasContent(DndFormat.ADD_TAG_DATA_FORMAT)) {
 				final String name = getName();
 				if (name == null) {
-					e.consume();
-					return;
+					e.setDropCompleted(false);
+				} else {
+					final ClipboardContent content = new ClipboardContent();
+					content.put(DndFormat.TAG_NAME_DATA_FORMAT, name);
+					db.setContent(content);
+					e.setDropCompleted(true);
 				}
-
-				final ClipboardContent content = new ClipboardContent();
-				content.put(extItemDataFormat, db.getContent(extItemDataFormat));
-				content.put(DndFormat.TAG_NAME_DATA_FORMAT, name);
-				db.setContent(content);
+				e.consume();
 			}
 		});
 

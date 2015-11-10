@@ -17,7 +17,6 @@ import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.TitledPane;
-import javafx.scene.input.DataFormat;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -39,7 +38,6 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 	private static final Logger LOGGER = LoggerFactory.getLogger(SectionListPane.class);
 
 	private final TagService<S, T> tagService;
-	private final DataFormat extItemDataFormat;
 
 	private final ResetTextField patternField;
 	private final Accordion sectionAcc;
@@ -67,13 +65,8 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 	private String initSectionName;
 	private String initTagName;
 
-	public SectionListPane(final TagService<S, T> tagService) {
-		this(tagService, null, false);
-	}
-
-	public SectionListPane(final TagService<S, T> tagService, final DataFormat extItemDataFormat, final boolean withExcludeBox) {
+	public SectionListPane(final TagService<S, T> tagService, final boolean withExcludeBox) {
 		this.tagService = tagService;
-		this.extItemDataFormat = extItemDataFormat;
 		this.showExcludeBox = withExcludeBox;
 
 		lazyCount = true;
@@ -105,8 +98,8 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 		final StackPane stackPane = new StackPane(sectionAcc);
 		stackPane.setAlignment(Pos.BOTTOM_CENTER);
 
-		final ExtItemDropPane<T> extItemDropPane = new ExtItemDropPane<T>(extItemDataFormat);
-		extItemDropPane.prefWidthProperty().bind(stackPane.widthProperty());
+		final ExtItemDropPane<T> newTagDropPane = new ExtItemDropPane<T>();
+		newTagDropPane.prefWidthProperty().bind(stackPane.widthProperty());
 
 		sectionDropPane = new SectionDropPane<S>(tagService);
 		sectionDropPane.prefWidthProperty().bind(stackPane.widthProperty());
@@ -115,29 +108,26 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 		tagDropPane.prefWidthProperty().bind(stackPane.widthProperty());
 
 		stackPane.setOnDragEntered(e -> {
-			if (e.getDragboard().hasContent(DndFormat.SECTION_DATA_FORMAT)
+			if (e.getDragboard().hasContent(Section.SECTION_DATA_FORMAT)
 					&& !stackPane.getChildren().contains(sectionDropPane)) {
 				stackPane.getChildren().add(sectionDropPane);
-			} else if (e.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT)
+			} else if (e.getDragboard().hasContent(Tag.TAG_DATA_FORMAT)
 					&& !stackPane.getChildren().contains(tagDropPane)) {
 				stackPane.getChildren().add(tagDropPane);
-			} else if (extItemDataFormat != null
-					&& e.getDragboard().hasContent(extItemDataFormat)
-					&& !stackPane.getChildren().contains(extItemDropPane)) {
-				stackPane.getChildren().add(extItemDropPane);
+			} else if (e.getDragboard().hasContent(DndFormat.ADD_TAG_DATA_FORMAT)
+					&& !stackPane.getChildren().contains(newTagDropPane)) {
+				stackPane.getChildren().add(newTagDropPane);
 			}
 		});
 		stackPane.setOnDragExited(e -> {
-			if (e.getDragboard().hasContent(DndFormat.SECTION_DATA_FORMAT)
-					&& stackPane.getChildren().contains(sectionDropPane)) {
+			if (stackPane.getChildren().contains(sectionDropPane)) {
 				stackPane.getChildren().remove(sectionDropPane);
-			} else if (e.getDragboard().hasContent(DndFormat.TAG_DATA_FORMAT)
-					&& stackPane.getChildren().contains(tagDropPane)) {
+			}
+			if (stackPane.getChildren().contains(tagDropPane)) {
 				stackPane.getChildren().remove(tagDropPane);
-			} else if (extItemDataFormat != null
-					&& e.getDragboard().hasContent(extItemDataFormat)
-					&& stackPane.getChildren().contains(extItemDropPane)) {
-				stackPane.getChildren().remove(extItemDropPane);
+			}
+			if (stackPane.getChildren().contains(newTagDropPane)) {
+				stackPane.getChildren().remove(newTagDropPane);
 			}
 		});
 		setCenter(stackPane);
@@ -278,7 +268,6 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 				sectionPane.setLazyCount(lazyCount);
 				sectionPane.setOnSelectTag(selectTagHandler);
 				sectionPane.setOnUpdateSection(updateSectionHandler);
-				sectionPane.setExtItemDataFormat(extItemDataFormat);
 				sectionAcc.getPanes().add(index, sectionPane);
 			}
 			index++;
@@ -360,13 +349,13 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 		final SearchPane<S, T> searchPane;
 		if (sectionAcc.getPanes().size() == 1 && sectionAcc.getPanes().get(0) instanceof SearchPane) {
 			@SuppressWarnings("unchecked")
+			final
 			SearchPane<S, T> sp = (SearchPane<S, T>) sectionAcc.getPanes().get(0);
 			searchPane = sp;
 		} else {
 			searchPane = new SearchPane<S, T>(tagService, showExcludeBox);
 			searchPane.setOnSelectTag(selectTagHandler);
 			searchPane.setOnUpdateSection(updateSectionHandler);
-			searchPane.setExtItemDataFormat(extItemDataFormat);
 
 			sectionAcc.getPanes().setAll(searchPane);
 		}

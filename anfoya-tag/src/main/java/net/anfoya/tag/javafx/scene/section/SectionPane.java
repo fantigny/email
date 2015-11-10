@@ -15,7 +15,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.TitledPane;
 import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.util.Duration;
@@ -47,7 +46,6 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 	private Runnable lazyCountTask;
 
 	private boolean disableWhenZero;
-	private DataFormat extItemDataFormat;
 	private Timeline expandDelay;
 
 	private EventHandler<ActionEvent> updateHandler;
@@ -74,14 +72,14 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 		setOnDragDetected(event -> {
 			if (section != null) {
 		        final ClipboardContent content = new ClipboardContent();
-		        content.put(DndFormat.SECTION_DATA_FORMAT, section);
+		        content.put(Section.SECTION_DATA_FORMAT, section);
 		        final Dragboard db = startDragAndDrop(TransferMode.ANY);
 		        db.setContent(content);
 			}
 		});
 		setOnDragEntered(event -> {
 			final Dragboard db = event.getDragboard();
-			if (db.hasContent(extItemDataFormat)) {
+			if (db.hasContent(DndFormat.ADD_TAG_DATA_FORMAT)) {
 				if (!isExpanded()) {
 					event.acceptTransferModes(TransferMode.ANY);
 					expandDelay = expandAfterDelay();
@@ -91,26 +89,26 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 		});
 		setOnDragOver(event -> {
 			final Dragboard db = event.getDragboard();
-			if (db.hasContent(DndFormat.TAG_DATA_FORMAT)
+			if (db.hasContent(Tag.TAG_DATA_FORMAT)
 					&& section != null
 					&& !section.getId().startsWith(Section.NO_ID)) { //TODO improve
-				final T tag = (T) db.getContent(DndFormat.TAG_DATA_FORMAT);
+				final T tag = (T) db.getContent(Tag.TAG_DATA_FORMAT);
 				if (!tagList.contains(tag)) {
 					SectionPane.this.setOpacity(.5);
 					event.acceptTransferModes(TransferMode.ANY);
 					event.consume();
 				}
-			} else if (db.hasContent(extItemDataFormat) && !SectionPane.this.isExpanded()) {
+			} else if (db.hasContent(DndFormat.ADD_TAG_DATA_FORMAT) && !SectionPane.this.isExpanded()) {
 				SectionPane.this.setOpacity(.5);
 			}
 		});
 		setOnDragExited(event -> {
 			final Dragboard db = event.getDragboard();
-			if (db.hasContent(extItemDataFormat)) {
+			if (db.hasContent(DndFormat.ADD_TAG_DATA_FORMAT)) {
 				expandDelay = null;
 				SectionPane.this.setOpacity(1);
 				event.consume();
-			} else if (db.hasContent(DndFormat.TAG_DATA_FORMAT)
+			} else if (db.hasContent(Tag.TAG_DATA_FORMAT)
 					&& section != null
 					&& !section.getId().startsWith(Section.NO_ID)) { //TODO improve
 				SectionPane.this.setOpacity(1);
@@ -119,9 +117,9 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 		});
 		setOnDragDropped(event -> {
 			final Dragboard db = event.getDragboard();
-			if (db.hasContent(DndFormat.TAG_DATA_FORMAT)
+			if (db.hasContent(Tag.TAG_DATA_FORMAT)
 					&& section != null) {
-				final T tag = (T) db.getContent(DndFormat.TAG_DATA_FORMAT);
+				final T tag = (T) db.getContent(Tag.TAG_DATA_FORMAT);
 				try {
 					tagService.moveToSection(tag, section);
 					event.setDropCompleted(true);
@@ -261,11 +259,6 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 
 	public void setLazyCount(final boolean lazy) {
 		this.lazyCount = lazy;
-	}
-
-	public void setExtItemDataFormat(final DataFormat dataFormat) {
-		extItemDataFormat = dataFormat;
-		tagList.setExtItemDataFormat(dataFormat);
 	}
 
 	public void setOnSelectTag(final EventHandler<ActionEvent> handler) {

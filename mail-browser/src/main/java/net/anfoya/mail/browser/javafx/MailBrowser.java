@@ -1,7 +1,5 @@
 package net.anfoya.mail.browser.javafx;
 
-import static net.anfoya.mail.browser.javafx.threadlist.ThreadListPane.DND_THREADS_DATA_FORMAT;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -79,7 +77,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 			splitPane.setDividerPosition(1, .32);
 		}
 
-		sectionListPane = new SectionListPane<S, T>(mailService, DND_THREADS_DATA_FORMAT, SHOW_EXCLUDE_BOX);
+		sectionListPane = new SectionListPane<S, T>(mailService, SHOW_EXCLUDE_BOX);
 		sectionListPane.setFocusTraversable(false);
 		sectionListPane.prefHeightProperty().bind(sectionListPane.heightProperty());
 		sectionListPane.setSectionDisableWhenZero(false);
