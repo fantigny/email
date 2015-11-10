@@ -768,18 +768,21 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		historyService.addOnAddedMessage(mSet -> {
 			final Set<GmailThread> threads = new LinkedHashSet<GmailThread>();
 			mSet.forEach(m -> {
-				final List<String> labelIds = m.getLabelIds();
-				if (labelIds.contains(GmailTag.UNREAD.getId())
-						&& !labelIds.contains(GmailTag.DRAFT.getId())
-						&& !labelIds.contains(GmailTag.SPAM.getId())
-						&& !labelIds.contains(GmailTag.TRASH.getId())
-						&& !labelIds.contains(GmailTag.SENT.getId())) {
-					try {
-						final Thread thread = threadService.get(m.getThreadId());
-						threads.add(new GmailThread(thread));
-					} catch (final Exception e) {
-						LOGGER.error("loading thread id {} for message id {}", m.getThreadId(), m.getId(), e);
-					}
+				final Thread t;
+				try {
+					t = threadService.get(m.getThreadId());
+				} catch (final Exception e) {
+					LOGGER.error("loading thread id {} for message id {}", m.getThreadId(), m.getId(), e);
+					return;
+				}
+				final GmailThread thread = new GmailThread(t);
+				final Set<String> tagIds = thread.getTagIds();
+				if (tagIds.contains(GmailTag.UNREAD.getId())
+						&& !tagIds.contains(GmailTag.DRAFT.getId())
+						&& !tagIds.contains(GmailTag.SPAM.getId())
+						&& !tagIds.contains(GmailTag.TRASH.getId())
+						&& !tagIds.contains(GmailTag.SENT.getId())) {
+					threads.add(thread);
 				}
 			});
 			if (!threads.isEmpty()) {
