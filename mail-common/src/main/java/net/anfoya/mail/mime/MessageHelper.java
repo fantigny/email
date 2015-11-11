@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -180,7 +179,7 @@ public class MessageHelper {
 			final byte[] imgBytes;
 			final String iconFileName = "/net/anfoya/mail/sysicon/" + file.getName().substring(file.getName().lastIndexOf(".") + 1) + ".png";
 			if (getClass().getResource(iconFileName) != null) {
-				final File f = new File(getClass().getResource(iconFileName).toURI());
+				final File f = new File(getClass().getResource(iconFileName).getFile());
 				imgBytes = IOUtils.readFully(new FileInputStream(f), (int) f.length(), true);
 			} else {
 				final Icon icon = new JFileChooser().getIcon(file);
@@ -192,7 +191,7 @@ public class MessageHelper {
 			}
 
 			return new BASE64Encoder().encode(imgBytes);
-		} catch (URISyntaxException | IOException e) {
+		} catch (final IOException e) {
 			LOGGER.error("reading system icon for {}", file.getName(), e);
 			return null;
 		}
