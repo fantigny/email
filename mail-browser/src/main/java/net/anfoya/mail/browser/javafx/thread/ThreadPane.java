@@ -29,7 +29,6 @@ import javafx.scene.layout.VBox;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.browser.javafx.message.MessagePane;
 import net.anfoya.mail.browser.javafx.settings.SettingsDialog;
-import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
@@ -92,27 +91,6 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		final HBox subjectBox = new HBox(iconBox, subjectField, settingsButton, signoutButton);
 		setTop(subjectBox);
 
-		final StackPane stackPane = new StackPane();
-		stackPane.setAlignment(Pos.BOTTOM_CENTER);
-
-		final ThreadDropPane<H, M> threadDropPane = new ThreadDropPane<H, M>();
-		threadDropPane.prefWidthProperty().bind(stackPane.widthProperty());
-
-		stackPane.setOnDragEntered(e -> {
-			if ((e.getDragboard().hasContent(ThreadListPane.DND_THREADS_DATA_FORMAT)
-						|| e.getDragboard().hasContent(ThreadDropPane.MESSAGE_DATA_FORMAT))
-					&& !stackPane.getChildren().contains(threadDropPane)) {
-				threadDropPane.init(e.getDragboard());
-				stackPane.getChildren().add(threadDropPane);
-			}
-		});
-		stackPane.setOnDragExited(e -> {
-			if (stackPane.getChildren().contains(threadDropPane)) {
-				stackPane.getChildren().remove(threadDropPane);
-			}
-		});
-		setCenter(stackPane);
-
 		scrollPane = new ScrollPane();
 		scrollPane.setFocusTraversable(false);
 		scrollPane.setFitToWidth(true);
@@ -138,7 +116,26 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 					, offset);
 		};
 
-		stackPane.getChildren().add(scrollPane);
+		final StackPane stackPane = new StackPane(scrollPane);
+		stackPane.setAlignment(Pos.BOTTOM_CENTER);
+		setCenter(stackPane);
+
+//		final ThreadDropPane<H, M> threadDropPane = new ThreadDropPane<H, M>();
+//		threadDropPane.prefWidthProperty().bind(stackPane.widthProperty());
+//
+//		stackPane.setOnDragEntered(e -> {
+//			if ((e.getDragboard().hasContent(ThreadListPane.DND_THREADS_DATA_FORMAT)
+//						|| e.getDragboard().hasContent(ThreadDropPane.MESSAGE_DATA_FORMAT))
+//					&& !stackPane.getChildren().contains(threadDropPane)) {
+//				threadDropPane.init(e.getDragboard());
+//				stackPane.getChildren().add(threadDropPane);
+//			}
+//		});
+//		stackPane.setOnDragExited(e -> {
+//			if (stackPane.getChildren().contains(threadDropPane)) {
+//				stackPane.getChildren().remove(threadDropPane);
+//			}
+//		});
 
 		tagsPane = new SelectedTagsPane<T>();
 		setBottom(tagsPane);
