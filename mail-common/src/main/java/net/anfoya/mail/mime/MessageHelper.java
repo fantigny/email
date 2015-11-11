@@ -1,10 +1,12 @@
 package net.anfoya.mail.mime;
 
-import java.awt.Graphics;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,6 +36,8 @@ import com.sun.mail.util.BASE64DecoderStream;
 
 import net.fortuna.ical4j.data.CalendarBuilder;
 import net.fortuna.ical4j.data.ParserException;
+import sun.misc.BASE64Encoder;
+import sun.misc.IOUtils;
 
 public class MessageHelper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessageHelper.class);
@@ -152,15 +156,10 @@ public class MessageHelper {
 					if (type.contains("image/")) {
 						return new StringBuilder("<img src='").append(file.toURI()).append("'>");
 					} else {
-						final Icon icon = new JFileChooser().getIcon(file);
-						final BufferedImage bi = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TRANSLUCENT);
-						final Graphics g = bi.createGraphics();
-		                icon.paintIcon(null, g, 0,0);
-		                g.dispose();
-						final File iconFile = new File(TEMP + "icon.png");
-						ImageIO.write(bi, "png", iconFile);
-						return new StringBuilder("<a href='").append(file.toURI()).append("'>")
-								.append("<img width='32' height='32' src='").append(iconFile.toURI()).append("'>")
+						return new StringBuilder()
+								.append("<a href='").append(file.toURI()).append("'>")
+									.append("<img width='32' height='32' title='").append(filename).append("' ")
+									.append("src='data:image/png;base64,").append(getBase64SystemIcon(file)).append("'>")
 								.append("</a>");
 					}
 				}
@@ -174,6 +173,29 @@ public class MessageHelper {
 
 		LOGGER.warn("not handled {}/{}", type, content.getClass());
 		return new StringBuilder();
+	}
+
+	private String getBase64SystemIcon(File file) {
+		try {
+			final byte[] imgBytes;
+			final String iconFileName = "/net/anfoya/mail/sysicon/" + file.getName().substring(file.getName().lastIndexOf(".") + 1) + ".png";
+			if (getClass().getResource(iconFileName) != null) {
+				final File f = new File(getClass().getResource(iconFileName).toURI());
+				imgBytes = IOUtils.readFully(new FileInputStream(f), (int) f.length(), true);
+			} else {
+				final Icon icon = new JFileChooser().getIcon(file);
+				final BufferedImage bi = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TRANSLUCENT);
+		        icon.paintIcon(null, bi.createGraphics(), 0, 0);
+		        final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+				ImageIO.write(bi, "png", bos);
+				imgBytes = bos.toByteArray();
+			}
+
+			return new BASE64Encoder().encode(imgBytes);
+		} catch (URISyntaxException | IOException e) {
+			LOGGER.error("reading system icon for {}", file.getName(), e);
+			return null;
+		}
 	}
 
 	public Set<String> getAttachmentNames() {
