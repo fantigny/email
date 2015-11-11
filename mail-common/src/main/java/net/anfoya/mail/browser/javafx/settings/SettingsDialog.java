@@ -227,32 +227,32 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		gridPane.setHgap(10);
 
 		int i = 0;
-		gridPane.add(new Label("signature (html is welcome)")					, 0, i, 1, 1);
+		gridPane.add(new Label("signature (html is welcome)")					, 0, i);
 		gridPane.add(signatureHtml												, 1, i, 1, 2);
 		i += 2;
-		gridPane.add(new Label("popup lifetime in seconds (0 for permanent)")	, 0, i, 1, 1);
-		gridPane.add(popupLifetimeField											, 1, i, 1, 1);
+		gridPane.add(new Label("popup lifetime in seconds (0 for permanent)")	, 0, i);
+		gridPane.add(popupLifetimeField											, 1, i);
 		i++;
-		gridPane.add(new Label("show tool bar")									, 0, i, 1, 1);
-		gridPane.add(toolButton													, 1, i, 1, 1);
+		gridPane.add(new Label("show tool bar")									, 0, i);
+		gridPane.add(toolButton													, 1, i);
 		i++;
-		gridPane.add(new Label("show exclude box (restart needed)")				, 0, i, 1, 1);
-		gridPane.add(showExcButton												, 1, i, 1, 1);
+		gridPane.add(new Label("show exclude box (restart needed)")				, 0, i);
+		gridPane.add(showExcButton												, 1, i);
 		i++;
-		gridPane.add(new Label("thread list double click replies all")			, 0, i, 1, 1);
-		gridPane.add(replyAllDblClickButton										, 1, i, 1, 1);
+		gridPane.add(new Label("thread list double click replies all")			, 0, i);
+		gridPane.add(replyAllDblClickButton										, 1, i);
 		i++;
-		gridPane.add(new Label("archive on drop")								, 0, i, 1, 1);
-		gridPane.add(archOnDropButton											, 1, i, 1, 1);
+		gridPane.add(new Label("archive on drop")								, 0, i);
+		gridPane.add(archOnDropButton											, 1, i);
 		i++;
-		gridPane.add(new Label("hidden section")								, 0, i, 1, 1);
+		gridPane.add(new Label("hidden section")								, 0, i);
 		gridPane.add(hiddenSectionsPane											, 1, i, 1, 2);
 		i += 2;
-		gridPane.add(new Label("hidden tag")									, 0, i, 1, 1);
+		gridPane.add(new Label("hidden tag")									, 0, i);
 		gridPane.add(hiddenTagsPane												, 1, i, 1, 2);
 		i += 2;
-		gridPane.add(new Label("reset cached data")								, 0, i, 1, 1);
-		gridPane.add(refreshButton												, 1, i, 1, 1);
+		gridPane.add(new Label("reset cached data")								, 0, i);
+		gridPane.add(refreshButton												, 1, i);
 
 		refreshHidden();
 
