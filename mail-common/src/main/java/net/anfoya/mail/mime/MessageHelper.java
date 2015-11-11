@@ -1,5 +1,6 @@
 package net.anfoya.mail.mime;
 
+import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,6 +14,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 
+import javax.imageio.ImageIO;
 import javax.mail.Address;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
@@ -21,6 +23,8 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeUtility;
+import javax.swing.ImageIcon;
+import javax.swing.filechooser.FileSystemView;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -144,7 +148,17 @@ public class MessageHelper {
 					File file = new File(TEMP + filename);
 					LOGGER.info("saving inline file {}", file);
 					bodyPart.saveFile(file);
-					return new StringBuilder("<img src='").append(file.toURI()).append("'>");
+					if (type.contains("image/")) {
+						return new StringBuilder("<img src='").append(file.toURI()).append("'>");
+					} else {
+						ImageIcon icon = (ImageIcon) FileSystemView.getFileSystemView().getSystemIcon(file);
+						File iconFile = new File(TEMP + "icon.png");
+						ImageIO.write((RenderedImage) icon.getImage(), "png", iconFile);
+						return new StringBuilder("<a href='")
+								.append(file.toURI())
+								.append("'><img width='32' height='32' src='")
+								.append(iconFile.toURI()).append("'></a>");
+					}
 				}
 				if (MimeBodyPart.ATTACHMENT.equals(bodyPart.getDisposition())) {
 					LOGGER.info("saving reference to attachment {}", filename);
