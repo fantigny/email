@@ -1,6 +1,7 @@
 package net.anfoya.mail.mime;
 
-import java.awt.image.RenderedImage;
+import java.awt.Graphics;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,8 +24,8 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeUtility;
-import javax.swing.ImageIcon;
-import javax.swing.filechooser.FileSystemView;
+import javax.swing.Icon;
+import javax.swing.JFileChooser;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,8 +89,8 @@ public class MessageHelper {
 
 	private String replaceCids(String html, final Map<String, String> cidFilenames) {
 		for(final Entry<String, String> entry: cidFilenames.entrySet()) {
-			String cid = Matcher.quoteReplacement("cid:" + entry.getKey());
-			String uri = Matcher.quoteReplacement(entry.getValue());
+			final String cid = Matcher.quoteReplacement("cid:" + entry.getKey());
+			final String uri = Matcher.quoteReplacement(entry.getValue());
 			html = html.replaceAll(cid, uri);
 		}
 		return html;
@@ -120,7 +121,7 @@ public class MessageHelper {
 					return new StringBuilder();
 				}
 				return new StringBuilder("<pre>").append(content).append("</pre>");
-			}			
+			}
 		}
 		if (part instanceof MimeBodyPart && content instanceof BASE64DecoderStream) {
 			if (type.contains("text/calendar")) {
@@ -143,21 +144,24 @@ public class MessageHelper {
 				return new StringBuilder();
 			}
 			if (bodyPart.getFileName() != null) {
-				String filename = MimeUtility.decodeText(bodyPart.getFileName());
+				final String filename = MimeUtility.decodeText(bodyPart.getFileName());
 				if (MimeBodyPart.INLINE.equals(bodyPart.getDisposition())) {
-					File file = new File(TEMP + filename);
+					final File file = new File(TEMP + filename);
 					LOGGER.info("saving inline file {}", file);
 					bodyPart.saveFile(file);
 					if (type.contains("image/")) {
 						return new StringBuilder("<img src='").append(file.toURI()).append("'>");
 					} else {
-						ImageIcon icon = (ImageIcon) FileSystemView.getFileSystemView().getSystemIcon(file);
-						File iconFile = new File(TEMP + "icon.png");
-						ImageIO.write((RenderedImage) icon.getImage(), "png", iconFile);
-						return new StringBuilder("<a href='")
-								.append(file.toURI())
-								.append("'><img width='32' height='32' src='")
-								.append(iconFile.toURI()).append("'></a>");
+						final Icon icon = new JFileChooser().getIcon(file);
+						final BufferedImage bi = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TRANSLUCENT);
+						final Graphics g = bi.createGraphics();
+		                icon.paintIcon(null, g, 0,0);
+		                g.dispose();
+						final File iconFile = new File(TEMP + "icon.png");
+						ImageIO.write(bi, "png", iconFile);
+						return new StringBuilder("<a href='").append(file.toURI()).append("'>")
+								.append("<img width='32' height='32' src='").append(iconFile.toURI()).append("'>")
+								.append("</a>");
 					}
 				}
 				if (MimeBodyPart.ATTACHMENT.equals(bodyPart.getDisposition())) {
@@ -167,7 +171,7 @@ public class MessageHelper {
 				}
 			}
 		}
-		
+
 		LOGGER.warn("not handled {}/{}", type, content.getClass());
 		return new StringBuilder();
 	}
