@@ -3,7 +3,6 @@ package net.anfoya.mail.mime;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -41,6 +40,7 @@ import sun.misc.IOUtils;
 public class MessageHelper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessageHelper.class);
 	private static final String TEMP = System.getProperty("java.io.tmpdir") + File.separatorChar;
+	private static final String SYS_ICON = "/net/anfoya/mail/sysicon/%s.png";
 
 	private final Map<String, String> cidUris;
 	private final Set<String> attachmentNames;
@@ -177,10 +177,10 @@ public class MessageHelper {
 	private String getBase64SystemIcon(File file) {
 		try {
 			final byte[] imgBytes;
-			final String iconFileName = "/net/anfoya/mail/sysicon/" + file.getName().substring(file.getName().lastIndexOf(".") + 1) + ".png";
+			final String iconFileName = String.format(SYS_ICON, file.getName().substring(file.getName().lastIndexOf(".") + 1));
 			if (getClass().getResource(iconFileName) != null) {
-				final File f = new File(getClass().getResource(iconFileName).getFile());
-				imgBytes = IOUtils.readFully(new FileInputStream(f), (int) f.length(), true);
+				final InputStream in = getClass().getResourceAsStream(iconFileName);
+				imgBytes = IOUtils.readFully(in, in.available(), true);
 			} else {
 				final Icon icon = new JFileChooser().getIcon(file);
 				final BufferedImage bi = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TRANSLUCENT);
