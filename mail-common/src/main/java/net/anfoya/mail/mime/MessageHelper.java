@@ -20,6 +20,7 @@ import javax.mail.Address;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.Part;
+import javax.mail.Message.RecipientType;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
@@ -199,5 +200,27 @@ public class MessageHelper {
 
 	public Set<String> getAttachmentNames() {
 		return Collections.unmodifiableSet(attachmentNames);
+	}
+
+	public void removeMyselfFromRecipient(String myAddress, MimeMessage reply) throws MessagingException {
+		removeMyselfFromRecipient(myAddress, reply, RecipientType.TO);
+		removeMyselfFromRecipient(myAddress, reply, RecipientType.CC);
+		removeMyselfFromRecipient(myAddress, reply, RecipientType.BCC);
+	}
+
+	public void removeMyselfFromRecipient(String myAddress, MimeMessage reply, RecipientType type) throws MessagingException {
+		Address[] addresses = reply.getRecipients(type);
+		if (addresses == null || addresses.length == 0) {
+			return;
+		}
+		
+		List<Address> to = new ArrayList<Address>();
+		for(Address a: addresses) {
+			if (!myAddress.equals(((InternetAddress) a).getAddress())) {
+				to.add(a);
+			}
+		}
+		reply.setRecipients(type, to.toArray(new Address[0]));
+		reply.saveChanges();
 	}
 }
