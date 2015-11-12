@@ -194,7 +194,7 @@ public class MessageHelper {
 			return new BASE64Encoder().encode(imgBytes);
 		} catch (final IOException e) {
 			LOGGER.error("reading system icon for {}", file.getName(), e);
-			return null;
+			return "";
 		}
 	}
 
