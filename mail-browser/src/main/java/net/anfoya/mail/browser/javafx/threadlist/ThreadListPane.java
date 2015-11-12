@@ -131,6 +131,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		threadList.setOnDragDetected(event -> {
 	        final ClipboardContent content = new ClipboardContent();
 	        content.put(ExtItemDropPane.ADD_TAG_DATA_FORMAT, "");
+	        content.put(DND_THREADS_DATA_FORMAT, "");
 	        final Dragboard db = threadList.startDragAndDrop(TransferMode.ANY);
 	        db.setContent(content);
 		});
@@ -189,19 +190,11 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		setMargin(sortBox, new Insets(5));
 	}
 
-	private M getLastMessage(final H thread) throws MailException {
-		String lastMessageId = null;
-		for(final String id: thread.getMessageIds()) {
-			lastMessageId = id;
-		}
-		return mailService.getMessage(lastMessageId);
-	}
-
 	private void forwardSelected() {
 		try {
 			for(final H t: threadList.getSelectedThreads()) {
-				final M m = getLastMessage(t);
-				new MailComposer<M, C>(mailService, updateHandler).forward(m);
+				final M message = mailService.getMessage(t.getLastMessageId());
+				new MailComposer<M, C>(mailService, updateHandler).forward(message);
 			}
 		} catch (final Exception e) {
 			LOGGER.error("loading transfer composer", e);
@@ -211,8 +204,8 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	private Void replySelected(final boolean all) {
 		try {
 			for(final H t: threadList.getSelectedThreads()) {
-				final M m = getLastMessage(t);
-				new MailComposer<M, C>(mailService, updateHandler).reply(m, all);
+				final M message = mailService.getMessage(t.getLastMessageId());
+				new MailComposer<M, C>(mailService, updateHandler).reply(message, all);
 			}
 		} catch (final Exception e) {
 			LOGGER.error("loading reply{} composer", all? " all": "", e);
