@@ -33,37 +33,13 @@ public class SectionDropPane<S extends Section> extends GridPane {
 		getStyleClass().add("droparea-grid");
 
 		final DropArea removeArea = new DropArea("remove", Section.SECTION_DATA_FORMAT);
-		removeArea.setOnDragDropped(e -> {
-			if (e.getDragboard().hasContent(Section.SECTION_DATA_FORMAT)) {
-				@SuppressWarnings("unchecked")
-				final S section = (S) e.getDragboard().getContent(Section.SECTION_DATA_FORMAT);
-				remove(section);
-				e.setDropCompleted(true);
-				e.consume();
-			}
-		});
+		removeArea.<S>setDropCallback((S s) -> remove(s));
 
 		final DropArea renameArea = new DropArea("rename", Section.SECTION_DATA_FORMAT);
-		renameArea.setOnDragDropped(e -> {
-			if (e.getDragboard().hasContent(Section.SECTION_DATA_FORMAT)) {
-				@SuppressWarnings("unchecked")
-				final S section = (S) e.getDragboard().getContent(Section.SECTION_DATA_FORMAT);
-				rename(section);
-				e.setDropCompleted(true);
-				e.consume();
-			}
-		});
+		renameArea.<S>setDropCallback((S s) -> rename(s));
 
 		final DropArea hideArea = new DropArea("hide", Section.SECTION_DATA_FORMAT);
-		hideArea.setOnDragDropped(e -> {
-			if (e.getDragboard().hasContent(Section.SECTION_DATA_FORMAT)) {
-				@SuppressWarnings("unchecked")
-				final S section = (S) e.getDragboard().getContent(Section.SECTION_DATA_FORMAT);
-				hide(section);
-				e.setDropCompleted(true);
-				e.consume();
-			}
-		});
+		hideArea.<S>setDropCallback((S s) -> hide(s));
 
 		int i = 0;
 		addRow(i++, renameArea);
@@ -84,7 +60,7 @@ public class SectionDropPane<S extends Section> extends GridPane {
 		updateHandler = handler;
 	}
 
-	private void rename(final S section) {
+	private Void rename(final S section) {
 		String name = "";
 		while(name.isEmpty()) {
 			final TextInputDialog inputDialog = new TextInputDialog(section.getName());
@@ -93,7 +69,7 @@ public class SectionDropPane<S extends Section> extends GridPane {
 			inputDialog.setContentText("Section name");
 			final Optional<String> response = inputDialog.showAndWait();
 			if (!response.isPresent()) {
-				return;
+				return null;
 			}
 			name = response.get();
 			if (name.length() < 3) {
@@ -117,9 +93,11 @@ public class SectionDropPane<S extends Section> extends GridPane {
 		task.setOnSucceeded(e -> updateHandler.handle(null));
 		task.setOnFailed(e -> LOGGER.error("renaming section {} to {}", section.getName(), finalAnswer, e.getSource().getException()));
 		ThreadPool.getInstance().submitHigh(task, "renaming section " + section.getName() + " to " + finalAnswer);
+
+		return null;
 	}
 
-	private void remove(final S section) {
+	private Void remove(final S section) {
 		final Alert confirmDialog = new Alert(AlertType.CONFIRMATION, "", new ButtonType[] { ButtonType.OK, ButtonType.CANCEL });
 		confirmDialog.setTitle("Remove section");
 		confirmDialog.setHeaderText("Remove section: \"" + section.getName() + "\"?");
@@ -137,9 +115,11 @@ public class SectionDropPane<S extends Section> extends GridPane {
 			task.setOnFailed(e -> LOGGER.error("removing section {}", section.getName(), e.getSource().getException()));
 			ThreadPool.getInstance().submitHigh(task, "removing section " + section.getName());
 		}
+
+		return null;
 	}
 
-	private void hide(final S section) {
+	private Void hide(final S section) {
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
@@ -150,5 +130,7 @@ public class SectionDropPane<S extends Section> extends GridPane {
 		task.setOnSucceeded(event -> updateHandler.handle(null));
 		task.setOnFailed(e -> LOGGER.error("hiding section {}", section.getName(), e.getSource().getException()));
 		ThreadPool.getInstance().submitHigh(task, "hiding section " + section.getName());
+
+		return null;
 	}
 }

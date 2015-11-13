@@ -120,23 +120,6 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		stackPane.setAlignment(Pos.BOTTOM_CENTER);
 		setCenter(stackPane);
 
-//		final ThreadDropPane<H, M> threadDropPane = new ThreadDropPane<H, M>();
-//		threadDropPane.prefWidthProperty().bind(stackPane.widthProperty());
-//
-//		stackPane.setOnDragEntered(e -> {
-//			if ((e.getDragboard().hasContent(ThreadListPane.DND_THREADS_DATA_FORMAT)
-//						|| e.getDragboard().hasContent(ThreadDropPane.MESSAGE_DATA_FORMAT))
-//					&& !stackPane.getChildren().contains(threadDropPane)) {
-//				threadDropPane.init(e.getDragboard());
-//				stackPane.getChildren().add(threadDropPane);
-//			}
-//		});
-//		stackPane.setOnDragExited(e -> {
-//			if (stackPane.getChildren().contains(threadDropPane)) {
-//				stackPane.getChildren().remove(threadDropPane);
-//			}
-//		});
-
 		tagsPane = new SelectedTagsPane<T>();
 		setBottom(tagsPane);
 	}

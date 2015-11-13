@@ -27,10 +27,7 @@ import javafx.scene.Cursor;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.Dragboard;
 import javafx.scene.input.ScrollEvent;
-import javafx.scene.input.TransferMode;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -43,7 +40,6 @@ import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.web.WebViewFitContent;
 import net.anfoya.mail.browser.javafx.attachment.AttachmentLoader;
-import net.anfoya.mail.browser.javafx.thread.ThreadDropPane;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
 import net.anfoya.mail.browser.javafx.util.UrlHelper;
 import net.anfoya.mail.composer.javafx.MailComposer;
@@ -212,12 +208,6 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		collapsible.set(true);
 
 		getChildren().addAll(titlePane, messageView);
-		setOnDragDetected(event -> {
-	        final ClipboardContent content = new ClipboardContent();
-	        content.put(ThreadDropPane.MESSAGE_DATA_FORMAT, message);
-	        final Dragboard db = startDragAndDrop(TransferMode.ANY);
-	        db.setContent(content);
-		});
 	}
 
 	private void showSnippet(final boolean show) {

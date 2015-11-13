@@ -36,54 +36,22 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 		new DndPaneTranslationHelper(this);
 
 		final DropArea removeArea = new DropArea("remove", Tag.TAG_DATA_FORMAT);
-		removeArea.setOnDragDropped(e -> {
-			if (e.getDragboard().hasContent(Tag.TAG_DATA_FORMAT)) {
-				@SuppressWarnings("unchecked")
-				final T tag = (T) e.getDragboard().getContent(Tag.TAG_DATA_FORMAT);
-				remove(tag);
-				e.setDropCompleted(true);
-				e.consume();
-			}
-		});
+		removeArea.<T>setDropCallback(t -> remove(t));
 
 		final DropArea renameArea = new DropArea("rename", Tag.TAG_DATA_FORMAT);
-		renameArea.setOnDragDropped(e -> {
-			if (e.getDragboard().hasContent(Tag.TAG_DATA_FORMAT)) {
-				@SuppressWarnings("unchecked")
-				final T tag = (T) e.getDragboard().getContent(Tag.TAG_DATA_FORMAT);
-				rename(tag);
-				e.setDropCompleted(true);
-				e.consume();
-			}
-		});
+		renameArea.<T>setDropCallback(t -> rename(t));
+
+		final DropArea newSectionArea = new DropArea("new section", Tag.TAG_DATA_FORMAT);
+		newSectionArea.<T>setDropCallback(t -> newSection(t));
 
 		final DropArea hideArea = new DropArea("hide", Tag.TAG_DATA_FORMAT);
-		hideArea.setOnDragDropped(e -> {
-			if (e.getDragboard().hasContent(Tag.TAG_DATA_FORMAT)) {
-				@SuppressWarnings("unchecked")
-				final T tag = (T) e.getDragboard().getContent(Tag.TAG_DATA_FORMAT);
-				hide(tag);
-				e.setDropCompleted(true);
-				e.consume();
-			}
-		});
+		hideArea.<T>setDropCallback(t -> hide(t));
 
 		addRow(0, renameArea, removeArea);
 		setHgrow(renameArea, Priority.ALWAYS);
 		setVgrow(renameArea, Priority.ALWAYS);
 		setHgrow(removeArea, Priority.ALWAYS);
 		setVgrow(removeArea, Priority.ALWAYS);
-
-		final DropArea newSectionArea = new DropArea("new section", Tag.TAG_DATA_FORMAT);
-		newSectionArea.setOnDragDropped(e -> {
-			if (e.getDragboard().hasContent(Tag.TAG_DATA_FORMAT)) {
-				@SuppressWarnings("unchecked")
-				final T tag = (T) e.getDragboard().getContent(Tag.TAG_DATA_FORMAT);
-				newSection(tag);
-				e.setDropCompleted(true);
-				e.consume();
-			}
-		});
 
 		addRow(1, newSectionArea);
 		setColumnSpan(newSectionArea, 2);
@@ -96,7 +64,7 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 		setVgrow(hideArea, Priority.ALWAYS);
 	}
 
-	private void newSection(final T tag) {
+	private Void newSection(final T tag) {
 		String name = "";
 		while(name.isEmpty()) {
 			final TextInputDialog inputDialog = new TextInputDialog();
@@ -105,7 +73,7 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 			inputDialog.setContentText("Section name");
 			final Optional<String> response = inputDialog.showAndWait();
 			if (!response.isPresent()) {
-				return;
+				return null;
 			}
 			name = response.get();
 			if (name.length() < 3) {
@@ -130,9 +98,11 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 		task.setOnSucceeded(event -> onUpdateHandler.handle(null));
 		task.setOnFailed(e -> LOGGER.error("moving tag {} to new section {}", tag.getName(), finalAnswer, e.getSource().getException()));
 		ThreadPool.getInstance().submitHigh(task, "moving tag " + tag.getName() + " to new section " + finalAnswer);
+
+		return null;
 	}
 
-	private void rename(final T tag) {
+	private Void rename(final T tag) {
 		String name = "";
 		while(name.isEmpty()) {
 			final TextInputDialog inputDialog = new TextInputDialog(tag.getName());
@@ -141,7 +111,7 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 			inputDialog.setContentText("Tag name");
 			final Optional<String> response = inputDialog.showAndWait();
 			if (!response.isPresent()) {
-				return;
+				return null;
 			}
 			name = response.get();
 			if (name.length() < 3) {
@@ -165,9 +135,11 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 		task.setOnSucceeded(event -> onUpdateHandler.handle(null));
 		task.setOnFailed(e -> LOGGER.error("renaming tag {} to {}", tag.getName(), finalAnswer, e.getSource().getException()));
 		ThreadPool.getInstance().submitHigh(task, "renaming tag " + tag.getName() + " to " + finalAnswer);
+
+		return null;
 	}
 
-	private void remove(final T tag) {
+	private Void remove(final T tag) {
 		final Alert confirmDialog = new Alert(AlertType.CONFIRMATION, "", new ButtonType[] { ButtonType.OK, ButtonType.CANCEL });
 		confirmDialog.setTitle("Remove label");
 		confirmDialog.setHeaderText("Remove label: \"" + tag.getName() + "\"?");
@@ -185,9 +157,11 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 			task.setOnFailed(e -> LOGGER.error("removing tag {}", tag.getName(), e.getSource().getException()));
 			ThreadPool.getInstance().submitHigh(task, "removing tag " + tag.getName());
 		}
+
+		return null;
 	}
 
-	private void hide(final T tag) {
+	private Void hide(final T tag) {
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
@@ -198,6 +172,8 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 		task.setOnSucceeded(event -> onUpdateHandler.handle(null));
 		task.setOnFailed(e -> LOGGER.error("hiding tag {}", tag.getName(), e.getSource().getException()));
 		ThreadPool.getInstance().submitHigh(task, "hiding tag " + tag.getName());
+
+		return null;
 	}
 
 	public void setOnUpdate(final EventHandler<ActionEvent> handler) {

@@ -11,50 +11,19 @@ import net.anfoya.javafx.scene.dnd.DropArea;
 import net.anfoya.mail.service.MailException;
 
 public class ThreadListDropPane extends GridPane {
-	private EventHandler<ActionEvent> archiveHandler;
-	private EventHandler<ActionEvent> forwardHandler;
-
-	private Callback<Boolean, Void> replyCallback;
+	private final DropArea archiveArea;
+	private final DropArea replyArea;
+	private final DropArea replyAllArea;
+	private final DropArea forwardArea;
 
 	public ThreadListDropPane() throws MailException {
 		setMaxHeight(200);
 		getStyleClass().add("droparea-grid");
 
-		final DropArea archiveArea = new DropArea("archive", DND_THREADS_DATA_FORMAT);
-		archiveArea.setOnDragDropped(event -> {
-			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)) {
-				archiveHandler.handle(null);
-				event.setDropCompleted(true);
-				event.consume();
-			}
-		});
-
-		final DropArea replyArea = new DropArea("reply", DND_THREADS_DATA_FORMAT);
-		replyArea.setOnDragDropped(event -> {
-			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)) {
-				replyCallback.call(false);
-				event.setDropCompleted(true);
-				event.consume();
-			}
-		});
-
-		final DropArea replyAllArea = new DropArea("reply all", DND_THREADS_DATA_FORMAT);
-		replyArea.setOnDragDropped(event -> {
-			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)) {
-				replyCallback.call(true);
-				event.setDropCompleted(true);
-				event.consume();
-			}
-		});
-
-		final DropArea forwardArea = new DropArea("forward", DND_THREADS_DATA_FORMAT);
-		forwardArea.setOnDragDropped(event -> {
-			if (event.getDragboard().hasContent(DND_THREADS_DATA_FORMAT)) {
-				forwardHandler.handle(null);
-				event.setDropCompleted(true);
-				event.consume();
-			}
-		});
+		archiveArea = new DropArea("archive", DND_THREADS_DATA_FORMAT);
+		replyArea = new DropArea("reply", DND_THREADS_DATA_FORMAT);
+		replyAllArea = new DropArea("reply all", DND_THREADS_DATA_FORMAT);
+		forwardArea = new DropArea("forward", DND_THREADS_DATA_FORMAT);
 
 		int i=0;
 		addRow(i++, replyArea);
@@ -76,14 +45,15 @@ public class ThreadListDropPane extends GridPane {
 	}
 
 	public void setOnReply(Callback<Boolean, Void> callback) {
-		replyCallback = callback;
+		replyArea.setDropHandler(e -> callback.call(false));
+		replyAllArea.setDropHandler(e -> callback.call(true));
 	}
 
 	public void setOnForward(EventHandler<ActionEvent> handler) {
-		forwardHandler = handler;
+		forwardArea.setDropHandler(handler);
 	}
 
 	public void setOnArchive(final EventHandler<ActionEvent> handler) {
-		this.archiveHandler = handler;
+		archiveArea.setDropHandler(handler);
 	}
 }

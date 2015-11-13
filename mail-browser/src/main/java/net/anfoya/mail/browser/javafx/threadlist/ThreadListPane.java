@@ -53,7 +53,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadListPane.class);
 	private static final ReadOnlyBooleanProperty ARCHIVE_ON_DROP = Settings.getSettings().archiveOnDrop();
 
-	public static final DataFormat DND_THREADS_DATA_FORMAT = new DataFormat("Set<" + Thread.class.getName() + ">");
+	public static final DataFormat DND_THREADS_DATA_FORMAT = new DataFormat("DND_THREADS_DATA_FORMAT");
 
 	private final MailService<S, T, H, M, C> mailService;
 	private final ThreadList<S, T, H, M, C> threadList;
