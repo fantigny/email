@@ -6,6 +6,9 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javafx.animation.Interpolator;
+import javafx.animation.RotateTransition;
+import javafx.animation.Timeline;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.value.ChangeListener;
@@ -37,6 +40,7 @@ import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.animation.DelayTimeline;
 import net.anfoya.javafx.scene.control.ResetTextField;
 import net.anfoya.mail.browser.javafx.settings.Settings;
+import net.anfoya.mail.browser.javafx.settings.SettingsDialog;
 import net.anfoya.mail.composer.javafx.MailComposer;
 import net.anfoya.mail.model.SimpleThread.SortOrder;
 import net.anfoya.mail.service.Contact;
@@ -80,6 +84,55 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		patternField = new ResetTextField();
 		patternField.setPromptText("mail search");
 
+		threadList = new ThreadList<S, T, H, M, C>(mailService);
+		threadList.setOnDragDetected(event -> {
+	        final ClipboardContent content = new ClipboardContent();
+	        content.put(ExtItemDropPane.ADD_TAG_DATA_FORMAT, "");
+	        content.put(DND_THREADS_DATA_FORMAT, "");
+	        final Dragboard db = threadList.startDragAndDrop(TransferMode.ANY);
+	        db.setContent(content);
+		});
+		threadList.setOnDragDone(e -> {
+			final Dragboard db = e.getDragboard();
+			if (db.hasContent(Tag.TAG_DATA_FORMAT)) {
+				@SuppressWarnings("unchecked")
+				final T tag = (T) db.getContent(Tag.TAG_DATA_FORMAT);
+				addTagForThreads(tag, getSelectedThreads());
+			} else if (db.hasContent(ExtItemDropPane.TAG_NAME_DATA_FORMAT)) {
+				final String name = (String) db.getContent(ExtItemDropPane.TAG_NAME_DATA_FORMAT);
+				createTagForThreads(name, getSelectedThreads());
+			}
+			e.consume();
+		});
+
+
+		final StackPane centerPane = new StackPane(threadList);
+		centerPane.setAlignment(Pos.BOTTOM_CENTER);
+		setCenter(centerPane);
+
+		final Button settingsButton = new Button();
+		settingsButton.setFocusTraversable(false);
+		settingsButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/settings.png"))));
+		settingsButton.setTooltip(new Tooltip("settings"));
+		settingsButton.setOnAction(event -> new SettingsDialog<S, T>(mailService).show());
+
+		RotateTransition rotateTransition = new RotateTransition(Duration.millis(250), settingsButton);
+		rotateTransition.setFromAngle(-15);
+		rotateTransition.setToAngle(15);
+		rotateTransition.setAutoReverse(true);
+		rotateTransition.setCycleCount(Timeline.INDEFINITE);
+		rotateTransition.setInterpolator(Interpolator.EASE_IN);
+		rotateTransition.play();
+		
+		threadList.loadingProperty().addListener((ov, o, n) -> {
+			if (n) {
+				rotateTransition.play();
+			} else {
+				rotateTransition.stop();
+				settingsButton.setRotate(0);
+			}
+		});
+		
 		final Button newButton = new Button();
 		newButton.setFocusTraversable(false);
 		newButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/new.png"))));
@@ -92,14 +145,10 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 			}
 		});
 
-		final StackPane centerPane = new StackPane();
-		centerPane.setAlignment(Pos.BOTTOM_CENTER);
-		setCenter(centerPane);
-
 		final VBox topBox = new VBox();
 		setTop(topBox);
 
-		final HBox firstLineBox = new HBox(patternField, newButton);
+		final HBox firstLineBox = new HBox(patternField, settingsButton, newButton);
 		firstLineBox.setAlignment(Pos.CENTER_LEFT);
 		HBox.setHgrow(patternField, Priority.ALWAYS);
 		topBox.getChildren().add(firstLineBox);
@@ -126,27 +175,6 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 				topBox.getChildren().remove(toolbar);
 			}
 		});
-
-		threadList = new ThreadList<S, T, H, M, C>(mailService);
-		threadList.setOnDragDetected(event -> {
-	        final ClipboardContent content = new ClipboardContent();
-	        content.put(ExtItemDropPane.ADD_TAG_DATA_FORMAT, "");
-	        final Dragboard db = threadList.startDragAndDrop(TransferMode.ANY);
-	        db.setContent(content);
-		});
-		threadList.setOnDragDone(e -> {
-			final Dragboard db = e.getDragboard();
-			if (db.hasContent(Tag.TAG_DATA_FORMAT)) {
-				@SuppressWarnings("unchecked")
-				final T tag = (T) db.getContent(Tag.TAG_DATA_FORMAT);
-				addTagForThreads(tag, getSelectedThreads());
-			} else if (db.hasContent(ExtItemDropPane.TAG_NAME_DATA_FORMAT)) {
-				final String name = (String) db.getContent(ExtItemDropPane.TAG_NAME_DATA_FORMAT);
-				createTagForThreads(name, getSelectedThreads());
-			}
-			e.consume();
-		});
-		centerPane.getChildren().add(threadList);
 
 		threadListDropPane = new ThreadListDropPane();
 		threadListDropPane.prefWidthProperty().bind(centerPane.widthProperty());
@@ -189,19 +217,11 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		setMargin(sortBox, new Insets(5));
 	}
 
-	private M getLastMessage(final H thread) throws MailException {
-		String lastMessageId = null;
-		for(final String id: thread.getMessageIds()) {
-			lastMessageId = id;
-		}
-		return mailService.getMessage(lastMessageId);
-	}
-
 	private void forwardSelected() {
 		try {
 			for(final H t: threadList.getSelectedThreads()) {
-				final M m = getLastMessage(t);
-				new MailComposer<M, C>(mailService, updateHandler).forward(m);
+				final M message = mailService.getMessage(t.getLastMessageId());
+				new MailComposer<M, C>(mailService, updateHandler).forward(message);
 			}
 		} catch (final Exception e) {
 			LOGGER.error("loading transfer composer", e);
@@ -211,8 +231,8 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	private Void replySelected(final boolean all) {
 		try {
 			for(final H t: threadList.getSelectedThreads()) {
-				final M m = getLastMessage(t);
-				new MailComposer<M, C>(mailService, updateHandler).reply(m, all);
+				final M message = mailService.getMessage(t.getLastMessageId());
+				new MailComposer<M, C>(mailService, updateHandler).reply(message, all);
 			}
 		} catch (final Exception e) {
 			LOGGER.error("loading reply{} composer", all? " all": "", e);

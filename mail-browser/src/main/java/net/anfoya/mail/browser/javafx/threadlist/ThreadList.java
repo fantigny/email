@@ -14,6 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javafx.application.Platform;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -57,6 +59,8 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 	private EventHandler<ActionEvent> updateHandler;
 
 	private boolean firstLoad = true;
+	
+	private ReadOnlyBooleanWrapper loadingProperty;
 
 	public ThreadList(final MailService<S, T, H, M, C> mailService) {
 		this.mailService = mailService;
@@ -68,7 +72,7 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 
 		refreshing = false;
 		resetSelection = true;
-
+		loadingProperty = new ReadOnlyBooleanWrapper(false);
 
 		setCellFactory(param -> new ThreadListCell<H>());
 		setOnKeyPressed(event -> {
@@ -166,6 +170,7 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 		loadTask = new Task<Set<H>>() {
 			@Override
 			protected Set<H> call() throws InterruptedException, MailException {
+				loadingProperty.set(true);
 				LOGGER.debug("loading for includes {}, excludes {}, pattern: {}, pageMax: {}", includes, excludes, pattern, page);
 				final Set <H> threads = mailService.findThreads(includes, excludes, pattern, page);
 				tweakUnreadMessage(threads);
@@ -177,6 +182,7 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 			if (taskId != loadTaskId) {
 				return;
 			}
+			loadingProperty.set(false);
 			refresh(loadTask.getValue());
 		});
 		ThreadPool.getInstance().submitHigh(loadTask, "loading thread list");
@@ -329,5 +335,9 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 		task.setOnSucceeded(e -> updateHandler.handle(null));
 		task.setOnFailed(e -> LOGGER.error("archiving threads {}", threads));
 		ThreadPool.getInstance().submitHigh(task, "archiving threads");
+	}
+
+	public ReadOnlyBooleanProperty loadingProperty() {
+		return loadingProperty.getReadOnlyProperty();
 	}
 }

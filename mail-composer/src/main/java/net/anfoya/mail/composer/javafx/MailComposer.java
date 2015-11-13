@@ -61,6 +61,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 	private final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService;
 	private final EventHandler<ActionEvent> updateHandler;
 	private final MessageHelper helper;
+	private final String myAddress;
 
 	private final BorderPane mainPane;
 
@@ -85,6 +86,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		super(StageStyle.UNIFIED);
 		setTitle("FisherMail");
 
+		myAddress = mailService.getContact().getEmail();
 		editedProperty = new SimpleBooleanProperty(false);
 		autosaveTimer = null;
 
@@ -268,6 +270,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 				final MimeMessage reply = (MimeMessage) message.getMimeMessage().reply(all);
 				reply.setContent(message.getMimeMessage().getContent(), message.getMimeMessage().getContentType());
 				reply.saveChanges();
+				helper.removeMyselfFromRecipient(myAddress, reply);
 				draft = mailService.createDraft(message);
 				draft.setMimeDraft(reply);
 				return null;
