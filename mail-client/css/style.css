@@ -36,6 +36,7 @@
 .list-view {
     -fx-border-width: 0;
     -fx-background-insets: 0;
+    -fx-background-color: transparent;
 }
 
 .border-pane {
@@ -51,7 +52,7 @@
 .button{
 	-fx-background-color: transparent;
     -fx-background-radius: 0;
-    -fx-background-insets: 0;
+    -fx-background-insets: -1.4, 0, 1, 2;
 }  
 .button:hover {
     -fx-background-color: transparent, -fx-outer-border, -fx-inner-border, transparent;
@@ -127,7 +128,6 @@
 .thread .message {
 }
 .thread .message .arrow-button {
-    -fx-background-color: null;
     -fx-background-insets: 0;
     -fx-background-radius: 0;
     -fx-padding: 5 7 7 0;

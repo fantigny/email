@@ -14,10 +14,10 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javafx.util.Callback;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javafx.util.Callback;
 
 public final class ThreadPool {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadPool.class);
@@ -60,8 +60,8 @@ public final class ThreadPool {
 		changeCallbacks = new HashSet<Callback<Map<Future<?>,String>,Void>>();
 //		delegateHigh = Executors.newCachedThreadPool(new NamedThreadFactory("high", Thread.NORM_PRIORITY));
 //		delegateLow = Executors.newCachedThreadPool(new NamedThreadFactory("low", Thread.MIN_PRIORITY));
-		delegateHigh = Executors.newFixedThreadPool(20, new NamedThreadFactory("norm-prority-threadpool", Thread.NORM_PRIORITY));
-		delegateLow = Executors.newFixedThreadPool(10, new NamedThreadFactory(" min-prority-threadpool", Thread.MIN_PRIORITY));
+		delegateHigh = Executors.newFixedThreadPool(30, new NamedThreadFactory("norm-prority-threadpool", Thread.NORM_PRIORITY));
+		delegateLow = Executors.newFixedThreadPool(20, new NamedThreadFactory(" min-prority-threadpool", Thread.MIN_PRIORITY));
 
 		final Timer timer = new Timer("threadpool-cleanup-timer", true);
 		timer.schedule(new TimerTask() {
@@ -120,9 +120,7 @@ public final class ThreadPool {
 
 	private <T> Future<T> addFuture(final Future<T> future, final String description) {
 		futureDesc.put(future, description);
-		for(final Callback<Map<Future<?>, String>, Void> callback: changeCallbacks) {
-			callback.call(futureDesc);
-		}
+		changeCallbacks.forEach(c -> c.call(futureDesc));
 		return future;
 	}
 
@@ -135,9 +133,7 @@ public final class ThreadPool {
 			}
 		}
 		if (changed) {
-			for(final Callback<Map<Future<?>, String>, Void> callback: changeCallbacks) {
-				callback.call(futureDesc);
-			}
+			changeCallbacks.forEach(c -> c.call(futureDesc));
 		}
 	}
 }

@@ -116,14 +116,14 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		settingsButton.setTooltip(new Tooltip("settings"));
 		settingsButton.setOnAction(event -> new SettingsDialog<S, T>(mailService).show());
 
-		RotateTransition rotateTransition = new RotateTransition(Duration.millis(250), settingsButton);
+		final RotateTransition rotateTransition = new RotateTransition(Duration.millis(250), settingsButton);
 		rotateTransition.setFromAngle(-15);
 		rotateTransition.setToAngle(15);
 		rotateTransition.setAutoReverse(true);
 		rotateTransition.setCycleCount(Timeline.INDEFINITE);
 		rotateTransition.setInterpolator(Interpolator.EASE_IN);
 		rotateTransition.play();
-		
+
 		threadList.loadingProperty().addListener((ov, o, n) -> {
 			if (n) {
 				rotateTransition.play();
@@ -132,7 +132,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 				settingsButton.setRotate(0);
 			}
 		});
-		
+
 		final Button newButton = new Button();
 		newButton.setFocusTraversable(false);
 		newButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/new.png"))));
