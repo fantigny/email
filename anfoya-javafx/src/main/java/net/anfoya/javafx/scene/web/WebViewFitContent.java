@@ -96,4 +96,8 @@ public final class WebViewFitContent extends Region {
 	public WebEngine getEngine() {
 		return delegate.getEngine();
 	}
+
+	public WebView getWebView() {
+		return delegate;
+	}
 }

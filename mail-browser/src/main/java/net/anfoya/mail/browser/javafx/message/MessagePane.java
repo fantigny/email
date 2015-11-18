@@ -59,13 +59,6 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
     private static final Image ATTACHMENT = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/image/attachment.png"));
     private static final Image MINI_ATTACHMENT = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/image/mini_attach.png"));
 
-	private static final String CSS_DATA = "<style> body {"
-			+ " margin: 7;"
-			+ " padding: 0;"
-			+ " font-family: Arial, Helvetica, sans-serif;"
-			+ " font-size: 12px;"
-			+ "} </style>";
-
 	private final String messageId;
 	private final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService;
 	private final BooleanProperty expanded;
@@ -105,22 +98,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		messageView.focusTraversableProperty().bind(focusTraversableProperty());
 		messageView.getEngine().setUserStyleSheetLocation(getClass().getResource("default.css").toExternalForm());
 		messageView.getEngine().setCreatePopupHandler(handler -> messageView.getEngine());
-		messageView.getEngine().locationProperty().addListener((ov, o, n) -> {
-			if (!n.isEmpty()) {
-				Platform.runLater(() -> {
-					messageView.getEngine().getLoadWorker().cancel();
-					load();
-				});
-				UrlHelper.open(n, p -> {
-					try {
-						new MailComposer<M, C>(mailService, updateHandler).newMessage(p);
-					} catch (final MailException e) {
-						LOGGER.error("creating new mail to {}", p, e);
-					}
-					return null;
-				});
-			}
-		});
+		messageView.getEngine().locationProperty().addListener((ov, o, n) -> handleExtLink(messageView.getWebView(), n));
 
 		recipientFlow = new TextFlow(new Text("loading..."));
 		dateText = new Text();
@@ -136,6 +114,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		snippetView.setMinHeight(0);
 		snippetView.setMaxHeight(0);
 		snippetView.toBack();
+		snippetView.getEngine().locationProperty().addListener((ov, o, n) -> handleExtLink(snippetView, n));
 
 		attachmentPane = new FlowPane(Orientation.HORIZONTAL, 5, 0);
 		attachmentPane.setPadding(new Insets(0, 10, 0, 10));
@@ -209,6 +188,23 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		collapsible.set(true);
 
 		getChildren().addAll(titlePane, messageView);
+	}
+
+	private void handleExtLink(WebView view, String url) {
+		if (url != null && !url.isEmpty()) {
+			Platform.runLater(() -> {
+				messageView.getEngine().getLoadWorker().cancel();
+				load();
+			});
+			UrlHelper.open(url, recipient -> {
+				try {
+					new MailComposer<M, C>(mailService, updateHandler).newMessage(recipient);
+				} catch (final MailException e) {
+					LOGGER.error("creating new mail to {}", recipient, e);
+				}
+				return null;
+			});
+		}
 	}
 
 	private void showSnippet(final boolean show) {
@@ -319,7 +315,8 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		}
 		dateText.setText(date);
 
-		snippetView.getEngine().loadContent(CSS_DATA + message.getSnippet() + "...");
+		snippetView.getEngine().loadContent(message.getSnippet() + "...");
+		snippetView.getEngine().setUserStyleSheetLocation(getClass().getResource("default.css").toExternalForm());
 
 		attachmentPane.getChildren().clear();
 		final Set<String> attachNames = helper.getAttachmentNames();
