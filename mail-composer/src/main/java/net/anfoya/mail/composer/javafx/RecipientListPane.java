@@ -5,6 +5,9 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -20,9 +23,6 @@ import net.anfoya.javafx.scene.control.ComboField;
 import net.anfoya.javafx.scene.control.RemoveLabel;
 import net.anfoya.javafx.util.LabelHelper;
 import net.anfoya.mail.service.Contact;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class RecipientListPane<C extends Contact> extends HBox {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RecipientListPane.class);
@@ -44,7 +44,7 @@ public class RecipientListPane<C extends Contact> extends HBox {
 	public RecipientListPane(final String title) {
 		super(0);
 		setPadding(new Insets(3, 0, 3, 0));
-		getStyleClass().add("box-underline");
+		getStyleClass().add("recipient-list-pane");
 
 		this.title = new Label(title);
 		this.title.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
@@ -53,6 +53,7 @@ public class RecipientListPane<C extends Contact> extends HBox {
 
 		flowPane = new FlowPane(3,  2);
 		flowPane.setMinWidth(150);
+		flowPane.getStyleClass().add("label-list-pane");
 		getChildren().add(flowPane);
 		HBox.setHgrow(flowPane, Priority.ALWAYS);
 
@@ -131,7 +132,6 @@ public class RecipientListPane<C extends Contact> extends HBox {
 		final String text = addressContacts.containsKey(address)? addressContacts.get(address).getFullname(): address;
 		final String tooltip = "remove " + (text.contains("@")? "": "(" + address + ")");
 		final RemoveLabel label = new RemoveLabel(text, tooltip);
-		label.getStyleClass().add("address-label");
 
 		flowPane.getChildren().add(flowPane.getChildren().size() - 1, label);
 		selectedAdresses.add(address);

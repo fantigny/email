@@ -19,6 +19,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.Notification.Notifier;
+import net.anfoya.mail.browser.javafx.css.StyleHelper;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.settings.VersionChecker;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
@@ -102,10 +103,10 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		threadPane.setOnLogout(e -> signout());
 		splitPane.getItems().add(threadPane);
 
+
 		final Scene scene = new Scene(splitPane);
-		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/excludebox.css").toExternalForm());
-		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/button_flat.css").toExternalForm());
-		scene.getStylesheets().add(getClass().getResource("/net/anfoya/mail/css/Mail.css").toExternalForm());
+		StyleHelper.addCommonCss(scene);
+		StyleHelper.addCss(scene, "/net/anfoya/javafx/scene/control/excludebox.css");
         setScene(scene);
 
 		Notifier.INSTANCE.popupLifetime().bind(Settings.getSettings().popupLifetime());

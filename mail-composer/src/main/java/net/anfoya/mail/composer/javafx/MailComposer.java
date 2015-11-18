@@ -44,6 +44,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.mail.browser.javafx.css.StyleHelper;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.mime.MessageHelper;
 import net.anfoya.mail.service.Contact;
@@ -94,8 +95,8 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		getIcons().add(icon);
 
 		final Scene scene = new Scene(new BorderPane(), 800, 600);
-		scene.getStylesheets().add(getClass().getResource("/net/anfoya/mail/css/Mail.css").toExternalForm());
-		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/combo_noarrow.css").toExternalForm());
+		StyleHelper.addCommonCss(scene);
+		StyleHelper.addCss(scene, "/net/anfoya/javafx/scene/control/combo_noarrow.css");
 		setScene(scene);
 
 		this.mailService = mailService;
@@ -133,7 +134,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		HBox.setHgrow(subjectField, Priority.ALWAYS);
 
 		headerBox = new VBox(0, toListBox, ccListBox, subjectBox);
-		headerBox.setPadding(new Insets(3, 10, 5, 10));
+		headerBox.setPadding(new Insets(3, 10, 0, 10));
 		mainPane.setTop(headerBox);
 
 		ccListBox.focusedProperty().addListener((ov, o, n) -> showBcc());

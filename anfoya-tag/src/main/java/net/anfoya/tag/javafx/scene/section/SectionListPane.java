@@ -78,6 +78,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 		setTop(new HBox(5, patternField));
 
 		sectionAcc = new Accordion();
+		sectionAcc.getStyleClass().add("section-accordion");
 		sectionAcc.focusTraversableProperty().bind(focusTraversableProperty());
 		sectionAcc.expandedPaneProperty().addListener((ov, o, n) -> {
 			if (n == null && !sectionAcc.getPanes().isEmpty()) {

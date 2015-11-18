@@ -59,10 +59,11 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 	private EventHandler<ActionEvent> updateHandler;
 
 	private boolean firstLoad = true;
-	
-	private ReadOnlyBooleanWrapper loadingProperty;
+
+	private final ReadOnlyBooleanWrapper loadingProperty;
 
 	public ThreadList(final MailService<S, T, H, M, C> mailService) {
+        getStyleClass().add("thread-list");
 		this.mailService = mailService;
 
 		includes = new LinkedHashSet<T>();

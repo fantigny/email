@@ -94,6 +94,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	private StackPane arrowRegion;
 
 	public MessagePane(final String messageId, final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService) {
+		getStyleClass().add("message");
 		this.mailService = mailService;
 		this.messageId = messageId;
 		expanded = new SimpleBooleanProperty();
@@ -141,10 +142,10 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 
         arrowRegion = new StackPane();
         arrowRegion.setId("arrowRegion");
-        arrowRegion.getStyleClass().setAll("titled-arrow-button");
+        arrowRegion.getStyleClass().add("arrow-button");
 
         final StackPane arrow = new StackPane();
-        arrow.getStyleClass().setAll("titled-arrow");
+        arrow.getStyleClass().add("arrow");
         arrow.rotateProperty().bind(new DoubleBinding() {
         	{
         		bind(expandedProperty());
@@ -156,7 +157,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 
 		final HBox title = new HBox(arrowRegion, recipientFlow, iconBox, dateText);
 		HBox.setHgrow(iconBox, Priority.ALWAYS);
-		title.getStyleClass().add("message-title-text");
+		title.getStyleClass().add("header");
 		title.setOnMouseClicked(event -> {
 			if (collapsible.get()) {
 				expanded.set(!expanded.get());

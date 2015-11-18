@@ -1,0 +1,25 @@
+.droparea-grid {
+	-fx-alignment: BOTTOM-CENTER;
+    -fx-padding: 4;
+    -fx-hgap: 4;
+    -fx-vgap: 4;
+}
+
+.dropbutton-box {
+    -fx-padding: 2;
+
+	-fx-opacity: 0.9;
+	-fx-background-radius: 5;
+    -fx-background-color: lightgray;
+
+    -fx-border-radius: 5;
+    -fx-border-color: transparent;
+    
+    -fx-text-fill: black;
+    -fx-font-weight: bold;
+}
+
+.dropbutton-box-hover {
+	-fx-opacity: 1;
+    -fx-border-color: red;
+}

@@ -40,6 +40,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.RemoveLabel;
+import net.anfoya.mail.browser.javafx.css.StyleHelper;
 import net.anfoya.mail.browser.javafx.util.UrlHelper;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailService;
@@ -69,7 +70,7 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		tabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
 
 		final Scene scene = new Scene(tabPane, 600, 400);
-		scene.getStylesheets().add(getClass().getResource("/net/anfoya/mail/css/Mail.css").toExternalForm());
+		StyleHelper.addCommonCss(scene);
 
 		setScene(scene);
 	}
@@ -212,8 +213,11 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 
 		hiddenSectionsPane = new FlowPane(3, 1);
 		hiddenSectionsPane.setMaxWidth(300);
+		hiddenSectionsPane.getStyleClass().add("label-list-pane");
+
 		hiddenTagsPane = new FlowPane(3, 1);
 		hiddenTagsPane.setMaxWidth(300);
+		hiddenTagsPane.getStyleClass().add("label-list-pane");
 
 		final Button refreshButton = new Button("boom!");
 		refreshButton.setOnAction(e -> {
@@ -264,14 +268,12 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 			hiddenSectionsPane.getChildren().clear();
 			mailService.getHiddenSections().forEach(s -> {
 				final RemoveLabel label = new RemoveLabel(s.getName(), "show");
-				label.getStyleClass().add("address-label");
 				label.setOnMouseClicked(e -> {
 					try {
 						mailService.show(s);
 						refreshHidden();
 					} catch (final Exception ex) {
-						// TODO Auto-generated catch block
-						ex.printStackTrace();
+						LOGGER.error("showing {}", s.getName());
 					}
 				});
 				hiddenSectionsPane.getChildren().add(label);
@@ -283,14 +285,12 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 			hiddenTagsPane.getChildren().clear();
 			mailService.getHiddenTags().forEach(t -> {
 				final RemoveLabel label = new RemoveLabel(t.getPath(), "show");
-				label.getStyleClass().add("address-label");
 				label.setOnMouseClicked(e -> {
 					try {
 						mailService.show(t);
 						refreshHidden();
 					} catch (final Exception ex) {
-						// TODO Auto-generated catch block
-						ex.printStackTrace();
+						LOGGER.error("showing {}", t.getName());
 					}
 				});
 				hiddenTagsPane.getChildren().add(label);

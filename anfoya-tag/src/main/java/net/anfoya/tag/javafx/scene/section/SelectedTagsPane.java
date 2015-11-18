@@ -16,6 +16,7 @@ public class SelectedTagsPane<T extends Tag> extends FlowPane {
 	private Callback<T, Void> removeTagCallBack;
 
 	public SelectedTagsPane() {
+		getStyleClass().add("label-list-pane");
 		setVgap(3);
 		setHgap(3);
 		setPadding(new Insets(3));
@@ -40,7 +41,6 @@ public class SelectedTagsPane<T extends Tag> extends FlowPane {
 
 	private Label createLabel(final T tag) {
 		final RemoveLabel label = new RemoveLabel(tag.getName(), "remove label");
-		label.getStyleClass().add("address-label");
 		label.setOnRemove(e -> {
 			if (removeTagCallBack != null) {
 				getChildren().remove(label);

@@ -63,6 +63,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	private EventHandler<ActionEvent> logoutHandler;
 
 	public ThreadPane(final MailService<S, T, H, M, C> mailService) {
+		getStyleClass().add("thread");
 		this.mailService = mailService;
 
 		iconBox = new HBox(5);

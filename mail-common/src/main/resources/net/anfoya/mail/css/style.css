@@ -1,0 +1,175 @@
+
+
+.decoration-background {
+	-fx-fill: radial-gradient(focus-angle 45deg, focus-distance 20%, center 25% 25%, radius 50%, reflect, #eeeeee88, #aaaaaa88 75%, gray);
+	-fx-stroke-width: 0;
+	-fx-arc-width:20px;
+	-fx-arc-height:20px;
+}
+
+.background {
+    -fx-background-color: transparent;
+}
+
+.combo-box-base .text-input {
+    -fx-padding: 2;
+}
+
+.address-combo {
+    -fx-background-color: red;
+    -fx-padding: 0;
+}
+
+
+/**/
+/**/
+/* common */
+/**/
+/**/
+
+.tooltip {
+	-fx-background-radius: 3;
+	-fx-background-color: black;     
+	-fx-text-fill: white;
+	-fx-font-size: 12px;
+	-fx-padding: 4 5 4 5;
+}
+
+.split-pane *.split-pane-divider {
+    -fx-min-width: 1;
+    -fx-pref-width: 1;
+    -fx-background-color: lightgray;
+    -fx-padding: 0;
+    -fx-border-width: 0;
+    -fx-background-insets: 0;
+}
+
+.text-field {
+    -fx-border-width: 0;
+    -fx-background-insets: 0;
+    -fx-background-color: transparent;
+}
+
+.list-view {
+    -fx-border-width: 0;
+    -fx-background-insets: 0;
+}
+
+.border-pane {
+    -fx-border-width: 5;
+    -fx-background-insets: 0;
+    -fx-background-color: transparent;
+}
+
+.tool-bar {
+    -fx-background-color: transparent;
+}
+
+.button{
+	-fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-background-insets: 0;
+}  
+.button:hover {
+    -fx-background-color: transparent, -fx-outer-border, -fx-inner-border, transparent;
+    -fx-background-insets: -1.4, 0, 1, 2;
+}
+.button:armed {
+    -fx-background-color: transparent, -fx-outer-border, -fx-inner-border, transparent;
+    -fx-background-insets: -1.4, 0, 1, 2;
+}
+
+
+/* List of removable labels */
+.label-list-pane {	
+}
+.label-list-pane .label {
+    -fx-padding: 2 5 2 5;
+    -fx-background-color: transparent;
+    
+    -fx-border-width: 1;
+    -fx-border-color: darkgray;
+    -fx-border-radius: 5;
+    
+    -fx-text-fill: black;
+    -fx-font-size: 11px;
+}
+.label-list-pane .label:hover {
+    -fx-border-color: black;
+}
+
+/**/
+/**/
+/* mail browser */
+/**/
+/**/
+ 
+/* section accordion */
+.section-accordion {
+    -fx-border-width: 0;
+    -fx-background-insets: 0;
+    -fx-background-color: transparent;
+}
+.section-accordion .titled-pane > .title {
+    -fx-border-width: 0;
+    -fx-background-insets: 0;
+    -fx-font-weight: bold;
+    -fx-background-color: white;
+}
+.section-accordion .titled-pane > *.content {
+    -fx-border-width: 0;
+    -fx-background-insets: 0;
+    -fx-background-color: transparent;
+}
+
+
+/* thread list */
+.thread-list {
+}
+.thread-list .cell {
+}
+.thread-list .cell .date {
+	-fx-font-size: 11px;
+}
+.thread-list .cell .sender {
+	-fx-font-size: 13px;
+	-fx-font-weight: bold;
+ }
+.thread-list .cell .subject {
+ }
+ 
+ /* thread pane */
+ .thread {
+ }
+.thread .message {
+}
+.thread .message .arrow-button {
+    -fx-background-color: null;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-padding: 5 7 7 0;
+}
+.thread .message .arrow {
+    -fx-background-color: -fx-mark-color;
+    -fx-background-insets: 1 0 -1 0, 0;
+    -fx-padding: 0.25em 0.3125em 0.25em 0.3125em; /* 3 3.75 3 3.75 */
+    -fx-shape: "M 0 0 h 7 l -3.5 4 z";
+}
+.thread .message .header {
+    -fx-padding: 5;
+    -fx-background-color: lightgray;
+}
+
+
+/**/
+/**/
+/* mail composer */
+/**/
+/**/
+.recipient-list-pane {
+    -fx-border-color: lightgray;
+	-fx-border-width: 0 0 1 0;
+}
+.combofield {
+	-fx-padding: 2;
+}
