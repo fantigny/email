@@ -82,7 +82,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		flagged = mailService.getSpecialTag(SpecialTag.FLAGGED);
 
 		patternField = new ResetTextField();
-		patternField.setPromptText("mail search");
+		patternField.setPromptText("thread search");
 
 		threadList = new ThreadList<S, T, H, M, C>(mailService);
 		threadList.setOnDragDetected(event -> {

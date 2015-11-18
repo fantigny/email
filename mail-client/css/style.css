@@ -32,6 +32,12 @@
     -fx-background-insets: 0;
     -fx-background-color: transparent;
 }
+.text-field:hover {
+    -fx-prompt-text-fill: black;
+}
+.text-field:focused,hover {
+    -fx-prompt-text-fill: transparent;
+}
 
 .list-view {
     -fx-border-width: 0;
