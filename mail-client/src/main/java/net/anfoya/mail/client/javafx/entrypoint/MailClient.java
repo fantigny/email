@@ -39,17 +39,7 @@ public class MailClient extends Application {
 	@Override
 	public void init() throws Exception {
 		Settings.getSettings().load();
-		gmail = new GmailService();
 		initGmail();
-	}
-
-	private void initGmail() {
-		try {
-			gmail.connect(App.MAIL_CLIENT);
-		} catch (final MailException e) {
-			LOGGER.error("login failed", e);
-			return;
-		}
 	}
 
 	@Override
@@ -64,8 +54,22 @@ public class MailClient extends Application {
 		checkVersion();
 	}
 
+	private void initGmail() {
+		if (gmail == null) {
+			gmail = new GmailService();
+		}
+		try {
+			gmail.connect(App.MAIL_CLIENT);
+		} catch (final MailException e) {
+			LOGGER.error("login failed", e);
+		}
+	}
+
 	private void checkVersion() {
 		final VersionChecker checker = new VersionChecker();
+		if (checker.isDisconnected()) {
+			return;
+		}
 		final Task<Boolean> isLatestTask = new Task<Boolean>() {
 			@Override
 			protected Boolean call() throws Exception {

@@ -58,4 +58,8 @@ public class VersionChecker {
 	public boolean isLastVersion() {
 		return getVersion().equals(getLastestVesion());
 	}
+
+	public boolean isDisconnected() {
+		return getVersion() != null;
+	}
 }
