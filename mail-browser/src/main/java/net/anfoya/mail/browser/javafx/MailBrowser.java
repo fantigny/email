@@ -9,26 +9,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javafx.application.Platform;
-import javafx.concurrent.Task;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.SplitPane;
-import javafx.scene.image.Image;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.Notification.Notifier;
 import net.anfoya.mail.browser.javafx.css.StyleHelper;
 import net.anfoya.mail.browser.javafx.settings.Settings;
-import net.anfoya.mail.browser.javafx.settings.VersionChecker;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
 import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
-import net.anfoya.mail.browser.javafx.util.UrlHelper;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
 import net.anfoya.mail.gmail.model.GmailSection;
-import net.anfoya.mail.mime.MessageHelper;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
@@ -39,37 +34,28 @@ import net.anfoya.mail.service.Thread;
 import net.anfoya.tag.javafx.scene.section.SectionListPane;
 import net.anfoya.tag.model.SpecialTag;
 
-public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends Stage {
+public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends Scene {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailBrowser.class);
 
 	private static final boolean SHOW_EXCLUDE_BOX = Settings.getSettings().showExcludeBox().get();
 
 	private final MailService<S, T, H, M, C> mailService;
 
-	private SectionListPane<S, T> sectionListPane;
-	private ThreadListPane<S, T, H, M, C> threadListPane;
-	private ThreadPane<S, T, H, M, C> threadPane;
+	private final SectionListPane<S, T> sectionListPane;
+	private final ThreadListPane<S, T, H, M, C> threadListPane;
+	private final ThreadPane<S, T, H, M, C> threadPane;
 
-	private boolean quit;
+	private final boolean quit;
 
 	public MailBrowser(final MailService<S, T, H, M, C> mailService) throws MailException {
+		super(new SplitPane());
 		this.mailService = mailService;
 		this.quit = true;
 
-		setOnShowing(e -> initData());
-		setOnCloseRequest(e -> Notifier.INSTANCE.stop());
+		StyleHelper.addCommonCss(this);
+		StyleHelper.addCss(this, "/net/anfoya/javafx/scene/control/excludebox.css");
 
-		initGui();
-	}
-
-	private void initGui() throws MailException {
-		initStyle(StageStyle.UNIFIED);
-		setWidth(1400);
-		setHeight(800);
-		setTitle("FisherMail");
-		getIcons().add(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png")));
-
-		final SplitPane splitPane = new SplitPane();
+		final SplitPane splitPane = (SplitPane) getRoot();
 		splitPane.getStyleClass().add("background");
 		if (SHOW_EXCLUDE_BOX) {
 			splitPane.setDividerPosition(0, .10);
@@ -104,12 +90,6 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		threadPane.setOnLogout(e -> signout());
 		splitPane.getItems().add(threadPane);
 
-
-		final Scene scene = new Scene(splitPane);
-		StyleHelper.addCommonCss(scene);
-		StyleHelper.addCss(scene, "/net/anfoya/javafx/scene/control/excludebox.css");
-        setScene(scene);
-
 		Notifier.INSTANCE.popupLifetime().bind(Settings.getSettings().popupLifetime());
 	}
 
@@ -125,22 +105,16 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		if (result.isPresent()) {
 			switch (result.get().getText()) {
 			case "sign out & close":
-				signout(true);
+				signoutAndCloseHandler.handle(null);
 				break;
 			case "sign out":
-				signout(false);
+				signoutHandler.handle(null);
 				break;
 			}
 		}
 	}
 
-	private void signout(boolean quit) {
-		this.quit = quit;
-		mailService.disconnect();
-		close();
-	}
-
-	private void initData() {
+	public void initData() {
 //		sectionListPane.init("Bank", "HK HSBC");
 		try {
 			sectionListPane.init(GmailSection.SYSTEM.getName(), mailService.getSpecialTag(SpecialTag.INBOX).getName());
@@ -157,46 +131,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 			return null;
 		});
 
-		mailService.addOnNewMessage(p -> notifyAfterNewMessage(p));
-
-		final Task<String> titleTask = new Task<String>() {
-			@Override
-			protected String call() throws Exception {
-				final C contact = mailService.getContact();
-				if (contact.getFullname().isEmpty()) {
-					return contact.getEmail();
-				} else {
-					return contact.getFullname() + " (" + contact.getEmail() + ")";
-				}
-			}
-		};
-		titleTask.setOnSucceeded(e -> setTitle(getTitle() + " - " + e.getSource().getValue()));
-		titleTask.setOnFailed(e -> LOGGER.error("loading user's name", e.getSource().getException()));
-		ThreadPool.getInstance().submitLow(titleTask, "loading user's name");
-
-		final VersionChecker checker = new VersionChecker();
-		final Task<Boolean> isLatestTask = new Task<Boolean>() {
-			@Override
-			protected Boolean call() throws Exception {
-				return checker.isLastVersion();
-			}
-		};
-		isLatestTask.setOnSucceeded(e -> {
-			if (!(boolean)e.getSource().getValue()) {
-				Notifier.INSTANCE.notifyInfo(
-						"FisherMail " + checker.getLastestVesion()
-						, "available at " + Settings.URL
-						, v -> {
-							UrlHelper.open("http://" + Settings.URL);
-							return null;
-						});
-			}
-		});
-		isLatestTask.setOnFailed(e -> LOGGER.error("getting latest version info", e));
-		ThreadPool.getInstance().submitLow(isLatestTask, "checking version");
 	}
-
-	private final boolean notifyAfterNewMessage = true;
 
 	private final boolean refreshAfterTagSelected = true;
 	private final boolean refreshAfterThreadSelected = true;
@@ -212,40 +147,9 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	private final boolean refreshAfterUpdateMessage = true;
 	private final boolean refreshAfterUpdateTagOrSection = true;
 
-	private Void notifyAfterNewMessage(final Set<H> threads) {
-		if (!notifyAfterNewMessage) {
-			return null;
-		}
-		LOGGER.debug("notifyAfterNewMessage");
+	private EventHandler<ActionEvent> signoutHandler;
+	private EventHandler<ActionEvent> signoutAndCloseHandler;
 
-		threads.forEach(t -> {
-			ThreadPool.getInstance().submitLow(() -> {
-				final String message;
-				try {
-					final M m = mailService.getMessage(t.getLastMessageId());
-					message = "from " + String.join(", ", MessageHelper.getNames(m.getMimeMessage().getFrom()))
-							+ "\r\n" + m.getSnippet();
-				} catch (final Exception e) {
-					LOGGER.error("notifying new message for thread {}", t.getId(), e);
-					return;
-				}
-				Platform.runLater(() -> Notifier.INSTANCE.notifySuccess(
-						t.getSubject()
-						, message
-						, v -> {
-							if (isIconified()) {
-								setIconified(false);
-							}
-							if (!isFocused()) {
-								requestFocus();
-							}
-							return null;
-						}));
-			}, "notifying new message");
-		});
-
-		return null;
-	}
 
 	private void refreshAfterUpdateMessage() {
 		if (!refreshAfterUpdateMessage) {
@@ -398,5 +302,13 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 
 	public boolean isQuit() {
 		return quit;
+	}
+
+	public void setOnSignouAndClose(EventHandler<ActionEvent> handler) {
+		signoutAndCloseHandler = handler;
+	}
+
+	public void setOnSignout(EventHandler<ActionEvent> handler) {
+		signoutHandler = handler;
 	}
 }

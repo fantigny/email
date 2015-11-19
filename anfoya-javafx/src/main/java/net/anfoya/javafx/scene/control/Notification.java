@@ -342,18 +342,21 @@ public class Notification {
             // Move popup to the right during fade out
             POPUP.opacityProperty().addListener((observableValue, oldOpacity, opacity) -> POPUP.setX(POPUP.getX() + (1.0 - opacity.doubleValue()) * POPUP.getWidth()) );
 
-            if (stage.isShowing()) {
-                stage.toFront();
-            } else {
+            if (!stage.isShowing()) {
                 stage.show();
             }
+            stage.toFront();
 
             POPUP.show(stage);
+            stage.sizeToScene();
             Toolkit.getDefaultToolkit().beep();
 
             popupContent.setOnMouseClicked(e -> {
             	POPUP.hide();
                 popups.remove(POPUP);
+                if (popups.isEmpty()) {
+                	stage.hide();
+                }
                 if (NOTIFICATION.CALLBACK != null) {
                 	NOTIFICATION.CALLBACK.call(null);
                 }
@@ -365,6 +368,9 @@ public class Notification {
 	            timeline.setOnFinished(actionEvent -> Platform.runLater(() -> {
 	                POPUP.hide();
 	                popups.remove(POPUP);
+	                if (popups.isEmpty()) {
+	                	stage.hide();
+	                }
 	            }));
 	            timeline.play();
             }
