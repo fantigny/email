@@ -76,7 +76,7 @@ public final class ThreadPool {
 			shutdown(delegateLow);
 		}));
 
-		LOGGER.info("started!");
+		LOGGER.info("singleton is created");
 	}
 
 	private void shutdown(final ExecutorService service) {

@@ -123,6 +123,10 @@ public class Notification {
 
             stage = new Stage();
             stage.initStyle(StageStyle.TRANSPARENT);
+            stage.setMinWidth(1);
+            stage.setWidth(1);
+            stage.setMinHeight(1);
+            stage.setHeight(1);
             stage.setScene(scene);
         }
 

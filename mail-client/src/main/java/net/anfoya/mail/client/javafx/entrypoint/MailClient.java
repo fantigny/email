@@ -3,9 +3,6 @@ package net.anfoya.mail.client.javafx.entrypoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.apple.eawt.AppEvent.AppReOpenedEvent;
-import com.apple.eawt.AppReOpenedListener;
-
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -33,6 +30,7 @@ public class MailClient extends Application {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailClient.class);
 
 	private GmailService gmail;
+	private Stage stage;
 
 	public static void main(final String[] args) {
 		launch(args);
@@ -42,15 +40,27 @@ public class MailClient extends Application {
 	public void init() throws Exception {
 		Settings.getSettings().load();
 		gmail = new GmailService();
+		initGmail();
+	}
+
+	private void initGmail() {
+		try {
+			gmail.connect(App.MAIL_CLIENT);
+		} catch (final MailException e) {
+			LOGGER.error("login failed", e);
+			return;
+		}
 	}
 
 	@Override
 	public void start(final Stage stage) throws Exception {
-		stage.initStyle(StageStyle.UNIFIED);
-		initMacOs(stage);
+		this.stage = stage;
 
-		showBrowser(stage);
-		initNotifier(stage);
+		stage.initStyle(StageStyle.UNIFIED);
+		initMacOs();
+
+		showBrowser();
+		initNotifier();
 		checkVersion();
 	}
 
@@ -77,14 +87,8 @@ public class MailClient extends Application {
 		ThreadPool.getInstance().submitLow(isLatestTask, "checking version");
 	}
 
-	private void showBrowser(Stage stage) {
-		try {
-			gmail.connect(App.MAIL_CLIENT);
-		} catch (final MailException e) {
-			LOGGER.error("login failed", e);
-			return;
-		}
-		if (gmail.disconnected().get()) {
+	private void showBrowser() {
+		if (gmail.disconnectedProperty().get()) {
 			return;
 		}
 
@@ -96,14 +100,14 @@ public class MailClient extends Application {
 			return;
 		}
 		mailBrowser.setOnSignout(e -> {
-			gmail.disconnect();
 			stage.hide();
-			showBrowser(stage);
-			Notifier.INSTANCE.stop();
+			gmail.disconnect();
+			initGmail();
+			showBrowser();
 		});
 		mailBrowser.setOnSignouAndClose(e -> {
-			gmail.disconnect();
 			stage.hide();
+			gmail.disconnect();
 			Notifier.INSTANCE.stop();
 		});
 
@@ -135,30 +139,30 @@ public class MailClient extends Application {
 		ThreadPool.getInstance().submitLow(titleTask, "loading user's name");
 	}
 
-	private void initMacOs(Stage stage) {
-		if (!System.getProperty("os.name").contains("OS X")) {
-			return;
-		}
-		LOGGER.info("initialize OS X stage behaviour");
-		Platform.setImplicitExit(false);
-		com.apple.eawt.Application.getApplication().addAppEventListener(new AppReOpenedListener() {
-			@Override
-			public void appReOpened(final AppReOpenedEvent e) {
-				LOGGER.info("OS X AppReOpenedListener");
-				if (!stage.isShowing()) {
-					LOGGER.debug("OS X show()");
-					Platform.runLater(() -> stage.show());
-				}
-				if (stage.isIconified()) {
-					LOGGER.debug("OS X setIconified(false)");
-					Platform.runLater(() -> stage.setIconified(false));
-				}
-				if (!stage.isFocused()) {
-					LOGGER.debug("OS X requestFocus()");
-					Platform.runLater(() -> stage.requestFocus());
-				}
-			}
-		});
+	private void initMacOs() {
+//		if (!System.getProperty("os.name").contains("OS X")) {
+//			return;
+//		}
+//		LOGGER.info("initialize OS X stage behaviour");
+//		Platform.setImplicitExit(false);
+//		com.apple.eawt.Application.getApplication().addAppEventListener(new AppReOpenedListener() {
+//			@Override
+//			public void appReOpened(final AppReOpenedEvent e) {
+//				LOGGER.info("OS X AppReOpenedListener");
+//				if (!stage.isShowing()) {
+//					LOGGER.debug("OS X show()");
+//					Platform.runLater(() -> stage.show());
+//				}
+//				if (stage.isIconified()) {
+//					LOGGER.debug("OS X setIconified(false)");
+//					Platform.runLater(() -> stage.setIconified(false));
+//				}
+//				if (!stage.isFocused()) {
+//					LOGGER.debug("OS X requestFocus()");
+//					Platform.runLater(() -> stage.requestFocus());
+//				}
+//			}
+//		});
 //
 //		final List<MenuBase> menus = new ArrayList<>();
 //		menus.add(GlobalMenuAdapter.adapt(new Menu("java")));
@@ -167,7 +171,10 @@ public class MailClient extends Application {
 //		menu.setMenus(menus);
 	}
 
-	private void initNotifier(Stage primaryStage) {
+	private void initNotifier() {
+		if (gmail.disconnectedProperty().get()) {
+			return;
+		}
 		gmail.addOnNewMessage(threads -> {
 			LOGGER.debug("notifyAfterNewMessage");
 
@@ -186,11 +193,11 @@ public class MailClient extends Application {
 							t.getSubject()
 							, message
 							, v -> {
-								if (primaryStage.isIconified()) {
-									primaryStage.setIconified(false);
+								if (stage.isIconified()) {
+									stage.setIconified(false);
 								}
-								if (!primaryStage.isFocused()) {
-									primaryStage.requestFocus();
+								if (!stage.isFocused()) {
+									stage.requestFocus();
 								}
 								return null;
 							}));

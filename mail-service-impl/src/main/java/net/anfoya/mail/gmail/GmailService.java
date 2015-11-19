@@ -75,12 +75,12 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	private HistoryService historyService;
 	private ContactService contactService;
 
-	private final ReadOnlyBooleanWrapper disconnected;
+	private final ReadOnlyBooleanWrapper disconnectedProperty;
 
 	private String address;
 
 	public GmailService() {
-		disconnected = new ReadOnlyBooleanWrapper(true);
+		disconnectedProperty = new ReadOnlyBooleanWrapper(true);
 	}
 
 	@Override
@@ -113,21 +113,21 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		});
 		historyService.start(PULL_PERIOD);
 
-		disconnected.bind(historyService.disconnected());
+		disconnectedProperty.bind(historyService.disconnected());
 	}
 
 	@Override
 	public void disconnect() {
 	    connectionService.disconnect();
 	    historyService.stop();
-	    disconnected.unbind();
-	    disconnected.set(true);
+	    disconnectedProperty.unbind();
+	    disconnectedProperty.set(true);
 	    clearCache();
 	}
 
 	@Override
 	public void reconnect() {
-		if (!disconnected.get()) {
+		if (!disconnectedProperty.get()) {
 			return;
 		}
 
@@ -135,8 +135,8 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	@Override
-	public ReadOnlyBooleanProperty disconnected() {
-		return disconnected.getReadOnlyProperty();
+	public ReadOnlyBooleanProperty disconnectedProperty() {
+		return disconnectedProperty.getReadOnlyProperty();
 	}
 
 	@Override
