@@ -2,6 +2,7 @@ package net.anfoya.mail.browser.javafx;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -113,16 +114,30 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	}
 
 	private void signout() {
-		final Alert alert = new Alert(AlertType.CONFIRMATION, "Are you sure you want to sign out?");
+		final Alert alert = new Alert(AlertType.CONFIRMATION, "Are you sure you want to sign out?"
+				, new ButtonType("sign out")
+				, new ButtonType("sign out & close")
+				, new ButtonType("cancel"));
 		alert.setTitle("signing out");
 		alert.setHeaderText(null);
-		alert.showAndWait()
-			.filter(response -> response == ButtonType.OK)
-			.ifPresent(response -> {
-				quit = false;
-				mailService.disconnect();
-				close();
-			});
+		final Optional<ButtonType> result = alert.showAndWait();
+
+		if (result.isPresent()) {
+			switch (result.get().getText()) {
+			case "sign out & close":
+				signout(true);
+				break;
+			case "sign out":
+				signout(false);
+				break;
+			}
+		}
+	}
+
+	private void signout(boolean quit) {
+		this.quit = quit;
+		mailService.disconnect();
+		close();
 	}
 
 	private void initData() {
