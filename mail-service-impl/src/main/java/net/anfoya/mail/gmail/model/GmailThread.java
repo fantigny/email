@@ -90,7 +90,8 @@ public class GmailThread extends SimpleThread {
 	private static Set<String> findHeaders(final Thread thread, final String key) {
 		final Set<String> headers = new LinkedHashSet<String>();
 		if (thread.getMessages() != null && !thread.getMessages().isEmpty()) {
-			for(final MessagePartHeader h:thread.getMessages().get(0).getPayload().getHeaders()) {
+			final Message message = thread.getMessages().get(thread.getMessages().size() - 1);
+			for(final MessagePartHeader h: message.getPayload().getHeaders()) {
 				if (key.equalsIgnoreCase(h.getName()) && !h.getValue().isEmpty()) {
 					headers.add(h.getValue());
 				}
