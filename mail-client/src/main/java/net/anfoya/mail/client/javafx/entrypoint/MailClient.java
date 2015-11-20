@@ -93,7 +93,7 @@ public class MailClient extends Application {
 
 			final Alert alert = new Alert(AlertType.CONFIRMATION);
 			alert.setTitle("FisherMail");
-			alert.setHeaderText("sign-out from your e-mail account\rthis will close the mail browser");
+			alert.setHeaderText("sign out from your e-mail account\rthis will close the mail browser");
 			alert.getDialogPane().contentProperty().set(checkBox);
 			final Optional<ButtonType> response = alert.showAndWait();
 			signout = response.isPresent() && response.get() == ButtonType.OK;
