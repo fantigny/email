@@ -33,7 +33,7 @@
     -fx-background-color: transparent;
 }
 .text-field:hover {
-    -fx-prompt-text-fill: black;
+    -fx-prompt-text-fill: gray;
 }
 .text-field:focused,hover {
     -fx-prompt-text-fill: transparent;

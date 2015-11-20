@@ -17,10 +17,10 @@ import java.util.regex.Matcher;
 
 import javax.imageio.ImageIO;
 import javax.mail.Address;
+import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.Part;
-import javax.mail.Message.RecipientType;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
@@ -209,13 +209,13 @@ public class MessageHelper {
 	}
 
 	public void removeMyselfFromRecipient(String myAddress, MimeMessage reply, RecipientType type) throws MessagingException {
-		Address[] addresses = reply.getRecipients(type);
+		final Address[] addresses = reply.getRecipients(type);
 		if (addresses == null || addresses.length == 0) {
 			return;
 		}
-		
-		List<Address> to = new ArrayList<Address>();
-		for(Address a: addresses) {
+
+		final List<Address> to = new ArrayList<Address>();
+		for(final Address a: addresses) {
 			if (!myAddress.equals(((InternetAddress) a).getAddress())) {
 				to.add(a);
 			}
