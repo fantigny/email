@@ -74,11 +74,10 @@ public class MailClient extends Application {
 
 			final Alert alert = new Alert(AlertType.CONFIRMATION);
 			alert.setTitle("FisherMail");
-			alert.setHeaderText("do you want to quit FisherMail");
+			alert.setHeaderText("closing this window will stop FisherMail\ryou will no longer receive new mail notification");
 			alert.getDialogPane().contentProperty().set(checkBox);
-			alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
 			alert.showAndWait()
-				.filter(response -> response == ButtonType.NO)
+				.filter(response -> response == ButtonType.CANCEL)
 				.ifPresent(response -> e.consume());
 		}
 	}
@@ -94,11 +93,10 @@ public class MailClient extends Application {
 
 			final Alert alert = new Alert(AlertType.CONFIRMATION);
 			alert.setTitle("FisherMail");
-			alert.setHeaderText("do you want to sign out");
+			alert.setHeaderText("sign-out from your e-mail account\rthis will close the mail browser");
 			alert.getDialogPane().contentProperty().set(checkBox);
-			alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
 			final Optional<ButtonType> response = alert.showAndWait();
-			signout = response.isPresent() && response.get() == ButtonType.YES;
+			signout = response.isPresent() && response.get() == ButtonType.OK;
 		} else {
 			signout = true;
 		}
