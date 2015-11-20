@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import com.sun.mail.util.BASE64DecoderStream;
 
+import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.fortuna.ical4j.data.CalendarBuilder;
 import net.fortuna.ical4j.data.ParserException;
 import sun.misc.BASE64Encoder;
@@ -82,6 +83,43 @@ public class MessageHelper {
 
 		return names.toArray(new String[names.size()]);
 	}
+
+	public static String quote(String html) {
+		return new StringBuffer()
+				.append("<br><br>")
+				.append("<blockquote class='gmail_quote' style='margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex'>")
+				.append(html)
+				.append("</blockquote>")
+				.toString();
+	}
+
+	public static String addSignature(String html) {
+		return new StringBuffer()
+				.append("<p>")
+				.append(Settings.getSettings().htmlSignature().get())
+				.append("</p>")
+				.append(html)
+				.toString();
+	}
+
+	public static String addStyle(String html) {
+		return new StringBuffer()
+				.append("<style>")
+				.append("html,body {")
+				.append(" line-height: 1em !important;")
+				.append(" font-size: 14px !important;")
+				.append(" font-size: 14px !important;")
+				.append(" font-family: Lucida Grande !important;")
+				.append(" color: #222222 !important;")
+				.append(" background-color: #FDFDFD !important; }")
+				.append("p {")
+				.append(" padding-left:1ex !important;")
+				.append(" margin: 2px 0 !important; }")
+				.append("</style>")
+				.append(html)
+				.toString();
+	}
+
 
 	public String toHtml(final MimeMessage message) throws IOException, MessagingException {
 		cidUris.clear();

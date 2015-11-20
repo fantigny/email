@@ -45,7 +45,6 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.browser.javafx.css.StyleHelper;
-import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.mime.MessageHelper;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
@@ -351,27 +350,12 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 			LOGGER.error("getting html content", e);
 		}
 		if (!html.isEmpty() && quote) {
-			final StringBuffer sb = new StringBuffer("<br><br>");
-			sb.append("<blockquote class='gmail_quote' style='margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex'>");
-			sb.append(html);
-			sb.append("</blockquote>");
-			html = sb.toString();
+			html = MessageHelper.quote(html);
 		}
 		if (signature) {
-			html = "<p>" + Settings.getSettings().htmlSignature().get() + "</p>" + html;
+			html = MessageHelper.addSignature(html);
 		}
-		html = "<style>"
-				+ "html,body {"
-				+ " line-height: 1em !important;"
-				+ " font-size: 14px !important;"
-				+ " font-family: Lucida Grande !important;"
-				+ " color: #222222 !important;"
-				+ " background-color: #FDFDFD !important; }"
-				+ "p {"
-				+ " padding-left:1ex;"
-				+ " margin: 2px 0 !important; }"
-				+ "</style>"
-				+ html;
+		html = MessageHelper.addStyle(html);
 		editor.setHtmlText(html);
 
 		show();

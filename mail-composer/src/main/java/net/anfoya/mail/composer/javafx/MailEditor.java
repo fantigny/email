@@ -57,7 +57,7 @@ public class MailEditor extends BorderPane {
 
 		editor = new HTMLEditor();
 		editor.needsLayoutProperty().addListener((ov, o, n) -> cleanToolBar());
-		editor.setStyle("-fx-background-color: transparent; -fx-border-width: 0 0 1 0; -fx-border-color: lightgray; -fx-font-size: 11px;");
+		editor.getStyleClass().add("message-editor");
 		stackPane.getChildren().add(editor);
 
 		editedProperty = new SimpleBooleanProperty();
@@ -179,6 +179,7 @@ public class MailEditor extends BorderPane {
 
 	private boolean toolbarCleaned = false;
 	private synchronized void cleanToolBar() {
+		LOGGER.debug("cleaning tool bars");
 		if (toolbarCleaned) {
 			return;
 		}

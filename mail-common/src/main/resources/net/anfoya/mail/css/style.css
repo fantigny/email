@@ -124,13 +124,13 @@
 .thread-list .cell .sender {
 	-fx-font-size: 13px;
 	-fx-font-weight: bold;
- }
+}
 .thread-list .cell .subject {
- }
+}
  
- /* thread pane */
- .thread {
- }
+/* thread pane */
+.thread {
+}
 .thread .message {
 }
 .thread .message .arrow-button {
@@ -162,3 +162,10 @@
 .combofield {
 	-fx-padding: 2;
 }
+.message-editor {
+	-fx-background-color: transparent;
+	-fx-border-width: 0 0 1 0;
+	-fx-border-color: lightgray;
+	-fx-font-size: 11px;
+}
+
