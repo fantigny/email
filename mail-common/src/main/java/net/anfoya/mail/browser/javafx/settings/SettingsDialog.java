@@ -225,6 +225,15 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 			refreshHidden();
 		});
 
+		final Button resetButton = new Button("clear");
+		resetButton.setOnAction(e -> {
+			//TODO reset settings
+		});
+
+		final SwitchButton confirmOnQuitButton = new SwitchButton();
+		confirmOnQuitButton.setSwitchOn(Settings.getSettings().confirmOnQuit().get());
+		confirmOnQuitButton.switchOnProperty().addListener((ov, o, n) -> Settings.getSettings().confirmOnQuit().set(n));
+
 		final GridPane gridPane = new GridPane();
 		gridPane.setPadding(new Insets(5));
 		gridPane.setVgap(5);
@@ -257,6 +266,13 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		i += 2;
 		gridPane.add(new Label("reset cached data")								, 0, i);
 		gridPane.add(refreshButton												, 1, i);
+		i++;
+		gridPane.add(new Label("reset settings")								, 0, i);
+		gridPane.add(resetButton												, 1, i);
+		i++;
+		gridPane.add(new Label("confirm on quit")								, 0, i);
+		gridPane.add(confirmOnQuitButton										, 1, i);
+		i++;
 
 		refreshHidden();
 

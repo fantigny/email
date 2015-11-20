@@ -60,7 +60,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	private final ObservableList<Node> messagePanes;
 
 	private EventHandler<ActionEvent> updateHandler;
-	private EventHandler<ActionEvent> logoutHandler;
+	private EventHandler<ActionEvent> signoutHandler;
 
 	public ThreadPane(final MailService<S, T, H, M, C> mailService) {
 		getStyleClass().add("thread");
@@ -80,7 +80,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		signoutButton.setFocusTraversable(false);
 		signoutButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/signout.png"))));
 		signoutButton.setTooltip(new Tooltip("sign out"));
-		signoutButton.setOnAction(event -> logoutHandler.handle(null));
+		signoutButton.setOnAction(event -> signoutHandler.handle(null));
 
 		final HBox subjectBox = new HBox(iconBox, subjectField, signoutButton);
 		setTop(subjectBox);
@@ -122,8 +122,8 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		this.updateHandler = handler;
 	}
 
-	public void setOnLogout(final EventHandler<ActionEvent> handler) {
-		logoutHandler = handler;
+	public void setOnSignout(final EventHandler<ActionEvent> handler) {
+		signoutHandler = handler;
 	}
 
 	public void refresh(final Set<H> threads) {

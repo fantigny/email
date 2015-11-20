@@ -5,9 +5,15 @@ import org.slf4j.LoggerFactory;
 
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
 import javafx.concurrent.Task;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.stage.WindowEvent;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.Notification.Notifier;
 import net.anfoya.mail.browser.javafx.MailBrowser;
@@ -46,12 +52,36 @@ public class MailClient extends Application {
 	public void start(final Stage stage) throws Exception {
 		this.stage = stage;
 
+		stage.setOnCloseRequest(e -> confirmClose(e));
+
 		stage.initStyle(StageStyle.UNIFIED);
 		initMacOs();
 
 		showBrowser();
+
 		initNotifier();
 		checkVersion();
+	}
+
+	private void confirmClose(WindowEvent e) {
+		final BooleanProperty confirmOnQuit = Settings.getSettings().confirmOnQuit();
+		if (confirmOnQuit.get()) {
+			final CheckBox checkBox = new CheckBox("don't ask for confirmation");
+			checkBox.selectedProperty().addListener((ov, o, n) -> {
+				confirmOnQuit.set(!n);
+				Settings.getSettings().save();
+			});
+
+			final Alert alert = new Alert(AlertType.CONFIRMATION);
+			alert.setTitle("FisherMail");
+			alert.setHeaderText("do you want to quit FisherMail");
+			alert.getDialogPane().contentProperty().set(checkBox);
+			alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
+			alert.showAndWait()
+				.filter(response -> response == ButtonType.NO)
+				.ifPresent(response -> e.consume());
+			Settings.getSettings().save();
+		}
 	}
 
 	private void initGmail() {
@@ -144,9 +174,30 @@ public class MailClient extends Application {
 	}
 
 	private void initMacOs() {
-//		if (!System.getProperty("os.name").contains("OS X")) {
-//			return;
-//		}
+		if (!System.getProperty("os.name").contains("OS X")) {
+			return;
+		}
+//		final MenuItem aboutItem = new MenuItem("About FisherMail");
+//		final MenuItem preferencesItem = new MenuItem("Preferences...");
+//		final MenuItem browserItem = new MenuItem("Mail Browser");
+//		browserItem.setAccelerator(new KeyCodeCombination(KeyCode.B, KeyCombination.SHORTCUT_DOWN));
+//		final MenuItem composerItem = new MenuItem("Mail Composer");
+//		composerItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.SHORTCUT_DOWN));
+//		final MenuItem tipsItem = new MenuItem("Tips and Tricks");
+//		final MenuBar menuBar = new MenuBar(
+//				new Menu("Window", (Node)null
+//						, aboutItem
+//						, new SeparatorMenuItem()
+//						, preferencesItem
+//						, new SeparatorMenuItem()
+//						, composerItem
+//						, browserItem)
+//				, new Menu("Help", (Node)null
+//						, tipsItem));
+//		menuBar.setUseSystemMenuBar(true);
+//		stage.sceneProperty().addListener(c -> {
+//			stage.getScene().setRoot(new BorderPane(stage.getScene().getRoot(), menuBar, null, null, null));
+//		});
 //		LOGGER.info("initialize OS X stage behaviour");
 //		Platform.setImplicitExit(false);
 //		com.apple.eawt.Application.getApplication().addAppEventListener(new AppReOpenedListener() {

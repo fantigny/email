@@ -87,7 +87,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		threadPane = new ThreadPane<S, T, H, M, C>(mailService);
 		threadPane.setFocusTraversable(false);
 		threadPane.setOnUpdateThread(e -> refreshAfterThreadUpdate());
-		threadPane.setOnLogout(e -> signout());
+		threadPane.setOnSignout(e -> signout());
 		splitPane.getItems().add(threadPane);
 
 		Notifier.INSTANCE.popupLifetime().bind(Settings.getSettings().popupLifetime());
@@ -96,7 +96,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	private void signout() {
 		final Alert alert = new Alert(AlertType.CONFIRMATION, "Are you sure you want to sign out?"
 				, new ButtonType("sign out")
-				, new ButtonType("sign out & close")
+				, new ButtonType("sign out & quit")
 				, new ButtonType("cancel"));
 		alert.setTitle("signing out");
 		alert.setHeaderText(null);
