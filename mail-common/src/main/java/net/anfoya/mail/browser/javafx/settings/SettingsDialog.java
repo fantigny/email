@@ -234,6 +234,10 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		confirmOnQuitButton.setSwitchOn(Settings.getSettings().confirmOnQuit().get());
 		confirmOnQuitButton.switchOnProperty().addListener((ov, o, n) -> Settings.getSettings().confirmOnQuit().set(n));
 
+		final SwitchButton confirmOnSignoutButton = new SwitchButton();
+		confirmOnSignoutButton.setSwitchOn(Settings.getSettings().confirmOnSignout().get());
+		confirmOnSignoutButton.switchOnProperty().addListener((ov, o, n) -> Settings.getSettings().confirmOnSignout().set(n));
+
 		final GridPane gridPane = new GridPane();
 		gridPane.setPadding(new Insets(5));
 		gridPane.setVgap(5);
@@ -258,6 +262,12 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		gridPane.add(new Label("archive on drop")								, 0, i);
 		gridPane.add(archOnDropButton											, 1, i);
 		i++;
+		gridPane.add(new Label("confirm on quit")								, 0, i);
+		gridPane.add(confirmOnQuitButton										, 1, i);
+		i++;
+		gridPane.add(new Label("confirm on signout")							, 0, i);
+		gridPane.add(confirmOnSignoutButton										, 1, i);
+		i++;
 		gridPane.add(new Label("hidden section")								, 0, i);
 		gridPane.add(hiddenSectionsPane											, 1, i, 1, 2);
 		i += 2;
@@ -269,9 +279,6 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		i++;
 		gridPane.add(new Label("reset settings")								, 0, i);
 		gridPane.add(resetButton												, 1, i);
-		i++;
-		gridPane.add(new Label("confirm on quit")								, 0, i);
-		gridPane.add(confirmOnQuitButton										, 1, i);
 		i++;
 
 		refreshHidden();

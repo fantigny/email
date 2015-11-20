@@ -41,6 +41,7 @@ public class Settings implements Serializable {
 	private final BooleanProperty replyAllDblClick;
 	private final StringProperty htmlSignature;
 	private final BooleanProperty confirmOnQuit;
+	private final BooleanProperty confirmOnSignout;
 
 	public Settings() {
 		showToolbar = new SimpleBooleanProperty(true);
@@ -50,6 +51,7 @@ public class Settings implements Serializable {
 		replyAllDblClick = new SimpleBooleanProperty(false);
 		htmlSignature = new SimpleStringProperty("");
 		confirmOnQuit = new SimpleBooleanProperty(true);
+		confirmOnSignout = new SimpleBooleanProperty(true);
 	}
 
 	public void load() {
@@ -86,6 +88,9 @@ public class Settings implements Serializable {
 		if (i.hasNext()) {
 			confirmOnQuit.set((Boolean) i.next());
 		}
+		if (i.hasNext()) {
+			confirmOnSignout.set((Boolean) i.next());
+		}
 	}
 
 	public void save() {
@@ -98,6 +103,7 @@ public class Settings implements Serializable {
 		list.add(htmlSignature.get());
 		list.add(replyAllDblClick.get());
 		list.add(confirmOnQuit.get());
+		list.add(confirmOnSignout.get());
 
 		try {
 			new SerializedFile<List<Object>>(FILENAME).save(list);
@@ -132,5 +138,9 @@ public class Settings implements Serializable {
 
 	public BooleanProperty confirmOnQuit() {
 		return confirmOnQuit;
+	}
+
+	public BooleanProperty confirmOnSignout() {
+		return confirmOnSignout;
 	}
 }

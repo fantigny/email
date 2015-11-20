@@ -1,11 +1,12 @@
 package net.anfoya.mail.client.javafx.entrypoint;
 
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.property.BooleanProperty;
 import javafx.concurrent.Task;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -64,11 +65,10 @@ public class MailClient extends Application {
 	}
 
 	private void confirmClose(WindowEvent e) {
-		final BooleanProperty confirmOnQuit = Settings.getSettings().confirmOnQuit();
-		if (confirmOnQuit.get()) {
+		if (Settings.getSettings().confirmOnQuit().get()) {
 			final CheckBox checkBox = new CheckBox("don't ask for confirmation");
 			checkBox.selectedProperty().addListener((ov, o, n) -> {
-				confirmOnQuit.set(!n);
+				Settings.getSettings().confirmOnQuit().set(!n);
 				Settings.getSettings().save();
 			});
 
@@ -80,7 +80,33 @@ public class MailClient extends Application {
 			alert.showAndWait()
 				.filter(response -> response == ButtonType.NO)
 				.ifPresent(response -> e.consume());
-			Settings.getSettings().save();
+		}
+	}
+
+	private void signout() {
+		boolean signout = false;
+		if (Settings.getSettings().confirmOnSignout().get()) {
+			final CheckBox checkBox = new CheckBox("don't ask for confirmation");
+			checkBox.selectedProperty().addListener((ov, o, n) -> {
+				Settings.getSettings().confirmOnSignout().set(!n);
+				Settings.getSettings().save();
+			});
+
+			final Alert alert = new Alert(AlertType.CONFIRMATION);
+			alert.setTitle("FisherMail");
+			alert.setHeaderText("do you want to sign out");
+			alert.getDialogPane().contentProperty().set(checkBox);
+			alert.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
+			final Optional<ButtonType> response = alert.showAndWait();
+			signout = response.isPresent() && response.get() == ButtonType.YES;
+		} else {
+			signout = true;
+		}
+		if (signout) {
+			stage.hide();
+			gmail.disconnect();
+			initGmail();
+			showBrowser();
 		}
 	}
 
@@ -133,17 +159,7 @@ public class MailClient extends Application {
 			LOGGER.error("loading mail browser", e);
 			return;
 		}
-		mailBrowser.setOnSignout(e -> {
-			stage.hide();
-			gmail.disconnect();
-			initGmail();
-			showBrowser();
-		});
-		mailBrowser.setOnSignouAndClose(e -> {
-			stage.hide();
-			gmail.disconnect();
-			Notifier.INSTANCE.stop();
-		});
+		mailBrowser.setOnSignout(e -> signout());
 
 		initTitle(stage);
 

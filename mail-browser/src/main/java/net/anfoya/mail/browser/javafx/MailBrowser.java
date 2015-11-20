@@ -2,7 +2,6 @@ package net.anfoya.mail.browser.javafx;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -12,9 +11,6 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.SplitPane;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.Notification.Notifier;
@@ -87,31 +83,14 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		threadPane = new ThreadPane<S, T, H, M, C>(mailService);
 		threadPane.setFocusTraversable(false);
 		threadPane.setOnUpdateThread(e -> refreshAfterThreadUpdate());
-		threadPane.setOnSignout(e -> signout());
 		splitPane.getItems().add(threadPane);
 
 		Notifier.INSTANCE.popupLifetime().bind(Settings.getSettings().popupLifetime());
 	}
 
-	private void signout() {
-		final Alert alert = new Alert(AlertType.CONFIRMATION, "Are you sure you want to sign out?"
-				, new ButtonType("sign out")
-				, new ButtonType("sign out & quit")
-				, new ButtonType("cancel"));
-		alert.setTitle("signing out");
-		alert.setHeaderText(null);
-		final Optional<ButtonType> result = alert.showAndWait();
+	public void setOnSignout(EventHandler<ActionEvent> handler) {
+		threadPane.setOnSignout(handler);
 
-		if (result.isPresent()) {
-			switch (result.get().getText()) {
-			case "sign out & close":
-				signoutAndCloseHandler.handle(null);
-				break;
-			case "sign out":
-				signoutHandler.handle(null);
-				break;
-			}
-		}
 	}
 
 	public void initData() {
@@ -146,10 +125,6 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	private final boolean refreshAfterPatternUpdate = true;
 	private final boolean refreshAfterUpdateMessage = true;
 	private final boolean refreshAfterUpdateTagOrSection = true;
-
-	private EventHandler<ActionEvent> signoutHandler;
-	private EventHandler<ActionEvent> signoutAndCloseHandler;
-
 
 	private void refreshAfterUpdateMessage() {
 		if (!refreshAfterUpdateMessage) {
@@ -302,13 +277,5 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 
 	public boolean isQuit() {
 		return quit;
-	}
-
-	public void setOnSignouAndClose(EventHandler<ActionEvent> handler) {
-		signoutAndCloseHandler = handler;
-	}
-
-	public void setOnSignout(EventHandler<ActionEvent> handler) {
-		signoutHandler = handler;
 	}
 }
