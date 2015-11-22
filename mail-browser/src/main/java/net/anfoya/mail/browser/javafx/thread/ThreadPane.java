@@ -96,11 +96,14 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		rotateTransition.play();
 
 		ThreadPool.getInstance().setOnHighRunning(r -> {
-			if (r) {
-				rotateTransition.play();
-			} else {
-				rotateTransition.stop();
-				settingsButton.setRotate(0);
+			synchronized (this) {
+				if (r) {
+					settingsButton.setRotate(0);
+					rotateTransition.play();
+				} else {
+					rotateTransition.stop();
+					settingsButton.setRotate(0);
+				}
 			}
 			return null;
 		});
