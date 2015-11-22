@@ -76,17 +76,19 @@ public class ThreadService {
 			while (threadResponse.getThreads() != null) {
 				for(final Thread t : threadResponse.getThreads()) {
 					final String id = t.getId();
-					BigInteger historyId;
-					try {
-						historyId = idThreads.get(id).getData().getHistoryId();
-					} catch (final Exception e) {
-						idThreads.remove(id);
-						historyId = null;
-					}
-					if (!t.getHistoryId().equals(historyId)) {
-						toLoadIds.add(id);
-					}
 					ids.add(id);
+					if (!idThreads.containsKey(id)) {
+						toLoadIds.add(id);
+					} else {
+						try {
+							if (!idThreads.get(id).getData().getHistoryId().equals(t.getHistoryId())) {
+								toLoadIds.add(id);
+							}
+						} catch (final Exception e) {
+							LOGGER.error("getting from cache thread id: {}", id);
+							idThreads.remove(id);
+						}
+					}
 				}
 				page++;
 				if (threadResponse.getNextPageToken() != null && page < pageMax) {
@@ -103,19 +105,15 @@ public class ThreadService {
 			load(toLoadIds);
 			final Set<Thread> threads = new LinkedHashSet<Thread>();
 			for(final String id: ids) {
-				Thread thread = null;
 				if (idThreads.containsKey(id)) {
 					try {
-						thread = idThreads.get(id).getData();
+						threads.add(idThreads.get(id).getData());
 					} catch (final CacheException e) {
-						LOGGER.error("getting from cache thread id: {}", id);
+						LOGGER.error("getting from cache thread id {}", id);
+						idThreads.remove(id);
 					}
-				}
-				if (thread != null) {
-					threads.add(thread);
 				} else {
-					LOGGER.error("no thread for id: {}", id);
-					idThreads.remove(id);
+					LOGGER.error("thread not found in cache, id {}", id);
 				}
 			}
 			if (threadResponse.getNextPageToken() != null) {

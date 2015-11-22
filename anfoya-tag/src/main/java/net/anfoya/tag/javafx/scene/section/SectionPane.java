@@ -168,7 +168,7 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 				sectionItem.countProperty().set(sectionTask.getValue());
 			});
 			sectionTask.setOnFailed(e -> LOGGER.error("getting message count for section {}", tagList.getSection().getName(), e.getSource().getException()));
-			ThreadPool.getInstance().submitHigh(sectionTask, "getting message count for section " + tagList.getSection().getName());
+			ThreadPool.getInstance().submitLow(sectionTask, "getting message count for section " + tagList.getSection().getName());
 		} else {
 			if (tagList.getSectionItem() == null) {
 				sectionItem.countProperty().set(0);

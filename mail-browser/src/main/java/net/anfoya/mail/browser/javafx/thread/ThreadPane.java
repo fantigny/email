@@ -8,6 +8,9 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javafx.animation.Interpolator;
+import javafx.animation.RotateTransition;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -26,8 +29,10 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.browser.javafx.message.MessagePane;
+import net.anfoya.mail.browser.javafx.settings.SettingsDialog;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
@@ -76,13 +81,37 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		subjectField.prefWidthProperty().bind(widthProperty());
 		subjectField.setEditable(false);
 
+		final Button settingsButton = new Button();
+		settingsButton.setFocusTraversable(false);
+		settingsButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/settings.png"))));
+		settingsButton.setTooltip(new Tooltip("settings"));
+		settingsButton.setOnAction(event -> new SettingsDialog<S, T>(mailService).show());
+
+		final RotateTransition rotateTransition = new RotateTransition(Duration.millis(250), settingsButton);
+		rotateTransition.setFromAngle(-15);
+		rotateTransition.setToAngle(15);
+		rotateTransition.setAutoReverse(true);
+		rotateTransition.setCycleCount(Timeline.INDEFINITE);
+		rotateTransition.setInterpolator(Interpolator.EASE_IN);
+		rotateTransition.play();
+
+		ThreadPool.getInstance().setOnHighRunning(r -> {
+			if (r) {
+				rotateTransition.play();
+			} else {
+				rotateTransition.stop();
+				settingsButton.setRotate(0);
+			}
+			return null;
+		});
+
 		final Button signoutButton = new Button();
 		signoutButton.setFocusTraversable(false);
 		signoutButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/signout.png"))));
 		signoutButton.setTooltip(new Tooltip("sign out"));
 		signoutButton.setOnAction(event -> signoutHandler.handle(null));
 
-		final HBox subjectBox = new HBox(iconBox, subjectField, signoutButton);
+		final HBox subjectBox = new HBox(iconBox, subjectField, settingsButton, signoutButton);
 		setTop(subjectBox);
 
 		scrollPane = new ScrollPane();

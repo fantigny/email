@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.ConnectException;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -81,7 +83,12 @@ public class HistoryService extends TimerTask {
 					invokeCallbacks(updates);
 				}
 			} catch (final HistoryException e) {
-				LOGGER.error("pull updates", e);
+				if (e.getCause() instanceof UnknownHostException
+						|| e.getCause() instanceof SocketTimeoutException) {
+					LOGGER.error("connection lost {}", e.getCause().getMessage());
+				} else {
+					LOGGER.error("pull updates", e);
+				}
 			}
 		}, "pull updates");
 	}

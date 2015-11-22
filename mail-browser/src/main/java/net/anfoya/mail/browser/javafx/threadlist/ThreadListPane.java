@@ -6,9 +6,6 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javafx.animation.Interpolator;
-import javafx.animation.RotateTransition;
-import javafx.animation.Timeline;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.value.ChangeListener;
@@ -40,7 +37,6 @@ import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.animation.DelayTimeline;
 import net.anfoya.javafx.scene.control.ResetTextField;
 import net.anfoya.mail.browser.javafx.settings.Settings;
-import net.anfoya.mail.browser.javafx.settings.SettingsDialog;
 import net.anfoya.mail.composer.javafx.MailComposer;
 import net.anfoya.mail.model.SimpleThread.SortOrder;
 import net.anfoya.mail.service.Contact;
@@ -105,33 +101,9 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 			e.consume();
 		});
 
-
 		final StackPane centerPane = new StackPane(threadList);
 		centerPane.setAlignment(Pos.BOTTOM_CENTER);
 		setCenter(centerPane);
-
-		final Button settingsButton = new Button();
-		settingsButton.setFocusTraversable(false);
-		settingsButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/settings.png"))));
-		settingsButton.setTooltip(new Tooltip("settings"));
-		settingsButton.setOnAction(event -> new SettingsDialog<S, T>(mailService).show());
-
-		final RotateTransition rotateTransition = new RotateTransition(Duration.millis(250), settingsButton);
-		rotateTransition.setFromAngle(-15);
-		rotateTransition.setToAngle(15);
-		rotateTransition.setAutoReverse(true);
-		rotateTransition.setCycleCount(Timeline.INDEFINITE);
-		rotateTransition.setInterpolator(Interpolator.EASE_IN);
-		rotateTransition.play();
-
-		threadList.loadingProperty().addListener((ov, o, n) -> {
-			if (n) {
-				rotateTransition.play();
-			} else {
-				rotateTransition.stop();
-				settingsButton.setRotate(0);
-			}
-		});
 
 		final Button newButton = new Button();
 		newButton.setFocusTraversable(false);
@@ -148,7 +120,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		final VBox topBox = new VBox();
 		setTop(topBox);
 
-		final HBox firstLineBox = new HBox(patternField, settingsButton, newButton);
+		final HBox firstLineBox = new HBox(patternField, newButton);
 		firstLineBox.setAlignment(Pos.CENTER_LEFT);
 		HBox.setHgrow(patternField, Priority.ALWAYS);
 		topBox.getChildren().add(firstLineBox);
