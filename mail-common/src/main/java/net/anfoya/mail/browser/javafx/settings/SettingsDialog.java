@@ -227,7 +227,8 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 
 		final Button resetButton = new Button("clear");
 		resetButton.setOnAction(e -> {
-			//TODO reset settings
+			Settings.getSettings().reset();
+			close();
 		});
 
 		final SwitchButton confirmOnQuitButton = new SwitchButton();

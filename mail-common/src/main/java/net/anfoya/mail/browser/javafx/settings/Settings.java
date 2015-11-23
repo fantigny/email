@@ -112,6 +112,11 @@ public class Settings implements Serializable {
 		}
 	}
 
+	public void reset() {
+		new Settings().save();
+		load();
+	}
+
 	public BooleanProperty showToolbar() {
 		return showToolbar;
 	}
