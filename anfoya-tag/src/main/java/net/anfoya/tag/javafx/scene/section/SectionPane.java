@@ -77,16 +77,6 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 		        db.setContent(content);
 			}
 		});
-		setOnDragEntered(event -> {
-			final Dragboard db = event.getDragboard();
-			if (db.hasContent(ExtItemDropPane.ADD_TAG_DATA_FORMAT)) {
-				if (!isExpanded()) {
-					event.acceptTransferModes(TransferMode.ANY);
-					expandDelay = expandAfterDelay();
-					event.consume();
-				}
-			}
-		});
 		setOnDragOver(event -> {
 			final Dragboard db = event.getDragboard();
 			if (db.hasContent(Tag.TAG_DATA_FORMAT)
@@ -100,6 +90,11 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 				}
 			} else if (db.hasContent(ExtItemDropPane.ADD_TAG_DATA_FORMAT) && !SectionPane.this.isExpanded()) {
 				SectionPane.this.setOpacity(.5);
+				if (!isExpanded()) {
+					event.acceptTransferModes(TransferMode.ANY);
+					expandDelay = expandAfterDelay();
+					event.consume();
+				}
 			}
 		});
 		setOnDragExited(event -> {

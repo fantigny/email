@@ -203,7 +203,6 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 			final SectionPane<S, T> sectionPane = (SectionPane<S, T>) titledPane;
 			if (!checkMode) {
 				try {
-					//TODO param toRefresh is not used
 					toRefresh = tagService.getTags(sectionPane.getSection());
 				} catch (final TagException e) {
 					LOGGER.error("getting section count", e);

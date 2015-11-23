@@ -111,13 +111,25 @@
     -fx-background-insets: 0;
     -fx-background-color: transparent;
 }
-
+.tag-list {
+}
+.tag-list .cell:empty {
+	-fx-background-color: transparent;
+}
+.lightblue {
+	-fx-background-color: lightblue;
+}
 
 /* thread list */
 .thread-list {
 }
 .thread-list .cell {
 }
+.thread-list .cell:empty {
+	-fx-background-color: transparent;
+}
+
+
 .thread-list .cell .date {
 	-fx-font-size: 11px;
 }

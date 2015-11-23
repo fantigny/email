@@ -49,6 +49,8 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 
 
 	public TagList(final TagService<S, T> tagService, final S section, final boolean showExcludeBox) {
+        getStyleClass().add("tag-list");
+
 		this.tagService = tagService;
 		this.section = section;
 

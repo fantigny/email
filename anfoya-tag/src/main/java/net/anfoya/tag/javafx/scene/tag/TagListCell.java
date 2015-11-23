@@ -9,9 +9,9 @@ import net.anfoya.tag.javafx.scene.dnd.ExtItemDropPane;
 import net.anfoya.tag.service.Tag;
 
 class TagListCell<T extends Tag> extends IncExcListCell<TagListItem<T>> {
-
 	public TagListCell(final boolean withExcludeBox) {
 		super(withExcludeBox);
+        getStyleClass().add("cell");
 
 		setOnDragDetected(event -> {
 			if (getItem() != null && !getItem().getTag().isSystem()) {
@@ -24,14 +24,12 @@ class TagListCell<T extends Tag> extends IncExcListCell<TagListItem<T>> {
 		});
 		setOnDragOver(event -> {
 			if (getItem() != null && event.getDragboard().hasContent(ExtItemDropPane.ADD_TAG_DATA_FORMAT)) {
-				setOpacity(.7);
-				event.acceptTransferModes(TransferMode.ANY);
+		        setStyle("-fx-background-color:lightblue");
+		        event.acceptTransferModes(TransferMode.ANY);
 				event.consume();
 			}
 		});
-		setOnDragExited(e -> {
-			setOpacity(1);
-		});
+		setOnDragExited(e -> setStyle("-fx-background-color:transparent !important"));
 		setOnDragDropped(event -> {
 			final Dragboard db = event.getDragboard();
 			if (getItem() != null && db.hasContent(ExtItemDropPane.ADD_TAG_DATA_FORMAT)) {

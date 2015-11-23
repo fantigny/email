@@ -7,6 +7,7 @@ import javafx.util.Duration;
 import net.anfoya.javafx.scene.animation.DelayTimeline;
 
 public class DndPaneTranslationHelper {
+	private static final Duration DELAY = Duration.seconds(2);
 
 	private final Pane dndPane;
 
@@ -32,7 +33,7 @@ public class DndPaneTranslationHelper {
 	}
 
 	private void startDelayedMove() {
-		moveDelay = new DelayTimeline(Duration.millis(1000), e -> move());
+		moveDelay = new DelayTimeline(DELAY, e -> move());
 		moveDelay.play();
 	}
 
