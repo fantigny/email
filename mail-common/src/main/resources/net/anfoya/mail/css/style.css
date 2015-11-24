@@ -69,7 +69,6 @@
     -fx-background-insets: -1.4, 0, 1, 2;
 }
 
-
 /* List of removable labels */
 .label-list-pane {	
 }
@@ -100,13 +99,18 @@
     -fx-background-insets: 0;
     -fx-background-color: transparent;
 }
-.section-accordion .titled-pane > .title {
+.section-pane-title {
+}
+.section-pane > .title {
     -fx-border-width: 0;
     -fx-background-insets: 0;
     -fx-font-weight: bold;
-    -fx-background-color: white;
+    -fx-background-color: transparent;
 }
-.section-accordion .titled-pane > *.content {
+.section-pane-dnd-highlight > .title {
+    -fx-background-color: lightblue;
+}
+.section-pane > *.content {
     -fx-border-width: 0;
     -fx-background-insets: 0;
     -fx-background-color: transparent;
@@ -116,7 +120,8 @@
 .tag-list .cell:empty {
 	-fx-background-color: transparent;
 }
-.lightblue {
+
+.tag-list-cell-dnd-highlight {
 	-fx-background-color: lightblue;
 }
 

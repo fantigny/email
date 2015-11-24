@@ -32,7 +32,6 @@ class ThreadListCell<H extends Thread> extends ListCell<H> {
 	public ThreadListCell() {
 		super();
         setPadding(new Insets(0));
-        getStyleClass().add("cell");
 
 		sender = new Label();
 		sender.getStyleClass().add("sender");

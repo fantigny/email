@@ -32,12 +32,13 @@ import net.anfoya.tag.service.TagService;
 public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SectionPane.class);
 
-	private long sectionTaskId;
 	private final TagService<S, T> tagService;
 	private final TagList<S, T> tagList;
 
-	private boolean initialized;
 	private Labeled titleNode;
+
+	private long sectionTaskId;
+	private boolean initialized;
 
 	private boolean isTag;
 	private TagListItem<Tag> sectionItem;
@@ -46,12 +47,14 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 	private Runnable lazyCountTask;
 
 	private boolean disableWhenZero;
-	private Timeline expandDelay;
+
+	private boolean delayedExpand;
 
 	private EventHandler<ActionEvent> updateHandler;
 
-	@SuppressWarnings("unchecked")
 	public SectionPane(final TagService<S, T> tagService, final S section, final boolean showExcludeBox) {
+		getStyleClass().add("section-pane");
+
 		this.tagService = tagService;
 		if (section == null) {
 			this.sectionItem = null;
@@ -69,7 +72,7 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 		lazyCount = true;
 		lazyCountTask = null;
 
-		setOnDragDetected(event -> {
+		setOnDragDetected(e -> {
 			if (section != null) {
 		        final ClipboardContent content = new ClipboardContent();
 		        content.put(Section.SECTION_DATA_FORMAT, section);
@@ -77,56 +80,47 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 		        db.setContent(content);
 			}
 		});
-		setOnDragOver(event -> {
-			final Dragboard db = event.getDragboard();
-			if (db.hasContent(Tag.TAG_DATA_FORMAT)
-					&& section != null
-					&& !section.getId().startsWith(Section.NO_ID)) { //TODO improve
+		setOnDragEntered(e -> {
+			final Dragboard db = e.getDragboard();
+			if (section != null
+					&& !section.getId().startsWith(Section.NO_ID) //TODO improve
+					&& db.hasContent(Tag.TAG_DATA_FORMAT)) {
+				@SuppressWarnings("unchecked")
 				final T tag = (T) db.getContent(Tag.TAG_DATA_FORMAT);
 				if (!tagList.contains(tag)) {
-					SectionPane.this.setOpacity(.5);
-					event.acceptTransferModes(TransferMode.ANY);
-					event.consume();
+					Platform.runLater(() -> getStyleClass().add("section-pane-dnd-highlight"));
 				}
-			} else if (db.hasContent(ExtItemDropPane.ADD_TAG_DATA_FORMAT) && !SectionPane.this.isExpanded()) {
-				SectionPane.this.setOpacity(.5);
-				if (!isExpanded()) {
-					event.acceptTransferModes(TransferMode.ANY);
-					expandDelay = expandAfterDelay();
-					event.consume();
-				}
+			} else if (db.hasContent(ExtItemDropPane.ADD_TAG_DATA_FORMAT) && !isExpanded()) {
+				Platform.runLater(() -> getStyleClass().add("section-pane-dnd-highlight"));
+				expandAfterDelay();
 			}
+			e.consume();
 		});
-		setOnDragExited(event -> {
-			final Dragboard db = event.getDragboard();
-			if (db.hasContent(ExtItemDropPane.ADD_TAG_DATA_FORMAT)) {
-				expandDelay = null;
-				SectionPane.this.setOpacity(1);
-				event.consume();
-			} else if (db.hasContent(Tag.TAG_DATA_FORMAT)
-					&& section != null
-					&& !section.getId().startsWith(Section.NO_ID)) { //TODO improve
-				SectionPane.this.setOpacity(1);
-				event.consume();
-			}
-		});
-		setOnDragDropped(event -> {
-			final Dragboard db = event.getDragboard();
-			if (db.hasContent(Tag.TAG_DATA_FORMAT)
-					&& section != null) {
+		setOnDragOver(e -> {
+			final Dragboard db = e.getDragboard();
+			if (section != null
+					&& !section.getId().startsWith(Section.NO_ID) //TODO improve
+					&& db.hasContent(Tag.TAG_DATA_FORMAT)) {
+				@SuppressWarnings("unchecked")
 				final T tag = (T) db.getContent(Tag.TAG_DATA_FORMAT);
-				try {
-					tagService.moveToSection(tag, section);
-					event.setDropCompleted(true);
-					event.consume();
-				} catch (final Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				if (!tagList.contains(tag)) {
+					e.acceptTransferModes(TransferMode.ANY);
 				}
 			}
+			e.consume();
 		});
-		setOnDragDone(e -> {
-			updateHandler.handle(null);
+		setOnDragExited(e -> {
+			Platform.runLater(() -> getStyleClass().remove("section-pane-dnd-highlight"));
+			delayedExpand = false;
+			e.consume();
+		});
+		setOnDragDropped(e -> {
+			final Dragboard db = e.getDragboard();
+			if (db.hasContent(Tag.TAG_DATA_FORMAT)) {
+				@SuppressWarnings("unchecked")
+				final T tag = (T) db.getContent(Tag.TAG_DATA_FORMAT);
+				move(section, tag);
+			}
 		});
 
 		setExpanded(section == null);
@@ -139,12 +133,32 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 		});
 	}
 
-	private Timeline expandAfterDelay() {
-		final Timeline timeline = new Timeline(new KeyFrame(Duration.millis(500), e -> setExpanded(isExpanded() || expandDelay != null)));
+	private void move(S section, T tag) {
+		final Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws TagException {
+				tagService.moveToSection(tag, section);
+				return null;
+			}
+		};
+		task.setOnSucceeded(e -> updateHandler.handle(null));
+		task.setOnFailed(e -> LOGGER.error("moving {} to {}", tag, section, e.getSource().getException()));
+		ThreadPool.getInstance().submitHigh(task, "moving " + tag.getName() + " to " + section.getName());
+	}
+
+	private void expandAfterDelay() {
+		final KeyFrame keyFrame = new KeyFrame(Duration.millis(500), e -> {
+			Platform.runLater(() -> getStyleClass().remove("section-pane-dnd-highlight"));
+			if (!isExpanded() && delayedExpand) {
+				setExpanded(true);
+			}
+		});
+
+		final Timeline timeline = new Timeline(keyFrame);
 		timeline.setCycleCount(1);
 		timeline.play();
 
-		return timeline;
+		delayedExpand = true;
 	}
 
 	public synchronized void updateCountAsync(final int queryCount, final Set<T> tags, final Set<T> includes, final Set<T> excludes, final String itemPattern, final String tagPattern) {
@@ -229,6 +243,7 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 			}
 		}
 
+		titleNode.getStyleClass().add("section-pane-title");
 		setGraphic(titleNode);
 	}
 
