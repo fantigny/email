@@ -1,6 +1,5 @@
 package net.anfoya.javafx.scene.dnd;
 
-import javafx.animation.Interpolator;
 import javafx.animation.TranslateTransition;
 import javafx.scene.layout.Pane;
 import javafx.util.Duration;
@@ -45,10 +44,8 @@ public class DndPaneTranslationHelper {
 
 	private void move() {
 		final TranslateTransition translate = new TranslateTransition(Duration.millis(50), dndPane);
-		translate.setInterpolator(Interpolator.EASE_BOTH);
 		translate.setCycleCount(1);
 		translate.setByY(((int)dndPane.getTranslateY() == 0? -1: 1) * dndPane.getHeight());
-		translate.setOnFinished(e -> {});
 		translate.play();
 	}
 }
