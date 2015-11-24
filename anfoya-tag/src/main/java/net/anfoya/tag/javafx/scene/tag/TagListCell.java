@@ -1,11 +1,13 @@
 package net.anfoya.tag.javafx.scene.tag;
 
 import javafx.application.Platform;
+import javafx.scene.image.Image;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.paint.Color;
 import net.anfoya.javafx.scene.control.IncExcListCell;
+import net.anfoya.javafx.scene.dnd.DndHelper;
 import net.anfoya.tag.javafx.scene.dnd.ExtItemDropPane;
 import net.anfoya.tag.service.Tag;
 
@@ -17,8 +19,15 @@ class TagListCell<T extends Tag> extends IncExcListCell<TagListItem<T>> {
 			if (getItem() != null && !getItem().getTag().isSystem()) {
 		        final ClipboardContent content = new ClipboardContent();
 		        content.put(Tag.TAG_DATA_FORMAT, getItem().getTag());
+
+		        final String name = getText().split("\\(")[0];
+		        final Image image = DndHelper.textToImage(name);
+
 		        final Dragboard db = startDragAndDrop(TransferMode.ANY);
 		        db.setContent(content);
+		        db.setDragView(image);
+		        db.setDragViewOffsetX(image.getWidth()/-2);
+		        db.setDragViewOffsetY(image.getHeight()/2);
 		        e.consume();
 			}
 		});
