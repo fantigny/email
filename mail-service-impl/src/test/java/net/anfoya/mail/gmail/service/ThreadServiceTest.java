@@ -4,14 +4,14 @@ import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.Set;
 
-import junit.framework.Assert;
-import net.anfoya.mail.gmail.GmailService;
-import net.anfoya.mail.service.MailException;
-
 import org.junit.Before;
 import org.junit.Test;
 
 import com.google.api.services.gmail.model.Thread;
+
+import junit.framework.Assert;
+import net.anfoya.mail.gmail.GmailService;
+import net.anfoya.mail.service.MailException;
 
 public class ThreadServiceTest {
 	private static final String TEST_SUBJECT = "thread_service_test";
@@ -22,6 +22,7 @@ public class ThreadServiceTest {
 		final GmailService gmail = new GmailService();
 		gmail.connect("test");
 		service = gmail.getThreadService();
+		service.clearCache();
 	}
 
 	@Test public void find() throws ThreadException {

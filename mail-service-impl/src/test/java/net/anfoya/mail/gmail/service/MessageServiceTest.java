@@ -4,16 +4,16 @@ import java.io.IOException;
 
 import javax.mail.MessagingException;
 
-import net.anfoya.mail.gmail.GmailService;
-import net.anfoya.mail.gmail.model.GmailMessage;
-import net.anfoya.mail.service.MailException;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.google.api.services.gmail.model.Draft;
 import com.google.api.services.gmail.model.Message;
+
+import net.anfoya.mail.gmail.GmailService;
+import net.anfoya.mail.gmail.model.GmailMessage;
+import net.anfoya.mail.service.MailException;
 
 public class MessageServiceTest {
 	private static final String TEST_SUBJECT = "mail_service_test";
@@ -25,6 +25,7 @@ public class MessageServiceTest {
 		final GmailService gmail = new GmailService();
 		gmail.connect("test");
 		service = gmail.getMessageService();
+		service.clearCache();
 		messageId = gmail.getThreadService().find("subject:" + TEST_SUBJECT, 1).iterator().next().getMessages().get(0).getId();
 	}
 
