@@ -26,14 +26,16 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SectionDropPane.class);
 
 	private final TagService<S, T> tagService;
+	private final DndPaneTranslationHelper transHelper;
+
 	private EventHandler<ActionEvent> onUpdateHandler;
 
 	public TagDropPane(final TagService<S, T> tagService) {
 		this.tagService = tagService;
 
-		setMaxHeight(150);
+		setMaxHeight(200);
 		getStyleClass().add("droparea-grid");
-		new DndPaneTranslationHelper(this);
+		transHelper = new DndPaneTranslationHelper(this);
 
 		final DropArea removeArea = new DropArea("remove", Tag.TAG_DATA_FORMAT);
 		removeArea.<T>setDropCallback(t -> remove(t));
@@ -65,6 +67,8 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 	}
 
 	private Void newSection(final T tag) {
+		transHelper.reset();
+
 		String name = "";
 		while(name.isEmpty()) {
 			final TextInputDialog inputDialog = new TextInputDialog();
@@ -103,6 +107,8 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 	}
 
 	private Void rename(final T tag) {
+		transHelper.reset();
+
 		String name = "";
 		while(name.isEmpty()) {
 			final TextInputDialog inputDialog = new TextInputDialog(tag.getName());
@@ -140,6 +146,8 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 	}
 
 	private Void remove(final T tag) {
+		transHelper.reset();
+
 		final Alert confirmDialog = new Alert(AlertType.CONFIRMATION, "", new ButtonType[] { ButtonType.OK, ButtonType.CANCEL });
 		confirmDialog.setTitle("Remove label");
 		confirmDialog.setHeaderText("Remove label: \"" + tag.getName() + "\"?");
@@ -162,6 +170,8 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 	}
 
 	private Void hide(final T tag) {
+		transHelper.reset();
+
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {

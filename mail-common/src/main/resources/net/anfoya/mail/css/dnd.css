@@ -20,6 +20,5 @@
 }
 
 .dropbutton-box-hover {
-	-fx-opacity: 1;
-    -fx-border-color: red;
+    -fx-background-color: lightblue;
 }

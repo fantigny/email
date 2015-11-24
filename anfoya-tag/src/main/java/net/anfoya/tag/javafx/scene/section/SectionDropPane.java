@@ -53,7 +53,7 @@ public class SectionDropPane<S extends Section> extends GridPane {
 		setHgrow(removeArea, Priority.ALWAYS);
 		setVgrow(removeArea, Priority.ALWAYS);
 
-		setMaxHeight(50 * i);
+		setMaxHeight(65 * i);
 	}
 
 	public void setOnUpdateSection(final EventHandler<ActionEvent> handler) {

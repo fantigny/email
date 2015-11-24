@@ -19,12 +19,14 @@ public class ExtItemDropPane<T extends Tag> extends GridPane {
 	public static final DataFormat TAG_NAME_DATA_FORMAT = new DataFormat("TAG_NAME_DATA_FORMAT");
 
 	public ExtItemDropPane() {
-		setMaxHeight(50);
+		setMaxHeight(65);
 		getStyleClass().add("droparea-grid");
-		new DndPaneTranslationHelper(this);
+
+		final DndPaneTranslationHelper transHelper = new DndPaneTranslationHelper(this);
 
 		final DropArea newTagArea = new DropArea("add new tag", ADD_TAG_DATA_FORMAT);
 		newTagArea.setOnDragDropped(e -> {
+			transHelper.reset();
 			final Dragboard db = e.getDragboard();
 			if (db.hasContent(ADD_TAG_DATA_FORMAT)) {
 				final String name = getName();
