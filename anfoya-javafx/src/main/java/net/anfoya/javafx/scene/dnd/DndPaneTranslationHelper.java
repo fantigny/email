@@ -15,21 +15,21 @@ public class DndPaneTranslationHelper {
 	public DndPaneTranslationHelper(final Pane dndPane) {
 		this.dndPane = dndPane;
 
-		dndPane.parentProperty().addListener((ov, o, n) -> {
-			if (n == null) {
-				resetPosition();
-			}
-		});
+//		dndPane.parentProperty().addListener((ov, o, n) -> {
+//			if (n == null) {
+//				resetPosition();
+//			}
+//		});
 		dndPane.setOnDragEntered(e -> startDelayedMove());
 		dndPane.setOnDragExited(e -> stopDelayedMove());
 	}
 
-	private void resetPosition() {
-		stopDelayedMove();
-		if (dndPane.getTranslateY() != 0) {
-			move();
-		}
-	}
+//	private void resetPosition() {
+//		stopDelayedMove();
+//		if (dndPane.getTranslateY() != 0) {
+//			move();
+//		}
+//	}
 
 	private void startDelayedMove() {
 		moveDelay = new DelayTimeline(DELAY, e -> move());

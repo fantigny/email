@@ -24,7 +24,7 @@ class TagListCell<T extends Tag> extends IncExcListCell<TagListItem<T>> {
 		});
 		setOnDragOver(e -> {
 			if (getItem() != null && e.getDragboard().hasContent(ExtItemDropPane.ADD_TAG_DATA_FORMAT)) {
-		        e.acceptTransferModes(TransferMode.ANY);
+		        e.acceptTransferModes(TransferMode.LINK);
 			}
 			e.consume();
 		});

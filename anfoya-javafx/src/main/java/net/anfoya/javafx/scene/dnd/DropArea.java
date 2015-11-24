@@ -21,14 +21,14 @@ public class DropArea extends HBox {
 		setOnDragEntered(e -> {
 			if (e.getDragboard().hasContent(dataFormat)) {
 				getStyleClass().add("dropbutton-box-hover");
-				e.consume();
 			}
+			e.consume();
 		});
 		setOnDragOver(e -> {
 			if (e.getDragboard().hasContent(dataFormat)) {
-				e.acceptTransferModes(TransferMode.ANY);
-				e.consume();
+				e.acceptTransferModes(TransferMode.LINK);
 			}
+			e.consume();
 		});
 		setOnDragExited(e -> getStyleClass().remove("dropbutton-box-hover"));
 

@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,8 +35,6 @@ import org.slf4j.LoggerFactory;
 import com.sun.mail.util.BASE64DecoderStream;
 
 import net.anfoya.mail.browser.javafx.settings.Settings;
-import net.fortuna.ical4j.data.CalendarBuilder;
-import net.fortuna.ical4j.data.ParserException;
 import sun.misc.BASE64Encoder;
 import sun.misc.IOUtils;
 
@@ -166,16 +165,13 @@ public class MessageHelper {
 			}
 		}
 		if (part instanceof MimeBodyPart && content instanceof BASE64DecoderStream) {
-			if (type.contains("text/calendar")) {
-				try {
-					new CalendarBuilder().build((InputStream) content);
-					//TODO: render calendar
-				} catch (final ParserException e) {
-					LOGGER.error("parsing ICS", e);
-				}
-				return new StringBuilder();
-			}
 			final MimeBodyPart bodyPart = (MimeBodyPart) part;
+			if (type.contains("text/calendar")) {
+				final File file = File.createTempFile("event-", ".ics", new File(TEMP));
+				LOGGER.info("saving inline calendar {}", file);
+				bodyPart.saveFile(file);
+				return buildImgAnchor(file);
+			}
 			if (bodyPart.getContentID() != null
 					&& !MimeBodyPart.ATTACHMENT.equals(bodyPart.getDisposition())) {
 				final String cid = bodyPart.getContentID().replaceAll("[<,>]", "");
@@ -194,11 +190,7 @@ public class MessageHelper {
 					if (type.contains("image/")) {
 						return new StringBuilder("<img src='").append(file.toURI()).append("'>");
 					} else {
-						return new StringBuilder()
-								.append("<a href='").append(file.toURI()).append("'>")
-									.append("<img width='32' height='32' title='").append(filename).append("' ")
-									.append("src='data:image/png;base64,").append(getBase64SystemIcon(file)).append("'>")
-								.append("</a>");
+						return buildImgAnchor(file);
 					}
 				}
 				if (MimeBodyPart.ATTACHMENT.equals(bodyPart.getDisposition())) {
@@ -211,6 +203,19 @@ public class MessageHelper {
 
 		LOGGER.warn("not handled {}/{}", type, content.getClass());
 		return new StringBuilder();
+	}
+
+	private StringBuilder buildImgAnchor(File file) throws UnsupportedEncodingException {
+		return new StringBuilder()
+				.append("<a href='").append(file.toURI()).append("'>")
+				.append("<table><tr><td align='center'>")
+					.append("<img width='32' height='32' title='").append(file.getName()).append("' ")
+					.append("src='data:image/png;base64,").append(getBase64SystemIcon(file)).append("'>")
+					.append("<table><tr><td align='center'>")
+				.append("</td></tr><tr><td>")
+					.append(file.getName())
+				.append("</td></tr></table>")
+			.append("</a>");
 	}
 
 	private String getBase64SystemIcon(File file) {

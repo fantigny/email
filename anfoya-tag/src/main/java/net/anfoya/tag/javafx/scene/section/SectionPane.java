@@ -104,7 +104,7 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 				@SuppressWarnings("unchecked")
 				final T tag = (T) db.getContent(Tag.TAG_DATA_FORMAT);
 				if (!tagList.contains(tag)) {
-					e.acceptTransferModes(TransferMode.ANY);
+					e.acceptTransferModes(TransferMode.LINK);
 				}
 			}
 			e.consume();
