@@ -22,7 +22,6 @@ public class ThreadServiceTest {
 		final GmailService gmail = new GmailService();
 		gmail.connect("test");
 		service = gmail.getThreadService();
-		service.clearCache();
 	}
 
 	@Test public void find() throws ThreadException {

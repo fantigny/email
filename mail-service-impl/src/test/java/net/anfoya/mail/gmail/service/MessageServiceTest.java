@@ -25,7 +25,6 @@ public class MessageServiceTest {
 		final GmailService gmail = new GmailService();
 		gmail.connect("test");
 		service = gmail.getMessageService();
-		service.clearCache();
 		messageId = gmail.getThreadService().find("subject:" + TEST_SUBJECT, 1).iterator().next().getMessages().get(0).getId();
 	}
 
@@ -34,7 +33,7 @@ public class MessageServiceTest {
 		Assert.assertNotNull(message);
 	}
 
-	@Test public void createDelete() throws MessageException {
+	@Test public void draft() throws MessageException {
 		final Draft draft = service.createDraft();
 		Assert.assertNotNull(draft);
 

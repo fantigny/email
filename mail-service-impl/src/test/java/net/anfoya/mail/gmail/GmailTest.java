@@ -1,10 +1,10 @@
 package net.anfoya.mail.gmail;
 
+import org.junit.Test;
+
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.Tag;
 import net.anfoya.tag.service.TagException;
-
-import org.junit.Test;
 
 public class GmailTest {
 
@@ -15,17 +15,17 @@ public class GmailTest {
 
 	@Test
 	public void getTags() throws MailException, TagException {
-		final GmailService service = new GmailService();
-		service.connect("test");
-		for(final Tag t: service.getTags("")) {
+		final GmailService gmail = new GmailService();
+		gmail.connect("test");
+		for(final Tag t: gmail.getTags("")) {
 			System.out.println(t);
 		}
 	}
 
 	@Test
 	public void clearCache() throws MailException, TagException {
-		final GmailService service = new GmailService();
-		service.connect("test");
-		service.clearCache();
+		final GmailService gmail = new GmailService();
+		gmail.connect("test");
+		gmail.clearCache();
 	}
 }
