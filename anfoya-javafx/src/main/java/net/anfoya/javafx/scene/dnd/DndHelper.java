@@ -1,27 +1,37 @@
 package net.anfoya.javafx.scene.dnd;
 
+import java.util.List;
+
+import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
+import javafx.scene.paint.Color;
 
 public class DndHelper {
 
-	public static Image textToImage(String text) {
+	private final List<String> stylesheets;
+
+	public DndHelper(List<String> stylesheets) {
+		this.stylesheets = stylesheets;
+	}
+
+	public Image textToImage(String text) {
 		final Label label = new Label(text);
-		label.setStyle("-fx-padding: 2 5 2 5;"
-				+ "-fx-background-color: transparent;"
-				+ "-fx-border-width: 1;"
-				+ "-fx-border-color: darkgray;"
-				+ "-fx-border-radius: 5;"
-				+ "-fx-text-fill: black;"
-				+ "-fx-font-size: 13px;");
+		label.getStyleClass().add("label-dnd");
 
-		final Scene scene = new Scene(label);
+		return toImage(label);
+	}
 
-		WritableImage img = new WritableImage(125, 125);
+	public Image toImage(Node node) {
+		final Scene scene = new Scene(new Group(node), Color.TRANSPARENT);
+		scene.getStylesheets().setAll(stylesheets);
+
+		WritableImage img = new WritableImage(200, 75);
 		scene.snapshot(img);
-		img = new WritableImage((int)label.getWidth(), (int)label.getHeight());
+		img = new WritableImage((int)scene.getWidth()+1, (int)scene.getHeight());
 		scene.snapshot(img);
 
 		return img;

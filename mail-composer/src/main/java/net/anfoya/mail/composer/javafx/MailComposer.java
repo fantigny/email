@@ -41,6 +41,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import net.anfoya.java.util.concurrent.ThreadPool;
@@ -93,7 +94,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		final Image icon = new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png"));
 		getIcons().add(icon);
 
-		final Scene scene = new Scene(new BorderPane(), 800, 600);
+		final Scene scene = new Scene(new BorderPane(), 800, 600, Color.TRANSPARENT);
 		StyleHelper.addCommonCss(scene);
 		StyleHelper.addCss(scene, "/net/anfoya/javafx/scene/control/combo_noarrow.css");
 		setScene(scene);

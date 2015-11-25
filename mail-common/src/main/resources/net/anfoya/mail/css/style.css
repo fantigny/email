@@ -7,7 +7,7 @@
 /**/
 
 .background {
-    -fx-background-color: transparent;
+    -fx-background-color: white;
 }
 
 .tooltip {
@@ -67,6 +67,18 @@
 .button:armed {
     -fx-background-color: transparent, -fx-outer-border, -fx-inner-border, transparent;
     -fx-background-insets: -1.4, 0, 1, 2;
+}
+
+.label-dnd {
+	-fx-padding: 2 5 2 5;
+	-fx-background-insets: 1 1 1 1;
+	-fx-background-color: white;
+	
+	-fx-border-width: 1;
+	-fx-border-color: black;
+	
+	-fx-text-fill: black;
+	-fx-font-size: 13px;
 }
 
 /* List of removable labels */
@@ -133,16 +145,23 @@
 .thread-list .cell:empty {
 	-fx-background-color: transparent;
 }
+.thread-list-cell-dnd {
+	-fx-min-width: 300;
+	-fx-max-width: 300;
+	-fx-pref-width: 300;
+	-fx-background-color: white;
+	-fx-border-width: 1;
+	-fx-border-color: black;
+}
 
-
-.thread-list .cell .date {
+.thread-list .cell .date, .thread-list-cell-dnd .date {
 	-fx-font-size: 11px;
 }
-.thread-list .cell .sender {
+.thread-list .cell .sender, .thread-list-cell-dnd .sender {
 	-fx-font-size: 13px;
 	-fx-font-weight: bold;
 }
-.thread-list .cell .subject {
+.thread-list .cell .subject, .thread-list-cell-dnd .subject {
 }
  
 /* thread pane */

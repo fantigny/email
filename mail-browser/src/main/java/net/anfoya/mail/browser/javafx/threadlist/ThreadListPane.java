@@ -29,6 +29,7 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -36,6 +37,7 @@ import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.animation.DelayTimeline;
 import net.anfoya.javafx.scene.control.ResetTextField;
+import net.anfoya.javafx.scene.dnd.DndHelper;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.composer.javafx.MailComposer;
 import net.anfoya.mail.model.SimpleThread.SortOrder;
@@ -82,11 +84,26 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 
 		threadList = new ThreadList<S, T, H, M, C>(mailService);
 		threadList.setOnDragDetected(event -> {
-	        final ClipboardContent content = new ClipboardContent();
-	        content.put(ExtItemDropPane.ADD_TAG_DATA_FORMAT, "");
-	        content.put(DND_THREADS_DATA_FORMAT, "");
-	        final Dragboard db = threadList.startDragAndDrop(TransferMode.ANY);
-	        db.setContent(content);
+			final ClipboardContent content = new ClipboardContent();
+			content.put(ExtItemDropPane.ADD_TAG_DATA_FORMAT, "");
+			content.put(DND_THREADS_DATA_FORMAT, "");
+
+			int count = 0;
+			final StackPane stackPane = new StackPane();
+			final ThreadListCell<H> cell = new ThreadListCell<H>();
+			for(final H t: getSelectedThreads()) {
+				final Pane grid = cell.buildGridPane(t);
+				grid.getStyleClass().add("thread-list-cell-dnd");
+				grid.setTranslateX(4 * count);
+				grid.setTranslateY(8 * count);
+				stackPane.getChildren().add(grid);
+				count++;
+			}
+			final Image image = new DndHelper(getScene().getStylesheets()).toImage(stackPane);
+
+			final Dragboard db = threadList.startDragAndDrop(TransferMode.ANY);
+			db.setContent(content);
+			db.setDragView(image, image.getWidth() / -2, image.getHeight() / 2);
 		});
 		threadList.setOnDragDone(e -> {
 			final Dragboard db = e.getDragboard();

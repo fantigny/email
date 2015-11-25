@@ -21,7 +21,7 @@ class TagListCell<T extends Tag> extends IncExcListCell<TagListItem<T>> {
 		        content.put(Tag.TAG_DATA_FORMAT, getItem().getTag());
 
 		        final String name = getText().split("\\(")[0];
-		        final Image image = DndHelper.textToImage(name);
+		        final Image image = new DndHelper(getScene().getStylesheets()).textToImage(name);
 
 		        final Dragboard db = startDragAndDrop(TransferMode.ANY);
 		        db.setContent(content);

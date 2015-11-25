@@ -27,6 +27,8 @@ class ThreadListCell<H extends Thread> extends ListCell<H> {
     private final Label nbMessages;
     private final VBox iconBox;
 
+	private final HBox senderBox;
+	private final HBox subjectBox;
     private final GridPane grid;
 
 	public ThreadListCell() {
@@ -44,7 +46,7 @@ class ThreadListCell<H extends Thread> extends ListCell<H> {
 		final HBox empty1 = new HBox();
 		empty1.setMinWidth(5);
 		HBox.setHgrow(empty1, Priority.ALWAYS);
-		final HBox senderBox = new HBox(sender, empty1, date);
+		senderBox = new HBox(sender, empty1, date);
 		senderBox.setPadding(new Insets(0, 0, 2, 0));
 		senderBox.setAlignment(Pos.BASELINE_LEFT);
 
@@ -57,7 +59,7 @@ class ThreadListCell<H extends Thread> extends ListCell<H> {
 		final HBox empty2 = new HBox();
 		empty2.setMinWidth(5);
 		HBox.setHgrow(empty2, Priority.ALWAYS);
-		final HBox subjectBox = new HBox(subject, empty2, nbMessages);
+		subjectBox = new HBox(subject, empty2, nbMessages);
 		subjectBox.setPadding(new Insets(0, 0, 2, 0));
 		subjectBox.setAlignment(Pos.BASELINE_LEFT);
 
@@ -65,16 +67,8 @@ class ThreadListCell<H extends Thread> extends ListCell<H> {
 		iconBox.setSpacing(3);
 		iconBox.setPadding(new Insets(3, 2, 0, 2));
 
-		grid = new GridPane();
-		grid.prefWidthProperty().bind(widthProperty().add(-20));
-		grid.setHgap(3);
-		grid.setPadding(new Insets(3));
-		grid.add(iconBox, 0, 0, 1, 2);
-		grid.add(senderBox, 1, 0);
-		grid.add(subjectBox, 1, 1);
-
-		GridPane.setHgrow(senderBox, Priority.ALWAYS);
-		GridPane.setHgrow(subjectBox, Priority.ALWAYS);
+		grid = buildGridPane(null);
+		grid.prefWidthProperty().bind(widthProperty());
 	}
 
 	@Override
@@ -108,5 +102,20 @@ class ThreadListCell<H extends Thread> extends ListCell<H> {
 
         	setGraphic(grid);
         }
+	}
+
+	public GridPane buildGridPane(H thread) {
+		final GridPane grid = new GridPane();
+		grid.setHgap(3);
+		grid.setPadding(new Insets(3));
+		grid.add(iconBox, 0, 0, 1, 2);
+		grid.add(senderBox, 1, 0);
+		grid.add(subjectBox, 1, 1);
+
+		GridPane.setHgrow(senderBox, Priority.ALWAYS);
+		GridPane.setHgrow(subjectBox, Priority.ALWAYS);
+
+		updateItem(thread, thread == null);
+		return grid;
 	}
 }

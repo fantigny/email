@@ -12,6 +12,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.SplitPane;
+import javafx.scene.paint.Color;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.Notification.Notifier;
 import net.anfoya.mail.browser.javafx.css.StyleHelper;
@@ -44,7 +45,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	private final boolean quit;
 
 	public MailBrowser(final MailService<S, T, H, M, C> mailService) throws MailException {
-		super(new SplitPane());
+		super(new SplitPane(), Color.TRANSPARENT);
 		this.mailService = mailService;
 		this.quit = true;
 

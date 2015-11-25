@@ -12,11 +12,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.anfoya.java.io.SerializedFile;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.anfoya.java.io.SerializedFile;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class FileSerieSerializedMap<K extends Serializable, V extends Serializable> implements Map<K, V>{
@@ -155,7 +154,7 @@ public class FileSerieSerializedMap<K extends Serializable, V extends Serializab
 	@Override
 	public synchronized V remove(final Object key) {
 		final V previous = delegate.remove(key);
-		if (previous != null) {
+		if (dico.contains(key)) {
 			final int index = dico.indexOf(key);
 			final int lastIndex = dico.size() - 1;
 			if (index == lastIndex) {

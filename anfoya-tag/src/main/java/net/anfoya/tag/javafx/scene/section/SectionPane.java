@@ -14,12 +14,14 @@ import javafx.event.EventHandler;
 import javafx.scene.control.Label;
 import javafx.scene.control.Labeled;
 import javafx.scene.control.TitledPane;
+import javafx.scene.image.Image;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.IncExcBox;
+import net.anfoya.javafx.scene.dnd.DndHelper;
 import net.anfoya.tag.javafx.scene.dnd.ExtItemDropPane;
 import net.anfoya.tag.javafx.scene.tag.TagList;
 import net.anfoya.tag.javafx.scene.tag.TagListItem;
@@ -76,8 +78,13 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 			if (section != null) {
 		        final ClipboardContent content = new ClipboardContent();
 		        content.put(Section.SECTION_DATA_FORMAT, section);
-		        final Dragboard db = startDragAndDrop(TransferMode.ANY);
-		        db.setContent(content);
+
+		        final Image image = new DndHelper(getScene().getStylesheets()).textToImage(section.getName());
+
+				final Dragboard db = startDragAndDrop(TransferMode.ANY);
+				db.setContent(content);
+				db.setDragView(image, image.getWidth() / -2, image.getHeight() / 2);
+				e.consume();
 			}
 		});
 		setOnDragEntered(e -> {

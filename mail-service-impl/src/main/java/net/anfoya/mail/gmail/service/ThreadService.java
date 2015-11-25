@@ -53,7 +53,7 @@ public class ThreadService {
 			return idThreads.get(id).getData();
 		} catch (final CacheException e) {
 			idThreads.remove(id);
-			throw new ThreadException("reading thread id " + id, e);
+			throw new ThreadException("reading thread " + id, e);
 		}
 	}
 
@@ -85,8 +85,9 @@ public class ThreadService {
 								toLoadIds.add(id);
 							}
 						} catch (final Exception e) {
-							LOGGER.error("getting from cache thread id: {}", id);
+							LOGGER.error("getting thread {} from cache", id, e);
 							idThreads.remove(id);
+							toLoadIds.add(id);
 						}
 					}
 				}
@@ -108,12 +109,12 @@ public class ThreadService {
 				if (idThreads.containsKey(id)) {
 					try {
 						threads.add(idThreads.get(id).getData());
-					} catch (final CacheException e) {
-						LOGGER.error("getting from cache thread id {}", id);
+					} catch (final Exception e) {
+						LOGGER.error("getting thread {} from cache", id);
 						idThreads.remove(id);
 					}
 				} else {
-					LOGGER.error("thread not found in cache, id {}", id);
+					LOGGER.error("thread {} not found in cache", id);
 				}
 			}
 			if (threadResponse.getNextPageToken() != null) {
