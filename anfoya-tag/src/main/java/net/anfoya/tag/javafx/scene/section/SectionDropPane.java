@@ -41,19 +41,19 @@ public class SectionDropPane<S extends Section> extends GridPane {
 		final DropArea hideArea = new DropArea("hide", Section.SECTION_DATA_FORMAT);
 		hideArea.<S>setDropCallback((S s) -> hide(s));
 
-		int i = 0;
-		addRow(i++, renameArea);
+		int row = 0;
+		addRow(row++, renameArea);
 		setColumnSpan(renameArea, 2);
 		setHgrow(renameArea, Priority.ALWAYS);
 		setVgrow(renameArea, Priority.ALWAYS);
 
-		addRow(i++, hideArea, removeArea);
+		addRow(row++, hideArea, removeArea);
 		setHgrow(hideArea, Priority.ALWAYS);
 		setVgrow(hideArea, Priority.ALWAYS);
 		setHgrow(removeArea, Priority.ALWAYS);
 		setVgrow(removeArea, Priority.ALWAYS);
 
-		setMaxHeight(65 * i);
+		setMaxHeight(65 * row);
 	}
 
 	public void setOnUpdateSection(final EventHandler<ActionEvent> handler) {
@@ -64,20 +64,20 @@ public class SectionDropPane<S extends Section> extends GridPane {
 		String name = "";
 		while(name.isEmpty()) {
 			final TextInputDialog inputDialog = new TextInputDialog(section.getName());
-			inputDialog.setTitle("Create new section");
-			inputDialog.setHeaderText("");
-			inputDialog.setContentText("Section name");
+			inputDialog.setTitle("FisherMail");
+			inputDialog.setHeaderText("rename \"" + section.getName() + "\"");
+			inputDialog.setContentText("new name");
 			final Optional<String> response = inputDialog.showAndWait();
 			if (!response.isPresent()) {
 				return null;
 			}
 			name = response.get();
 			if (name.length() < 3) {
-				final Alert alertDialog = new Alert(AlertType.ERROR);
-				alertDialog.setTitle("Create new section");
-				alertDialog.setHeaderText("Section name is too short: " + name);
-				alertDialog.setContentText("Section name should be a least 3 letters long.");
-				alertDialog.showAndWait();
+				final Alert errorDialog = new Alert(AlertType.ERROR);
+				errorDialog.setTitle("FisherMail");
+				errorDialog.setHeaderText("name is too short \"" + name + "\"");
+				errorDialog.setContentText("section should be a least 3 letters long.");
+				errorDialog.showAndWait();
 				name = "";
 			}
 		}
@@ -98,23 +98,24 @@ public class SectionDropPane<S extends Section> extends GridPane {
 	}
 
 	private Void remove(final S section) {
-		final Alert confirmDialog = new Alert(AlertType.CONFIRMATION, "", new ButtonType[] { ButtonType.OK, ButtonType.CANCEL });
-		confirmDialog.setTitle("Remove section");
-		confirmDialog.setHeaderText("Remove section: \"" + section.getName() + "\"?");
-		confirmDialog.setContentText("");
-		final Optional<ButtonType> response = confirmDialog.showAndWait();
-		if (response.isPresent() && response.get() == ButtonType.OK) {
-			final Task<Void> task = new Task<Void>() {
-				@Override
-				protected Void call() throws Exception {
-					tagService.remove(section);
-					return null;
-				}
-			};
-			task.setOnSucceeded(event -> updateHandler.handle(null));
-			task.setOnFailed(e -> LOGGER.error("removing section {}", section.getName(), e.getSource().getException()));
-			ThreadPool.getInstance().submitHigh(task, "removing section " + section.getName());
-		}
+		final Alert warningDialog = new Alert(AlertType.WARNING, "", ButtonType.OK, ButtonType.CANCEL);
+		warningDialog.setTitle("FisherMail");
+		warningDialog.setHeaderText("remove \"" + section.getName() + "\"?");
+		warningDialog.setContentText("");
+		warningDialog.showAndWait()
+			.filter(r -> r == ButtonType.OK)
+			.ifPresent(r -> {
+				final Task<Void> task = new Task<Void>() {
+					@Override
+					protected Void call() throws Exception {
+						tagService.remove(section);
+						return null;
+					}
+				};
+				task.setOnSucceeded(event -> updateHandler.handle(null));
+				task.setOnFailed(e -> LOGGER.error("removing section {}", section.getName(), e.getSource().getException()));
+				ThreadPool.getInstance().submitHigh(task, "removing section " + section.getName());
+			});
 
 		return null;
 	}

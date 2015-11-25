@@ -98,8 +98,8 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 		final StackPane stackPane = new StackPane(sectionAcc);
 		stackPane.setAlignment(Pos.BOTTOM_CENTER);
 
-		final ExtItemDropPane<T> newTagDropPane = new ExtItemDropPane<T>();
-		newTagDropPane.prefWidthProperty().bind(stackPane.widthProperty());
+		final ExtItemDropPane<T> extItemDropPane = new ExtItemDropPane<T>();
+		extItemDropPane.prefWidthProperty().bind(stackPane.widthProperty());
 
 		sectionDropPane = new SectionDropPane<S>(tagService);
 		sectionDropPane.prefWidthProperty().bind(stackPane.widthProperty());
@@ -115,8 +115,8 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 					&& !stackPane.getChildren().contains(tagDropPane)) {
 				stackPane.getChildren().add(tagDropPane);
 			} else if (e.getDragboard().hasContent(ExtItemDropPane.ADD_TAG_DATA_FORMAT)
-					&& !stackPane.getChildren().contains(newTagDropPane)) {
-				stackPane.getChildren().add(newTagDropPane);
+					&& !stackPane.getChildren().contains(extItemDropPane)) {
+				stackPane.getChildren().add(extItemDropPane);
 			}
 		});
 		stackPane.setOnDragExited(e -> {
@@ -126,8 +126,8 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 			if (stackPane.getChildren().contains(tagDropPane)) {
 				stackPane.getChildren().remove(tagDropPane);
 			}
-			if (stackPane.getChildren().contains(newTagDropPane)) {
-				stackPane.getChildren().remove(newTagDropPane);
+			if (stackPane.getChildren().contains(extItemDropPane)) {
+				stackPane.getChildren().remove(extItemDropPane);
 			}
 		});
 		setCenter(stackPane);

@@ -12,8 +12,7 @@
 	-fx-background-radius: 5;
     -fx-background-color: lightgray;
 
-    -fx-border-radius: 5;
-    -fx-border-color: transparent;
+    -fx-border-width: 0;
     
     -fx-text-fill: black;
     -fx-font-weight: bold;

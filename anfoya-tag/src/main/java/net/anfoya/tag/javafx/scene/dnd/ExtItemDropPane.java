@@ -19,12 +19,12 @@ public class ExtItemDropPane<T extends Tag> extends GridPane {
 	public static final DataFormat TAG_NAME_DATA_FORMAT = new DataFormat("TAG_NAME_DATA_FORMAT");
 
 	public ExtItemDropPane() {
-		setMaxHeight(65);
 		getStyleClass().add("droparea-grid");
+		setMaxHeight(65);
 
 		final DndPaneTranslationHelper transHelper = new DndPaneTranslationHelper(this);
 
-		final DropArea newTagArea = new DropArea("add new tag", ADD_TAG_DATA_FORMAT);
+		final DropArea newTagArea = new DropArea("new label", ADD_TAG_DATA_FORMAT);
 		newTagArea.setOnDragDropped(e -> {
 			transHelper.reset();
 			final Dragboard db = e.getDragboard();
@@ -51,20 +51,20 @@ public class ExtItemDropPane<T extends Tag> extends GridPane {
 		String name = "";
 		while(name.isEmpty()) {
 			final TextInputDialog inputDialog = new TextInputDialog();
-			inputDialog.setTitle("Create new tag");
-			inputDialog.setHeaderText("");
-			inputDialog.setContentText("Tag name");
+			inputDialog.setTitle("FisherMail");
+			inputDialog.setHeaderText("new label");
+			inputDialog.setContentText("name");
 			final Optional<String> response = inputDialog.showAndWait();
 			if (!response.isPresent()) {
 				return null;
 			}
 			name = response.get();
 			if (name.length() < 3) {
-				final Alert alertDialog = new Alert(AlertType.ERROR);
-				alertDialog.setTitle("Create new tag");
-				alertDialog.setHeaderText("Section name is too short: " + name);
-				alertDialog.setContentText("Section name should be a least 3 letters long.");
-				alertDialog.showAndWait();
+				final Alert errorDialog = new Alert(AlertType.ERROR);
+				errorDialog.setTitle("FisherMail");
+				errorDialog.setHeaderText("name is too short \"" + name + "\"");
+				errorDialog.setContentText("label should be a least 3 letters long.");
+				errorDialog.showAndWait();
 				name = "";
 			}
 		}

@@ -17,7 +17,6 @@ public class ThreadListDropPane extends GridPane {
 	private final DropArea forwardArea;
 
 	public ThreadListDropPane() throws MailException {
-		setMaxHeight(200);
 		getStyleClass().add("droparea-grid");
 
 		archiveArea = new DropArea("archive", DND_THREADS_DATA_FORMAT);
@@ -25,23 +24,25 @@ public class ThreadListDropPane extends GridPane {
 		replyAllArea = new DropArea("reply all", DND_THREADS_DATA_FORMAT);
 		forwardArea = new DropArea("forward", DND_THREADS_DATA_FORMAT);
 
-		int i=0;
-		addRow(i++, replyArea);
-		addRow(i++, replyAllArea, forwardArea);
-		addRow(i++, archiveArea);
+		int row=0;
 
+		addRow(row++, replyArea);
 		setColumnSpan(replyArea, 2);
 		setHgrow(replyArea, Priority.ALWAYS);
 		setVgrow(replyArea, Priority.ALWAYS);
 
+		addRow(row++, replyAllArea, forwardArea);
 		setHgrow(replyAllArea, Priority.ALWAYS);
 		setVgrow(replyAllArea, Priority.ALWAYS);
 		setHgrow(forwardArea, Priority.ALWAYS);
 		setVgrow(forwardArea, Priority.ALWAYS);
 
+		addRow(row++, archiveArea);
 		setColumnSpan(archiveArea, 2);
 		setHgrow(archiveArea, Priority.ALWAYS);
 		setVgrow(archiveArea, Priority.ALWAYS);
+
+		setMaxHeight(65 * row);
 	}
 
 	public void setOnReply(Callback<Boolean, Void> callback) {

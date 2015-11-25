@@ -20,10 +20,10 @@ class TagListCell<T extends Tag> extends IncExcListCell<TagListItem<T>> {
 		        final ClipboardContent content = new ClipboardContent();
 		        content.put(Tag.TAG_DATA_FORMAT, getItem().getTag());
 
-		        final String name = getText().split("\\(")[0];
+		        final String name = getItem().getTag().getName();
 		        final Image image = new DndHelper(getScene().getStylesheets()).textToImage(name);
 
-		        final Dragboard db = startDragAndDrop(TransferMode.ANY);
+		        final Dragboard db = startDragAndDrop(TransferMode.LINK);
 		        db.setContent(content);
 		        db.setDragView(image);
 		        db.setDragViewOffsetX(image.getWidth()/-2);
@@ -35,7 +35,6 @@ class TagListCell<T extends Tag> extends IncExcListCell<TagListItem<T>> {
 			if (getItem() != null && e.getDragboard().hasContent(ExtItemDropPane.ADD_TAG_DATA_FORMAT)) {
 		        e.acceptTransferModes(TransferMode.LINK);
 			}
-			e.consume();
 		});
 		setOnDragEntered(e -> {
 			if (getItem() != null && e.getDragboard().hasContent(ExtItemDropPane.ADD_TAG_DATA_FORMAT)) {
@@ -43,14 +42,14 @@ class TagListCell<T extends Tag> extends IncExcListCell<TagListItem<T>> {
 			}
 		});
 		setOnDragExited(e -> Platform.runLater(() -> getStyleClass().remove("tag-list-cell-dnd-highlight")));
-		setOnDragDropped(event -> {
-			final Dragboard db = event.getDragboard();
+		setOnDragDropped(e -> {
+			final Dragboard db = e.getDragboard();
 			if (getItem() != null && db.hasContent(ExtItemDropPane.ADD_TAG_DATA_FORMAT)) {
 				final ClipboardContent content = new ClipboardContent();
 				content.put(Tag.TAG_DATA_FORMAT, getItem().getTag());
 				db.setContent(content);
-				event.setDropCompleted(true);
-				event.consume();
+				e.setDropCompleted(true);
+				e.consume();
 			}
 		});
 	}
