@@ -25,9 +25,7 @@ class TagListCell<T extends Tag> extends IncExcListCell<TagListItem<T>> {
 
 		        final Dragboard db = startDragAndDrop(TransferMode.LINK);
 		        db.setContent(content);
-		        db.setDragView(image);
-		        db.setDragViewOffsetX(image.getWidth()/-2);
-		        db.setDragViewOffsetY(image.getHeight()/2);
+		        db.setDragView(image, image.getWidth() / 2, image.getHeight() / 2);
 		        e.consume();
 			}
 		});

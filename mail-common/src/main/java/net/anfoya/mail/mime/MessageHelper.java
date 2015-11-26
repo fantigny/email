@@ -65,22 +65,27 @@ public class MessageHelper {
 		return mailAddresses.toArray(new String[mailAddresses.size()]);
 	}
 
-	public static String[] getNames(final Address[] addresses) {
+	public static String getName(final InternetAddress address) {
+		final String name;
+		if (address.getPersonal() != null) {
+			name = address.getPersonal();
+		} else {
+			name = address.getAddress();
+		}
+		return name
+				.replaceAll("[\\r,\\n]", "")
+				.replaceAll("\\t", " ");
+	}
+
+	public static List<String> getNames(final Address[] addresses) {
 		final List<String> names = new ArrayList<String>();
-		if (addresses != null) {
-			for(final Address address: addresses) {
-				if (address.getType().equalsIgnoreCase("rfc822")) {
-					final InternetAddress mailAddress = (InternetAddress) address;
-					if (mailAddress.getPersonal() != null) {
-						names.add(mailAddress.getPersonal());
-					} else {
-						names.add(mailAddress.getAddress());
-					}
-				}
+		for(final Address a: addresses) {
+			if (a.getType().equalsIgnoreCase("rfc822")) {
+				names.add(getName((InternetAddress) a));
 			}
 		}
 
-		return names.toArray(new String[names.size()]);
+		return names;
 	}
 
 	public static String quote(String html) {

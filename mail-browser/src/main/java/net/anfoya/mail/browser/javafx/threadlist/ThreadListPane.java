@@ -103,7 +103,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 
 			final Dragboard db = threadList.startDragAndDrop(TransferMode.ANY);
 			db.setContent(content);
-			db.setDragView(image, image.getWidth() / -2, image.getHeight() / 2);
+			db.setDragView(image, image.getWidth() / 2, image.getHeight() / 2);
 		});
 		threadList.setOnDragDone(e -> {
 			final Dragboard db = e.getDragboard();

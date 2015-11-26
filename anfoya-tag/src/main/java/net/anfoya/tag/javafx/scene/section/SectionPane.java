@@ -83,7 +83,7 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 
 				final Dragboard db = startDragAndDrop(TransferMode.ANY);
 				db.setContent(content);
-				db.setDragView(image, image.getWidth() / -2, image.getHeight() / 2);
+				db.setDragView(image, image.getWidth() / 2, image.getHeight() / 2);
 				e.consume();
 			}
 		});

@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Set;
 
+import javax.mail.Address;
 import javax.mail.MessagingException;
+import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 import org.slf4j.Logger;
@@ -24,7 +26,9 @@ import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ScrollEvent;
@@ -84,7 +88,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	private Timeline showMessageTimeline;
 	private EventHandler<ActionEvent> attachmentHandler;
 
-	private StackPane arrowRegion;
+	private VBox arrowBox;
 
 	public MessagePane(final String messageId, final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService) {
 		getStyleClass().add("message");
@@ -119,9 +123,8 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		attachmentPane = new FlowPane(Orientation.HORIZONTAL, 5, 0);
 		attachmentPane.setPadding(new Insets(0, 10, 0, 10));
 
-        arrowRegion = new StackPane();
-        arrowRegion.setId("arrowRegion");
-        arrowRegion.getStyleClass().add("arrow-button");
+        arrowBox = new VBox();
+        arrowBox.getStyleClass().add("arrow-button");
 
         final StackPane arrow = new StackPane();
         arrow.getStyleClass().add("arrow");
@@ -134,7 +137,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
         	}
         });
 
-		final HBox title = new HBox(arrowRegion, recipientFlow, iconBox, dateText);
+		final HBox title = new HBox(arrowBox, recipientFlow, iconBox, dateText);
 		HBox.setHgrow(iconBox, Priority.ALWAYS);
 		title.getStyleClass().add("header");
 		title.setOnMouseClicked(event -> {
@@ -179,10 +182,10 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		collapsible.addListener((ov, o, n) -> {
 			if (n) {
 				title.setCursor(Cursor.HAND);
-				arrowRegion.getChildren().setAll(arrow);
+				arrowBox.getChildren().setAll(arrow);
 			} else {
 				title.setCursor(Cursor.DEFAULT);
-				arrowRegion.getChildren().clear();
+				arrowBox.getChildren().clear();
 			}
 		});
 		collapsible.set(true);
@@ -294,14 +297,22 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		this.updateHandler = handler;
 	}
 
+	private Node buildRecipientLabel(Address address) {
+		final InternetAddress internetAddress = (InternetAddress) address;
+		final Label label = new Label(MessageHelper.getName(internetAddress));
+		label.setTooltip(new Tooltip(internetAddress.getAddress()));
+		return label;
+	}
+
 	private void refresh() {
 		final MimeMessage mimeMessage = message.getMimeMessage();
 		try {
-			recipientFlow.getChildren().setAll(new Text(MessageHelper.getNames(mimeMessage.getFrom())[0] + " to "));
-			boolean first = true;
-			for(final String r: MessageHelper.getNames(mimeMessage.getRecipients(MimeMessage.RecipientType.TO))) {
-				recipientFlow.getChildren().add(new Text((first? "": ", ") + r));
-				first = false;
+			recipientFlow.getChildren().setAll(buildRecipientLabel(mimeMessage.getFrom()[0]), new Text(" to "));
+			for(final Address a: mimeMessage.getRecipients(MimeMessage.RecipientType.TO)) {
+				if (recipientFlow.getChildren().size() > 2) {
+					recipientFlow.getChildren().add(new Text(", "));
+				}
+				recipientFlow.getChildren().add(buildRecipientLabel(a));
 			}
 		} catch (final MessagingException e) {
 			LOGGER.error("loading title data", e);

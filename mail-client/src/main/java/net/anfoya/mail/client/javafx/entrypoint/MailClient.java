@@ -66,7 +66,7 @@ public class MailClient extends Application {
 
 	private void confirmClose(WindowEvent e) {
 		if (Settings.getSettings().confirmOnQuit().get()) {
-			final CheckBox checkBox = new CheckBox("don't ask for confirmation");
+			final CheckBox checkBox = new CheckBox("don't show again");
 			checkBox.selectedProperty().addListener((ov, o, n) -> {
 				Settings.getSettings().confirmOnQuit().set(!n);
 				Settings.getSettings().save();
@@ -85,7 +85,7 @@ public class MailClient extends Application {
 	private void signout() {
 		boolean signout = false;
 		if (Settings.getSettings().confirmOnSignout().get()) {
-			final CheckBox checkBox = new CheckBox("don't ask for confirmation");
+			final CheckBox checkBox = new CheckBox("don't show again");
 			checkBox.selectedProperty().addListener((ov, o, n) -> {
 				Settings.getSettings().confirmOnSignout().set(!n);
 				Settings.getSettings().save();
