@@ -42,7 +42,26 @@
 					</execution>
 				</executions>
 			</plugin>
-		</plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jarsigner-plugin</artifactId>
+				<version>1.4</version>
+				<executions>
+					<execution>
+						<id>sign</id>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<keystore>cert/Certificates.p12</keystore>
+					<alias>cert-fa</alias>
+					<storepass>FaCt-1516</storepass>
+					<keypass>FaCt-1516</keypass>
+				</configuration>
+			</plugin>
+      		</plugins>
 		<resources>
 		     <resource>
 		        <directory>src/main/resources</directory>
