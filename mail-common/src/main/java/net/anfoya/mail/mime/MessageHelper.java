@@ -72,9 +72,12 @@ public class MessageHelper {
 		} else {
 			name = address.getAddress();
 		}
+
 		return name
-				.replaceAll("[\\r,\\n]", "")
-				.replaceAll("\\t", " ");
+				.split("\\(")[0]
+				.replaceAll("[\\r,\\n,']", "")
+				.replaceAll("\\t", " ")
+				.trim();
 	}
 
 	public static List<String> getNames(final Address[] addresses) {
