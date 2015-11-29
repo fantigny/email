@@ -200,7 +200,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 				: SortOrder.DATE));
 		dateSortButton.setSelected(true);
 
-		final HBox sortBox = new HBox(5, new Label("sort by "), nameSortButton, dateSortButton);
+		final HBox sortBox = new HBox(5, new Label("by"), dateSortButton, nameSortButton);
 		sortBox.setAlignment(Pos.CENTER);
 		setBottom(sortBox);
 		setMargin(sortBox, new Insets(5));

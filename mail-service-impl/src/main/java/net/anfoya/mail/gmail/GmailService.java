@@ -385,7 +385,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 					if (!GmailTag.isHidden(label) && !GmailTag.isSystem(label)) {
 						final String name = label.getName();
 						if (section != null && name.equals(section.getPath())) {
-							tags.add(new GmailTag(label.getId(), Tag.THIS_NAME, label.getName(), false));
+							tags.add(new GmailTag(label.getId(), Tag.THIS_NAME, label.getName(), true));
 						} else {
 							final int pos = name.lastIndexOf("/");
 							if (pos > 0) {
@@ -443,10 +443,6 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 	@Override
 	public GmailTag moveToSection(final GmailTag tag, final GmailSection section) throws GMailException {
-		if (GmailTag.THIS_NAME.equals(tag.getName())) {
-			return tag;
-		}
-
 		try {
 			final String name = section.getName() + "/" + tag.getName();
 			return new GmailTag(labelService.rename(tag.getId(), name));

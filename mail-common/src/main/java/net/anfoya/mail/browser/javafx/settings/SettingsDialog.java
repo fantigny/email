@@ -1,14 +1,10 @@
 package net.anfoya.mail.browser.javafx.settings;
 
-import java.util.Map;
-import java.util.concurrent.Future;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javafx.application.Platform;
 import javafx.beans.property.StringProperty;
-import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
@@ -82,7 +78,11 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 
 	private Tab buildTaskTab() {
 		final ListView<String> taskList = new ListView<String>();
-		ThreadPool.getInstance().setOnChange(map -> refreshTasks(taskList.getItems(), map));
+		taskList.setPlaceholder(new Label("idle"));
+		ThreadPool.getInstance().setOnChange(map -> {
+			Platform.runLater(() -> taskList.getItems().setAll(map.values()));
+			return null;
+		});
 		return new Tab("tasks", taskList);
 	}
 
@@ -91,19 +91,6 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		help.getEngine().load(getClass().getResource("/net/anfoya/mail/javafx/settings/help.html").toString());
 
 		return new Tab("help", help);
-	}
-
-	private Void refreshTasks(ObservableList<String> taskList, final Map<? extends Future<?>, ? extends String> futureDesc) {
-		Platform.runLater(() -> {
-			taskList.clear();
-			for(final String desc: futureDesc.values()) {
-				taskList.add(desc);
-			}
-			if (taskList.isEmpty()) {
-				taskList.add("idle");
-			}
-		});
-		return null;
 	}
 
 	private Tab buildAboutTab() {
