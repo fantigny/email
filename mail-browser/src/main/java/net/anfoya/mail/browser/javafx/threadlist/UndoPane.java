@@ -14,7 +14,9 @@ import net.anfoya.mail.gmail.service.UndoService;
 
 public class UndoPane extends GridPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UndoPane.class);
-	private Timeline timeline;
+
+	private final Button button;
+	private final Timeline timeline;
 
 	public UndoPane(UndoService service) {
 		getStyleClass().add("droparea-grid");
@@ -23,7 +25,7 @@ public class UndoPane extends GridPane {
 		setOpacity(0);
 		managedProperty().bind(visibleProperty());
 
-		final Button button = new Button("undo");
+		button = new Button("undo");
 		button.getStyleClass().add("undo");
 		button.prefWidthProperty().bind(widthProperty());
 		button.prefHeightProperty().bind(heightProperty());
@@ -36,25 +38,24 @@ public class UndoPane extends GridPane {
 		});
 		add(button, 0, 0);
 
-		// show myself when mail service can undo
-		service.canUndoProperty().addListener((ov, o, n) -> Platform.runLater(() -> setVisible(n)));
+		timeline = new Timeline(
+				new KeyFrame(Duration.ZERO, new KeyValue(opacityProperty(), 0))
+				, new KeyFrame(Duration.seconds(.5), new KeyValue(opacityProperty(), 1))
+				, new KeyFrame(Duration.seconds(10), new KeyValue(opacityProperty(), 1))
+				, new KeyFrame(Duration.seconds(12), new KeyValue(opacityProperty(), 0))
+				);
 
-		// keep undo description up to date and vanish after delay
-		service.descritpionProperty().addListener((ov, o, n) -> Platform.runLater(() -> {
-			button.setText("undo " + n);
+		service.canUndoProperty().addListener((ov, o, n) -> refresh(n, service.descritpionProperty().get()));
+		service.descritpionProperty().addListener((ov, o, n) -> refresh(service.canUndoProperty().get(), n));
+	}
 
-			if (timeline != null) {
-				timeline.stop();
+	private synchronized void refresh(boolean visible, String description) {
+		Platform.runLater(() -> {
+			setVisible(visible);
+			if (visible) {
+				button.setText("undo " + description);
+				timeline.playFromStart();
 			}
-			if (isVisible()) {
-				timeline = new Timeline(
-						new KeyFrame(Duration.ZERO, new KeyValue(opacityProperty(), 0))
-						, new KeyFrame(Duration.seconds(.5), new KeyValue(opacityProperty(), 1))
-						, new KeyFrame(Duration.seconds(10), new KeyValue(opacityProperty(), 1))
-						, new KeyFrame(Duration.seconds(12), new KeyValue(opacityProperty(), 0))
-						);
-				timeline.play();
-			}
-		}));
+		});
 	}
 }
