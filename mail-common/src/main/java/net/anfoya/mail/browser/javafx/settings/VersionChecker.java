@@ -56,10 +56,11 @@ public class VersionChecker {
 	}
 
 	public boolean isLastVersion() {
+		LOGGER.debug("current {}, latest {}", getVersion(), getLastestVesion());
 		return getVersion().equals(getLastestVesion());
 	}
 
 	public boolean isDisconnected() {
-		return getVersion() != null;
+		return getVersion() == null;
 	}
 }
