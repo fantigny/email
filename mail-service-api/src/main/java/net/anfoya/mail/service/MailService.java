@@ -3,7 +3,6 @@ package net.anfoya.mail.service;
 import java.util.Set;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.util.Callback;
 import net.anfoya.tag.model.SpecialTag;
 import net.anfoya.tag.service.TagService;
@@ -45,10 +44,6 @@ public interface MailService<
 
 	public C getContact();
 	public Set<C> getContacts() throws MailException;
-
-	public ReadOnlyBooleanProperty canUndo();
-	public ReadOnlyStringProperty undoDescritpion();
-	public void undo() throws MailException;
 
 	@Override public Set<S> getSections() throws MailException;
 	@Override public int getCountForSection(S section, Set<T> includes, Set<T> excludes, String itemPattern) throws MailException;

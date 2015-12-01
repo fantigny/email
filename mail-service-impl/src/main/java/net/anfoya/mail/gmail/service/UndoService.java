@@ -9,11 +9,14 @@ import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.beans.property.ReadOnlyStringWrapper;
 
 public class UndoService {
+	private static final UndoService INSTANCE = new UndoService();
+	public static UndoService getInstance() { return INSTANCE; }
+
 	private final ReadOnlyObjectWrapper<Callable<Object>> callableProperty;
 	private final ReadOnlyBooleanWrapper canUndoProperty;
 	private final ReadOnlyStringWrapper descriptionProperty;
 
-	public UndoService() {
+	private UndoService() {
 		callableProperty = new ReadOnlyObjectWrapper<Callable<Object>>();
 		descriptionProperty = new ReadOnlyStringWrapper();
 

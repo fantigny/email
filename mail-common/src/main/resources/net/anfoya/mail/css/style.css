@@ -55,7 +55,7 @@
     -fx-background-color: transparent;
 }
 
-.button{
+.button {
 	-fx-background-color: transparent;
     -fx-background-radius: 0;
     -fx-background-insets: -1.4, 0, 1, 2;
@@ -185,6 +185,21 @@
     -fx-background-color: lightgray;
 }
 
+/* undo button */
+.undo {
+    -fx-padding: 2;
+	-fx-opacity: 0.9;
+	-fx-background-radius: 5;
+    -fx-background-color: wheat;
+    -fx-border-width: 0;
+
+    -fx-text-fill: gray;
+}
+.undo:hover {
+    -fx-background-color: lightsalmon;
+    -fx-font-weight: bold;
+    -fx-text-fill: black;
+}
 
 /**/
 /**/

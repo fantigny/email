@@ -27,7 +27,6 @@ import com.google.gdata.data.extensions.Email;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
-import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.util.Callback;
 import javafx.util.Duration;
 import net.anfoya.mail.gmail.model.GmailContact;
@@ -46,8 +45,6 @@ import net.anfoya.mail.gmail.service.MessageException;
 import net.anfoya.mail.gmail.service.MessageService;
 import net.anfoya.mail.gmail.service.ThreadException;
 import net.anfoya.mail.gmail.service.ThreadService;
-import net.anfoya.mail.gmail.service.UndoException;
-import net.anfoya.mail.gmail.service.UndoService;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.Tag;
@@ -77,7 +74,6 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	private ThreadService threadService;
 	private HistoryService historyService;
 	private ContactService contactService;
-	private UndoService undoService;
 
 	private final ReadOnlyBooleanWrapper disconnectedProperty;
 
@@ -109,7 +105,6 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		messageService = new MessageService(gmail, USER);
 		threadService = new ThreadService(gmail, USER);
 		labelService = new LabelService(gmail, USER);
-		undoService = new UndoService();
 
 		historyService = new HistoryService(gmail, USER);
 		historyService.addOnUpdateLabel(lList -> {
@@ -452,19 +447,12 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	private GmailTag moveToSection(final GmailTag tag, final String sectionName) throws GMailException {
-		GmailTag renamed;
 		try {
 			final String name = sectionName + "/" + tag.getName();
-			renamed = new GmailTag(labelService.rename(tag.getId(), name));
+			return new GmailTag(labelService.rename(tag.getId(), name));
 		} catch (final LabelException e) {
 			throw new GMailException("moving " + tag.getName() + " to " + sectionName, e);
 		}
-
-		undoService.set(
-				() -> moveToSection(renamed, tag.getPath().split("/")[0])
-				, String.format("move %s to %s", tag.getName(), sectionName));
-
-		return renamed;
 	}
 
 	@Override
@@ -899,24 +887,5 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		case DRAFT:		return GmailTag.DRAFT;
 		}
 		return null;
-	}
-
-	@Override
-	public ReadOnlyBooleanProperty canUndo() {
-		return undoService.canUndoProperty();
-	}
-
-	@Override
-	public ReadOnlyStringProperty undoDescritpion() {
-		return undoService.descritpionProperty();
-	}
-
-	@Override
-	public void undo() throws MailException {
-		try {
-			undoService.undo();
-		} catch (final UndoException e) {
-			throw new GMailException("undoing", e);
-		}
 	}
 }
