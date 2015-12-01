@@ -122,6 +122,8 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		centerPane.setAlignment(Pos.BOTTOM_CENTER);
 		setCenter(centerPane);
 
+		centerPane.getChildren().add(new UndoPane(mailService));
+
 		final Button newButton = new Button();
 		newButton.setFocusTraversable(false);
 		newButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/new.png"))));
