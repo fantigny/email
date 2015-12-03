@@ -1,6 +1,7 @@
 package net.anfoya.mail.mime;
 
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -13,6 +14,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.regex.Matcher;
 
@@ -162,14 +164,24 @@ public class MessageHelper {
 			return html;
 		}
 		if (content instanceof String) {
-			if (type.contains("text/html")) {
-				return new StringBuilder((String) content);
-			} else if (type.contains("text/plain")) {
-				if (isHtml) {
-					LOGGER.info("discarding plain text part");
-					return new StringBuilder();
-				}
-				return new StringBuilder("<pre>").append(content).append("</pre>");
+			final boolean isPlainContent = type.contains("text/plain");
+			if (isHtml && isPlainContent) {
+				LOGGER.info("discarding {}", type);
+				return new StringBuilder();
+			}
+
+			String encoding;
+			try { encoding = part.getHeader("Content-Transfer-Encoding")[0]; }
+			catch(final Exception e) { encoding = MimeUtility.getEncoding(part.getDataHandler()); }
+
+			LOGGER.info("decoding {}, {}", type, encoding);
+			final byte[] bytes = ((String) content).getBytes();
+			try (ByteArrayInputStream byteStream = new ByteArrayInputStream(bytes);
+					InputStream decodedStream = MimeUtility.decode(byteStream, encoding);
+					Scanner scanner = new Scanner(decodedStream)) {
+				return new StringBuilder(isPlainContent? "<pre>": "")
+						.append(scanner.useDelimiter("\\A").next())
+						.append(isPlainContent? "</pre>": "");
 			}
 		}
 		if (part instanceof MimeBodyPart && content instanceof BASE64DecoderStream) {
