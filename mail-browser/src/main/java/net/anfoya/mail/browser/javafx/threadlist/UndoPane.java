@@ -11,7 +11,7 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.layout.GridPane;
 import javafx.util.Duration;
-import net.anfoya.mail.browser.javafx.UndoService;
+import net.anfoya.java.undo.UndoService;
 
 public class UndoPane extends GridPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UndoPane.class);

@@ -54,17 +54,17 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 
 	private EventHandler<ActionEvent> updateHandler;
 
-	public SectionPane(final TagService<S, T> tagService, final S section, final boolean showExcludeBox) {
+	public SectionPane(final S section, final TagService<S, T> tagService, final boolean showExcludeBox) {
 		getStyleClass().add("section-pane");
-
 		this.tagService = tagService;
+
 		if (section == null) {
 			this.sectionItem = null;
 		} else {
 			this.sectionItem = new TagListItem<Tag>(new SimpleTag(section.getId(), section.getName(), section.getName(), section.isSystem()));
 		}
 
-		tagList = new TagList<S, T>(tagService, section, showExcludeBox);
+		tagList = new TagList<S, T>(section, tagService, showExcludeBox);
 		tagList.focusTraversableProperty().bind(focusTraversableProperty());
 		setContent(tagList);
 

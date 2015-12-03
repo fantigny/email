@@ -13,7 +13,7 @@ public class SearchPane<S extends Section, T extends Tag> extends SectionPane<S,
 	private final TagList<S, T> tagList;
 
 	public SearchPane(final TagService<S, T> tagService, final boolean showExcludeBox) {
-		super(tagService, null, showExcludeBox);
+		super(null, tagService, showExcludeBox);
 		setText("search result");
 		tagList = getTagList();
 	}

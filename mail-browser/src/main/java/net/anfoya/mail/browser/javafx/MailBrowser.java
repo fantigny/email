@@ -13,6 +13,7 @@ import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.SplitPane;
 import javafx.scene.paint.Color;
+import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.Notification.Notifier;
 import net.anfoya.mail.browser.javafx.css.StyleHelper;
@@ -37,7 +38,6 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	private static final boolean SHOW_EXCLUDE_BOX = Settings.getSettings().showExcludeBox().get();
 
 	private final MailService<S, T, H, M, C> mailService;
-	private final UndoService undoService;
 
 	private final SectionListPane<S, T> sectionListPane;
 	private final ThreadListPane<S, T, H, M, C> threadListPane;
@@ -48,7 +48,6 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	public MailBrowser(final MailService<S, T, H, M, C> mailService) throws MailException {
 		super(new SplitPane(), Color.TRANSPARENT);
 		this.mailService = mailService;
-		this.undoService = new UndoService();
 		this.quit = true;
 
 		StyleHelper.addCommonCss(this);
@@ -64,7 +63,9 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 			splitPane.setDividerPosition(1, .32);
 		}
 
-		sectionListPane = new SectionListPane<S, T>(mailService, SHOW_EXCLUDE_BOX);
+		final UndoService undoService = new UndoService();
+
+		sectionListPane = new SectionListPane<S, T>(mailService, undoService, SHOW_EXCLUDE_BOX);
 		sectionListPane.setFocusTraversable(false);
 		sectionListPane.prefHeightProperty().bind(sectionListPane.heightProperty());
 		sectionListPane.setSectionDisableWhenZero(false);

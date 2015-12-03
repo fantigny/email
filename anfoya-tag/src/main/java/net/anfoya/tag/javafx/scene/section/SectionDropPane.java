@@ -14,6 +14,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
+import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.dnd.DropArea;
 import net.anfoya.tag.service.Section;
@@ -24,13 +25,14 @@ public class SectionDropPane<S extends Section> extends GridPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SectionDropPane.class);
 
 	private final TagService<S, ? extends Tag> tagService;
+	private final UndoService undoService;
 
 	private EventHandler<ActionEvent> updateHandler;
 
-	public SectionDropPane(final TagService<S, ? extends Tag> tagService) {
-		this.tagService = tagService;
-
+	public SectionDropPane(final TagService<S, ? extends Tag> tagService, UndoService undoService) {
 		getStyleClass().add("droparea-grid");
+		this.tagService = tagService;
+		this.undoService = undoService;
 
 		final DropArea removeArea = new DropArea("remove", Section.SECTION_DATA_FORMAT);
 		removeArea.<S>setDropCallback((S s) -> remove(s));
@@ -101,7 +103,7 @@ public class SectionDropPane<S extends Section> extends GridPane {
 		final Alert warningDialog = new Alert(AlertType.WARNING, "", ButtonType.OK, ButtonType.CANCEL);
 		warningDialog.setTitle("FisherMail");
 		warningDialog.setHeaderText("remove \"" + section.getName() + "\"?");
-		warningDialog.setContentText("");
+		warningDialog.setContentText("can't be undone");
 		warningDialog.showAndWait()
 			.filter(r -> r == ButtonType.OK)
 			.ifPresent(r -> {
@@ -121,6 +123,7 @@ public class SectionDropPane<S extends Section> extends GridPane {
 	}
 
 	private Void hide(final S section) {
+		final String description = "hide " + section.getName();
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
@@ -128,9 +131,14 @@ public class SectionDropPane<S extends Section> extends GridPane {
 				return null;
 			}
 		};
-		task.setOnSucceeded(event -> updateHandler.handle(null));
-		task.setOnFailed(e -> LOGGER.error("hiding section {}", section.getName(), e.getSource().getException()));
-		ThreadPool.getInstance().submitHigh(task, "hiding section " + section.getName());
+		task.setOnSucceeded(event -> {
+			undoService.set(
+					() -> { tagService.show(section); return null; }
+					, description);
+			updateHandler.handle(null);
+		});
+		task.setOnFailed(e -> LOGGER.error(description, e.getSource().getException()));
+		ThreadPool.getInstance().submitHigh(task, description);
 
 		return null;
 	}

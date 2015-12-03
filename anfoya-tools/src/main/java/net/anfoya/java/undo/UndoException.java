@@ -1,4 +1,4 @@
-package net.anfoya.mail.gmail.service;
+package net.anfoya.java.undo;
 
 @SuppressWarnings("serial")
 public class UndoException extends Exception {

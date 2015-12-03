@@ -48,7 +48,7 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 	private ChangeListener<? super Boolean> incExcListener;
 
 
-	public TagList(final TagService<S, T> tagService, final S section, final boolean showExcludeBox) {
+	public TagList(final S section, final TagService<S, T> tagService, final boolean showExcludeBox) {
         getStyleClass().add("tag-list");
 
 		this.tagService = tagService;
@@ -225,15 +225,14 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 		}
 	}
 
+	@SuppressWarnings("serial")
 	private Task<Integer> updateCountAsync(final TagListItem<T> item, final Set<T> includes, final Set<T> excludes, final String itemPattern, final long taskId) {
 		final Task<Integer> task = new Task<Integer>() {
 			@Override
 			public Integer call() throws SQLException, TagException, InterruptedException {
 				final T tag = item.getTag();
 				final int excludeFactor = excludes.contains(tag)? -1: 1;
-				@SuppressWarnings("serial")
 				final Set<T> fakeIncludes = new LinkedHashSet<T>(includes) {{ add(tag); }};
-				@SuppressWarnings("serial")
 				final Set<T> fakeExcludes = new LinkedHashSet<T>(excludes) {{ remove(tag); }};
 				return excludeFactor * tagService.getCountForTags(fakeIncludes, fakeExcludes, itemPattern);
 			}

@@ -14,6 +14,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
+import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.dnd.DndPaneTranslationHelper;
 import net.anfoya.javafx.scene.dnd.DropArea;
@@ -26,14 +27,16 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SectionDropPane.class);
 
 	private final TagService<S, T> tagService;
+	private final UndoService undoService;
 	private final DndPaneTranslationHelper transHelper;
 
-	private EventHandler<ActionEvent> onUpdateHandler;
+	private EventHandler<ActionEvent> updateHandler;
 
-	public TagDropPane(final TagService<S, T> tagService) {
+	public TagDropPane(final TagService<S, T> tagService, UndoService undoService) {
 		getStyleClass().add("droparea-grid");
-
 		this.tagService = tagService;
+		this.undoService = undoService;
+
 		transHelper = new DndPaneTranslationHelper(this);
 
 		final DropArea newSectionArea = new DropArea("new section", Tag.TAG_DATA_FORMAT);
@@ -102,7 +105,7 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 				return null;
 			}
 		};
-		task.setOnSucceeded(event -> onUpdateHandler.handle(null));
+		task.setOnSucceeded(event -> updateHandler.handle(null));
 		task.setOnFailed(e -> LOGGER.error("moving label {} to section {}", tag.getName(), finalAnswer, e.getSource().getException()));
 		ThreadPool.getInstance().submitHigh(task, "moving label " + tag.getName() + " to section " + finalAnswer);
 
@@ -141,9 +144,14 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 				return null;
 			}
 		};
-		task.setOnSucceeded(event -> onUpdateHandler.handle(null));
-		task.setOnFailed(e -> LOGGER.error("renaming tag {} to {}", tag.getName(), finalAnswer, e.getSource().getException()));
-		ThreadPool.getInstance().submitHigh(task, "renaming tag " + tag.getName() + " to " + finalAnswer);
+		task.setOnSucceeded(event -> {
+			undoService.set(
+					() -> { tagService.rename(tag, tag.getName()); return null; }
+					, "rename " + tag.getName());
+			updateHandler.handle(null);
+		});
+		task.setOnFailed(e -> LOGGER.error("rename {} to {}", tag.getName(), finalAnswer, e.getSource().getException()));
+		ThreadPool.getInstance().submitHigh(task, "rename " + tag.getName() + " to " + finalAnswer);
 
 		return null;
 	}
@@ -154,7 +162,7 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 		final Alert warningDialog = new Alert(AlertType.WARNING, "", ButtonType.OK, ButtonType.CANCEL);
 		warningDialog.setTitle("FisherMail");
 		warningDialog.setHeaderText("remove \"" + tag.getName() + "\"?");
-		warningDialog.setContentText("");
+		warningDialog.setContentText("can't be undone");
 		warningDialog.showAndWait()
 			.filter(r -> r == ButtonType.OK)
 			.ifPresent(r -> {
@@ -165,9 +173,9 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 						return null;
 					}
 				};
-				task.setOnSucceeded(event -> onUpdateHandler.handle(null));
-				task.setOnFailed(e -> LOGGER.error("removing tag {}", tag.getName(), e.getSource().getException()));
-				ThreadPool.getInstance().submitHigh(task, "removing tag " + tag.getName());
+				task.setOnSucceeded(event -> updateHandler.handle(null));
+				task.setOnFailed(e -> LOGGER.error("removing {}", tag.getName(), e.getSource().getException()));
+				ThreadPool.getInstance().submitHigh(task, "removing " + tag.getName());
 			});
 
 		return null;
@@ -176,6 +184,7 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 	private Void hide(final T tag) {
 		transHelper.reset();
 
+		final String description = "hide " + tag.getName();
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
@@ -183,14 +192,19 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 				return null;
 			}
 		};
-		task.setOnSucceeded(event -> onUpdateHandler.handle(null));
-		task.setOnFailed(e -> LOGGER.error("hiding tag {}", tag.getName(), e.getSource().getException()));
-		ThreadPool.getInstance().submitHigh(task, "hiding tag " + tag.getName());
+		task.setOnSucceeded(event -> {
+			undoService.set(
+					() -> { tagService.show(tag); return null; }
+					, description);
+			updateHandler.handle(null);
+		});
+		task.setOnFailed(e -> LOGGER.error(description, e.getSource().getException()));
+		ThreadPool.getInstance().submitHigh(task, description);
 
 		return null;
 	}
 
 	public void setOnUpdate(final EventHandler<ActionEvent> handler) {
-		onUpdateHandler = handler;
+		updateHandler = handler;
 	}
 }

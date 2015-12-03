@@ -1,11 +1,10 @@
-package net.anfoya.mail.browser.javafx;
+package net.anfoya.java.undo;
 
 import java.util.concurrent.Callable;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import net.anfoya.mail.gmail.service.UndoException;
 
 public class UndoService {
 	private final ReadOnlyObjectWrapper<Callable<Object>> callableProperty;

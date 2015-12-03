@@ -22,6 +22,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.util.Callback;
 import javafx.util.Duration;
+import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.animation.DelayTimeline;
 import net.anfoya.javafx.scene.control.ResetTextField;
@@ -64,7 +65,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 	private String initSectionName;
 	private String initTagName;
 
-	public SectionListPane(final TagService<S, T> tagService, final boolean withExcludeBox) {
+	public SectionListPane(final TagService<S, T> tagService, UndoService undoService, final boolean withExcludeBox) {
 		this.tagService = tagService;
 		this.showExcludeBox = withExcludeBox;
 
@@ -101,10 +102,10 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 		final ExtItemDropPane<T> extItemDropPane = new ExtItemDropPane<T>();
 		extItemDropPane.prefWidthProperty().bind(stackPane.widthProperty());
 
-		sectionDropPane = new SectionDropPane<S>(tagService);
+		sectionDropPane = new SectionDropPane<S>(tagService, undoService);
 		sectionDropPane.prefWidthProperty().bind(stackPane.widthProperty());
 
-		tagDropPane = new TagDropPane<S, T>(tagService);
+		tagDropPane = new TagDropPane<S, T>(tagService, undoService);
 		tagDropPane.prefWidthProperty().bind(stackPane.widthProperty());
 
 		stackPane.setOnDragEntered(e -> {
@@ -261,7 +262,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 		int index = 0;
 		for(final S section: sections) {
 			if (!existingSections.contains(section)) {
-				final SectionPane<S, T> sectionPane = new SectionPane<S, T>(tagService, section, showExcludeBox);
+				final SectionPane<S, T> sectionPane = new SectionPane<S, T>(section, tagService, showExcludeBox);
 				sectionPane.focusTraversableProperty().bind(focusTraversableProperty());
 				sectionPane.setDisableWhenZero(sectionDisableWhenZero);
 				sectionPane.setLazyCount(lazyCount);
