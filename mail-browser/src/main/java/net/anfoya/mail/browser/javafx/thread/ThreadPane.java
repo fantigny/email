@@ -13,6 +13,7 @@ import javafx.animation.RotateTransition;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -31,6 +32,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.mail.browser.javafx.UndoService;
 import net.anfoya.mail.browser.javafx.message.MessagePane;
 import net.anfoya.mail.browser.javafx.settings.SettingsDialog;
 import net.anfoya.mail.service.Contact;
@@ -50,6 +52,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
     private static final Image ATTACHMENT = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/image/mini_attach.png"));
 
 	private final MailService<S, T, H, M, C> mailService;
+	private final UndoService undoService;
 
 	private final HBox iconBox;
 	private final TextField subjectField;
@@ -64,12 +67,22 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 
 	private final ObservableList<Node> messagePanes;
 
+	private T unread;
+
 	private EventHandler<ActionEvent> updateHandler;
 	private EventHandler<ActionEvent> signoutHandler;
 
-	public ThreadPane(final MailService<S, T, H, M, C> mailService) {
+	public ThreadPane(final MailService<S, T, H, M, C> mailService, UndoService undoService) {
 		getStyleClass().add("thread");
 		this.mailService = mailService;
+		this.undoService = undoService;
+
+		try {
+			unread = mailService.getSpecialTag(SpecialTag.UNREAD);
+		} catch (final MailException e) {
+			LOGGER.error("getting unread tag", e);
+			unread = null;
+		}
 
 		iconBox = new HBox(5);
 		iconBox.setAlignment(Pos.CENTER_LEFT);
@@ -203,7 +216,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 				}
 			}
 
-			tagsPane.setRemoveTagCallBack(t -> remove(threads, t));
+			tagsPane.setRemoveTagCallBack(t -> remove(threads, t, true));
 			tagsPane.refresh(tags);
 		});
 	}
@@ -307,24 +320,28 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		}
 
 		if (thread.isUnread()) {
-			try {
-				final T unread = mailService.getSpecialTag(SpecialTag.UNREAD);
-				remove(threads, unread);
-			} catch (final MailException e) {
-				LOGGER.error("getting unread tag", e);
-			}
+			remove(threads, unread, false);
 		}
 	}
 
-	private Void remove(final Set<H> threads, final T tag) {
-		ThreadPool.getInstance().submitHigh(() -> {
-			try {
+	private Void remove(final Set<H> threads, final T tag, final boolean undo) {
+		final Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
 				mailService.removeTagForThreads(tag, threads);
-			} catch (final MailException e) {
-				LOGGER.error("removing tag {} for threads", tag);
+				return null;
 			}
-			updateHandler.handle(null);
-		}, "removing tag " + tag.getName());
+		};
+		task.setOnFailed(e -> LOGGER.error("remove tag {} for threads {}", tag, threads, e.getSource().getException()));
+		task.setOnSucceeded(e -> {
+			if (undo) {
+				undoService.set(
+						() -> { mailService.addTagForThreads(tag, threads); return null; }
+						, "remove " + tag.getName());
+			}
+//			updateHandler.handle(null);
+		});
+		ThreadPool.getInstance().submitHigh(task, "remove tag {} for threads");
 		return null;
 	}
 }

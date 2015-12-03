@@ -4,6 +4,6 @@ package net.anfoya.mail.gmail.service;
 public class UndoException extends Exception {
 
 	public UndoException(final String msg, final Throwable e) {
-		super(msg, e);
+		super("undoing \"" + msg + "\"", e);
 	}
 }

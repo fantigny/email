@@ -1,24 +1,20 @@
-package net.anfoya.mail.gmail.service;
+package net.anfoya.mail.browser.javafx;
 
 import java.util.concurrent.Callable;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.property.ReadOnlyStringProperty;
-import javafx.beans.property.ReadOnlyStringWrapper;
+import net.anfoya.mail.gmail.service.UndoException;
 
 public class UndoService {
-	private static final UndoService INSTANCE = new UndoService();
-	public static UndoService getInstance() { return INSTANCE; }
-
 	private final ReadOnlyObjectWrapper<Callable<Object>> callableProperty;
 	private final ReadOnlyBooleanWrapper canUndoProperty;
-	private final ReadOnlyStringWrapper descriptionProperty;
+	private String description;
 
-	private UndoService() {
+	public UndoService() {
 		callableProperty = new ReadOnlyObjectWrapper<Callable<Object>>();
-		descriptionProperty = new ReadOnlyStringWrapper();
+		description = "";
 
 		canUndoProperty = new ReadOnlyBooleanWrapper(false);
 		canUndoProperty.bind(callableProperty.isNotNull());
@@ -28,29 +24,32 @@ public class UndoService {
 		return canUndoProperty.getReadOnlyProperty();
 	}
 
-	public void reset() {
-		set(null, null);
+	public void clear() {
+		callableProperty.set(null);
+		description = null;
 	}
 
 	public void set(Callable<Object> undoCall, String description) {
+		clear();
+
+		this.description = description;
 		callableProperty.set(undoCall);
-		descriptionProperty.set(description);
 	}
 
 	public synchronized void undo() throws UndoException {
 		if (canUndoProperty.get()) {
 			final Callable<Object> callable = callableProperty.get();
-			reset();
+			clear();
 			try {
 				callable.call();
 			} catch (final Exception e) {
-				throw new UndoException("undoing " + descriptionProperty.get(), e);
+				throw new UndoException(description, e);
 			}
-			reset();
+			clear();
 		}
 	}
 
-	public ReadOnlyStringProperty descritpionProperty() {
-		return descriptionProperty;
+	public String getDesciption() {
+		return description;
 	}
 }

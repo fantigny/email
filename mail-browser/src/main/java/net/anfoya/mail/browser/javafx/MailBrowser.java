@@ -37,6 +37,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	private static final boolean SHOW_EXCLUDE_BOX = Settings.getSettings().showExcludeBox().get();
 
 	private final MailService<S, T, H, M, C> mailService;
+	private final UndoService undoService;
 
 	private final SectionListPane<S, T> sectionListPane;
 	private final ThreadListPane<S, T, H, M, C> threadListPane;
@@ -47,6 +48,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	public MailBrowser(final MailService<S, T, H, M, C> mailService) throws MailException {
 		super(new SplitPane(), Color.TRANSPARENT);
 		this.mailService = mailService;
+		this.undoService = new UndoService();
 		this.quit = true;
 
 		StyleHelper.addCommonCss(this);
@@ -73,7 +75,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		sectionListPane.setOnUpdateTag(e -> refreshAfterTagUpdate());
 		splitPane.getItems().add(sectionListPane);
 
-		threadListPane = new ThreadListPane<S, T, H, M, C>(mailService);
+		threadListPane = new ThreadListPane<S, T, H, M, C>(mailService, undoService);
 		threadListPane.prefHeightProperty().bind(splitPane.heightProperty());
 		threadListPane.setOnSelectThread(e -> refreshAfterThreadSelected());
 		threadListPane.setOnLoadThreadList(e -> refreshAfterThreadListLoad());
@@ -81,7 +83,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		threadListPane.setOnUpdateThread(e -> refreshAfterThreadUpdate());
 		splitPane.getItems().add(threadListPane);
 
-		threadPane = new ThreadPane<S, T, H, M, C>(mailService);
+		threadPane = new ThreadPane<S, T, H, M, C>(mailService, undoService);
 		threadPane.setFocusTraversable(false);
 		threadPane.setOnUpdateThread(e -> refreshAfterThreadUpdate());
 		splitPane.getItems().add(threadPane);
