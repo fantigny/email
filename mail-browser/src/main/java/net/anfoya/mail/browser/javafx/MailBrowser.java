@@ -43,12 +43,9 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	private final ThreadListPane<S, T, H, M, C> threadListPane;
 	private final ThreadPane<S, T, H, M, C> threadPane;
 
-	private final boolean quit;
-
 	public MailBrowser(final MailService<S, T, H, M, C> mailService) throws MailException {
 		super(new SplitPane(), Color.TRANSPARENT);
 		this.mailService = mailService;
-		this.quit = true;
 
 		StyleHelper.addCommonCss(this);
 		StyleHelper.addCss(this, "/net/anfoya/javafx/scene/control/excludebox.css");
@@ -277,9 +274,5 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
 			return null;
 		});
-	}
-
-	public boolean isQuit() {
-		return quit;
 	}
 }
