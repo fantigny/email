@@ -1,11 +1,13 @@
 package net.anfoya.mail.mime;
 
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,7 +16,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Scanner;
 import java.util.Set;
 import java.util.regex.Matcher;
 
@@ -170,19 +171,27 @@ public class MessageHelper {
 				return new StringBuilder();
 			}
 
-			String encoding;
-			try { encoding = part.getHeader("Content-Transfer-Encoding")[0]; }
-			catch(final Exception e) { encoding = MimeUtility.getEncoding(part.getDataHandler()); }
+			final StringBuilder html = new StringBuilder();
+			if (isPlainContent) {
+				html.append("<pre>").append(content).append("</pre>");
+			} else {
+				String encoding;
+				try { encoding = part.getHeader("Content-Transfer-Encoding")[0]; }
+				catch(final Exception e) { encoding = MimeUtility.getEncoding(part.getDataHandler()); }
 
-			LOGGER.info("decoding {}, {}", type, encoding);
-			final byte[] bytes = ((String) content).getBytes();
-			try (ByteArrayInputStream byteStream = new ByteArrayInputStream(bytes);
-					InputStream decodedStream = MimeUtility.decode(byteStream, encoding);
-					Scanner scanner = new Scanner(decodedStream)) {
-				return new StringBuilder(isPlainContent? "<pre>": "")
-						.append(scanner.useDelimiter("\\A").next())
-						.append(isPlainContent? "</pre>": "");
+				LOGGER.info("decoding {}, {}", type, encoding);
+				final byte[] bytes = ((String) content).getBytes();
+				if (bytes.length > 0) {
+					try (ByteArrayInputStream byteStream = new ByteArrayInputStream(bytes);
+							InputStream decodedStream = MimeUtility.decode(byteStream, encoding);
+							BufferedReader reader = new BufferedReader(new InputStreamReader(decodedStream))) {
+						reader.lines().forEach(s -> html.append(s));
+					} catch (final Exception e) {
+						html.append(content);
+					}
+				}
 			}
+			return html;
 		}
 		if (part instanceof MimeBodyPart && content instanceof BASE64DecoderStream) {
 			final MimeBodyPart bodyPart = (MimeBodyPart) part;
