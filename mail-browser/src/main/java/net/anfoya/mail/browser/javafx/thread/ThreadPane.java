@@ -100,24 +100,26 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		settingsButton.setTooltip(new Tooltip("settings"));
 		settingsButton.setOnAction(event -> new SettingsDialog<S, T>(mailService).show());
 
-		final RotateTransition rotateTransition = new RotateTransition(Duration.millis(250), settingsButton);
-		rotateTransition.setFromAngle(-15);
-		rotateTransition.setToAngle(15);
-		rotateTransition.setAutoReverse(true);
+		final RotateTransition rotateTransition = new RotateTransition(Duration.seconds(1), settingsButton);
+		rotateTransition.setByAngle(360);
 		rotateTransition.setCycleCount(Timeline.INDEFINITE);
-		rotateTransition.setInterpolator(Interpolator.EASE_IN);
-		rotateTransition.play();
+		rotateTransition.setInterpolator(Interpolator.LINEAR);
 
-		ThreadPool.getInstance().setOnHighRunning(r -> {
-			synchronized (this) {
+		final RotateTransition stopRotateTransition = new RotateTransition(Duration.INDEFINITE, settingsButton);
+		rotateTransition.setInterpolator(Interpolator.LINEAR);
+
+		ThreadPool.getInstance().setOnHighRunning(r ->  {
+			Platform.runLater(() -> {
 				if (r) {
-					settingsButton.setRotate(0);
+					stopRotateTransition.stop();
 					rotateTransition.play();
 				} else {
-					rotateTransition.stop();
-					settingsButton.setRotate(0);
+					rotateTransition.pause();
+					stopRotateTransition.setByAngle(360d - settingsButton.getRotate() % 360d);
+					stopRotateTransition.setDuration(Duration.seconds(stopRotateTransition.getByAngle() / 360d));
+					stopRotateTransition.play();
 				}
-			}
+			});
 			return null;
 		});
 
