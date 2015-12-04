@@ -105,10 +105,10 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		final RotateTransition rotateTransition = new RotateTransition(Duration.seconds(1), graphics);
 		rotateTransition.setByAngle(360);
 		rotateTransition.setCycleCount(Timeline.INDEFINITE);
-		rotateTransition.setInterpolator(Interpolator.LINEAR);
+		rotateTransition.setInterpolator(Interpolator.EASE_IN);
 
 		final RotateTransition stopRotateTransition = new RotateTransition(Duration.INDEFINITE, graphics);
-		rotateTransition.setInterpolator(Interpolator.LINEAR);
+		rotateTransition.setInterpolator(Interpolator.EASE_OUT);
 
 		ThreadPool.getInstance().setOnHighRunning(r ->  {
 			Platform.runLater(() -> {
