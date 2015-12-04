@@ -193,11 +193,11 @@
     -fx-background-color: wheat;
     -fx-border-width: 0;
 
+    -fx-font-weight: bold;
     -fx-text-fill: gray;
 }
 .undo:hover {
     -fx-background-color: lightsalmon;
-    -fx-font-weight: bold;
     -fx-text-fill: black;
 }
 
