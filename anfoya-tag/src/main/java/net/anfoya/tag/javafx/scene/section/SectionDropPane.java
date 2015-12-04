@@ -85,16 +85,19 @@ public class SectionDropPane<S extends Section> extends GridPane {
 		}
 
 		final String finalAnswer = name;
-		final Task<Void> task = new Task<Void>() {
+		final String description = "rename section " + section.getName() + " to " + finalAnswer;
+		final Task<S> task = new Task<S>() {
 			@Override
-			protected Void call() throws Exception {
-				tagService.rename(section, finalAnswer);
-				return null;
+			protected S call() throws Exception {
+				return tagService.rename(section, finalAnswer);
 			}
 		};
-		task.setOnSucceeded(e -> updateHandler.handle(null));
-		task.setOnFailed(e -> LOGGER.error("renaming section {} to {}", section.getName(), finalAnswer, e.getSource().getException()));
-		ThreadPool.getInstance().submitHigh(task, "renaming section " + section.getName() + " to " + finalAnswer);
+		task.setOnSucceeded(event -> {
+			undoService.set(() -> tagService.rename(task.get(), section.getName()), "rename " + section.getName());
+			updateHandler.handle(null);
+		});
+		task.setOnFailed(e -> LOGGER.error(description, e.getSource().getException()));
+		ThreadPool.getInstance().submitHigh(task, description);
 
 		return null;
 	}
