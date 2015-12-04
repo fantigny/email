@@ -1,5 +1,8 @@
 package net.anfoya.mail.browser.javafx.settings;
 
+import static net.anfoya.mail.browser.javafx.settings.Settings.VERSION_FILEPATH;
+import static net.anfoya.mail.browser.javafx.settings.Settings.VERSION_URL;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,14 +21,11 @@ public class VersionChecker {
 	public String getVersion() {
 		if (version == null) {
 			final StringBuilder sb = new StringBuilder();
-			final InputStream in = getClass().getResourceAsStream(Settings.VERSION_FILEPATH);
-			try (BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
-				String line;
-				while ((line = reader.readLine()) != null) {
-					sb.append(line);
-				}
+			try (InputStream in = getClass().getResourceAsStream(VERSION_FILEPATH);
+					BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
+				reader.lines().forEach(l -> sb.append(l));
 			} catch (final IOException e) {
-				LOGGER.error("error reading version from {}", Settings.VERSION_FILEPATH, e);
+				LOGGER.error("error reading version from {}", VERSION_FILEPATH, e);
 			}
 			if (sb.length() > 0) {
 				version = sb.toString();
@@ -38,14 +38,11 @@ public class VersionChecker {
 	public String getLastestVesion() {
 		if (latest == null) {
 			final StringBuilder sb = new StringBuilder();
-			try (BufferedReader reader = new BufferedReader(new InputStreamReader(
-					new URL(Settings.VERSION_URL).openStream()))) {
-				String line;
-				while ((line = reader.readLine()) != null) {
-					sb.append(line);
-				}
+			try (InputStream in = new URL(VERSION_URL).openStream();
+					BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
+				reader.lines().forEach(l -> sb.append(l));
 			} catch (final IOException e) {
-				LOGGER.error("error reading version from {}", Settings.VERSION_URL, e);
+				LOGGER.error("error reading version from {}", VERSION_URL, e);
 			}
 			if (sb.length() > 0) {
 				latest = sb.toString();
