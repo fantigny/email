@@ -307,12 +307,15 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	private void refresh() {
 		final MimeMessage mimeMessage = message.getMimeMessage();
 		try {
-			recipientFlow.getChildren().setAll(buildRecipientLabel(mimeMessage.getFrom()[0]), new Label(" to "));
-			for(final Address a: mimeMessage.getRecipients(MimeMessage.RecipientType.TO)) {
-				if (recipientFlow.getChildren().size() > 2) {
-					recipientFlow.getChildren().add(new Label(", "));
+			recipientFlow.getChildren().setAll(buildRecipientLabel(mimeMessage.getFrom()[0]));
+			if (mimeMessage.getRecipients(MimeMessage.RecipientType.TO) != null) {
+				recipientFlow.getChildren().add(new Label(" to "));
+				for(final Address a: mimeMessage.getRecipients(MimeMessage.RecipientType.TO)) {
+					if (recipientFlow.getChildren().size() > 2) {
+						recipientFlow.getChildren().add(new Label(", "));
+					}
+					recipientFlow.getChildren().add(buildRecipientLabel(a));
 				}
-				recipientFlow.getChildren().add(buildRecipientLabel(a));
 			}
 		} catch (final MessagingException e) {
 			LOGGER.error("loading title data", e);
