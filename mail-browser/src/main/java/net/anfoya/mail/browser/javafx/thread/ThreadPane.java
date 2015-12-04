@@ -100,12 +100,14 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		settingsButton.setTooltip(new Tooltip("settings"));
 		settingsButton.setOnAction(event -> new SettingsDialog<S, T>(mailService).show());
 
-		final RotateTransition rotateTransition = new RotateTransition(Duration.seconds(1), settingsButton);
+		final Node graphics = settingsButton.getGraphic();
+
+		final RotateTransition rotateTransition = new RotateTransition(Duration.seconds(1), graphics);
 		rotateTransition.setByAngle(360);
 		rotateTransition.setCycleCount(Timeline.INDEFINITE);
 		rotateTransition.setInterpolator(Interpolator.LINEAR);
 
-		final RotateTransition stopRotateTransition = new RotateTransition(Duration.INDEFINITE, settingsButton);
+		final RotateTransition stopRotateTransition = new RotateTransition(Duration.INDEFINITE, graphics);
 		rotateTransition.setInterpolator(Interpolator.LINEAR);
 
 		ThreadPool.getInstance().setOnHighRunning(r ->  {
@@ -114,8 +116,8 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 					stopRotateTransition.stop();
 					rotateTransition.play();
 				} else {
-					rotateTransition.pause();
-					stopRotateTransition.setByAngle(360d - settingsButton.getRotate() % 360d);
+					rotateTransition.stop();
+					stopRotateTransition.setByAngle(360d - graphics.getRotate() % 360d);
 					stopRotateTransition.setDuration(Duration.seconds(stopRotateTransition.getByAngle() / 360d));
 					stopRotateTransition.play();
 				}
