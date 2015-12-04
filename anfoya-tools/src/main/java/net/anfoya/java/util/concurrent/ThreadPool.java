@@ -70,7 +70,7 @@ public final class ThreadPool {
 		futureDesc = new ConcurrentHashMap<Future<?>, String>();
 
 		highRunningCallbacks = new CopyOnWriteArraySet<Callback<Boolean, Void>>();
-		highFutures = new HashSet<Future<?>>();
+		highFutures = new CopyOnWriteArraySet<Future<?>>();
 
 		new Timer("threadpool-cleanup-timer", true).schedule(new TimerTask() {
 			@Override
@@ -82,7 +82,7 @@ public final class ThreadPool {
 		new Timer("threadpool-high-count-timer", true).schedule(new TimerTask() {
 			@Override
 			public void run() {
-				countHighFutures();
+				cleanHighFutures();
 			}
 		}, 250, 250);
 
@@ -174,11 +174,11 @@ public final class ThreadPool {
 		}
 	}
 
-	private void countHighFutures() {
+	private void cleanHighFutures() {
 		boolean changed = false;
-		for(final Iterator<Future<?>> i = highFutures.iterator(); i.hasNext();) {
-			if (i.next().isDone()) {
-				i.remove();
+		for(final Future<?> f: highFutures) {
+			if (f.isDone()) {
+				highFutures.remove(f);
 				changed = true;
 			}
 		}
