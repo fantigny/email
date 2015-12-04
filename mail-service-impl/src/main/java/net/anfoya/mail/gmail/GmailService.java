@@ -637,9 +637,8 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	@Override
-	public GmailSection rename(GmailSection section, final String name) throws GMailException {
-		final Set<GmailTag> tags = getTags(section);
-		Label label;
+	public GmailSection rename(final GmailSection section, final String name) throws GMailException {
+		final GmailSection renamed;
 		try {
 			String newName = section.getPath();
 			if (newName.contains("/")) {
@@ -649,18 +648,16 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			}
 			newName += name;
 
-			label = labelService.rename(section.getId(), newName);
-		} catch (final LabelException e) {
+			renamed = addSection(newName);
+			for(final GmailTag t: getTags(section)) {
+				moveToSection(t, renamed);
+			}
+			remove(section);
+		} catch (final GMailException e) {
 			throw new GMailException("rename section " + section.getName() + " to " + name, e);
 		}
-		section = new GmailSection(label);
 
-		// move tags to new section
-		for(final GmailTag t: tags) {
-			moveToSection(t, section);
-		}
-
-		return section;
+		return renamed;
 	}
 
 	@Override
