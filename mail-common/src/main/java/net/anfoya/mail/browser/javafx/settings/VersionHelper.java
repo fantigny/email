@@ -1,7 +1,7 @@
 package net.anfoya.mail.browser.javafx.settings;
 
-import static net.anfoya.mail.browser.javafx.settings.Settings.VERSION_FILEPATH;
-import static net.anfoya.mail.browser.javafx.settings.Settings.VERSION_URL;
+import static net.anfoya.mail.browser.javafx.settings.Settings.VERSION_TXT_RESOURCE;
+import static net.anfoya.mail.browser.javafx.settings.Settings.VERSION_TXT_URL;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -57,18 +57,18 @@ public class VersionHelper {
 
 	public void refresh() {
 		if (myVersion.isEmpty()) {
-			try (final InputStream in = getClass().getResourceAsStream(VERSION_FILEPATH);
+			try (final InputStream in = getClass().getResourceAsStream(VERSION_TXT_RESOURCE);
 					final BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
 				reader.lines().forEach(l -> myVersion = l);
 			} catch (final IOException e) {
-				LOGGER.error("error reading version from {}", VERSION_FILEPATH, e);
+				LOGGER.error("error reading version from {}", VERSION_TXT_RESOURCE, e);
 			}
 		}
-		try (InputStream in = new URL(VERSION_URL).openStream();
+		try (InputStream in = new URL(VERSION_TXT_URL).openStream();
 				BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
 			reader.lines().forEach(l -> latestVersion = l);
 		} catch (final IOException e) {
-			LOGGER.error("error reading version from {}", VERSION_URL, e);
+			LOGGER.error("error reading version from {}", VERSION_TXT_URL, e);
 		}
 		isLatestProperty.set(myVersion.equals(latestVersion));
 	}

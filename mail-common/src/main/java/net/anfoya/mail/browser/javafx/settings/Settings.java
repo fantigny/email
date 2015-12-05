@@ -21,10 +21,13 @@ import net.anfoya.java.io.SerializedFile;
 
 @SuppressWarnings("serial")
 public class Settings implements Serializable {
+	public static final String DOWNLOAD_URL = "https://fishermail.wordpress.com/download/";
 
-	public static final String URL = "https://fishermail.wordpress.com/download/";
-	public static final String VERSION_FILEPATH = "/version.txt";
-	public static final String VERSION_URL = "https://www.dropbox.com/s/tpknt8yxfhnlwhm/version.txt?dl=1";
+	public static final String VERSION_TXT_RESOURCE = "/version.txt";
+	public static final String VERSION_TXT_URL = "https://www.dropbox.com/s/tpknt8yxfhnlwhm/version.txt?dl=1";
+
+	public static final String MP3_NEW_MAIL = Settings.class.getClass().getResource("/net/anfoya/mail/sound/new_mail.mp3").toExternalForm();
+	public static final String MP3_TRASH = Settings.class.getClass().getResource("/net/anfoya/mail/sound/trash.mp3").toExternalForm();
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Settings.class);
 	private static final String FILENAME = System.getProperty("java.io.tmpdir") + File.separatorChar + "fsm-settings";

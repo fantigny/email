@@ -16,8 +16,6 @@
 
 package net.anfoya.javafx.scene.control;
 
-import java.awt.Toolkit;
-
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
@@ -353,7 +351,6 @@ public class Notification {
 
             POPUP.show(stage);
             stage.sizeToScene();
-            Toolkit.getDefaultToolkit().beep();
 
             popupContent.setOnMouseClicked(e -> {
             	POPUP.hide();

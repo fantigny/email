@@ -134,10 +134,10 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 	private void addVersionMessage(GridPane gridPane, String version) {
 		final Label newLabel = new Label("new version (" + version + ") available at ");
 		newLabel.setTextFill(Color.WHITE);
-		final Hyperlink hyperlink = new Hyperlink(Settings.URL.split("/")[2]);
+		final Hyperlink hyperlink = new Hyperlink(Settings.DOWNLOAD_URL.split("/")[2]);
 		hyperlink.setTextFill(Color.WHITE);
 		hyperlink.setOnAction(e -> {
-			UrlHelper.open(Settings.URL);
+			UrlHelper.open(Settings.DOWNLOAD_URL);
 			hyperlink.setVisited(false);
 		});
 

@@ -12,6 +12,8 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
@@ -35,6 +37,7 @@ import net.anfoya.mail.service.Message;
 
 public class MailClient extends Application {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailClient.class);
+	private static final Media NEW_MAIL_SOUND = new Media(Settings.MP3_NEW_MAIL);
 
 	private GmailService gmail;
 	private Stage stage;
@@ -60,7 +63,7 @@ public class MailClient extends Application {
 
 		showBrowser();
 
-		initNotifier();
+		initNewMailNotifier();
 		checkVersion();
 	}
 
@@ -126,9 +129,9 @@ public class MailClient extends Application {
 				Platform.runLater(() -> {
 					Notifier.INSTANCE.notifyInfo(
 							"FisherMail " + checker.getLatestVersion()
-							, "available at " + Settings.URL.split("/")[2]
+							, "available at " + Settings.DOWNLOAD_URL.split("/")[2]
 							, v -> {
-								UrlHelper.open(Settings.URL);
+								UrlHelper.open(Settings.DOWNLOAD_URL);
 								return null;
 							});
 				});
@@ -231,13 +234,14 @@ public class MailClient extends Application {
 //		menu.setMenus(menus);
 	}
 
-	private void initNotifier() {
+	private void initNewMailNotifier() {
 		if (gmail.disconnectedProperty().get()) {
 			return;
 		}
 		gmail.addOnNewMessage(threads -> {
 			LOGGER.debug("notifyAfterNewMessage");
 
+			new MediaPlayer(NEW_MAIL_SOUND).play();
 			threads.forEach(t -> {
 				ThreadPool.getInstance().submitLow(() -> {
 					final String message;
