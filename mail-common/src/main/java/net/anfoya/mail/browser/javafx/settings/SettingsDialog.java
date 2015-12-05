@@ -1,5 +1,8 @@
 package net.anfoya.mail.browser.javafx.settings;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -187,12 +190,12 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		});
 
 		hiddenSectionsPane = new FlowPane(3, 1);
-		hiddenSectionsPane.setMaxWidth(300);
 		hiddenSectionsPane.getStyleClass().add("label-list-pane");
+		hiddenSectionsPane.setMaxWidth(300);
 
 		hiddenTagsPane = new FlowPane(3, 1);
-		hiddenTagsPane.setMaxWidth(300);
 		hiddenTagsPane.getStyleClass().add("label-list-pane");
+		hiddenTagsPane.setMaxWidth(300);
 
 		final Button refreshButton = new Button("boom!");
 		refreshButton.setOnAction(e -> {
@@ -213,6 +216,10 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		final SwitchButton confirmOnSignoutButton = new SwitchButton();
 		confirmOnSignoutButton.setSwitchOn(Settings.getSettings().confirmOnSignout().get());
 		confirmOnSignoutButton.switchOnProperty().addListener((ov, o, n) -> Settings.getSettings().confirmOnSignout().set(n));
+
+		final SwitchButton muteButton = new SwitchButton();
+		muteButton.setSwitchOn(Settings.getSettings().mute().get());
+		muteButton.switchOnProperty().addListener((ov, o, n) -> Settings.getSettings().mute().set(n));
 
 		final GridPane gridPane = new GridPane();
 		gridPane.setPadding(new Insets(5));
@@ -237,6 +244,9 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		i++;
 		gridPane.add(new Label("archive on drop")								, 0, i);
 		gridPane.add(archOnDropButton											, 1, i);
+		i++;
+		gridPane.add(new Label("mute")											, 0, i);
+		gridPane.add(muteButton													, 1, i);
 		i++;
 		gridPane.add(new Label("confirm on quit")								, 0, i);
 		gridPane.add(confirmOnQuitButton										, 1, i);
@@ -264,38 +274,40 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 
 	private void refreshHidden() {
 		try {
-			hiddenSectionsPane.getChildren().clear();
-			mailService.getHiddenSections().forEach(s -> {
+			final Set<Label> labels = new LinkedHashSet<>();
+			for(final S s: mailService.getHiddenSections()) {
 				final RemoveLabel label = new RemoveLabel(s.getName(), "show");
 				label.setOnMouseClicked(e -> {
 					try {
 						mailService.show(s);
 						refreshHidden();
 					} catch (final Exception ex) {
-						LOGGER.error("showing {}", s.getName());
+						LOGGER.error("show {}", s.getName());
 					}
 				});
-				hiddenSectionsPane.getChildren().add(label);
-			});
+				labels.add(label);
+			}
+			Platform.runLater(() -> hiddenSectionsPane.getChildren().setAll(labels));
 		} catch (final TagException e) {
-			LOGGER.error("loading hidden sections", e);
+			LOGGER.error("load hidden sections", e);
 		}
 		try {
-			hiddenTagsPane.getChildren().clear();
-			mailService.getHiddenTags().forEach(t -> {
-				final RemoveLabel label = new RemoveLabel(t.getPath(), "show");
+			final Set<Label> labels = new LinkedHashSet<>();
+			for(final T t: mailService.getHiddenTags()) {
+				final RemoveLabel label = new RemoveLabel(t.getName(), "show");
 				label.setOnMouseClicked(e -> {
 					try {
 						mailService.show(t);
 						refreshHidden();
 					} catch (final Exception ex) {
-						LOGGER.error("showing {}", t.getName());
+						LOGGER.error("show {}", t.getName());
 					}
 				});
-				hiddenTagsPane.getChildren().add(label);
-			});
+				labels.add(label);
+			}
+			Platform.runLater(() -> hiddenTagsPane.getChildren().setAll(labels));
 		} catch (final TagException e) {
-			LOGGER.error("loading hidden tags", e);
+			LOGGER.error("load hidden tags", e);
 		}
 	}
 }
