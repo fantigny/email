@@ -94,16 +94,6 @@ public final class ThreadPool {
 		LOGGER.info("singleton is created");
 	}
 
-	private void shutdown(final ExecutorService service) {
-		if (!service.isShutdown()) {
-			service.shutdown();
-			LOGGER.info("shutdown {}", service);
-		} else if (!service.isTerminated()) {
-			service.shutdownNow();
-			LOGGER.info("shutdown now {}", service);
-		}
-	}
-
 	public void submitHigh(final Runnable runnable, final String description) {
 		submit(delegateHigh, runnable, description);
 	}
@@ -184,6 +174,16 @@ public final class ThreadPool {
 		}
 		if (changed) {
 			highRunningCallbacks.forEach(c -> c.call(highFutures.size() > 0));
+		}
+	}
+
+	private void shutdown(final ExecutorService service) {
+		if (!service.isShutdown()) {
+			service.shutdown();
+			LOGGER.info("shutdown {}", service);
+		} else if (!service.isTerminated()) {
+			service.shutdownNow();
+			LOGGER.info("shutdown now {}", service);
 		}
 	}
 }

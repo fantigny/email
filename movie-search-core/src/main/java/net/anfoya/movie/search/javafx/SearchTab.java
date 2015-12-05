@@ -91,7 +91,7 @@ public class SearchTab extends Tab {
 			}
 		};
 		task.setOnSucceeded(event -> search(task.getValue()));
-		ThreadPool.getInstance().submitHigh(task);
+		ThreadPool.getInstance().submitHigh(task, "search " + pattern);
 	}
 
 	public void search(final MovieVo movieVo) {

@@ -130,20 +130,17 @@ public class EasyListRuleSet implements RuleSet {
 			exclusions.addAll(new SerializedFile<Set<Rule>>(CONFIG.getExclusionsFilePath()).load());
 			LOGGER.info("loaded {} local rules (in {}ms)", getRuleCount(), System.currentTimeMillis()-start);
 			return null;
-		});
+		}, "load local rules");
 		ThreadPool.getInstance().submitHigh(() -> {
-			try {
-				future.get();
-			} catch (InterruptedException | ExecutionException e) {
-				LOGGER.error("loading rule sets", e);
-			}
+			future.get();
 			loadCache();
 			if (local.isOlder(Calendar.DAY_OF_YEAR, 1)
 					|| exceptions.isEmpty()
 					|| exclusions.isEmpty()) {
 				loadInternet();
 			}
-		});
+			return null;
+		}, "load internet rules");
 	}
 
 	private void loadCache() {

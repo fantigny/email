@@ -115,19 +115,16 @@ public class QuickSearchField extends ComboFieldOld<MovieVo> {
 
 		final long requestTime = System.nanoTime();
 		this.requestTime.set(requestTime);
-		ThreadPool.getInstance().submitHigh(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					quickSearch(requestTime, qsVo.toString());
-				} catch (final InterruptedException e) {
-					return;
-				} catch (final Exception e) {
-					LOGGER.error("loading \"{}\"", qsVo.toString(), e);
-					return;
-				}
+		ThreadPool.getInstance().submitHigh(() -> {
+			try {
+				quickSearch(requestTime, qsVo.toString());
+			} catch (final InterruptedException e) {
+				return;
+			} catch (final Exception e) {
+				LOGGER.error("loading \"{}\"", qsVo.toString(), e);
+				return;
 			}
-		});
+		}, "loading \"" + qsVo.toString() + "\"");
 	}
 
 	private void quickSearch(final long requestId, final String pattern) throws InterruptedException, MalformedURLException, IOException {
