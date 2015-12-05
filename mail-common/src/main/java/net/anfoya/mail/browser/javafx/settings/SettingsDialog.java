@@ -9,9 +9,9 @@ import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
-import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollPane;
@@ -22,7 +22,6 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseButton;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
@@ -125,7 +124,7 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 
 		checker.isLastestProperty().addListener((ov, o, n) -> {
 			if (!n) {
-				addVersionMessage(gridPane, checker.getLatestVersion());
+				Platform.runLater(() -> addVersionMessage(gridPane, checker.getLatestVersion()));
 			}
 		});
 
@@ -135,16 +134,14 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 	private void addVersionMessage(GridPane gridPane, String version) {
 		final Label newLabel = new Label("new version (" + version + ") available at ");
 		newLabel.setTextFill(Color.WHITE);
-		final Label urlLabel = new Label(Settings.URL);
-		urlLabel.setTextFill(Color.WHITE);
-		urlLabel.setCursor(Cursor.HAND);
-		urlLabel.setOnMouseClicked(e -> {
-			if (e.getClickCount() == 1 && e.getButton() == MouseButton.PRIMARY) {
-				UrlHelper.open("http://" + Settings.URL);
-			}
+		final Hyperlink hyperlink = new Hyperlink(Settings.URL.split("/")[2]);
+		hyperlink.setTextFill(Color.WHITE);
+		hyperlink.setOnAction(e -> {
+			UrlHelper.open(Settings.URL);
+			hyperlink.setVisited(false);
 		});
 
-		final FlowPane newVersionPane = new FlowPane(newLabel, urlLabel);
+		final FlowPane newVersionPane = new FlowPane(newLabel, hyperlink);
 		newVersionPane.setPadding(new Insets(0, 0, 5, 10));
 		GridPane.setColumnSpan(newVersionPane, 2);
 		GridPane.setHalignment(newVersionPane, HPos.CENTER);

@@ -22,7 +22,7 @@ import net.anfoya.java.io.SerializedFile;
 @SuppressWarnings("serial")
 public class Settings implements Serializable {
 
-	public static final String URL = "fishermail.wordpress.com";
+	public static final String URL = "https://fishermail.wordpress.com/download/";
 	public static final String VERSION_FILEPATH = "/version.txt";
 	public static final String VERSION_URL = "https://www.dropbox.com/s/tpknt8yxfhnlwhm/version.txt?dl=1";
 

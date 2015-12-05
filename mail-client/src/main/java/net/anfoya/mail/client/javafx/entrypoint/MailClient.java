@@ -126,9 +126,9 @@ public class MailClient extends Application {
 				Platform.runLater(() -> {
 					Notifier.INSTANCE.notifyInfo(
 							"FisherMail " + checker.getLatestVersion()
-							, "available at " + Settings.URL
+							, "available at " + Settings.URL.split("/")[2]
 							, v -> {
-								UrlHelper.open("http://" + Settings.URL);
+								UrlHelper.open(Settings.URL);
 								return null;
 							});
 				});
