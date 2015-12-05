@@ -19,7 +19,7 @@ import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.Notification.Notifier;
 import net.anfoya.mail.browser.javafx.MailBrowser;
 import net.anfoya.mail.browser.javafx.settings.Settings;
-import net.anfoya.mail.browser.javafx.settings.VersionChecker;
+import net.anfoya.mail.browser.javafx.settings.VersionHelper;
 import net.anfoya.mail.browser.javafx.util.UrlHelper;
 import net.anfoya.mail.client.App;
 import net.anfoya.mail.gmail.GmailService;
@@ -120,29 +120,20 @@ public class MailClient extends Application {
 	}
 
 	private void checkVersion() {
-		final VersionChecker checker = new VersionChecker();
-		if (checker.isDisconnected()) {
-			return;
-		}
-		final Task<Boolean> isLatestTask = new Task<Boolean>() {
-			@Override
-			protected Boolean call() throws Exception {
-				return checker.isLastVersion();
-			}
-		};
-		isLatestTask.setOnSucceeded(e -> {
-			if (!(boolean)e.getSource().getValue()) {
-				Notifier.INSTANCE.notifyInfo(
-						"FisherMail " + checker.getLastestVesion()
-						, "available at " + Settings.URL
-						, v -> {
-							UrlHelper.open("http://" + Settings.URL);
-							return null;
-						});
+		final VersionHelper checker = new VersionHelper();
+		checker.isLastestProperty().addListener((ov, o, n) -> {
+			if (!n) {
+				Platform.runLater(() -> {
+					Notifier.INSTANCE.notifyInfo(
+							"FisherMail " + checker.getLatestVersion()
+							, "available at " + Settings.URL
+							, v -> {
+								UrlHelper.open("http://" + Settings.URL);
+								return null;
+							});
+				});
 			}
 		});
-		isLatestTask.setOnFailed(e -> LOGGER.error("getting latest version info", e));
-		ThreadPool.getInstance().submitLow(isLatestTask, "checking version");
 	}
 
 	private void showBrowser() {

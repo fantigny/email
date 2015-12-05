@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 
 import javafx.application.Platform;
 import javafx.beans.property.StringProperty;
-import javafx.concurrent.Task;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -94,14 +93,14 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 	}
 
 	private Tab buildAboutTab() {
-		final VersionChecker checker = new VersionChecker();
+		final VersionHelper checker = new VersionHelper();
 		final ImageView image = new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png")));
 
 		final Text fishermail = new Text("FisherMail ");
 		fishermail.setFont(Font.font("Amble Cn", FontWeight.BOLD, 24));
 		fishermail.setFill(Color.web("#bbbbbb"));
 
-		final Text version = new Text(checker.getVersion());
+		final Text version = new Text(checker.getMyVersion());
 		version.setFont(Font.font("Amble Cn", FontWeight.BOLD, 14));
 		version.setFill(Color.web("#bbbbbb"));
 
@@ -124,19 +123,11 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		GridPane.setVgrow(textPane, Priority.ALWAYS);
 		gridPane.add(textPane, 1, 0);
 
-		final Task<Boolean> isLatestTask = new Task<Boolean>() {
-			@Override
-			protected Boolean call() throws Exception {
-				return checker.isLastVersion();
-			}
-		};
-		isLatestTask.setOnSucceeded(e -> {
-			if (!(boolean)e.getSource().getValue()) {
-				addVersionMessage(gridPane, checker.getLastestVesion());
+		checker.isLastestProperty().addListener((ov, o, n) -> {
+			if (!n) {
+				addVersionMessage(gridPane, checker.getLatestVersion());
 			}
 		});
-		isLatestTask.setOnFailed(e -> LOGGER.error("getting latest version info", e));
-		ThreadPool.getInstance().submitLow(isLatestTask, "checking version");
 
 		return new Tab("about", gridPane);
 	}
