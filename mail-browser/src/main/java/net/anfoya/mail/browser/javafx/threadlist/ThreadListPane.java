@@ -8,6 +8,7 @@ import java.util.concurrent.Callable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.value.ChangeListener;
@@ -35,8 +36,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.AudioClip;
 import javafx.util.Duration;
 import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.concurrent.ThreadPool;
@@ -59,7 +59,6 @@ import net.anfoya.tag.model.SpecialTag;
 public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends BorderPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadListPane.class);
 	private static final ReadOnlyBooleanProperty ARCHIVE_ON_DROP = Settings.getSettings().archiveOnDrop();
-	private static final Media TRASH_SOUND = new Media(Settings.MP3_TRASH);
 
 	public static final DataFormat DND_THREADS_DATA_FORMAT = new DataFormat("DND_THREADS_DATA_FORMAT");
 
@@ -254,7 +253,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
-				new MediaPlayer(TRASH_SOUND).play();
+				Platform.runLater(() -> new AudioClip(Settings.MP3_TRASH).play());
 				mailService.trash(threads);
 				return null;
 			}

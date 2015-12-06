@@ -26,8 +26,8 @@ public class Settings implements Serializable {
 	public static final String VERSION_TXT_RESOURCE = "/version.txt";
 	public static final String VERSION_TXT_URL = "https://www.dropbox.com/s/tpknt8yxfhnlwhm/version.txt?dl=1";
 
-	public static final String MP3_NEW_MAIL = Settings.class.getClass().getResource("/net/anfoya/mail/sound/new_mail.mp3").toExternalForm();
-	public static final String MP3_TRASH = Settings.class.getClass().getResource("/net/anfoya/mail/sound/trash.mp3").toExternalForm();
+	public static final String MP3_NEW_MAIL = Settings.class.getClass().getResource("/net/anfoya/mail/sound/new_mail.mp3").toString();
+	public static final String MP3_TRASH = Settings.class.getClass().getResource("/net/anfoya/mail/sound/trash.mp3").toString();
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Settings.class);
 	private static final String FILENAME = System.getProperty("java.io.tmpdir") + File.separatorChar + "fsm-settings";

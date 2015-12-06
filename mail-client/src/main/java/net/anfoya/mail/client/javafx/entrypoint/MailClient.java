@@ -12,8 +12,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.AudioClip;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
@@ -37,7 +36,6 @@ import net.anfoya.mail.service.Message;
 
 public class MailClient extends Application {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailClient.class);
-	private static final Media NEW_MAIL_SOUND = new Media(Settings.MP3_NEW_MAIL);
 
 	private GmailService gmail;
 	private Stage stage;
@@ -240,8 +238,7 @@ public class MailClient extends Application {
 		}
 		gmail.addOnNewMessage(threads -> {
 			LOGGER.debug("notifyAfterNewMessage");
-
-			new MediaPlayer(NEW_MAIL_SOUND).play();
+			Platform.runLater(() -> new AudioClip(Settings.MP3_NEW_MAIL).play());
 			threads.forEach(t -> {
 				ThreadPool.getInstance().submitLow(() -> {
 					final String message;
