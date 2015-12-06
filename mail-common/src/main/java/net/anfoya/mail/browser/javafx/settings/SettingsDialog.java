@@ -1,18 +1,20 @@
 package net.anfoya.mail.browser.javafx.settings;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javafx.application.Platform;
 import javafx.beans.property.StringProperty;
-import javafx.concurrent.Task;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.VPos;
-import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ScrollPane;
@@ -23,7 +25,6 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.MouseButton;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
@@ -94,14 +95,14 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 	}
 
 	private Tab buildAboutTab() {
-		final VersionChecker checker = new VersionChecker();
+		final VersionHelper checker = new VersionHelper();
 		final ImageView image = new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png")));
 
 		final Text fishermail = new Text("FisherMail ");
 		fishermail.setFont(Font.font("Amble Cn", FontWeight.BOLD, 24));
 		fishermail.setFill(Color.web("#bbbbbb"));
 
-		final Text version = new Text(checker.getVersion());
+		final Text version = new Text(checker.getMyVersion());
 		version.setFont(Font.font("Amble Cn", FontWeight.BOLD, 14));
 		version.setFill(Color.web("#bbbbbb"));
 
@@ -124,19 +125,11 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		GridPane.setVgrow(textPane, Priority.ALWAYS);
 		gridPane.add(textPane, 1, 0);
 
-		final Task<Boolean> isLatestTask = new Task<Boolean>() {
-			@Override
-			protected Boolean call() throws Exception {
-				return checker.isLastVersion();
-			}
-		};
-		isLatestTask.setOnSucceeded(e -> {
-			if (!(boolean)e.getSource().getValue()) {
-				addVersionMessage(gridPane, checker.getLastestVesion());
+		checker.isLastestProperty().addListener((ov, o, n) -> {
+			if (!n) {
+				Platform.runLater(() -> addVersionMessage(gridPane, checker.getLatestVersion()));
 			}
 		});
-		isLatestTask.setOnFailed(e -> LOGGER.error("getting latest version info", e));
-		ThreadPool.getInstance().submitLow(isLatestTask, "checking version");
 
 		return new Tab("about", gridPane);
 	}
@@ -144,16 +137,14 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 	private void addVersionMessage(GridPane gridPane, String version) {
 		final Label newLabel = new Label("new version (" + version + ") available at ");
 		newLabel.setTextFill(Color.WHITE);
-		final Label urlLabel = new Label(Settings.URL);
-		urlLabel.setTextFill(Color.WHITE);
-		urlLabel.setCursor(Cursor.HAND);
-		urlLabel.setOnMouseClicked(e -> {
-			if (e.getClickCount() == 1 && e.getButton() == MouseButton.PRIMARY) {
-				UrlHelper.open("http://" + Settings.URL);
-			}
+		final Hyperlink hyperlink = new Hyperlink(Settings.DOWNLOAD_URL.split("/")[2]);
+		hyperlink.setTextFill(Color.WHITE);
+		hyperlink.setOnAction(e -> {
+			UrlHelper.open(Settings.DOWNLOAD_URL);
+			hyperlink.setVisited(false);
 		});
 
-		final FlowPane newVersionPane = new FlowPane(newLabel, urlLabel);
+		final FlowPane newVersionPane = new FlowPane(newLabel, hyperlink);
 		newVersionPane.setPadding(new Insets(0, 0, 5, 10));
 		GridPane.setColumnSpan(newVersionPane, 2);
 		GridPane.setHalignment(newVersionPane, HPos.CENTER);
@@ -199,12 +190,12 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		});
 
 		hiddenSectionsPane = new FlowPane(3, 1);
-		hiddenSectionsPane.setMaxWidth(300);
 		hiddenSectionsPane.getStyleClass().add("label-list-pane");
+		hiddenSectionsPane.setMaxWidth(300);
 
 		hiddenTagsPane = new FlowPane(3, 1);
-		hiddenTagsPane.setMaxWidth(300);
 		hiddenTagsPane.getStyleClass().add("label-list-pane");
+		hiddenTagsPane.setMaxWidth(300);
 
 		final Button refreshButton = new Button("boom!");
 		refreshButton.setOnAction(e -> {
@@ -225,6 +216,10 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		final SwitchButton confirmOnSignoutButton = new SwitchButton();
 		confirmOnSignoutButton.setSwitchOn(Settings.getSettings().confirmOnSignout().get());
 		confirmOnSignoutButton.switchOnProperty().addListener((ov, o, n) -> Settings.getSettings().confirmOnSignout().set(n));
+
+		final SwitchButton muteButton = new SwitchButton();
+		muteButton.setSwitchOn(Settings.getSettings().mute().get());
+		muteButton.switchOnProperty().addListener((ov, o, n) -> Settings.getSettings().mute().set(n));
 
 		final GridPane gridPane = new GridPane();
 		gridPane.setPadding(new Insets(5));
@@ -249,6 +244,9 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		i++;
 		gridPane.add(new Label("archive on drop")								, 0, i);
 		gridPane.add(archOnDropButton											, 1, i);
+		i++;
+		gridPane.add(new Label("mute")											, 0, i);
+		gridPane.add(muteButton													, 1, i);
 		i++;
 		gridPane.add(new Label("confirm on quit")								, 0, i);
 		gridPane.add(confirmOnQuitButton										, 1, i);
@@ -276,38 +274,40 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 
 	private void refreshHidden() {
 		try {
-			hiddenSectionsPane.getChildren().clear();
-			mailService.getHiddenSections().forEach(s -> {
+			final Set<Label> labels = new LinkedHashSet<>();
+			for(final S s: mailService.getHiddenSections()) {
 				final RemoveLabel label = new RemoveLabel(s.getName(), "show");
 				label.setOnMouseClicked(e -> {
 					try {
 						mailService.show(s);
 						refreshHidden();
 					} catch (final Exception ex) {
-						LOGGER.error("showing {}", s.getName());
+						LOGGER.error("show {}", s.getName());
 					}
 				});
-				hiddenSectionsPane.getChildren().add(label);
-			});
+				labels.add(label);
+			}
+			Platform.runLater(() -> hiddenSectionsPane.getChildren().setAll(labels));
 		} catch (final TagException e) {
-			LOGGER.error("loading hidden sections", e);
+			LOGGER.error("load hidden sections", e);
 		}
 		try {
-			hiddenTagsPane.getChildren().clear();
-			mailService.getHiddenTags().forEach(t -> {
-				final RemoveLabel label = new RemoveLabel(t.getPath(), "show");
+			final Set<Label> labels = new LinkedHashSet<>();
+			for(final T t: mailService.getHiddenTags()) {
+				final RemoveLabel label = new RemoveLabel(t.getName(), "show");
 				label.setOnMouseClicked(e -> {
 					try {
 						mailService.show(t);
 						refreshHidden();
 					} catch (final Exception ex) {
-						LOGGER.error("showing {}", t.getName());
+						LOGGER.error("show {}", t.getName());
 					}
 				});
-				hiddenTagsPane.getChildren().add(label);
-			});
+				labels.add(label);
+			}
+			Platform.runLater(() -> hiddenTagsPane.getChildren().setAll(labels));
 		} catch (final TagException e) {
-			LOGGER.error("loading hidden tags", e);
+			LOGGER.error("load hidden tags", e);
 		}
 	}
 }
