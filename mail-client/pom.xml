@@ -5,7 +5,7 @@
 	<groupId>net.anfoya</groupId>
 	<artifactId>mail-client</artifactId>
 	<packaging>jar</packaging>
-	<version>1.0.181208-2-alpha</version>
+	<version>1.0.181208-3-alpha</version>
 	
 	<build>
 		<plugins>
