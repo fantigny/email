@@ -53,7 +53,7 @@ public class ThreadService {
 			return idThreads.get(id).getData();
 		} catch (final CacheException e) {
 			idThreads.remove(id);
-			throw new ThreadException("reading thread " + id, e);
+			throw new ThreadException("read thread " + id, e);
 		}
 	}
 
@@ -85,7 +85,7 @@ public class ThreadService {
 								toLoadIds.add(id);
 							}
 						} catch (final Exception e) {
-							LOGGER.error("getting thread {} from cache", id, e);
+							LOGGER.error("get {} from cache", id, e);
 							idThreads.remove(id);
 							toLoadIds.add(id);
 						}
@@ -110,11 +110,11 @@ public class ThreadService {
 					try {
 						threads.add(idThreads.get(id).getData());
 					} catch (final Exception e) {
-						LOGGER.error("getting thread {} from cache", id);
+						LOGGER.error("get {} from cache", id);
 						idThreads.remove(id);
 					}
 				} else {
-					LOGGER.error("thread {} not found in cache", id);
+					LOGGER.error("get {} from cache: not found", id);
 				}
 			}
 			if (threadResponse.getNextPageToken() != null) {
@@ -166,7 +166,7 @@ public class ThreadService {
 			}
 			return count;
 		} catch (final IOException e) {
-			throw new ThreadException("counting threads for query " + query, e);
+			throw new ThreadException("count threads for query " + query, e);
 		} finally {
 			LOGGER.debug("count threads in {}ms for query {}", System.currentTimeMillis()-start, query);
 		}
@@ -185,7 +185,7 @@ public class ThreadService {
 				}
 				@Override
 				public void onFailure(final GoogleJsonError e, final HttpHeaders responseHeaders) throws IOException {
-					LOGGER.error("update<{}> labels {} for threads {}\n{}", add? "add": "del", labelIds, threadIds, e.getMessage());
+					LOGGER.error("{} labels {} for threads {}", add? "add": "del", labelIds, threadIds, e.getMessage());
 					latch.countDown();
 				}
 			};
@@ -219,7 +219,7 @@ public class ThreadService {
 				}
 				@Override
 				public void onFailure(final GoogleJsonError e, final HttpHeaders responseHeaders) throws IOException {
-					LOGGER.error("trashing thread", e.getMessage());
+					LOGGER.error("trash thread", e.getMessage());
 					latch.countDown();
 				}
 			};
@@ -229,9 +229,9 @@ public class ThreadService {
 			batch.execute();
 			latch.await();
 		} catch (IOException | InterruptedException e) {
-			throw new ThreadException("trashing for ids " + ids, e);
+			throw new ThreadException("trash threads " + ids, e);
 		} finally {
-			LOGGER.debug("trash threads in {}ms, thread ids", System.currentTimeMillis()-start, ids);
+			LOGGER.debug("trash threads in {}ms, thread ids {}", System.currentTimeMillis()-start, ids);
 		}
 	}
 
@@ -253,7 +253,7 @@ public class ThreadService {
 				}
 				@Override
 				public void onFailure(final GoogleJsonError e, final HttpHeaders responseHeaders) throws IOException {
-					LOGGER.error("loading thread error: {}", e.getMessage());
+					LOGGER.error("load thread", e.getMessage());
 					latch.countDown();
 				}
 			};
@@ -267,7 +267,7 @@ public class ThreadService {
 		} catch (IOException | InterruptedException e) {
 			throw new ThreadException("loading for ids " + ids, e);
 		} finally {
-			LOGGER.debug("load threads in {}ms, thread ids {}", System.currentTimeMillis()-start, ids);
+			LOGGER.debug("load threads in {}ms ({})", System.currentTimeMillis()-start, ids);
 		}
 	}
 
