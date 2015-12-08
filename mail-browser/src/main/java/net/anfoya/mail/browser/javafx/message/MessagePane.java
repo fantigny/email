@@ -2,11 +2,13 @@ package net.anfoya.mail.browser.javafx.message;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Date;
 import java.util.Set;
 
 import javax.mail.Address;
 import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MailDateFormat;
 import javax.mail.internet.MimeMessage;
 
 import org.slf4j.Logger;
@@ -318,16 +320,25 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 				}
 			}
 		} catch (final MessagingException e) {
-			LOGGER.error("loading title data", e);
+			LOGGER.error("get title data", e);
 		}
 
-		String date = "";
+		String text = "";
 		try {
-			date = new DateHelper(mimeMessage.getSentDate()).format();
-		} catch (final Exception e) {
-			LOGGER.warn("loading sent date", e);
+			final String[] headers = mimeMessage.getHeader("Received", null).split(";");
+			final String dateString = headers[headers.length -1].trim();
+			final Date date = new MailDateFormat().parse(dateString);
+			text = new DateHelper(date).format();
+		} catch (final Exception ex1) {
+			LOGGER.warn("get received date", ex1);
+			try {
+				text = new DateHelper(mimeMessage.getSentDate()).format();
+			} catch (final MessagingException ex2) {
+				LOGGER.warn("get sent date", ex2);
+				text = "n/d";
+			}
 		}
-		dateText.setText(date);
+		dateText.setText(text);
 
 		snippetView.getEngine().loadContent(message.getSnippet() + "...");
 		snippetView.getEngine().setUserStyleSheetLocation(getClass().getResource("default.css").toExternalForm());
