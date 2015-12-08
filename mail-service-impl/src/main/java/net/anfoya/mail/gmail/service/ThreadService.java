@@ -25,7 +25,6 @@ import com.google.api.services.gmail.model.Thread;
 
 import net.anfoya.java.cache.FileSerieSerializedMap;
 import net.anfoya.mail.gmail.cache.CacheData;
-import net.anfoya.mail.gmail.cache.CacheException;
 import net.anfoya.mail.gmail.model.GmailThread;
 
 public class ThreadService {
@@ -110,7 +109,7 @@ public class ThreadService {
 					boolean removeFromCache = true;
 					try {
 						removeFromCache = idThreads.containsKey(id) && !idThreads.get(id).getData().getHistoryId().equals(t.getHistoryId());
-					} catch (final CacheException e) {
+					} catch (final Exception e) {
 						removeFromCache = true;
 					}
 					if (removeFromCache) {
