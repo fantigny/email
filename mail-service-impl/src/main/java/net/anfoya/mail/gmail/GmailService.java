@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -767,7 +768,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			mSet.forEach(m -> {
 				final Thread t;
 				try {
-					t = threadService.get(m.getThreadId());
+					t = threadService.get(Collections.singleton(m.getThreadId()), false, null).iterator().next();
 				} catch (final Exception e) {
 					LOGGER.error("loading thread id {} for message id {}", m.getThreadId(), m.getId(), e);
 					return;
