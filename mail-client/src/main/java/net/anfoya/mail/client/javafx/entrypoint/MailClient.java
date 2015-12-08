@@ -126,7 +126,7 @@ public class MailClient extends Application {
 			if (!n) {
 				Platform.runLater(() -> {
 					Notifier.INSTANCE.notifySuccess(
-							"FisherMail - new version"
+							"FisherMail - " + checker.getLatestVersion()
 							, "click here to download"
 							, v -> {
 								UrlHelper.open(Settings.DOWNLOAD_URL);
