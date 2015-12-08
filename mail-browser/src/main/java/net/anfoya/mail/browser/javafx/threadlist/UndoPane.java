@@ -21,7 +21,6 @@ public class UndoPane extends GridPane {
 
 	public UndoPane(UndoService service, Node focusNode) {
 		getStyleClass().add("droparea-grid");
-		setMaxHeight(40);
 		setVisible(false);
 		setOpacity(0);
 		managedProperty().bind(visibleProperty());
@@ -46,10 +45,15 @@ public class UndoPane extends GridPane {
 				, new KeyFrame(Duration.seconds(10), new KeyValue(opacityProperty(), 1))
 				, new KeyFrame(Duration.seconds(12), new KeyValue(opacityProperty(), 0))
 				);
+		timeline.setOnFinished(e -> {
+			setVisible(false);
+		});
 
 		service.canUndoProperty().addListener((ov, o, n) -> Platform.runLater(() -> {
 			setVisible(n);
 			if (n) {
+				setMinHeight(40);
+				setMaxHeight(40);
 				button.setText("undo " + service.getDesciption());
 				timeline.playFromStart();
 			}
