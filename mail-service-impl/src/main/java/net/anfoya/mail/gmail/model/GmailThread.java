@@ -1,8 +1,14 @@
 package net.anfoya.mail.gmail.model;
 
+import java.text.ParseException;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Set;
+
+import javax.mail.internet.MailDateFormat;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.MessagePartHeader;
@@ -12,6 +18,7 @@ import net.anfoya.mail.model.SimpleThread;
 
 @SuppressWarnings("serial")
 public class GmailThread extends SimpleThread {
+	private static final Logger LOGGER = LoggerFactory.getLogger(GmailThread.class);
 
 	public GmailThread(final Thread thread) {
 		this(
@@ -42,19 +49,14 @@ public class GmailThread extends SimpleThread {
 	}
 
 	private static Date findReceivedDate(final Thread thread) {
-		if (thread.getMessages() != null) {
-			Date d = null;
-			for(final Message m: thread.getMessages()) {
-				if (m.getInternalDate() != null) {
-					d = new Date(m.getInternalDate());
-				}
-			}
-			if (d != null) {
-				return d;
-			}
+		String received = findHeader(thread, "Received");
+		try {
+			received = received.substring(received.lastIndexOf(";")+1, received.length()).trim();
+			return new MailDateFormat().parse(received);
+		} catch (final ParseException e) {
+			LOGGER.error("parse received date: {}", received, e);
+			return new Date();
 		}
-
-		return new Date();
 	}
 
 	private static Set<String> getMessageIds(final Thread thread) {
@@ -89,11 +91,16 @@ public class GmailThread extends SimpleThread {
 
 	private static Set<String> findHeaders(final Thread thread, final String key) {
 		final Set<String> headers = new LinkedHashSet<String>();
-		if (thread.getMessages() != null && !thread.getMessages().isEmpty()) {
-			final Message message = thread.getMessages().get(thread.getMessages().size() - 1);
-			for(final MessagePartHeader h: message.getPayload().getHeaders()) {
-				if (key.equalsIgnoreCase(h.getName()) && !h.getValue().isEmpty()) {
-					headers.add(h.getValue());
+		if (thread.getMessages() != null
+				&& !thread.getMessages().isEmpty()) {
+			final Message last = thread.getMessages().get(thread.getMessages().size() - 1);
+			if (last.getPayload() != null
+					&& last.getPayload().getHeaders() != null
+					&& !last.getPayload().isEmpty()) {
+				for(final MessagePartHeader h: last.getPayload().getHeaders()) {
+					if (key.equalsIgnoreCase(h.getName()) && !h.getValue().isEmpty()) {
+						headers.add(h.getValue());
+					}
 				}
 			}
 		}
