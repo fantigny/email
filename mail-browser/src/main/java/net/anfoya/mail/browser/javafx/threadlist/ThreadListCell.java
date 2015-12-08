@@ -85,8 +85,12 @@ class ThreadListCell<H extends Thread> extends ListCell<H> {
         	sender.setText(thread.getSender());
         	nbMessages.setText(nbMess > 1? "(x" + nbMess + ")": "");
             nbMessages.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
-        	date.setText(new DateHelper(thread.getDate()).format());
         	subject.setText(thread.getSubject());
+	        if (thread.getId().equals(Thread.PAGE_TOKEN_ID)) {
+	        	date.setText("");
+	        } else {
+	        	date.setText(new DateHelper(thread.getDate()).format());
+	        }
 
 	        sender.setTextFill(thread.isUnread()? Color.FIREBRICK: ALMOST_BLACK);
 
@@ -94,7 +98,7 @@ class ThreadListCell<H extends Thread> extends ListCell<H> {
 //        	if (thread.isUnread()) {
 //        		iconBox.getChildren().add(new ImageView(UNREAD));
 //        	}
-        	if (thread.isFlagged()) {
+	        if (thread.isFlagged()) {
         		iconBox.getChildren().add(new ImageView(FLAG));
         	}
 
