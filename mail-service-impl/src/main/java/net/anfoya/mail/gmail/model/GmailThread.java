@@ -49,14 +49,22 @@ public class GmailThread extends SimpleThread {
 	}
 
 	private static Date findReceivedDate(final Thread thread) {
+		Date date;
 		String received = findHeader(thread, "Received");
+		if (received.isEmpty()) {
+			received = findHeader(thread, "Date");
+		}
 		try {
 			received = received.substring(received.lastIndexOf(";")+1, received.length()).trim();
-			return new MailDateFormat().parse(received);
+			date = new MailDateFormat().parse(received);
 		} catch (final ParseException e) {
 			LOGGER.error("parse received date: {}", received, e);
-			return new Date();
+			date = null;
 		}
+		if (date == null) {
+			date = new Date();
+		}
+		return date;
 	}
 
 	private static Set<String> getMessageIds(final Thread thread) {
@@ -95,8 +103,7 @@ public class GmailThread extends SimpleThread {
 				&& !thread.getMessages().isEmpty()) {
 			final Message last = thread.getMessages().get(thread.getMessages().size() - 1);
 			if (last.getPayload() != null
-					&& last.getPayload().getHeaders() != null
-					&& !last.getPayload().isEmpty()) {
+					&& last.getPayload().getHeaders() != null) {
 				for(final MessagePartHeader h: last.getPayload().getHeaders()) {
 					if (key.equalsIgnoreCase(h.getName()) && !h.getValue().isEmpty()) {
 						headers.add(h.getValue());

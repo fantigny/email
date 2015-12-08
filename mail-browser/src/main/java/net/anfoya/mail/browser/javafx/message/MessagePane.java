@@ -330,11 +330,10 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 			final Date date = new MailDateFormat().parse(dateString);
 			text = new DateHelper(date).format();
 		} catch (final Exception ex1) {
-			LOGGER.warn("get received date", ex1);
 			try {
 				text = new DateHelper(mimeMessage.getSentDate()).format();
 			} catch (final MessagingException ex2) {
-				LOGGER.warn("get sent date", ex2);
+				LOGGER.error("get received and sent date\r\n{}", ex1, ex2);
 				text = "n/d";
 			}
 		}
