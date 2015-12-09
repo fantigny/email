@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import javafx.application.Platform;
 import javafx.beans.property.StringProperty;
+import javafx.concurrent.Task;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -277,14 +278,7 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 			final Set<Label> labels = new LinkedHashSet<>();
 			for(final S s: mailService.getHiddenSections()) {
 				final RemoveLabel label = new RemoveLabel(s.getName(), "show");
-				label.setOnMouseClicked(e -> {
-					try {
-						mailService.show(s);
-						refreshHidden();
-					} catch (final Exception ex) {
-						LOGGER.error("show {}", s.getName());
-					}
-				});
+				label.setOnRemove(e -> show(s, label));
 				labels.add(label);
 			}
 			Platform.runLater(() -> hiddenSectionsPane.getChildren().setAll(labels));
@@ -295,19 +289,42 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 			final Set<Label> labels = new LinkedHashSet<>();
 			for(final T t: mailService.getHiddenTags()) {
 				final RemoveLabel label = new RemoveLabel(t.getName(), "show");
-				label.setOnMouseClicked(e -> {
-					try {
-						mailService.show(t);
-						refreshHidden();
-					} catch (final Exception ex) {
-						LOGGER.error("show {}", t.getName());
-					}
-				});
+				label.setOnRemove(e -> show(t, label));
 				labels.add(label);
 			}
 			Platform.runLater(() -> hiddenTagsPane.getChildren().setAll(labels));
 		} catch (final TagException e) {
 			LOGGER.error("load hidden tags", e);
 		}
+	}
+
+	private Void show(S section, Label label) {
+		Platform.runLater(() -> hiddenSectionsPane.getChildren().remove(label));
+		final Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				mailService.show(section);
+				return null;
+			}
+		};
+		task.setOnFailed(ev -> LOGGER.error("show {}", section.getName(), ev.getSource().getException()));
+		ThreadPool.getInstance().submitHigh(task, "show " + section.getName());
+
+		return null;
+	}
+
+	private Void show(T tag, Label label) {
+		Platform.runLater(() -> hiddenTagsPane.getChildren().remove(label));
+		final Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				mailService.show(tag);
+				return null;
+			}
+		};
+		task.setOnFailed(e -> LOGGER.error("show {}", tag.getName(), e.getSource().getException()));
+		ThreadPool.getInstance().submitHigh(task, "show " + tag.getName());
+
+		return null;
 	}
 }
