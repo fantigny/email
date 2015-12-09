@@ -21,6 +21,9 @@ public class ThreadListToolBar extends ToolBar {
 	private final Button spamButton;
 
 	public ThreadListToolBar() {
+		setMinHeight(27);
+		setMaxHeight(27);
+
 		replyButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/reply.png"))));
 		replyButton.setTooltip(new Tooltip("reply"));
 

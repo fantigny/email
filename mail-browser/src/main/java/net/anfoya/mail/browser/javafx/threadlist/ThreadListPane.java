@@ -140,14 +140,13 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 
 		final Button newButton = new Button();
 		newButton.setFocusTraversable(false);
-		newButton
-				.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/new.png"))));
-		newButton.setTooltip(new Tooltip("new mail"));
+		newButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/new.png"))));
+		newButton.setTooltip(new Tooltip("new"));
 		newButton.setOnAction(event -> {
 			try {
 				new MailComposer<M, C>(mailService, updateHandler).newMessage("");
 			} catch (final Exception e) {
-				LOGGER.error("loading new message composer", e);
+				LOGGER.error("load new message composer", e);
 			}
 		});
 
@@ -229,7 +228,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 				new MailComposer<M, C>(mailService, updateHandler).forward(message);
 			}
 		} catch (final Exception e) {
-			LOGGER.error("loading forward composer", e);
+			LOGGER.error("load forward composer", e);
 		}
 	}
 
@@ -240,7 +239,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 				new MailComposer<M, C>(mailService, updateHandler).reply(message, all);
 			}
 		} catch (final Exception e) {
-			LOGGER.error("loading reply{} composer", all ? " all" : "", e);
+			LOGGER.error("load reply{} composer", all ? " all" : "", e);
 		}
 		return null;
 	}
