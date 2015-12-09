@@ -350,7 +350,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 						() -> { mailService.addTagForThreads(tag, threads); return null; }
 						, "remove " + tag.getName());
 			}
-//			updateHandler.handle(null);
+			updateHandler.handle(null);
 		});
 		ThreadPool.getInstance().submitHigh(task, "remove tag {} for threads");
 		return null;

@@ -141,6 +141,8 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
         });
 
 		final HBox title = new HBox(arrowBox, recipientFlow, iconBox, dateText);
+		title.setMinHeight(27);
+		title.setMaxHeight(27);
 		HBox.setHgrow(iconBox, Priority.ALWAYS);
 		title.getStyleClass().add("header");
 		title.setOnMouseClicked(event -> {
@@ -342,7 +344,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		dateText.setText(text);
 
 		snippetView.getEngine().loadContent(message.getSnippet() + "...");
-		snippetView.getEngine().setUserStyleSheetLocation(getClass().getResource("default.css").toExternalForm());
+		snippetView.getEngine().setUserStyleSheetLocation(DEFAULT_CSS);
 
 		attachmentPane.getChildren().clear();
 		final Set<String> attachNames = helper.getAttachmentNames();
