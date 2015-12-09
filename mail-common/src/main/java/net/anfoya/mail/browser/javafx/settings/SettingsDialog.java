@@ -29,6 +29,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -50,8 +51,10 @@ import net.anfoya.tag.service.TagException;
 
 public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SettingsDialog.class);
+    private static final String DEFAULT_CSS = SettingsDialog.class.getResource("/net/anfoya/mail/css/default_browser.css").toExternalForm();
+    private static final String HELP_HTML = SettingsDialog.class.getResource("/net/anfoya/mail/help.html").toExternalForm();
 
-	private final MailService<S, T, ? extends Thread, ? extends Message, ? extends Contact> mailService;
+    private final MailService<S, T, ? extends Thread, ? extends Message, ? extends Contact> mailService;
 	private final TabPane tabPane;
 
 	private FlowPane hiddenSectionsPane;
@@ -90,7 +93,8 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 
 	private Tab buildHelpTab() {
 		final WebView help = new WebView();
-		help.getEngine().load(getClass().getResource("/net/anfoya/mail/javafx/settings/help.html").toString());
+		help.getEngine().setUserStyleSheetLocation(DEFAULT_CSS);
+		help.getEngine().load(HELP_HTML);
 
 		return new Tab("help", help);
 	}
@@ -99,25 +103,25 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		final VersionHelper checker = new VersionHelper();
 		final ImageView image = new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png")));
 
-		final Text fishermail = new Text("FisherMail ");
-		fishermail.setFont(Font.font("Amble Cn", FontWeight.BOLD, 24));
-		fishermail.setFill(Color.web("#bbbbbb"));
+		final Text fishermail = new Text("FisherMail                         ");
+		fishermail.setFont(Font.font("Amble Cn", FontWeight.BOLD, 32));
+		fishermail.setFill(Color.web("#555555"));
 
-		final Text version = new Text(checker.getMyVersion());
-		version.setFont(Font.font("Amble Cn", FontWeight.BOLD, 14));
-		version.setFill(Color.web("#bbbbbb"));
+		final Text version = new Text(checker.getMyVersion() + "                     ");
+		version.setFont(Font.font("Amble Cn", FontWeight.NORMAL, 18));
+		version.setFill(Color.web("#555555"));
 
-		final Text author = new Text("by Frederic Antigny");
-		author.setFont(Font.font("Amble Cn", FontWeight.BOLD, 24));
-		author.setFill(Color.web("#bbbbbb"));
+		final Text author = new Text("by Fred A.");
+		author.setFont(Font.font("Amble Cn", FontWeight.BOLD, 18));
+		author.setFill(Color.web("#555555"));
 
-		final FlowPane textPane = new FlowPane(fishermail, version, author);
+		final FlowPane textPane = new FlowPane(new VBox(8, fishermail, version, author));
 		textPane.setAlignment(Pos.CENTER_LEFT);
 
 		final GridPane gridPane = new GridPane();
-		gridPane.setStyle("-fx-background-color: #4d4d4d;");
+		gridPane.setStyle("-fx-background-color: #bbbbbb;");
 
-		GridPane.setRowSpan(image, 2);
+		GridPane.setRowSpan(image, 3);
 		GridPane.setMargin(image, new Insets(20));
 		GridPane.setVgrow(image, Priority.ALWAYS);
 		GridPane.setValignment(image, VPos.CENTER);

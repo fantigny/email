@@ -64,6 +64,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 
     private static final Image ATTACHMENT = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/image/attachment.png"));
     private static final Image MINI_ATTACHMENT = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/image/mini_attach.png"));
+    private static final String DEFAULT_CSS = ThreadPool.class.getResource("/net/anfoya/mail/css/default_browser.css").toExternalForm();
 
 	private final String messageId;
 	private final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService;
@@ -102,7 +103,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 
 		messageView = new WebViewFitContent();
 		messageView.focusTraversableProperty().bind(focusTraversableProperty());
-		messageView.getEngine().setUserStyleSheetLocation(getClass().getResource("default.css").toExternalForm());
+		messageView.getEngine().setUserStyleSheetLocation(DEFAULT_CSS);
 		messageView.getEngine().setCreatePopupHandler(handler -> messageView.getEngine());
 		messageView.getEngine().locationProperty().addListener((ov, o, n) -> handleExtLink(messageView.getWebView(), n));
 
