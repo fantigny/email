@@ -72,6 +72,8 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	private EventHandler<ActionEvent> updateHandler;
 	private EventHandler<ActionEvent> signoutHandler;
 
+	private SettingsDialog<S, T> settingsDialog;
+
 	public ThreadPane(final MailService<S, T, H, M, C> mailService, UndoService undoService) {
 		getStyleClass().add("thread");
 		this.mailService = mailService;
@@ -93,7 +95,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		settingsButton.setFocusTraversable(false);
 		settingsButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/settings.png"))));
 		settingsButton.setTooltip(new Tooltip("settings"));
-		settingsButton.setOnAction(event -> new SettingsDialog<S, T>(mailService).show());
+		settingsButton.setOnAction(e -> showSettings());
 
 		final Node graphics = settingsButton.getGraphic();
 
@@ -160,6 +162,16 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 
 		tagsPane = new SelectedTagsPane<T>();
 		setBottom(tagsPane);
+	}
+
+	private void showSettings() {
+		if (settingsDialog == null
+				|| !settingsDialog.isShowing()) {
+			settingsDialog = new SettingsDialog<S, T>(mailService);
+			settingsDialog.show();
+		}
+		settingsDialog.toFront();
+		settingsDialog.requestFocus();
 	}
 
 	public void setOnUpdateThread(final EventHandler<ActionEvent> handler) {
