@@ -274,13 +274,7 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 	}
 
 	private void tweakUnreadMessage(final Set<H> threads) {
-		T unread;
-		try {
-			unread = mailService.getSpecialTag(SpecialTag.UNREAD);
-		} catch (final MailException e) {
-			LOGGER.error("retrieving unread tag", e);
-			return;
-		}
+		final T unread = mailService.getSpecialTag(SpecialTag.UNREAD);
 		if (!includes.contains(unread)) {
 			return;
 		}

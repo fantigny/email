@@ -66,6 +66,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			, GmailTag.DRAFT
 			, GmailTag.SENT
 			, GmailTag.ALL
+			, GmailTag.SPAM
 			, GmailTag.TRASH
 	};
 
@@ -349,8 +350,8 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			final Set<GmailTag> tags;
 			final Collection<Label> labels = labelService.getAll();
 			if (GmailSection.SYSTEM.equals(section)) {
-				final Set<GmailTag> alphaTags = new TreeSet<GmailTag>();
-				alphaTags.add(GmailTag.ALL);
+				final Set<GmailTag> systemTags = new HashSet<GmailTag>();
+				systemTags.add(GmailTag.ALL);
 				for(final Label label: labels) {
 					final String name = label.getName();
 					if (GmailTag.isHidden(label)) {
@@ -358,31 +359,24 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 					}
 					if (GmailTag.isSystem(label)) {
 						// GMail system tags
-						alphaTags.add(new GmailTag(label));
+						GmailTag tag = getSpecialTag(label.getId());
+						if (tag == null) {
+							tag = new GmailTag(label);
+						}
+						systemTags.add(tag);
 						continue;
 					}
 					if (!name.contains("/")) {
 						// root tags, put them here if no sub-tag
 						if (!hasSubLabel(label, labels)) {
-							alphaTags.add(new GmailTag(label));
+							systemTags.add(new GmailTag(label));
 						}
 					}
 				}
-				tags = new LinkedHashSet<GmailTag>();
-				for(final GmailTag t: alphaTags) {
-					if (t.isSystem()) {
-						tags.add(t);
-					}
-				}
-				sortSystemTags(tags);
-				for(final GmailTag t: alphaTags) {
-					if (!t.isSystem()) {
-						tags.add(t);
-					}
-				}
+				tags = sortSystemTags(systemTags);
 			} else {
 				tags = new TreeSet<GmailTag>();
-				for(final Label label:labels) {
+				for(final Label label: labels) {
 					if (!GmailTag.isHidden(label) && !GmailTag.isSystem(label)) {
 						final String name = label.getName();
 						if (section != null && name.equals(section.getPath())) {
@@ -429,17 +423,19 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		return false;
 	}
 
-	private void sortSystemTags(Set<GmailTag> tags) {
+	private Set<GmailTag> sortSystemTags(Set<GmailTag> tags) {
+		final Set<GmailTag> alphaTags = new TreeSet<GmailTag>(tags);
 		final Set<GmailTag> sorted = new LinkedHashSet<GmailTag>();
+
 		for(final GmailTag t: SYSTEM_TAG_ORDER) {
-			if (tags.contains(t)) {
+			if (alphaTags.contains(t)) {
 				sorted.add(t);
-				tags.remove(t);
+				alphaTags.remove(t);
 			}
 		}
-		sorted.addAll(tags);
-		tags.clear();
-		tags.addAll(sorted);
+		sorted.addAll(alphaTags);
+
+		return sorted;
 	}
 
 	@Override
@@ -873,7 +869,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	@Override
-	public GmailTag getSpecialTag(final SpecialTag specialTag) throws MailException {
+	public GmailTag getSpecialTag(final SpecialTag specialTag) {
 		switch (specialTag) {
 		case ALL:		return GmailTag.ALL;
 		case FLAGGED:	return GmailTag.STARRED;
@@ -883,6 +879,16 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		case SPAM:		return GmailTag.SPAM;
 		case TRASH:		return GmailTag.TRASH;
 		case DRAFT:		return GmailTag.DRAFT;
+		}
+		return null;
+	}
+
+	private GmailTag getSpecialTag(String id) {
+		for(final SpecialTag s: SpecialTag.values()) {
+			final GmailTag tag = getSpecialTag(s);
+			if (tag.getId().equals(id)) {
+				return tag;
+			}
 		}
 		return null;
 	}

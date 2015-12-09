@@ -61,7 +61,7 @@ public interface MailService<
 	@Override public int getCountForTags(Set<T> includes, Set<T> excludes, String pattern) throws MailException;
 
 	@Override public Set<T> getHiddenTags() throws MailException;
-	@Override public T getSpecialTag(SpecialTag specialTag) throws MailException;
+	@Override public T getSpecialTag(SpecialTag specialTag);
 
 	@Override public T addTag(String name) throws MailException;
 	@Override public void remove(T tag) throws MailException;

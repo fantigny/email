@@ -77,12 +77,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		this.mailService = mailService;
 		this.undoService = undoService;
 
-		try {
-			unread = mailService.getSpecialTag(SpecialTag.UNREAD);
-		} catch (final MailException e) {
-			LOGGER.error("getting unread tag", e);
-			unread = null;
-		}
+		unread = mailService.getSpecialTag(SpecialTag.UNREAD);
 
 		iconBox = new HBox(5);
 		iconBox.setAlignment(Pos.CENTER_LEFT);
