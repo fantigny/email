@@ -8,7 +8,6 @@ import java.util.concurrent.Callable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.value.ChangeListener;
@@ -140,7 +139,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 
 		final Button newButton = new Button();
 		newButton.setFocusTraversable(false);
-		newButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/new.png"))));
+		newButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/img/new.png"))));
 		newButton.setTooltip(new Tooltip("new"));
 		newButton.setOnAction(event -> {
 			try {
@@ -249,11 +248,12 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		final Iterator<H> iterator = threads.iterator();
 		final boolean hasInbox = iterator.hasNext() && iterator.next().getTagIds().contains(inbox.getId());
 
+		new AudioClip(Settings.MP3_TRASH).play();
+
 		final String description = "trash";
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
-				Platform.runLater(() -> new AudioClip(Settings.MP3_TRASH).play());
 				mailService.trash(threads);
 				return null;
 			}

@@ -238,7 +238,7 @@ public class MailClient extends Application {
 		}
 		gmail.addOnNewMessage(threads -> {
 			LOGGER.info("notify new thread");
-			Platform.runLater(() -> new AudioClip(Settings.MP3_NEW_MAIL).play());
+			new AudioClip(Settings.MP3_NEW_MAIL).play();
 			threads.forEach(t -> {
 				final Task<String> task = new Task<String>() {
 					@Override
