@@ -61,7 +61,7 @@ public class MailClient extends Application {
 
 		showBrowser();
 
-		initNewMailNotifier();
+		initNewThreadNotifier();
 		checkVersion();
 	}
 
@@ -146,7 +146,7 @@ public class MailClient extends Application {
 		try {
 			mailBrowser = new MailBrowser<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact>(gmail);
 		} catch (final MailException e) {
-			LOGGER.error("loading mail browser", e);
+			LOGGER.error("load mail browser", e);
 			return;
 		}
 		mailBrowser.setOnSignout(e -> signout());
@@ -175,8 +175,8 @@ public class MailClient extends Application {
 			}
 		};
 		titleTask.setOnSucceeded(e -> stage.setTitle("FisherMail - " + e.getSource().getValue()));
-		titleTask.setOnFailed(e -> LOGGER.error("loading user's name", e.getSource().getException()));
-		ThreadPool.getInstance().submitLow(titleTask, "loading user's name");
+		titleTask.setOnFailed(e -> LOGGER.error("load user's name", e.getSource().getException()));
+		ThreadPool.getInstance().submitLow(titleTask, "load user's name");
 	}
 
 	private void initMacOs() {
@@ -232,37 +232,37 @@ public class MailClient extends Application {
 //		menu.setMenus(menus);
 	}
 
-	private void initNewMailNotifier() {
+	private void initNewThreadNotifier() {
 		if (gmail.disconnectedProperty().get()) {
 			return;
 		}
 		gmail.addOnNewMessage(threads -> {
-			LOGGER.debug("notifyAfterNewMessage");
+			LOGGER.info("notify new thread");
 			Platform.runLater(() -> new AudioClip(Settings.MP3_NEW_MAIL).play());
 			threads.forEach(t -> {
-				ThreadPool.getInstance().submitLow(() -> {
-					final String message;
-					try {
+				final Task<String> task = new Task<String>() {
+					@Override
+					protected String call() throws Exception {
 						final Message m = gmail.getMessage(t.getLastMessageId());
-						message = "from " + String.join(", ", MessageHelper.getNames(m.getMimeMessage().getFrom()))
-								+ "\r\n" + m.getSnippet();
-					} catch (final Exception e) {
-						LOGGER.error("notifying new message for thread {}", t.getId(), e);
-						return;
+						return String.format("from %s\r\n%s"
+								, String.join(", ", MessageHelper.getNames(m.getMimeMessage().getFrom()))
+								, m.getSnippet());
 					}
-					Platform.runLater(() -> Notifier.INSTANCE.notifySuccess(
-							t.getSubject()
-							, message
-							, v -> {
-								if (stage.isIconified()) {
-									stage.setIconified(false);
-								}
-								if (!stage.isFocused()) {
-									stage.requestFocus();
-								}
-								return null;
-							}));
-				}, "notifying new message");
+				};
+				task.setOnSucceeded(e -> Notifier.INSTANCE.notifySuccess(
+						t.getSubject()
+						, task.getValue()
+						, v -> {
+							if (stage.isIconified()) {
+								stage.setIconified(false);
+							}
+							if (!stage.isFocused()) {
+								stage.requestFocus();
+							}
+							return null;
+						}));
+				task.setOnFailed(e -> LOGGER.error("notify new thread {}", t.getId(), e.getSource().getException()));
+				ThreadPool.getInstance().submitLow(task, "notify new thread");
 			});
 
 			return null;
