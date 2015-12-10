@@ -48,8 +48,15 @@ import net.anfoya.tag.model.SpecialTag;
 public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends BorderPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadPane.class);
 
-    private static final Image FLAG = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/image/mini_flag.png"));
-    private static final Image ATTACHMENT = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/image/mini_attach.png"));
+    private static final String IMG_PATH = "/net/anfoya/mail/img/";
+    private static final String SETTINGS_PNG = ThreadPane.class.getResource(IMG_PATH + "settings.png").toExternalForm();
+    private static final String SIGNOUT_PNG = ThreadPane.class.getResource(IMG_PATH + "signout.png").toExternalForm();
+
+    private static final String FLAG_PNG = ThreadPane.class.getResource(IMG_PATH + "mini_flag.png").toExternalForm();
+    private static final String ATTACH_PNG = ThreadPane.class.getResource(IMG_PATH + "mini_attach.png").toExternalForm();
+
+    private static final Image FLAG_ICON = new Image(FLAG_PNG);
+    private static final Image ATTACH_ICON = new Image(ATTACH_PNG);
 
 	private final MailService<S, T, H, M, C> mailService;
 	private final UndoService undoService;
@@ -87,13 +94,13 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 
 		subjectField = new TextField();
 		subjectField.setFocusTraversable(false);
-		subjectField.setPromptText("select a mail");
+		subjectField.setPromptText("select a thread");
 		subjectField.prefWidthProperty().bind(widthProperty());
 		subjectField.setEditable(false);
 
 		final Button settingsButton = new Button();
 		settingsButton.setFocusTraversable(false);
-		settingsButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/settings.png"))));
+		settingsButton.setGraphic(new ImageView(new Image(SETTINGS_PNG)));
 		settingsButton.setTooltip(new Tooltip("settings"));
 		settingsButton.setOnAction(e -> showSettings());
 
@@ -124,7 +131,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 
 		final Button signoutButton = new Button();
 		signoutButton.setFocusTraversable(false);
-		signoutButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/signout.png"))));
+		signoutButton.setGraphic(new ImageView(new Image(SIGNOUT_PNG)));
 		signoutButton.setTooltip(new Tooltip("sign out"));
 		signoutButton.setOnAction(event -> signoutHandler.handle(null));
 
@@ -167,7 +174,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	private void showSettings() {
 		if (settingsDialog == null
 				|| !settingsDialog.isShowing()) {
-			settingsDialog = new SettingsDialog<S, T>(mailService);
+			settingsDialog = new SettingsDialog<S, T>(mailService, undoService);
 			settingsDialog.show();
 		}
 		settingsDialog.toFront();
@@ -235,7 +242,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	private void refreshIcons() {
 		iconBox.getChildren().clear();
 		if (threads.size() == 1 && threads.iterator().next().isFlagged()) {
-			displayFlagIcon();
+			showIcon(FLAG_ICON);
 		}
 	}
 
@@ -269,7 +276,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 			@SuppressWarnings("unchecked")
 			final MessagePane<M, C> messagePane = index >= messagePanes.size()? null: (MessagePane<M, C>) messagePanes.get(index);
 			if (messagePane != null && messagePane.hasAttachment()) {
-				displayAttachmentIcon();
+				showIcon(ATTACH_ICON);
 			}
 			if (messagePane == null || !id.equals(messagePane.getMessageId())) {
 				messagePanes.add(index, createMessagePane(id));
@@ -284,28 +291,19 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		messagePane.setScrollHandler(webScrollHandler);
 		messagePane.setUpdateHandler(updateHandler);
 		messagePane.setExpanded(false);
-		messagePane.onContainAttachment(e -> displayAttachmentIcon());
+		messagePane.onContainAttachment(e -> showIcon(ATTACH_ICON));
 		messagePane.load();
 
 		return messagePane;
 	}
 
-	private void displayAttachmentIcon() {
+	private void showIcon(Image icon) {
 		for(final Node n: iconBox.getChildren()) {
-			if (n instanceof ImageView && ((ImageView)n).getImage() == ATTACHMENT) {
+			if (n instanceof ImageView && ((ImageView)n).getImage() == icon) {
 				return;
 			}
 		}
-		iconBox.getChildren().add(0, new ImageView(ATTACHMENT));
-	}
-
-	private void displayFlagIcon() {
-		for(final Node n: iconBox.getChildren()) {
-			if (n instanceof ImageView && ((ImageView)n).getImage() == FLAG) {
-				return;
-			}
-		}
-		iconBox.getChildren().add(new ImageView(FLAG));
+		iconBox.getChildren().add(new ImageView(icon));
 	}
 
 	@SuppressWarnings("unchecked")

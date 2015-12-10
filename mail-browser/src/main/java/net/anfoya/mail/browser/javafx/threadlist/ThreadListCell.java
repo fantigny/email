@@ -15,8 +15,8 @@ import net.anfoya.mail.mime.DateHelper;
 import net.anfoya.mail.service.Thread;
 
 class ThreadListCell<H extends Thread> extends ListCell<H> {
-    private static final Image FLAG = new Image(ThreadListCell.class.getResourceAsStream("/net/anfoya/mail/image/mini_flag.png"));
-//    private static final Image UNREAD = new Image(ThreadListCell.class.getResourceAsStream("/net/anfoya/mail/image/mini_unread.png"));
+    private static final Image FLAG = new Image(ThreadListCell.class.getResourceAsStream("/net/anfoya/mail/img/mini_flag.png"));
+//    private static final Image UNREAD = new Image(ThreadListCell.class.getResourceAsStream("/net/anfoya/mail/img/mini_unread.png"));
 
     private static final Color ALMOST_BLACK = Color.web("#444444");
 

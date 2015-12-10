@@ -24,25 +24,25 @@ public class ThreadListToolBar extends ToolBar {
 		setMinHeight(27);
 		setMaxHeight(27);
 
-		replyButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/reply.png"))));
+		replyButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/img/reply.png"))));
 		replyButton.setTooltip(new Tooltip("reply"));
 
-		replyAllButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/replyall.png"))));
+		replyAllButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/img/replyall.png"))));
 		replyAllButton.setTooltip(new Tooltip("reply all"));
 
-		forwardButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/forward.png"))));
+		forwardButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/img/forward.png"))));
 		forwardButton.setTooltip(new Tooltip("forward"));
 
-		flagButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/flag.png"))));
+		flagButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/img/flag.png"))));
 		flagButton.setTooltip(new Tooltip("toggle flag"));
 
-		archiveButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/archive.png"))));
+		archiveButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/img/archive.png"))));
 		archiveButton.setTooltip(new Tooltip("archive"));
 
-		trashButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/trash.png"))));
+		trashButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/img/trash.png"))));
 		trashButton.setTooltip(new Tooltip("trash"));
 
-		spamButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/spam.png"))));
+		spamButton = new Button("", new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/img/spam.png"))));
 		spamButton.setTooltip(new Tooltip("toggle spam"));
 
 		final HBox grow = new HBox();

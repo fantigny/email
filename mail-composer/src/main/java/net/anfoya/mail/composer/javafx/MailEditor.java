@@ -39,7 +39,7 @@ import net.anfoya.mail.browser.javafx.util.UrlHelper;
 
 public class MailEditor extends BorderPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailEditor.class);
-    private static final Image ATTACHMENT = new Image(MailEditor.class.getResourceAsStream("/net/anfoya/mail/image/attachment.png"));
+    private static final Image ATTACHMENT = new Image(MailEditor.class.getResourceAsStream("/net/anfoya/mail/img/attachment.png"));
 
 	private final HTMLEditor editor;
 	private final WebView editorView;

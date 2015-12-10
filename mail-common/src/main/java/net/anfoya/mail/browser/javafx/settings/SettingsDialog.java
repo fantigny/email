@@ -105,7 +105,7 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 
 	private Tab buildAboutTab() {
 		final VersionHelper checker = new VersionHelper();
-		final ImageView image = new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png")));
+		final ImageView image = new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/img/Mail.png")));
 
 		final Text fishermail = new Text("FisherMail                         ");
 		fishermail.setFont(Font.font("Amble Cn", FontWeight.BOLD, 32));

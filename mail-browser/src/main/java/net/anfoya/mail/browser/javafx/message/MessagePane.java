@@ -62,8 +62,8 @@ import net.anfoya.mail.service.Thread;
 public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessagePane.class);
 
-    private static final Image ATTACHMENT = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/image/attachment.png"));
-    private static final Image MINI_ATTACHMENT = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/image/mini_attach.png"));
+    private static final Image ATTACHMENT = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/img/attachment.png"));
+    private static final Image MINI_ATTACHMENT = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/img/mini_attach.png"));
     private static final String DEFAULT_CSS = ThreadPool.class.getResource("/net/anfoya/mail/css/default_browser.css").toExternalForm();
 
 	private final String messageId;
