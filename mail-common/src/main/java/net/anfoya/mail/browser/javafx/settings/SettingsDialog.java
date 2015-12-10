@@ -37,6 +37,7 @@ import javafx.scene.text.Text;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.RemoveLabel;
 import net.anfoya.mail.browser.javafx.css.StyleHelper;
@@ -55,17 +56,20 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
     private static final String HELP_HTML = SettingsDialog.class.getResource("/net/anfoya/mail/help.html").toExternalForm();
 
     private final MailService<S, T, ? extends Thread, ? extends Message, ? extends Contact> mailService;
+    private final UndoService undoService;
+
 	private final TabPane tabPane;
 
 	private FlowPane hiddenSectionsPane;
 	private FlowPane hiddenTagsPane;
 
-	public SettingsDialog(MailService<S, T, ? extends Thread, ? extends Message, ? extends Contact> mailService) {
+	public SettingsDialog(MailService<S, T, ? extends Thread, ? extends Message, ? extends Contact> mailService, UndoService undoService) {
 		initStyle(StageStyle.UNIFIED);
 		setTitle("FisherMail - profile");
 		setOnCloseRequest(e -> Settings.getSettings().save());
 
 		this.mailService = mailService;
+		this.undoService = undoService;
 
 		tabPane = new TabPane(buildSettingsTab(), buildAboutTab(), buildHelpTab(), buildTaskTab());
 		tabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
@@ -273,11 +277,12 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		i++;
 
 		refreshHidden();
+		mailService.addOnUpdateTagOrSection(v -> refreshHidden());
 
 		return new Tab("settings", new ScrollPane(gridPane));
 	}
 
-	private void refreshHidden() {
+	private Void refreshHidden() {
 		try {
 			final Set<Label> labels = new LinkedHashSet<>();
 			for(final S s: mailService.getHiddenSections()) {
@@ -300,6 +305,8 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		} catch (final TagException e) {
 			LOGGER.error("load hidden tags", e);
 		}
+
+		return null;
 	}
 
 	private Void show(S section, Label label) {
@@ -311,6 +318,7 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 				return null;
 			}
 		};
+		task.setOnSucceeded(e -> undoService.set(() -> { mailService.hide(section); return null; }, "show"));
 		task.setOnFailed(ev -> LOGGER.error("show {}", section.getName(), ev.getSource().getException()));
 		ThreadPool.getInstance().submitHigh(task, "show " + section.getName());
 
@@ -326,6 +334,7 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 				return null;
 			}
 		};
+		task.setOnSucceeded(e -> undoService.set(() -> { mailService.hide(tag); return null; }, "show"));
 		task.setOnFailed(e -> LOGGER.error("show {}", tag.getName(), e.getSource().getException()));
 		ThreadPool.getInstance().submitHigh(task, "show " + tag.getName());
 
