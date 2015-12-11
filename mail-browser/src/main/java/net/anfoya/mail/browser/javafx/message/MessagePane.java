@@ -201,14 +201,14 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	private void handleExtLink(WebView view, String url) {
 		if (url != null && !url.isEmpty()) {
 			Platform.runLater(() -> {
-				messageView.getEngine().getLoadWorker().cancel();
+				view.getEngine().getLoadWorker().cancel();
 				load();
 			});
 			UrlHelper.open(url, recipient -> {
 				try {
 					new MailComposer<M, C>(mailService, updateHandler).newMessage(recipient);
 				} catch (final MailException e) {
-					LOGGER.error("creating new mail to {}", recipient, e);
+					LOGGER.error("create new mail to {}", recipient, e);
 				}
 				return null;
 			});
@@ -256,14 +256,12 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 			    return helper.toHtml(message.getMimeMessage());
 			}
 		};
-		loadTask.setOnFailed(event -> {
-			LOGGER.error("loading message id {}", messageId, event.getSource().getException());
-		});
-		loadTask.setOnSucceeded(event -> {
+		loadTask.setOnSucceeded(e -> {
 			refresh();
 			messageView.getEngine().loadContent(loadTask.getValue());
 		});
-		ThreadPool.getInstance().submitHigh(loadTask, "loading message id " + messageId);
+		loadTask.setOnFailed(e -> LOGGER.error("load message {}", messageId, e.getSource().getException()));
+		ThreadPool.getInstance().submitHigh(loadTask, "load message " + messageId);
 	}
 
 	public void setScrollHandler(final EventHandler<ScrollEvent> handler) {
@@ -357,7 +355,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 					try {
 						new AttachmentLoader<M>(mailService, message.getId()).start(name);
 					} catch (final Exception ex) {
-						LOGGER.error("loading ", ex);
+						LOGGER.error("load ", ex);
 					}
 				});
 				attachmentPane.getChildren().add(attachment);
