@@ -341,16 +341,12 @@ public class Notification {
             final KeyFrame kfBegin = new KeyFrame(Duration.ZERO, fadeOutBegin);
             final KeyFrame kfEnd   = new KeyFrame(Duration.millis(500), fadeOutEnd);
 
-            // Move popup to the right during fade out
-            POPUP.opacityProperty().addListener((observableValue, oldOpacity, opacity) -> POPUP.setX(POPUP.getX() + (1.0 - opacity.doubleValue()) * POPUP.getWidth()) );
-
             if (!stage.isShowing()) {
                 stage.show();
             }
             stage.toFront();
 
             POPUP.show(stage);
-            stage.sizeToScene();
 
             popupContent.setOnMouseClicked(e -> {
             	POPUP.hide();
