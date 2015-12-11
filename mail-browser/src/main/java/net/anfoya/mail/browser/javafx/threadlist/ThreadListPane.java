@@ -136,6 +136,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		setCenter(centerPane);
 
 		centerPane.getChildren().add(new UndoPane(undoService, this));
+		centerPane.getChildren().add(new DisconnectedPane(mailService, this));
 
 		final Button newButton = new Button();
 		newButton.setFocusTraversable(false);

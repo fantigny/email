@@ -39,6 +39,7 @@ import net.anfoya.mail.gmail.model.GmailThread;
 import net.anfoya.mail.gmail.service.ConnectionService;
 import net.anfoya.mail.gmail.service.ContactException;
 import net.anfoya.mail.gmail.service.ContactService;
+import net.anfoya.mail.gmail.service.HistoryException;
 import net.anfoya.mail.gmail.service.HistoryService;
 import net.anfoya.mail.gmail.service.LabelException;
 import net.anfoya.mail.gmail.service.LabelService;
@@ -128,12 +129,16 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	@Override
-	public void reconnect() {
+	public void reconnect() throws GMailException {
 		if (!disconnectedProperty.get()) {
 			return;
 		}
 
-		connectionService.reconnect();
+		try {
+			historyService.getUpdates();
+		} catch (final HistoryException e) {
+			throw new GMailException("get updates to test connection", e);
+		}
 	}
 
 	@Override

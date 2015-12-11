@@ -204,6 +204,18 @@
     -fx-text-fill: black;
 }
 
+/* disconnected button */
+.disconnected, .disconnected:hover, .disconnected:selected {
+    -fx-padding: 2;
+	-fx-opacity: 0.9;
+	-fx-background-radius: 5;
+    -fx-background-color: lightsalmon;
+    -fx-border-width: 0;
+
+    -fx-font-weight: bold;
+    -fx-text-fill: black;
+}
+
 /**/
 /**/
 /* mail composer */

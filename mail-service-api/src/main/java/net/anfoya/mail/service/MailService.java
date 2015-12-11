@@ -16,7 +16,7 @@ public interface MailService<
 		extends TagService<S, T> {
 
 	public void connect(String appName) throws MailException;
-	public void reconnect();
+	public void reconnect() throws MailException;
 	public void disconnect();
 	public ReadOnlyBooleanProperty disconnectedProperty();
 
