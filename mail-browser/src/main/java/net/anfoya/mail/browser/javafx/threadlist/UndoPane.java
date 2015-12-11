@@ -49,15 +49,13 @@ public class UndoPane extends GridPane {
 		});
 
 		service.canUndoProperty().addListener((ov, o, n) -> {
+			timeline.stop();
 			if (n) {
-				final boolean wasHidden = !isVisible();
 				Platform.runLater(() -> {
 					button.setText("undo " + service.getDesciption());
 					setVisible(true);
 				});
-				if (wasHidden) {
-					timeline.playFromStart();
-				}
+				timeline.playFromStart();
 			} else {
 				timeline.playFrom(Duration.seconds(10));
 			}
