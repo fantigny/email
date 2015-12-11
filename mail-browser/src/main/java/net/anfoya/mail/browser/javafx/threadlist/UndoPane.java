@@ -48,18 +48,25 @@ public class UndoPane extends GridPane {
 			setVisible(false);
 		});
 
-		service.canUndoProperty().addListener((ov, o, n) -> Platform.runLater(() -> {
-			setVisible(n);
+		service.canUndoProperty().addListener((ov, o, n) -> {
 			if (n) {
-				button.setText("undo " + service.getDesciption());
-				timeline.playFromStart();
+				final boolean wasHidden = !isVisible();
+				Platform.runLater(() -> {
+					button.setText("undo " + service.getDesciption());
+					setVisible(true);
+				});
+				if (wasHidden) {
+					timeline.playFromStart();
+				}
+			} else {
+				timeline.playFrom(Duration.seconds(10));
 			}
-		}));
+		});
 
 		setOnMouseEntered(e -> {
 			timeline.stop();
 			setOpacity(1);
 		});
-		setOnMouseExited(e -> timeline.playFrom(Duration.seconds(.5)));
+		setOnMouseExited(e -> timeline.playFrom(Duration.seconds(5)));
 	}
 }

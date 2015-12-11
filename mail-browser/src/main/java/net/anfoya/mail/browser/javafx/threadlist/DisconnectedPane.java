@@ -44,16 +44,16 @@ public class DisconnectedPane extends GridPane {
 				);
 		timeline.setOnFinished(e -> setVisible(mailService.disconnectedProperty().get()));
 
-		mailService.disconnectedProperty().addListener((ov, o, n) -> Platform.runLater(() -> {
+		mailService.disconnectedProperty().addListener((ov, o, n) -> {
 			if (n) {
-				setVisible(true);
+				Platform.runLater(() ->setVisible(true));
 				timeline.setRate(1);
 				timeline.playFromStart();
 			} else {
 				timeline.setRate(-1);
 				timeline.playFrom(Duration.seconds(.5));
 			}
-		}));
+		});
 
 		setOnMouseEntered(e -> {
 			timeline.stop();

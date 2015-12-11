@@ -114,18 +114,16 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		final RotateTransition stopRotateTransition = new RotateTransition(Duration.INDEFINITE, graphics);
 		rotateTransition.setInterpolator(Interpolator.EASE_OUT);
 
-		ThreadPool.getInstance().setOnHighRunning(r ->  {
-			Platform.runLater(() -> {
-				if (r) {
-					stopRotateTransition.stop();
-					rotateTransition.play();
-				} else {
-					rotateTransition.stop();
-					stopRotateTransition.setByAngle(360d - graphics.getRotate() % 360d);
-					stopRotateTransition.setDuration(Duration.seconds(stopRotateTransition.getByAngle() / 360d));
-					stopRotateTransition.play();
-				}
-			});
+		ThreadPool.getInstance().setOnHighRunning(r -> {
+			if (r) {
+				stopRotateTransition.stop();
+				rotateTransition.play();
+			} else {
+				rotateTransition.stop();
+				stopRotateTransition.setByAngle(360d - graphics.getRotate() % 360d);
+				stopRotateTransition.setDuration(Duration.seconds(.5 * stopRotateTransition.getByAngle() / 360d));
+				stopRotateTransition.play();
+			}
 			return null;
 		});
 
@@ -133,7 +131,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		signoutButton.setFocusTraversable(false);
 		signoutButton.setGraphic(new ImageView(new Image(SIGNOUT_PNG)));
 		signoutButton.setTooltip(new Tooltip("sign out"));
-		signoutButton.setOnAction(event -> signoutHandler.handle(null));
+		signoutButton.setOnAction(e -> signoutHandler.handle(null));
 
 		final HBox subjectBox = new HBox(iconBox, subjectField, settingsButton, signoutButton);
 		setTop(subjectBox);
