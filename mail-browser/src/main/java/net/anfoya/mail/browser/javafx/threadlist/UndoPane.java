@@ -16,16 +16,15 @@ import net.anfoya.java.undo.UndoService;
 public class UndoPane extends GridPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UndoPane.class);
 
-	private final Button button;
-	private final Timeline timeline;
-
 	public UndoPane(UndoService service, Node focusNode) {
 		getStyleClass().add("droparea-grid");
 		setVisible(false);
 		setOpacity(0);
+		setMinHeight(40);
+		setMaxHeight(40);
 		managedProperty().bind(visibleProperty());
 
-		button = new Button("undo");
+		final Button button = new Button("undo");
 		button.getStyleClass().add("undo");
 		button.prefWidthProperty().bind(widthProperty());
 		button.prefHeightProperty().bind(heightProperty());
@@ -39,7 +38,7 @@ public class UndoPane extends GridPane {
 		});
 		add(button, 0, 0);
 
-		timeline = new Timeline(
+		final Timeline timeline = new Timeline(
 				new KeyFrame(Duration.ZERO, new KeyValue(opacityProperty(), 0))
 				, new KeyFrame(Duration.seconds(.5), new KeyValue(opacityProperty(), 1))
 				, new KeyFrame(Duration.seconds(10), new KeyValue(opacityProperty(), 1))
@@ -52,8 +51,6 @@ public class UndoPane extends GridPane {
 		service.canUndoProperty().addListener((ov, o, n) -> Platform.runLater(() -> {
 			setVisible(n);
 			if (n) {
-				setMinHeight(40);
-				setMaxHeight(40);
 				button.setText("undo " + service.getDesciption());
 				timeline.playFromStart();
 			}
