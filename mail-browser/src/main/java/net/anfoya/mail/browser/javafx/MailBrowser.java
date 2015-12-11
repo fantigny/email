@@ -210,7 +210,8 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		}
 
 		// update thread details when (a) thread(s) is/are selected
-		threadPane.refresh(threadListPane.getSelectedThreads());
+		final boolean markRead = !sectionListPane.getIncludedOrSelectedTags().contains(mailService.getSpecialTag(SpecialTag.UNREAD));
+		threadPane.refresh(threadListPane.getSelectedThreads(), markRead);
 	}
 
 	private void refreshAfterMoreThreadsSelected() {
@@ -230,7 +231,8 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		}
 		LOGGER.debug("refreshAfterThreadListLoad");
 
-		threadPane.refresh(threadListPane.getSelectedThreads());
+		final boolean markRead = !sectionListPane.getIncludedOrSelectedTags().contains(mailService.getSpecialTag(SpecialTag.UNREAD));
+		threadPane.refresh(threadListPane.getSelectedThreads(), markRead);
 //		final String pattern = threadListPane.getNamePattern();
 //		if (pattern.isEmpty()) {
 			sectionListPane.updateItemCount(threadListPane.getThreadsTags(), threadListPane.getNamePattern(), true);

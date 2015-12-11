@@ -34,7 +34,6 @@ import net.anfoya.mail.service.Message;
 import net.anfoya.mail.service.Section;
 import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
-import net.anfoya.tag.model.SpecialTag;
 
 public class ThreadList<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends ListView<H> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadList.class);
@@ -168,7 +167,6 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 			protected Set<H> call() throws InterruptedException, MailException {
 				LOGGER.debug("loading for includes {}, excludes {}, pattern: {}, pageMax: {}", includes, excludes, pattern, page);
 				final Set <H> threads = mailService.findThreads(includes, excludes, pattern, page);
-				tweakUnreadMessage(threads);
 				return threads;
 			}
 		};
@@ -269,23 +267,6 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 					getSelectionModel().select(t);
 					break;
 				}
-			}
-		}
-	}
-
-	private void tweakUnreadMessage(final Set<H> threads) {
-		final T unread = mailService.getSpecialTag(SpecialTag.UNREAD);
-		if (!includes.contains(unread)) {
-			return;
-		}
-		for(final H t: getItems()) {
-			if (!t.isUnread()) {
-				return;
-			}
-		}
-		for(final H t: getItems()) {
-			if (!threads.contains(t)) {
-				threads.add(t);
 			}
 		}
 	}

@@ -81,6 +81,8 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 
 	private SettingsDialog<S, T> settingsDialog;
 
+	private boolean markRead;
+
 	public ThreadPane(final MailService<S, T, H, M, C> mailService, UndoService undoService) {
 		getStyleClass().add("thread");
 		this.mailService = mailService;
@@ -187,8 +189,9 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		signoutHandler = handler;
 	}
 
-	public void refresh(final Set<H> threads) {
+	public void refresh(final Set<H> threads, boolean markRead) {
 		this.threads = threads;
+		this.markRead = markRead;
 
 		refreshIcons();
 		refreshSubject();
@@ -326,7 +329,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 			}
 		}
 
-		if (thread.isUnread()) {
+		if (markRead && thread.isUnread()) {
 			remove(threads, unread, false);
 		}
 	}
