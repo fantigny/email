@@ -89,7 +89,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		Notifier.INSTANCE.popupLifetime().bind(Settings.getSettings().popupLifetime());
 	}
 
-	public void setOnSignout(final EventHandler<ActionEvent> handler) {
+	public void setOnSignout(EventHandler<ActionEvent> handler) {
 		threadPane.setOnSignout(handler);
 
 	}

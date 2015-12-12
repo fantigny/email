@@ -62,6 +62,11 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 	private static final GmailTag[] SYSTEM_TAG_ORDER = {
 			GmailTag.INBOX
+			, GmailTag.SOCIAL
+			, GmailTag.PROMOTIONS
+			, GmailTag.UPDATES
+			, GmailTag.FORUMS
+			, GmailTag.CHAT
 			, GmailTag.UNREAD
 			, GmailTag.STARRED
 			, GmailTag.DRAFT
@@ -298,35 +303,44 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 	@Override
 	public GmailTag getTag(final String id) throws GMailException {
-		try {
-			return new GmailTag(labelService.get(id));
-		} catch (final LabelException e) {
-			throw new GMailException("getting tag " + id, e);
+		GmailTag tag = getSpecialTag(id);
+		if (tag == null) {
+			try {
+				tag = new GmailTag(labelService.get(id));
+			} catch (final LabelException e) {
+				throw new GMailException("getting tag " + id, e);
+			}
 		}
+		return tag;
 	}
 
 	@Override
 	public Set<GmailTag> getTags(final String pattern) throws GMailException {
 		final Set<String> patterns = Arrays.asList(pattern.split(" "))
 				.stream()
-				.filter(s -> !s.trim().isEmpty())
+				.map(String::trim)
+				.filter(s -> !s.isEmpty())
 				.map(String::toLowerCase)
 				.collect(Collectors.toSet());
 		final Set<GmailTag> tags = new TreeSet<GmailTag>();
+		Set<Label> labels;
 		try {
-			for(final Label l: labelService.getAll()) {
-				if (!GmailTag.isHidden(l)) {
-					final String name = GmailTag.getName(l).toLowerCase();
-					for(final String p: patterns) {
-						if (name.contains(p)) {
-							tags.add(new GmailTag(l));
-							break;
-						}
-					}
+			labels = labelService.getAll()
+					.stream()
+					.filter(l -> !GmailTag.isHidden(l))
+					.collect(Collectors.toSet());
+		} catch (final LabelException e) {
+			throw new GMailException("get tags for pattern(s) " + patterns, e);
+		}
+		for(final Label l: labels) {
+			final GmailTag tag = getTag(l.getId());
+			final String tagName = tag.getName();
+			for(final String p: patterns) {
+				if (tagName.contains(p)) {
+					tags.add(tag);
+					break;
 				}
 			}
-		} catch (final LabelException e) {
-			throw new GMailException("getting tags for patterns " + patterns.toString(), e);
 		}
 		return tags;
 	}
@@ -884,6 +898,11 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		case SPAM:		return GmailTag.SPAM;
 		case TRASH:		return GmailTag.TRASH;
 		case DRAFT:		return GmailTag.DRAFT;
+		case SOCIAL:	return GmailTag.SOCIAL;
+		case PROMOTIONS:return GmailTag.PROMOTIONS;
+		case UPDATES:	return GmailTag.UPDATES;
+		case FORUMS:	return GmailTag.FORUMS;
+		case CHAT:		return GmailTag.CHAT;
 		}
 		return null;
 	}

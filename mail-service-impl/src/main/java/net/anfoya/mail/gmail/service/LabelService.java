@@ -2,10 +2,11 @@ package net.anfoya.mail.gmail.service;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
@@ -54,7 +55,7 @@ public class LabelService {
 		}));
 	}
 
-	public Collection<Label> getAll() throws LabelException {
+	public Set<Label> getAll() throws LabelException {
 		if (idLabels.isEmpty()) {
 			try {
 				for(final Label l: gmail.users().labels().list(user).execute().getLabels()) {
@@ -65,7 +66,7 @@ public class LabelService {
 			}
 			LOGGER.debug("all labels: {}", idLabels.values());
 		}
-		return idLabels.values();
+		return new HashSet<Label>(idLabels.values());
 	}
 
 	public Label get(final String id) throws LabelException {
