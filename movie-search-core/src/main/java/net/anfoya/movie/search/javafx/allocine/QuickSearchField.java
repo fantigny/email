@@ -5,11 +5,10 @@ import java.net.MalformedURLException;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
 import net.anfoya.java.util.concurrent.ThreadPool;
@@ -17,9 +16,6 @@ import net.anfoya.javafx.scene.control.ComboFieldOld;
 import net.anfoya.movie.connector.AllocineConnector;
 import net.anfoya.movie.connector.MovieConnector;
 import net.anfoya.movie.connector.MovieVo;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class QuickSearchField extends ComboFieldOld<MovieVo> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(QuickSearchField.class);
@@ -32,29 +28,14 @@ public class QuickSearchField extends ComboFieldOld<MovieVo> {
 
 	public QuickSearchField() {
 		setPromptText("Key in a text and wait for quick search or type <Enter> for full search");
-		setCellFactory(new Callback<ListView<MovieVo>, ListCell<MovieVo>>() {
-			@Override
-			public ListCell<MovieVo> call(final ListView<MovieVo> listView) {
-				return new QuickSearchListCell();
-			}
-		});
+		setCellFactory(listView -> new QuickSearchListCell());
 
 		requestedVo = null;
 		requestTime = new AtomicLong(0);
 
-		setOnFieldAction(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(final ActionEvent event) {
-				submitSearch();
-			}
-		});
+		setOnFieldAction(event -> submitSearch());
 
-		setOnListRequest(new EventHandler<ActionEvent>() {
-			@Override
-			public void handle(final ActionEvent event) {
-				submitQuickSearch();
-			}
-		});
+		setOnListRequest(event -> submitQuickSearch());
 
 		setConverter(new StringConverter<MovieVo>() {
 			@Override
@@ -115,19 +96,16 @@ public class QuickSearchField extends ComboFieldOld<MovieVo> {
 
 		final long requestTime = System.nanoTime();
 		this.requestTime.set(requestTime);
-		ThreadPool.getInstance().submitHigh(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					quickSearch(requestTime, qsVo.toString());
-				} catch (final InterruptedException e) {
-					return;
-				} catch (final Exception e) {
-					LOGGER.error("loading \"{}\"", qsVo.toString(), e);
-					return;
-				}
+		ThreadPool.getInstance().submitHigh(() -> {
+			try {
+				quickSearch(requestTime, qsVo.toString());
+			} catch (final InterruptedException e) {
+				return;
+			} catch (final Exception e) {
+				LOGGER.error("loading \"{}\"", qsVo.toString(), e);
+				return;
 			}
-		});
+		}, "search " + qsVo.toString());
 	}
 
 	private void quickSearch(final long requestId, final String pattern) throws InterruptedException, MalformedURLException, IOException {
@@ -148,19 +126,16 @@ public class QuickSearchField extends ComboFieldOld<MovieVo> {
 		}
 
 		// launch GUI update
-		Platform.runLater(new Runnable() {
-			@Override
-			public void run() {
-				if (requestId != QuickSearchField.this.requestTime.get()) {
-					LOGGER.debug("request list cancelled ({})", requestId);
-					return;
-				}
-				getItems().setAll(qsResults);
-				if (!getItems().isEmpty()) {
-					show();
-				}
-				LOGGER.info("request list displayed ({}) \"{}\"", requestId, pattern);
+		Platform.runLater(() -> {
+			if (requestId != QuickSearchField.this.requestTime.get()) {
+				LOGGER.debug("request list cancelled ({})", requestId);
+				return;
 			}
+			getItems().setAll(qsResults);
+			if (!getItems().isEmpty()) {
+				show();
+			}
+			LOGGER.info("request list displayed ({}) \"{}\"", requestId, pattern);
 		});
 	}
 

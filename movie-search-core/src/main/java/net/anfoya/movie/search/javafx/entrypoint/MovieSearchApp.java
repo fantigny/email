@@ -13,7 +13,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import net.anfoya.java.net.cookie.PersistentCookieStore;
 import net.anfoya.java.net.url.filter.RuleSet;
-import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.movie.search.javafx.ComponentBuilder;
 import net.anfoya.movie.search.javafx.SearchPane;
 import net.anfoya.movie.search.javafx.SearchTabs;
@@ -47,8 +46,6 @@ public class MovieSearchApp extends Application {
 
 	@Override
     public void start(final Stage mainStage) {
-		mainStage.setOnCloseRequest(event -> ThreadPool.getInstance().shutdown());
-
 		cookieStore.load();
 		CookieHandler.setDefault(new CookieManager(cookieStore, CookiePolicy.ACCEPT_ALL));
 

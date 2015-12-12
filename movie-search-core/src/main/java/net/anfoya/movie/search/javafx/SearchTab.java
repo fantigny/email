@@ -1,5 +1,8 @@
 package net.anfoya.movie.search.javafx;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.binding.ListBinding;
@@ -17,9 +20,6 @@ import net.anfoya.javafx.scene.control.TitledProgressBar;
 import net.anfoya.javafx.scene.layout.LocationPane;
 import net.anfoya.movie.connector.MovieConnector;
 import net.anfoya.movie.connector.MovieVo;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class SearchTab extends Tab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SearchTab.class);
@@ -90,8 +90,8 @@ public class SearchTab extends Tab {
 				return connector.find(pattern);
 			}
 		};
-		task.setOnSucceeded(event -> search(task.getValue()));
-		ThreadPool.getInstance().submitHigh(task);
+		task.setOnSucceeded(e -> search(task.getValue()));
+		ThreadPool.getInstance().submitHigh(task, "search " + pattern);
 	}
 
 	public void search(final MovieVo movieVo) {
