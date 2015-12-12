@@ -35,8 +35,6 @@ import net.anfoya.tag.model.SpecialTag;
 public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends Scene {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailBrowser.class);
 
-	private static final boolean SHOW_EXCLUDE_BOX = Settings.getSettings().showExcludeBox().get();
-
 	private final MailService<S, T, H, M, C> mailService;
 
 	private final SectionListPane<S, T> sectionListPane;
@@ -46,13 +44,26 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	public MailBrowser(final MailService<S, T, H, M, C> mailService) throws MailException {
 		super(new SplitPane(), Color.TRANSPARENT);
 		this.mailService = mailService;
+		final UndoService undoService = new UndoService();
 
 		StyleHelper.addCommonCss(this);
 		StyleHelper.addCss(this, "/net/anfoya/javafx/scene/control/excludebox.css");
 
+		setOnKeyPressed(e -> {
+			switch(e.getCode()) {
+			case RIGHT:
+			case LEFT:
+				LOGGER.warn("{}", e.getCode());
+				e.consume();
+				break;
+			default:
+			}
+		});
+
+		final boolean showExcBox = Settings.getSettings().showExcludeBox().get();
 		final SplitPane splitPane = (SplitPane) getRoot();
 		splitPane.getStyleClass().add("background");
-		if (SHOW_EXCLUDE_BOX) {
+		if (showExcBox) {
 			splitPane.setDividerPosition(0, .10);
 			splitPane.setDividerPosition(1, .34);
 		} else {
@@ -60,9 +71,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 			splitPane.setDividerPosition(1, .32);
 		}
 
-		final UndoService undoService = new UndoService();
-
-		sectionListPane = new SectionListPane<S, T>(mailService, undoService, SHOW_EXCLUDE_BOX);
+		sectionListPane = new SectionListPane<S, T>(mailService, undoService, showExcBox);
 		sectionListPane.setFocusTraversable(false);
 		sectionListPane.prefHeightProperty().bind(sectionListPane.heightProperty());
 		sectionListPane.setSectionDisableWhenZero(false);
@@ -89,7 +98,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		Notifier.INSTANCE.popupLifetime().bind(Settings.getSettings().popupLifetime());
 	}
 
-	public void setOnSignout(EventHandler<ActionEvent> handler) {
+	public void setOnSignout(final EventHandler<ActionEvent> handler) {
 		threadPane.setOnSignout(handler);
 
 	}
