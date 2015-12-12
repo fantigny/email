@@ -12,9 +12,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import javafx.util.Callback;
-import net.anfoya.java.util.concurrent.ThreadPool;
-
 import org.jgroups.JChannel;
 import org.jgroups.Message;
 import org.jgroups.ReceiverAdapter;
@@ -22,6 +19,9 @@ import org.jgroups.View;
 import org.jgroups.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javafx.util.Callback;
+import net.anfoya.java.util.concurrent.ThreadPool;
 
 public class StatusManager extends ReceiverAdapter {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StatusManager.class);
@@ -49,7 +49,7 @@ public class StatusManager extends ReceiverAdapter {
 				channel.connect(clusterName, null, 1000);
 				return Boolean.TRUE;
 			}
-		});
+		}, "initialize cluster");
 	}
 
 	@Override
