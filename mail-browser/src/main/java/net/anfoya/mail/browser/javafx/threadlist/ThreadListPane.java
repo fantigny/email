@@ -35,8 +35,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.AudioClip;
 import javafx.util.Duration;
 import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.concurrent.ThreadPool;
@@ -59,7 +58,6 @@ import net.anfoya.tag.model.SpecialTag;
 public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends BorderPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadListPane.class);
 	private static final ReadOnlyBooleanProperty ARCHIVE_ON_DROP = Settings.getSettings().archiveOnDrop();
-	private static final Media TRASH_SOUND = new Media(Settings.MP3_TRASH);
 
 	public static final DataFormat DND_THREADS_DATA_FORMAT = new DataFormat("DND_THREADS_DATA_FORMAT");
 
@@ -137,18 +135,18 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		centerPane.setAlignment(Pos.BOTTOM_CENTER);
 		setCenter(centerPane);
 
-		centerPane.getChildren().add(new UndoPane(undoService, this));
+		centerPane.getChildren().add(new UndoPane(undoService, threadList));
+		centerPane.getChildren().add(new DisconnectedPane(mailService, threadList));
 
 		final Button newButton = new Button();
 		newButton.setFocusTraversable(false);
-		newButton
-				.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/new.png"))));
-		newButton.setTooltip(new Tooltip("new mail"));
+		newButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/img/new.png"))));
+		newButton.setTooltip(new Tooltip("new"));
 		newButton.setOnAction(event -> {
 			try {
 				new MailComposer<M, C>(mailService, updateHandler).newMessage("");
 			} catch (final Exception e) {
-				LOGGER.error("loading new message composer", e);
+				LOGGER.error("load new message composer", e);
 			}
 		});
 
@@ -230,7 +228,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 				new MailComposer<M, C>(mailService, updateHandler).forward(message);
 			}
 		} catch (final Exception e) {
-			LOGGER.error("loading transfer composer", e);
+			LOGGER.error("load forward composer", e);
 		}
 	}
 
@@ -241,7 +239,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 				new MailComposer<M, C>(mailService, updateHandler).reply(message, all);
 			}
 		} catch (final Exception e) {
-			LOGGER.error("loading reply{} composer", all ? " all" : "", e);
+			LOGGER.error("load reply{} composer", all ? " all" : "", e);
 		}
 		return null;
 	}
@@ -251,10 +249,12 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		final Iterator<H> iterator = threads.iterator();
 		final boolean hasInbox = iterator.hasNext() && iterator.next().getTagIds().contains(inbox.getId());
 
+		new AudioClip(Settings.MP3_TRASH).play();
+
+		final String description = "trash";
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
-				new MediaPlayer(TRASH_SOUND).play();
 				mailService.trash(threads);
 				return null;
 			}
@@ -266,15 +266,16 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 					mailService.addTagForThreads(inbox, threads);
 				}
 				return null;
-			}, "trash");
+			}, description);
 			updateHandler.handle(null);
 		});
-		task.setOnFailed(e -> LOGGER.error("trashing threads", e.getSource().getException()));
-		ThreadPool.getInstance().submitHigh(task, "trashing threads");
+		task.setOnFailed(e -> LOGGER.error(description, e.getSource().getException()));
+		ThreadPool.getInstance().submitHigh(task, description);
 	}
 
 	private void archiveSelected() {
 		final Set<H> threads = threadList.getSelectedThreads();
+		final String description = "archive";
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
@@ -286,11 +287,11 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 			undoService.set(() -> {
 				mailService.addTagForThreads(inbox, threads);
 				return null;
-			}, "archive");
+			}, description);
 			updateHandler.handle(null);
 		});
-		task.setOnFailed(e -> LOGGER.error("archiving threads", e.getSource().getException()));
-		ThreadPool.getInstance().submitHigh(task, "archiving threads");
+		task.setOnFailed(e -> LOGGER.error(description, e.getSource().getException()));
+		ThreadPool.getInstance().submitHigh(task, description);
 	}
 
 	private void toggleFlag() {
@@ -300,11 +301,11 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		}
 		try {
 			if (threads.iterator().next().isFlagged()) {
-				removeTagForThreads(flagged, threads, "remove flag"
-						, () -> addTagForThreads(flagged, threads, "add flag", null));
+				removeTagForThreads(flagged, threads, "unflag"
+						, () -> addTagForThreads(flagged, threads, "flag", null));
 			} else {
-				addTagForThreads(flagged, threads, "add flag"
-						, () -> removeTagForThreads(flagged, threads, "remove flag", null));
+				addTagForThreads(flagged, threads, "flag"
+						, () -> removeTagForThreads(flagged, threads, "unflag", null));
 			}
 		} catch (final Exception e) {
 			LOGGER.error("toggle flag", e);
@@ -318,14 +319,14 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		}
 		try {
 			if (threads.iterator().next().getTagIds().contains(spam.getId())) {
-				removeTagForThreads(spam, threads, "unset spam", null);
-				addTagForThreads(inbox, threads, "unset spam"
-						, () -> addTagForThreads(spam, threads, "set spam", null));
+				removeTagForThreads(spam, threads, "not spam", null);
+				addTagForThreads(inbox, threads, "not spam"
+						, () -> addTagForThreads(spam, threads, "spam", null));
 			} else {
-				addTagForThreads(spam, threads, "set spam"
+				addTagForThreads(spam, threads, "spam"
 						, () -> {
-					removeTagForThreads(spam, threads, "unset spam", null);
-					addTagForThreads(inbox, threads, "unset spam", null);
+						removeTagForThreads(spam, threads, "not spam", null);
+						addTagForThreads(inbox, threads, "not spam", null);
 					return null;
 				});
 			}
@@ -345,7 +346,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 				return null;
 			}
 		};
-		task.setOnFailed(e -> LOGGER.error("adding tag {} for threads {}", tag, threads, e.getSource().getException()));
+		task.setOnFailed(e -> LOGGER.error("add tag {} for threads {}", tag, threads, e.getSource().getException()));
 		task.setOnSucceeded(e -> {
 			undoService.set(undo, description);
 			updateHandler.handle(null);
@@ -362,7 +363,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 				return null;
 			}
 		};
-		task.setOnFailed(e -> LOGGER.error("removing tag {}", tag.getName(), e.getSource().getException()));
+		task.setOnFailed(e -> LOGGER.error("remove tag {} for threads {}", tag, threads, e.getSource().getException()));
 		task.setOnSucceeded(e -> {
 			undoService.set(undo, description);
 			updateHandler.handle(null);
@@ -374,7 +375,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	private void createTagForThreads(final String name, final Set<H> threads) {
 		final Iterator<H> iterator = threads.iterator();
 		final boolean hasInbox = iterator.hasNext() && iterator.next().getTagIds().contains(inbox.getId());
-		final String description = "create tag " + name;
+		final String description = "add " + name;
 
 		final Task<T> task = new Task<T>() {
 			@Override

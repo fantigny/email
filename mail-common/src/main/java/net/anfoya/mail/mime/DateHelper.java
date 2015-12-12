@@ -5,7 +5,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 public class DateHelper {
-	private static final String TODAY_FORMAT = "HH:mm";
+	private static final String TODAY_FORMAT = "H:mm";
 	private static final String WEEK_FORMAT = "EEE' 'd";
 	private static final String MONTH_FORMAT = "MMM', 'EEE' 'd";
 	private static final String DEFAULT_FORMAT = "yyyy' '" + MONTH_FORMAT;

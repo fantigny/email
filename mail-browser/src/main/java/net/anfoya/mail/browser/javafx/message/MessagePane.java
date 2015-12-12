@@ -2,11 +2,13 @@ package net.anfoya.mail.browser.javafx.message;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Date;
 import java.util.Set;
 
 import javax.mail.Address;
 import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MailDateFormat;
 import javax.mail.internet.MimeMessage;
 
 import org.slf4j.Logger;
@@ -60,8 +62,9 @@ import net.anfoya.mail.service.Thread;
 public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessagePane.class);
 
-    private static final Image ATTACHMENT = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/image/attachment.png"));
-    private static final Image MINI_ATTACHMENT = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/image/mini_attach.png"));
+    private static final Image ATTACHMENT = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/img/attachment.png"));
+    private static final Image MINI_ATTACHMENT = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/img/mini_attach.png"));
+    private static final String DEFAULT_CSS = ThreadPool.class.getResource("/net/anfoya/mail/css/default_browser.css").toExternalForm();
 
 	private final String messageId;
 	private final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService;
@@ -100,7 +103,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 
 		messageView = new WebViewFitContent();
 		messageView.focusTraversableProperty().bind(focusTraversableProperty());
-		messageView.getEngine().setUserStyleSheetLocation(getClass().getResource("default.css").toExternalForm());
+		messageView.getEngine().setUserStyleSheetLocation(DEFAULT_CSS);
 		messageView.getEngine().setCreatePopupHandler(handler -> messageView.getEngine());
 		messageView.getEngine().locationProperty().addListener((ov, o, n) -> handleExtLink(messageView.getWebView(), n));
 
@@ -138,6 +141,8 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
         });
 
 		final HBox title = new HBox(arrowBox, recipientFlow, iconBox, dateText);
+		title.setMinHeight(27);
+		title.setMaxHeight(27);
 		HBox.setHgrow(iconBox, Priority.ALWAYS);
 		title.getStyleClass().add("header");
 		title.setOnMouseClicked(event -> {
@@ -196,14 +201,14 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	private void handleExtLink(WebView view, String url) {
 		if (url != null && !url.isEmpty()) {
 			Platform.runLater(() -> {
-				messageView.getEngine().getLoadWorker().cancel();
+				view.getEngine().getLoadWorker().cancel();
 				load();
 			});
 			UrlHelper.open(url, recipient -> {
 				try {
 					new MailComposer<M, C>(mailService, updateHandler).newMessage(recipient);
 				} catch (final MailException e) {
-					LOGGER.error("creating new mail to {}", recipient, e);
+					LOGGER.error("create new mail to {}", recipient, e);
 				}
 				return null;
 			});
@@ -251,14 +256,12 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 			    return helper.toHtml(message.getMimeMessage());
 			}
 		};
-		loadTask.setOnFailed(event -> {
-			LOGGER.error("loading message id {}", messageId, event.getSource().getException());
-		});
-		loadTask.setOnSucceeded(event -> {
+		loadTask.setOnSucceeded(e -> {
 			refresh();
 			messageView.getEngine().loadContent(loadTask.getValue());
 		});
-		ThreadPool.getInstance().submitHigh(loadTask, "loading message id " + messageId);
+		loadTask.setOnFailed(e -> LOGGER.error("load message {}", messageId, e.getSource().getException()));
+		ThreadPool.getInstance().submitHigh(loadTask, "load message " + messageId);
 	}
 
 	public void setScrollHandler(final EventHandler<ScrollEvent> handler) {
@@ -318,19 +321,28 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 				}
 			}
 		} catch (final MessagingException e) {
-			LOGGER.error("loading title data", e);
+			LOGGER.error("get title data", e);
 		}
 
-		String date = "";
+		String text = "";
 		try {
-			date = new DateHelper(mimeMessage.getSentDate()).format();
-		} catch (final Exception e) {
-			LOGGER.warn("loading sent date", e);
+			final String[] headers = mimeMessage.getHeader("Received", null).split(";");
+			final String dateString = headers[headers.length -1].trim();
+			final Date date = new MailDateFormat().parse(dateString);
+			text = new DateHelper(date).format();
+		} catch (final Exception ex1) {
+			try {
+				text = new DateHelper(mimeMessage.getSentDate()).format();
+			} catch (final Exception ex2) {
+				LOGGER.error("get received date", ex1);
+				LOGGER.error("get sent date", ex2);
+				text = "n/d";
+			}
 		}
-		dateText.setText(date);
+		dateText.setText(text);
 
 		snippetView.getEngine().loadContent(message.getSnippet() + "...");
-		snippetView.getEngine().setUserStyleSheetLocation(getClass().getResource("default.css").toExternalForm());
+		snippetView.getEngine().setUserStyleSheetLocation(DEFAULT_CSS);
 
 		attachmentPane.getChildren().clear();
 		final Set<String> attachNames = helper.getAttachmentNames();
@@ -343,7 +355,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 					try {
 						new AttachmentLoader<M>(mailService, message.getId()).start(name);
 					} catch (final Exception ex) {
-						LOGGER.error("loading ", ex);
+						LOGGER.error("load ", ex);
 					}
 				});
 				attachmentPane.getChildren().add(attachment);

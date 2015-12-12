@@ -13,15 +13,15 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import net.anfoya.java.cache.LocalCache;
 import net.anfoya.java.io.SerializedFile;
 import net.anfoya.java.net.filtered.easylist.loader.InternetLoader;
 import net.anfoya.java.net.filtered.easylist.model.Rule;
 import net.anfoya.java.net.url.filter.RuleSet;
 import net.anfoya.java.util.concurrent.ThreadPool;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class EasyListRuleSet implements RuleSet {
 	private static final Logger LOGGER = LoggerFactory.getLogger(EasyListRuleSet.class);
@@ -132,15 +132,18 @@ public class EasyListRuleSet implements RuleSet {
 			return null;
 		}, "load local rules");
 		ThreadPool.getInstance().submitHigh(() -> {
-			future.get();
+			try {
+				future.get();
+			} catch (InterruptedException | ExecutionException e) {
+				LOGGER.error("loading rule sets", e);
+			}
 			loadCache();
 			if (local.isOlder(Calendar.DAY_OF_YEAR, 1)
 					|| exceptions.isEmpty()
 					|| exclusions.isEmpty()) {
 				loadInternet();
 			}
-			return null;
-		}, "load internet rules");
+		}, "load cache");
 	}
 
 	private void loadCache() {

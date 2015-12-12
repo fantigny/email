@@ -7,7 +7,7 @@
 /**/
 
 .background {
-    -fx-background-color: white;
+    -fx-background-color: #FDFDFD;
 }
 
 .tooltip {
@@ -139,12 +139,15 @@
 
 /* thread list */
 .thread-list {
+	-fx-padding: 0;
+	-fx-border: 0;
 }
 .thread-list .cell {
 }
 .thread-list .cell:empty {
 	-fx-background-color: transparent;
 }
+
 .thread-list-cell-dnd {
 	-fx-min-width: 300;
 	-fx-max-width: 300;
@@ -198,6 +201,18 @@
 }
 .undo:hover {
     -fx-background-color: lightsalmon;
+    -fx-text-fill: black;
+}
+
+/* disconnected button */
+.disconnected, .disconnected:hover, .disconnected:selected {
+    -fx-padding: 2;
+	-fx-opacity: 0.9;
+	-fx-background-radius: 5;
+    -fx-background-color: lightsalmon;
+    -fx-border-width: 0;
+
+    -fx-font-weight: bold;
     -fx-text-fill: black;
 }
 

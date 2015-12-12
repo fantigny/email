@@ -91,7 +91,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		editedProperty = new SimpleBooleanProperty(false);
 		autosaveTimer = null;
 
-		final Image icon = new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png"));
+		final Image icon = new Image(getClass().getResourceAsStream("/net/anfoya/mail/img/Mail.png"));
 		getIcons().add(icon);
 
 		final Scene scene = new Scene(new BorderPane(), 800, 600, Color.TRANSPARENT);

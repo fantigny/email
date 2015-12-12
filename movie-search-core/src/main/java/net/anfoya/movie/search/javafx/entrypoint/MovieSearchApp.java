@@ -47,6 +47,8 @@ public class MovieSearchApp extends Application {
 
 	@Override
     public void start(final Stage mainStage) {
+		mainStage.setOnCloseRequest(event -> ThreadPool.getInstance().shutdown());
+
 		cookieStore.load();
 		CookieHandler.setDefault(new CookieManager(cookieStore, CookiePolicy.ACCEPT_ALL));
 

@@ -7,7 +7,7 @@ import net.anfoya.mail.service.Section;
 
 @SuppressWarnings("serial")
 public class GmailSection extends SimpleSection implements Section {
-	public static final GmailSection SYSTEM = new GmailSection("GMail");
+	public static final GmailSection SYSTEM = new GmailSection("Gmail");
 
 	private final String string;
 	private final String path;

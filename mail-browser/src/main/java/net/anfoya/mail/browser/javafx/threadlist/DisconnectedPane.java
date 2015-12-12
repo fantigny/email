@@ -11,12 +11,12 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.layout.GridPane;
 import javafx.util.Duration;
-import net.anfoya.java.undo.UndoService;
+import net.anfoya.mail.service.MailService;
 
-public class UndoPane extends GridPane {
-	private static final Logger LOGGER = LoggerFactory.getLogger(UndoPane.class);
+public class DisconnectedPane extends GridPane {
+	private static final Logger LOGGER = LoggerFactory.getLogger(DisconnectedPane.class);
 
-	public UndoPane(UndoService service, Node focusNode) {
+	public DisconnectedPane(MailService<?, ?, ?, ?, ?> mailService, Node focusNode) {
 		getStyleClass().add("droparea-grid");
 		setVisible(false);
 		setOpacity(0);
@@ -24,16 +24,16 @@ public class UndoPane extends GridPane {
 		setMaxHeight(40);
 		managedProperty().bind(visibleProperty());
 
-		final Button button = new Button("undo");
-		button.getStyleClass().add("undo");
+		final Button button = new Button("disconnected");
+		button.getStyleClass().add("disconnected");
 		button.prefWidthProperty().bind(widthProperty());
 		button.prefHeightProperty().bind(heightProperty());
 		button.setOnAction(e -> {
 			try {
-				service.undo();
+				mailService.reconnect();
 				focusNode.requestFocus();
 			} catch (final Exception ex) {
-				LOGGER.error("undo", ex);
+				LOGGER.error("reconnect", ex);
 			}
 		});
 		add(button, 0, 0);
@@ -41,23 +41,17 @@ public class UndoPane extends GridPane {
 		final Timeline timeline = new Timeline(
 				new KeyFrame(Duration.ZERO, new KeyValue(opacityProperty(), 0))
 				, new KeyFrame(Duration.seconds(.5), new KeyValue(opacityProperty(), 1))
-				, new KeyFrame(Duration.seconds(10), new KeyValue(opacityProperty(), 1))
-				, new KeyFrame(Duration.seconds(12), new KeyValue(opacityProperty(), 0))
 				);
-		timeline.setOnFinished(e -> {
-			setVisible(false);
-		});
+		timeline.setOnFinished(e -> setVisible(mailService.disconnectedProperty().get()));
 
-		service.canUndoProperty().addListener((ov, o, n) -> {
-			timeline.stop();
+		mailService.disconnectedProperty().addListener((ov, o, n) -> {
 			if (n) {
-				Platform.runLater(() -> {
-					button.setText("undo " + service.getDesciption());
-					setVisible(true);
-				});
+				Platform.runLater(() ->setVisible(true));
+				timeline.setRate(1);
 				timeline.playFromStart();
 			} else {
-				timeline.playFrom(Duration.seconds(10));
+				timeline.setRate(-1);
+				timeline.playFrom(Duration.seconds(.5));
 			}
 		});
 
@@ -65,6 +59,6 @@ public class UndoPane extends GridPane {
 			timeline.stop();
 			setOpacity(1);
 		});
-		setOnMouseExited(e -> timeline.playFrom(Duration.seconds(5)));
+		setOnMouseExited(e -> timeline.playFrom(Duration.seconds(.5)));
 	}
 }

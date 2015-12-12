@@ -44,7 +44,7 @@ import sun.misc.IOUtils;
 public class MessageHelper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessageHelper.class);
 	private static final String TEMP = System.getProperty("java.io.tmpdir") + File.separatorChar;
-	private static final String SYS_ICON = "/net/anfoya/mail/sysicon/%s.png";
+	private static final String SYS_ICON = "/net/anfoya/mail/sys/%s.png";
 
 	private final Map<String, String> cidUris;
 	private final Set<String> attachmentNames;

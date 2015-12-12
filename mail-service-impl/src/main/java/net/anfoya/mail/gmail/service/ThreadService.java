@@ -25,7 +25,6 @@ import com.google.api.services.gmail.model.Thread;
 
 import net.anfoya.java.cache.FileSerieSerializedMap;
 import net.anfoya.mail.gmail.cache.CacheData;
-import net.anfoya.mail.gmail.cache.CacheException;
 import net.anfoya.mail.gmail.model.GmailThread;
 
 public class ThreadService {
@@ -45,16 +44,46 @@ public class ThreadService {
 		idThreads = new FileSerieSerializedMap<String, CacheData<Thread>>(FILE_PREFIX + user, 50);
 	}
 
-	public Thread get(final String id) throws ThreadException {
-		try {
-			final Set<String> ids = new HashSet<String>();
-			ids.add(id);
-			load(ids);
-			return idThreads.get(id).getData();
-		} catch (final CacheException e) {
-			idThreads.remove(id);
-			throw new ThreadException("reading thread " + id, e);
+	public Set<Thread> get(final Set<String> ids, boolean cached, Integer nextPage) throws ThreadException {
+		final long start = System.currentTimeMillis();
+		final Set<Thread> threads = new HashSet<Thread>();
+
+		if (ids.isEmpty()) {
+			return threads;
 		}
+
+		final Set<String> notCachedIds;
+		if (!cached) {
+			notCachedIds = ids;
+		} else {
+			notCachedIds = new HashSet<String>();
+			for(final String id: ids) {
+				Thread thread = null;
+				if (idThreads.containsKey(id)) {
+					try {
+						thread = idThreads.get(id).getData();
+					} catch (final Exception e) {
+						LOGGER.error("get from cache {}", id, e);
+						idThreads.remove(id);
+						thread = null;
+					}
+				}
+				if (thread == null) {
+					notCachedIds.add(id);
+				} else {
+					threads.add(thread);
+				}
+			}
+		}
+
+		threads.addAll(load(notCachedIds));
+
+		if (nextPage != null) {
+			threads.add(nextPageThread(nextPage));
+		}
+
+		LOGGER.debug("load threads in {}ms ({})", System.currentTimeMillis()-start, ids);
+		return threads;
 	}
 
 	public Set<Thread> find(final String query, final int pageMax) throws ThreadException {
@@ -64,7 +93,6 @@ public class ThreadService {
 
 		final long start = System.currentTimeMillis();
 		final Set<String> ids = new LinkedHashSet<String>();
-		final Set<String> toLoadIds = new LinkedHashSet<String>();
 		try {
 			ListThreadsResponse threadResponse;
 			threadResponse = gmail.users().threads().list(user)
@@ -77,18 +105,15 @@ public class ThreadService {
 				for(final Thread t : threadResponse.getThreads()) {
 					final String id = t.getId();
 					ids.add(id);
-					if (!idThreads.containsKey(id)) {
-						toLoadIds.add(id);
-					} else {
-						try {
-							if (!idThreads.get(id).getData().getHistoryId().equals(t.getHistoryId())) {
-								toLoadIds.add(id);
-							}
-						} catch (final Exception e) {
-							LOGGER.error("getting thread {} from cache", id, e);
-							idThreads.remove(id);
-							toLoadIds.add(id);
-						}
+
+					boolean removeFromCache = true;
+					try {
+						removeFromCache = idThreads.containsKey(id) && !idThreads.get(id).getData().getHistoryId().equals(t.getHistoryId());
+					} catch (final Exception e) {
+						removeFromCache = true;
+					}
+					if (removeFromCache) {
+						idThreads.remove(id);
 					}
 				}
 				page++;
@@ -103,25 +128,7 @@ public class ThreadService {
 					break;
 				}
 			}
-			load(toLoadIds);
-			final Set<Thread> threads = new LinkedHashSet<Thread>();
-			for(final String id: ids) {
-				if (idThreads.containsKey(id)) {
-					try {
-						threads.add(idThreads.get(id).getData());
-					} catch (final Exception e) {
-						LOGGER.error("getting thread {} from cache", id);
-						idThreads.remove(id);
-					}
-				} else {
-					LOGGER.error("thread {} not found in cache", id);
-				}
-			}
-			if (threadResponse.getNextPageToken() != null) {
-				// special thread for next page
-				threads.add(nextPageThread(page));
-			}
-			return threads;
+			return get(ids, true, threadResponse.getNextPageToken() == null? null: page);
 		} catch (final IOException e) {
 			throw new ThreadException("getting threads for query " + query, e);
 		} finally {
@@ -129,10 +136,10 @@ public class ThreadService {
 		}
 	}
 
-	private static Thread nextPageThread(final int nextPage) {
+	private static Thread nextPageThread(final Integer nextPage) {
 		final Thread thread = new Thread();
 		thread.setId(GmailThread.PAGE_TOKEN_ID);
-		thread.setHistoryId(BigInteger.valueOf(nextPage));
+		thread.setHistoryId(BigInteger.valueOf(Long.valueOf(nextPage)));
 		thread.setMessages(new ArrayList<Message>());
 
 		return thread;
@@ -166,7 +173,7 @@ public class ThreadService {
 			}
 			return count;
 		} catch (final IOException e) {
-			throw new ThreadException("counting threads for query " + query, e);
+			throw new ThreadException("count threads for query " + query, e);
 		} finally {
 			LOGGER.debug("count threads in {}ms for query {}", System.currentTimeMillis()-start, query);
 		}
@@ -185,7 +192,7 @@ public class ThreadService {
 				}
 				@Override
 				public void onFailure(final GoogleJsonError e, final HttpHeaders responseHeaders) throws IOException {
-					LOGGER.error("update<{}> labels {} for threads {}\n{}", add? "add": "del", labelIds, threadIds, e.getMessage());
+					LOGGER.error("{} labels {} for threads {}", add? "add": "del", labelIds, threadIds, e.getMessage());
 					latch.countDown();
 				}
 			};
@@ -219,7 +226,7 @@ public class ThreadService {
 				}
 				@Override
 				public void onFailure(final GoogleJsonError e, final HttpHeaders responseHeaders) throws IOException {
-					LOGGER.error("trashing thread", e.getMessage());
+					LOGGER.error("trash thread", e.getMessage());
 					latch.countDown();
 				}
 			};
@@ -229,31 +236,35 @@ public class ThreadService {
 			batch.execute();
 			latch.await();
 		} catch (IOException | InterruptedException e) {
-			throw new ThreadException("trashing for ids " + ids, e);
+			throw new ThreadException("trash threads " + ids, e);
 		} finally {
-			LOGGER.debug("trash threads in {}ms, thread ids", System.currentTimeMillis()-start, ids);
+			LOGGER.debug("trash threads in {}ms, thread ids {}", System.currentTimeMillis()-start, ids);
 		}
 	}
 
-	private void load(final Set<String> ids) throws ThreadException {
-		final long start = System.currentTimeMillis();
+	public void clearCache() {
+		idThreads.clear();
+	}
+
+	private Set<Thread> load(Set<String> ids) throws ThreadException {
+		final Set<Thread> threads = new HashSet<Thread>();
+		if (ids.isEmpty()) {
+			return threads;
+		}
+
 		try {
-			if (ids.isEmpty()) {
-				return;
-			}
-			final Set<Thread> threads = new LinkedHashSet<Thread>();
 			final CountDownLatch latch = new CountDownLatch(ids.size());
 			final BatchRequest batch = gmail.batch();
 			final JsonBatchCallback<Thread> callback = new JsonBatchCallback<Thread>() {
 				@Override
-				public void onSuccess(final Thread t, final HttpHeaders responseHeaders) throws IOException {
+				public void onSuccess(final Thread t, final HttpHeaders responseHeaders) {
 					threads.add(t);
 					idThreads.put(t.getId(), new CacheData<Thread>(t));
 					latch.countDown();
 				}
 				@Override
-				public void onFailure(final GoogleJsonError e, final HttpHeaders responseHeaders) throws IOException {
-					LOGGER.error("loading thread error: {}", e.getMessage());
+				public void onFailure(final GoogleJsonError e, final HttpHeaders responseHeaders) {
+					LOGGER.error("load thread", e.getMessage());
 					latch.countDown();
 				}
 			};
@@ -264,14 +275,10 @@ public class ThreadService {
 			}
 			batch.execute();
 			latch.await();
-		} catch (IOException | InterruptedException e) {
-			throw new ThreadException("loading for ids " + ids, e);
-		} finally {
-			LOGGER.debug("load threads in {}ms, thread ids {}", System.currentTimeMillis()-start, ids);
+		} catch (final Exception e) {
+			throw new ThreadException("load threads " + ids, e);
 		}
-	}
 
-	public void clearCache() {
-		idThreads.clear();
+		return threads;
 	}
 }

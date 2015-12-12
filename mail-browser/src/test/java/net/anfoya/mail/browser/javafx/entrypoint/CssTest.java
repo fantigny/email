@@ -33,7 +33,7 @@ public class CssTest extends Application {
 		final Scene scene = new Scene(mainPane, 800, 600);
 		scene.getStylesheets().add(getClass().getResource("/net/anfoya/mail/css/Mail.css").toExternalForm());
 
-		final ImageView icon = new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png")));
+		final ImageView icon = new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/img/Mail.png")));
 		icon.setFitHeight(16);
 		icon.setFitWidth(icon.getFitHeight());
 

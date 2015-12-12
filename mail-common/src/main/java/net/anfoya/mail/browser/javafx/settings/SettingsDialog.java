@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import javafx.application.Platform;
 import javafx.beans.property.StringProperty;
+import javafx.concurrent.Task;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -28,6 +29,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -35,6 +37,7 @@ import javafx.scene.text.Text;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.RemoveLabel;
 import net.anfoya.mail.browser.javafx.css.StyleHelper;
@@ -49,19 +52,24 @@ import net.anfoya.tag.service.TagException;
 
 public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SettingsDialog.class);
+    private static final String DEFAULT_CSS = SettingsDialog.class.getResource("/net/anfoya/mail/css/default_browser.css").toExternalForm();
+    private static final String HELP_HTML = SettingsDialog.class.getResource("/net/anfoya/mail/help.html").toExternalForm();
 
-	private final MailService<S, T, ? extends Thread, ? extends Message, ? extends Contact> mailService;
+    private final MailService<S, T, ? extends Thread, ? extends Message, ? extends Contact> mailService;
+    private final UndoService undoService;
+
 	private final TabPane tabPane;
 
 	private FlowPane hiddenSectionsPane;
 	private FlowPane hiddenTagsPane;
 
-	public SettingsDialog(MailService<S, T, ? extends Thread, ? extends Message, ? extends Contact> mailService) {
+	public SettingsDialog(MailService<S, T, ? extends Thread, ? extends Message, ? extends Contact> mailService, UndoService undoService) {
 		initStyle(StageStyle.UNIFIED);
 		setTitle("FisherMail - profile");
 		setOnCloseRequest(e -> Settings.getSettings().save());
 
 		this.mailService = mailService;
+		this.undoService = undoService;
 
 		tabPane = new TabPane(buildSettingsTab(), buildAboutTab(), buildHelpTab(), buildTaskTab());
 		tabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
@@ -89,34 +97,35 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 
 	private Tab buildHelpTab() {
 		final WebView help = new WebView();
-		help.getEngine().load(getClass().getResource("/net/anfoya/mail/javafx/settings/help.html").toString());
+		help.getEngine().setUserStyleSheetLocation(DEFAULT_CSS);
+		help.getEngine().load(HELP_HTML);
 
 		return new Tab("help", help);
 	}
 
 	private Tab buildAboutTab() {
 		final VersionHelper checker = new VersionHelper();
-		final ImageView image = new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/Mail.png")));
+		final ImageView image = new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/img/Mail.png")));
 
-		final Text fishermail = new Text("FisherMail ");
-		fishermail.setFont(Font.font("Amble Cn", FontWeight.BOLD, 24));
-		fishermail.setFill(Color.web("#bbbbbb"));
+		final Text fishermail = new Text("FisherMail                         ");
+		fishermail.setFont(Font.font("Amble Cn", FontWeight.BOLD, 32));
+		fishermail.setFill(Color.web("#555555"));
 
-		final Text version = new Text(checker.getMyVersion());
-		version.setFont(Font.font("Amble Cn", FontWeight.BOLD, 14));
-		version.setFill(Color.web("#bbbbbb"));
+		final Text version = new Text(checker.getMyVersion() + "                     ");
+		version.setFont(Font.font("Amble Cn", FontWeight.NORMAL, 18));
+		version.setFill(Color.web("#555555"));
 
-		final Text author = new Text("by Frederic Antigny");
-		author.setFont(Font.font("Amble Cn", FontWeight.BOLD, 24));
-		author.setFill(Color.web("#bbbbbb"));
+		final Text author = new Text("by Fred A.");
+		author.setFont(Font.font("Amble Cn", FontWeight.BOLD, 18));
+		author.setFill(Color.web("#555555"));
 
-		final FlowPane textPane = new FlowPane(fishermail, version, author);
+		final FlowPane textPane = new FlowPane(new VBox(8, fishermail, version, author));
 		textPane.setAlignment(Pos.CENTER_LEFT);
 
 		final GridPane gridPane = new GridPane();
-		gridPane.setStyle("-fx-background-color: #4d4d4d;");
+		gridPane.setStyle("-fx-background-color: #bbbbbb;");
 
-		GridPane.setRowSpan(image, 2);
+		GridPane.setRowSpan(image, 3);
 		GridPane.setMargin(image, new Insets(20));
 		GridPane.setVgrow(image, Priority.ALWAYS);
 		GridPane.setValignment(image, VPos.CENTER);
@@ -268,23 +277,17 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		i++;
 
 		refreshHidden();
+		mailService.addOnUpdateTagOrSection(v -> refreshHidden());
 
 		return new Tab("settings", new ScrollPane(gridPane));
 	}
 
-	private void refreshHidden() {
+	private Void refreshHidden() {
 		try {
 			final Set<Label> labels = new LinkedHashSet<>();
 			for(final S s: mailService.getHiddenSections()) {
 				final RemoveLabel label = new RemoveLabel(s.getName(), "show");
-				label.setOnMouseClicked(e -> {
-					try {
-						mailService.show(s);
-						refreshHidden();
-					} catch (final Exception ex) {
-						LOGGER.error("show {}", s.getName());
-					}
-				});
+				label.setOnRemove(e -> show(s, label));
 				labels.add(label);
 			}
 			Platform.runLater(() -> hiddenSectionsPane.getChildren().setAll(labels));
@@ -295,19 +298,46 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 			final Set<Label> labels = new LinkedHashSet<>();
 			for(final T t: mailService.getHiddenTags()) {
 				final RemoveLabel label = new RemoveLabel(t.getName(), "show");
-				label.setOnMouseClicked(e -> {
-					try {
-						mailService.show(t);
-						refreshHidden();
-					} catch (final Exception ex) {
-						LOGGER.error("show {}", t.getName());
-					}
-				});
+				label.setOnRemove(e -> show(t, label));
 				labels.add(label);
 			}
 			Platform.runLater(() -> hiddenTagsPane.getChildren().setAll(labels));
 		} catch (final TagException e) {
 			LOGGER.error("load hidden tags", e);
 		}
+
+		return null;
+	}
+
+	private Void show(S section, Label label) {
+		Platform.runLater(() -> hiddenSectionsPane.getChildren().remove(label));
+		final Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				mailService.show(section);
+				return null;
+			}
+		};
+		task.setOnSucceeded(e -> undoService.set(() -> { mailService.hide(section); return null; }, "show"));
+		task.setOnFailed(ev -> LOGGER.error("show {}", section.getName(), ev.getSource().getException()));
+		ThreadPool.getInstance().submitHigh(task, "show " + section.getName());
+
+		return null;
+	}
+
+	private Void show(T tag, Label label) {
+		Platform.runLater(() -> hiddenTagsPane.getChildren().remove(label));
+		final Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				mailService.show(tag);
+				return null;
+			}
+		};
+		task.setOnSucceeded(e -> undoService.set(() -> { mailService.hide(tag); return null; }, "show"));
+		task.setOnFailed(e -> LOGGER.error("show {}", tag.getName(), e.getSource().getException()));
+		ThreadPool.getInstance().submitHigh(task, "show " + tag.getName());
+
+		return null;
 	}
 }

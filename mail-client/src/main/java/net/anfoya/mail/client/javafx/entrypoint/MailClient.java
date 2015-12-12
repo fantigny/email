@@ -12,8 +12,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
+import javafx.scene.media.AudioClip;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
@@ -37,7 +36,6 @@ import net.anfoya.mail.service.Message;
 
 public class MailClient extends Application {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailClient.class);
-	private static final Media NEW_MAIL_SOUND = new Media(Settings.MP3_NEW_MAIL);
 
 	private GmailService gmail;
 	private Stage stage;
@@ -63,7 +61,7 @@ public class MailClient extends Application {
 
 		showBrowser();
 
-		initNewMailNotifier();
+		initNewThreadNotifier();
 		checkVersion();
 	}
 
@@ -127,9 +125,9 @@ public class MailClient extends Application {
 		checker.isLastestProperty().addListener((ov, o, n) -> {
 			if (!n) {
 				Platform.runLater(() -> {
-					Notifier.INSTANCE.notifyInfo(
-							"FisherMail " + checker.getLatestVersion()
-							, "available at " + Settings.DOWNLOAD_URL.split("/")[2]
+					Notifier.INSTANCE.notifySuccess(
+							"FisherMail - " + checker.getLatestVersion()
+							, "click here to download"
 							, v -> {
 								UrlHelper.open(Settings.DOWNLOAD_URL);
 								return null;
@@ -148,7 +146,7 @@ public class MailClient extends Application {
 		try {
 			mailBrowser = new MailBrowser<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact>(gmail);
 		} catch (final MailException e) {
-			LOGGER.error("loading mail browser", e);
+			LOGGER.error("load mail browser", e);
 			return;
 		}
 		mailBrowser.setOnSignout(e -> signout());
@@ -177,8 +175,8 @@ public class MailClient extends Application {
 			}
 		};
 		titleTask.setOnSucceeded(e -> stage.setTitle("FisherMail - " + e.getSource().getValue()));
-		titleTask.setOnFailed(e -> LOGGER.error("loading user's name", e.getSource().getException()));
-		ThreadPool.getInstance().submitLow(titleTask, "loading user's name");
+		titleTask.setOnFailed(e -> LOGGER.error("load user's name", e.getSource().getException()));
+		ThreadPool.getInstance().submitLow(titleTask, "load user's name");
 	}
 
 	private void initMacOs() {
@@ -234,38 +232,37 @@ public class MailClient extends Application {
 //		menu.setMenus(menus);
 	}
 
-	private void initNewMailNotifier() {
+	private void initNewThreadNotifier() {
 		if (gmail.disconnectedProperty().get()) {
 			return;
 		}
 		gmail.addOnNewMessage(threads -> {
-			LOGGER.debug("notifyAfterNewMessage");
-
-			new MediaPlayer(NEW_MAIL_SOUND).play();
+			LOGGER.info("notify new thread");
+			new AudioClip(Settings.MP3_NEW_MAIL).play();
 			threads.forEach(t -> {
-				ThreadPool.getInstance().submitLow(() -> {
-					final String message;
-					try {
+				final Task<String> task = new Task<String>() {
+					@Override
+					protected String call() throws Exception {
 						final Message m = gmail.getMessage(t.getLastMessageId());
-						message = "from " + String.join(", ", MessageHelper.getNames(m.getMimeMessage().getFrom()))
-								+ "\r\n" + m.getSnippet();
-					} catch (final Exception e) {
-						LOGGER.error("notifying new message for thread {}", t.getId(), e);
-						return;
+						return String.format("from %s\r\n%s"
+								, String.join(", ", MessageHelper.getNames(m.getMimeMessage().getFrom()))
+								, m.getSnippet());
 					}
-					Platform.runLater(() -> Notifier.INSTANCE.notifySuccess(
-							t.getSubject()
-							, message
-							, v -> {
-								if (stage.isIconified()) {
-									stage.setIconified(false);
-								}
-								if (!stage.isFocused()) {
-									stage.requestFocus();
-								}
-								return null;
-							}));
-				}, "notifying new message");
+				};
+				task.setOnSucceeded(e -> Notifier.INSTANCE.notifySuccess(
+						t.getSubject()
+						, task.getValue()
+						, v -> {
+							if (stage.isIconified()) {
+								stage.setIconified(false);
+							}
+							if (!stage.isFocused()) {
+								stage.requestFocus();
+							}
+							return null;
+						}));
+				task.setOnFailed(e -> LOGGER.error("notify new thread {}", t.getId(), e.getSource().getException()));
+				ThreadPool.getInstance().submitLow(task, "notify new thread");
 			});
 
 			return null;

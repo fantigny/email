@@ -38,7 +38,7 @@
 							<classPath>
 								<mainClass>net.anfoya.mail.client.javafx.entrypoint.MailClient</mainClass>
 							</classPath>
-							<icon>../mail-common/src/main/resources/net/anfoya/mail/image/Mail.ico</icon>
+							<icon>../mail-common/src/main/resources/net/anfoya/mail/img/Mail.ico</icon>
 							<jre>
 								<path>jre</path>
 								<minVersion>1.8.0</minVersion>
@@ -72,7 +72,7 @@
 									classpathref="maven.plugin.classpath" />
 								<bundleapp outputdirectory="target" name="FisherMail"
 									displayname="FisherMail"
-									icon="../mail-common/src/main/resources/net/anfoya/mail/image/Mail.icns"
+									icon="../mail-common/src/main/resources/net/anfoya/mail/img/Mail.icns"
 									identifier="net.anfoya.mail-client" shortversion="1.0"
 									copyright="ANFOYA.net" mainclassname="net.anfoya.mail.client.javafx.entrypoint.MailClient">
 									<classpath file="target/FisherMail.jar" />

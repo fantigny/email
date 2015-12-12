@@ -15,9 +15,8 @@ import net.anfoya.mail.mime.DateHelper;
 import net.anfoya.mail.service.Thread;
 
 class ThreadListCell<H extends Thread> extends ListCell<H> {
-    private static final Image EMPTY = new Image(ThreadListCell.class.getResourceAsStream("/net/anfoya/mail/image/mini_empty.png"));
-    private static final Image FLAG = new Image(ThreadListCell.class.getResourceAsStream("/net/anfoya/mail/image/mini_flag.png"));
-//    private static final Image UNREAD = new Image(ThreadListCell.class.getResourceAsStream("/net/anfoya/mail/image/mini_unread.png"));
+    private static final Image FLAG = new Image(ThreadListCell.class.getResourceAsStream("/net/anfoya/mail/img/mini_flag.png"));
+//    private static final Image UNREAD = new Image(ThreadListCell.class.getResourceAsStream("/net/anfoya/mail/img/mini_unread.png"));
 
     private static final Color ALMOST_BLACK = Color.web("#444444");
 
@@ -66,6 +65,8 @@ class ThreadListCell<H extends Thread> extends ListCell<H> {
 		iconBox = new VBox();
 		iconBox.setSpacing(3);
 		iconBox.setPadding(new Insets(3, 2, 0, 2));
+		iconBox.setMinWidth(11);
+		iconBox.setMaxWidth(11);
 
 		grid = buildGridPane(null);
 		grid.prefWidthProperty().bind(widthProperty());
@@ -84,8 +85,12 @@ class ThreadListCell<H extends Thread> extends ListCell<H> {
         	sender.setText(thread.getSender());
         	nbMessages.setText(nbMess > 1? "(x" + nbMess + ")": "");
             nbMessages.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
-        	date.setText(new DateHelper(thread.getDate()).format());
         	subject.setText(thread.getSubject());
+	        if (thread.getId().equals(Thread.PAGE_TOKEN_ID)) {
+	        	date.setText("");
+	        } else {
+	        	date.setText(new DateHelper(thread.getDate()).format());
+	        }
 
 	        sender.setTextFill(thread.isUnread()? Color.FIREBRICK: ALMOST_BLACK);
 
@@ -93,11 +98,8 @@ class ThreadListCell<H extends Thread> extends ListCell<H> {
 //        	if (thread.isUnread()) {
 //        		iconBox.getChildren().add(new ImageView(UNREAD));
 //        	}
-        	if (thread.isFlagged()) {
+	        if (thread.isFlagged()) {
         		iconBox.getChildren().add(new ImageView(FLAG));
-        	}
-        	if (iconBox.getChildren().isEmpty()) {
-        		iconBox.getChildren().add(new ImageView(EMPTY));
         	}
 
         	setGraphic(grid);

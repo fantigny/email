@@ -48,8 +48,15 @@ import net.anfoya.tag.model.SpecialTag;
 public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends BorderPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadPane.class);
 
-    private static final Image FLAG = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/image/mini_flag.png"));
-    private static final Image ATTACHMENT = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/image/mini_attach.png"));
+    private static final String IMG_PATH = "/net/anfoya/mail/img/";
+    private static final String SETTINGS_PNG = ThreadPane.class.getResource(IMG_PATH + "settings.png").toExternalForm();
+    private static final String SIGNOUT_PNG = ThreadPane.class.getResource(IMG_PATH + "signout.png").toExternalForm();
+
+    private static final String FLAG_PNG = ThreadPane.class.getResource(IMG_PATH + "mini_flag.png").toExternalForm();
+    private static final String ATTACH_PNG = ThreadPane.class.getResource(IMG_PATH + "mini_attach.png").toExternalForm();
+
+    private static final Image FLAG_ICON = new Image(FLAG_PNG);
+    private static final Image ATTACH_ICON = new Image(ATTACH_PNG);
 
 	private final MailService<S, T, H, M, C> mailService;
 	private final UndoService undoService;
@@ -72,17 +79,16 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	private EventHandler<ActionEvent> updateHandler;
 	private EventHandler<ActionEvent> signoutHandler;
 
+	private SettingsDialog<S, T> settingsDialog;
+
+	private boolean markRead;
+
 	public ThreadPane(final MailService<S, T, H, M, C> mailService, UndoService undoService) {
 		getStyleClass().add("thread");
 		this.mailService = mailService;
 		this.undoService = undoService;
 
-		try {
-			unread = mailService.getSpecialTag(SpecialTag.UNREAD);
-		} catch (final MailException e) {
-			LOGGER.error("getting unread tag", e);
-			unread = null;
-		}
+		unread = mailService.getSpecialTag(SpecialTag.UNREAD);
 
 		iconBox = new HBox(5);
 		iconBox.setAlignment(Pos.CENTER_LEFT);
@@ -90,15 +96,15 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 
 		subjectField = new TextField();
 		subjectField.setFocusTraversable(false);
-		subjectField.setPromptText("select a mail");
+		subjectField.setPromptText("select a thread");
 		subjectField.prefWidthProperty().bind(widthProperty());
 		subjectField.setEditable(false);
 
 		final Button settingsButton = new Button();
 		settingsButton.setFocusTraversable(false);
-		settingsButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/settings.png"))));
+		settingsButton.setGraphic(new ImageView(new Image(SETTINGS_PNG)));
 		settingsButton.setTooltip(new Tooltip("settings"));
-		settingsButton.setOnAction(event -> new SettingsDialog<S, T>(mailService).show());
+		settingsButton.setOnAction(e -> showSettings());
 
 		final Node graphics = settingsButton.getGraphic();
 
@@ -110,26 +116,24 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		final RotateTransition stopRotateTransition = new RotateTransition(Duration.INDEFINITE, graphics);
 		rotateTransition.setInterpolator(Interpolator.EASE_OUT);
 
-		ThreadPool.getInstance().setOnHighRunning(r ->  {
-			Platform.runLater(() -> {
-				if (r) {
-					stopRotateTransition.stop();
-					rotateTransition.play();
-				} else {
-					rotateTransition.stop();
-					stopRotateTransition.setByAngle(360d - graphics.getRotate() % 360d);
-					stopRotateTransition.setDuration(Duration.seconds(stopRotateTransition.getByAngle() / 360d));
-					stopRotateTransition.play();
-				}
-			});
+		ThreadPool.getInstance().setOnHighRunning(r -> {
+			if (r) {
+				stopRotateTransition.stop();
+				rotateTransition.play();
+			} else {
+				rotateTransition.stop();
+				stopRotateTransition.setByAngle(360d - graphics.getRotate() % 360d);
+				stopRotateTransition.setDuration(Duration.seconds(.5 * stopRotateTransition.getByAngle() / 360d));
+				stopRotateTransition.play();
+			}
 			return null;
 		});
 
 		final Button signoutButton = new Button();
 		signoutButton.setFocusTraversable(false);
-		signoutButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/image/signout.png"))));
+		signoutButton.setGraphic(new ImageView(new Image(SIGNOUT_PNG)));
 		signoutButton.setTooltip(new Tooltip("sign out"));
-		signoutButton.setOnAction(event -> signoutHandler.handle(null));
+		signoutButton.setOnAction(e -> signoutHandler.handle(null));
 
 		final HBox subjectBox = new HBox(iconBox, subjectField, settingsButton, signoutButton);
 		setTop(subjectBox);
@@ -167,6 +171,16 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		setBottom(tagsPane);
 	}
 
+	private void showSettings() {
+		if (settingsDialog == null
+				|| !settingsDialog.isShowing()) {
+			settingsDialog = new SettingsDialog<S, T>(mailService, undoService);
+			settingsDialog.show();
+		}
+		settingsDialog.toFront();
+		settingsDialog.requestFocus();
+	}
+
 	public void setOnUpdateThread(final EventHandler<ActionEvent> handler) {
 		this.updateHandler = handler;
 	}
@@ -175,8 +189,9 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		signoutHandler = handler;
 	}
 
-	public void refresh(final Set<H> threads) {
+	public void refresh(final Set<H> threads, boolean markRead) {
 		this.threads = threads;
+		this.markRead = markRead;
 
 		refreshIcons();
 		refreshSubject();
@@ -228,7 +243,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	private void refreshIcons() {
 		iconBox.getChildren().clear();
 		if (threads.size() == 1 && threads.iterator().next().isFlagged()) {
-			displayFlagIcon();
+			showIcon(FLAG_ICON);
 		}
 	}
 
@@ -262,7 +277,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 			@SuppressWarnings("unchecked")
 			final MessagePane<M, C> messagePane = index >= messagePanes.size()? null: (MessagePane<M, C>) messagePanes.get(index);
 			if (messagePane != null && messagePane.hasAttachment()) {
-				displayAttachmentIcon();
+				showIcon(ATTACH_ICON);
 			}
 			if (messagePane == null || !id.equals(messagePane.getMessageId())) {
 				messagePanes.add(index, createMessagePane(id));
@@ -277,28 +292,19 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		messagePane.setScrollHandler(webScrollHandler);
 		messagePane.setUpdateHandler(updateHandler);
 		messagePane.setExpanded(false);
-		messagePane.onContainAttachment(e -> displayAttachmentIcon());
+		messagePane.onContainAttachment(e -> showIcon(ATTACH_ICON));
 		messagePane.load();
 
 		return messagePane;
 	}
 
-	private void displayAttachmentIcon() {
+	private void showIcon(Image icon) {
 		for(final Node n: iconBox.getChildren()) {
-			if (n instanceof ImageView && ((ImageView)n).getImage() == ATTACHMENT) {
+			if (n instanceof ImageView && ((ImageView)n).getImage() == icon) {
 				return;
 			}
 		}
-		iconBox.getChildren().add(0, new ImageView(ATTACHMENT));
-	}
-
-	private void displayFlagIcon() {
-		for(final Node n: iconBox.getChildren()) {
-			if (n instanceof ImageView && ((ImageView)n).getImage() == FLAG) {
-				return;
-			}
-		}
-		iconBox.getChildren().add(new ImageView(FLAG));
+		iconBox.getChildren().add(new ImageView(icon));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -323,7 +329,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 			}
 		}
 
-		if (thread.isUnread()) {
+		if (markRead && thread.isUnread()) {
 			remove(threads, unread, false);
 		}
 	}
@@ -343,7 +349,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 						() -> { mailService.addTagForThreads(tag, threads); return null; }
 						, "remove " + tag.getName());
 			}
-//			updateHandler.handle(null);
+			updateHandler.handle(null);
 		});
 		ThreadPool.getInstance().submitHigh(task, "remove tag {} for threads");
 		return null;
