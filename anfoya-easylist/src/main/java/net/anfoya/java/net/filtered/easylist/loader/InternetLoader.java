@@ -30,6 +30,7 @@ public class InternetLoader {
 		EasyListRuleSet easyList;
 		try {
 			// avoid handler factory re-entrance
+			@SuppressWarnings("restriction")
 			final URLStreamHandler handler = "https".equals(url.getProtocol())
 					? new sun.net.www.protocol.https.Handler()
 					: new sun.net.www.protocol.http.Handler();
