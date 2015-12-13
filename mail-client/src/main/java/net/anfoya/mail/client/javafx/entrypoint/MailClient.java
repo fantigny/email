@@ -8,11 +8,13 @@ import org.slf4j.LoggerFactory;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.media.AudioClip;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
@@ -65,7 +67,7 @@ public class MailClient extends Application {
 		checkVersion();
 	}
 
-	private void confirmClose(WindowEvent e) {
+	private void confirmClose(final WindowEvent e) {
 		if (Settings.getSettings().confirmOnQuit().get()) {
 			final CheckBox checkBox = new CheckBox("don't show again");
 			checkBox.selectedProperty().addListener((ov, o, n) -> {
@@ -151,18 +153,16 @@ public class MailClient extends Application {
 		}
 		mailBrowser.setOnSignout(e -> signout());
 
-		initTitle(stage);
-
 		stage.titleProperty().unbind();
-		stage.setWidth(1400);
-		stage.setHeight(800);
 		stage.setScene(mailBrowser);
 		stage.show();
-
 		mailBrowser.initData();
+
+		initTitle(stage);
+		initSize(stage);
 	}
 
-	private void initTitle(Stage stage) {
+	private void initTitle(final Stage stage) {
 		final Task<String> titleTask = new Task<String>() {
 			@Override
 			protected String call() throws Exception {
@@ -177,6 +177,31 @@ public class MailClient extends Application {
 		titleTask.setOnSucceeded(e -> stage.setTitle("FisherMail - " + e.getSource().getValue()));
 		titleTask.setOnFailed(e -> LOGGER.error("load user's name", e.getSource().getException()));
 		ThreadPool.getInstance().submitLow(titleTask, "load user's name");
+	}
+
+	private void initSize(final Stage stage) {
+		final Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
+
+		stage.setMinWidth(800);
+		stage.setWidth(1400);
+
+		stage.setMinHeight(600);
+		stage.setHeight(800);
+
+		if (stage.getWidth() > bounds.getWidth()
+				|| stage.getHeight() > bounds.getHeight()) {
+			stage.setWidth(bounds.getWidth());
+			stage.setHeight(bounds.getHeight());
+			stage.setMaximized(true);
+		}
+
+		if (stage.getX() < bounds.getMinX() || stage.getX() > bounds.getMaxX()) {
+			stage.setX(bounds.getMinX());
+		}
+		if (stage.getY() < bounds.getMinY() || stage.getY() > bounds.getMaxY()) {
+			stage.setY(bounds.getMinY());
+		}
+
 	}
 
 	private void initMacOs() {
