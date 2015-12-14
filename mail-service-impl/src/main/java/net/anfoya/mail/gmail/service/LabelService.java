@@ -121,7 +121,9 @@ public class LabelService {
 		try {
 			final Label label = idLabels.get(labelId);
 			label.setLabelListVisibility("labelHide");
-			label.setMessageListVisibility("hide");
+			if (!"system".equals(label.getType())) {
+				label.setMessageListVisibility("hide");
+			}
 			gmail.users().labels().update(user, labelId, label).execute();
 		} catch (final IOException e) {
 			throw new LabelException("hiding \"" + labelId + "\"", e);
@@ -136,7 +138,9 @@ public class LabelService {
 		try {
 			final Label label = idLabels.get(labelId);
 			label.setLabelListVisibility("labelShow");
-			label.setMessageListVisibility("show");
+			if (!"system".equals(label.getType())) {
+				label.setMessageListVisibility("show");
+			}
 			gmail.users().labels().update(user, labelId, label).execute();
 		} catch (final IOException e) {
 			throw new LabelException("showing \"" + labelId + "\"", e);

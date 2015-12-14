@@ -16,7 +16,7 @@ class TagListCell<T extends Tag> extends IncExcListCell<TagListItem<T>> {
 		super(withExcludeBox);
 
 		setOnDragDetected(e -> {
-			if (getItem() != null && !getItem().getTag().isSystem()) {
+			if (getItem() != null) {
 		        final ClipboardContent content = new ClipboardContent();
 		        content.put(Tag.TAG_DATA_FORMAT, getItem().getTag());
 

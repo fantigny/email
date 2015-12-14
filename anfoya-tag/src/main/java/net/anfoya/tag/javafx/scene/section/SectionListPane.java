@@ -114,6 +114,8 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 				stackPane.getChildren().add(sectionDropPane);
 			} else if (e.getDragboard().hasContent(Tag.TAG_DATA_FORMAT)
 					&& !stackPane.getChildren().contains(tagDropPane)) {
+				final Tag tag = (Tag) e.getDragboard().getContent(Tag.TAG_DATA_FORMAT);
+				tagDropPane.setSystem(tag.isSystem());
 				stackPane.getChildren().add(tagDropPane);
 			} else if (e.getDragboard().hasContent(ExtItemDropPane.ADD_TAG_DATA_FORMAT)
 					&& !stackPane.getChildren().contains(extItemDropPane)) {

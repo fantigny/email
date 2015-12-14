@@ -5,6 +5,9 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -32,21 +35,30 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 
 	private EventHandler<ActionEvent> updateHandler;
 
+	private final BooleanProperty systemProperty;
+
 	public TagDropPane(final TagService<S, T> tagService, UndoService undoService) {
 		getStyleClass().add("droparea-grid");
 		this.tagService = tagService;
 		this.undoService = undoService;
 
+		systemProperty = new SimpleBooleanProperty(false);
 		transHelper = new DndPaneTranslationHelper(this);
 
 		final DropArea newSectionArea = new DropArea("new section", Tag.TAG_DATA_FORMAT);
 		newSectionArea.<T>setDropCallback(t -> newSection(t));
+		newSectionArea.visibleProperty().bind(systemProperty.not());
+		newSectionArea.managedProperty().bind(systemProperty.not());
 
 		final DropArea renameArea = new DropArea("rename", Tag.TAG_DATA_FORMAT);
 		renameArea.<T>setDropCallback(t -> rename(t));
+		renameArea.visibleProperty().bind(systemProperty.not());
+		renameArea.managedProperty().bind(systemProperty.not());
 
 		final DropArea removeArea = new DropArea("remove", Tag.TAG_DATA_FORMAT);
 		removeArea.<T>setDropCallback(t -> remove(t));
+		removeArea.visibleProperty().bind(systemProperty.not());
+		removeArea.managedProperty().bind(systemProperty.not());
 
 		final DropArea hideArea = new DropArea("hide", Tag.TAG_DATA_FORMAT);
 		hideArea.<T>setDropCallback(t -> hide(t));
@@ -69,7 +81,15 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 		setHgrow(hideArea, Priority.ALWAYS);
 		setVgrow(hideArea, Priority.ALWAYS);
 
-		setMaxHeight(65 * row);
+		setMaxHeight(65 * 3);
+		removeArea.visibleProperty().addListener((ov, o, n) -> {
+			setColumnSpan(hideArea, n? 2: 1);
+			setMaxHeight(65 * (n? 3: 1));
+		});
+	}
+
+	public void setSystem(boolean system) {
+		Platform.runLater(() -> systemProperty.set(system));
 	}
 
 	private Void newSection(final T tag) {
@@ -192,7 +212,7 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 				return null;
 			}
 		};
-		task.setOnSucceeded(event -> {
+		task.setOnSucceeded(e -> {
 			undoService.set(
 					() -> { tagService.show(tag); return null; }
 					, description);
