@@ -142,7 +142,6 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 
 		final HBox title = new HBox(arrowBox, recipientFlow, iconBox, dateText);
 		title.setMinHeight(27);
-		title.setMaxHeight(27);
 		HBox.setHgrow(iconBox, Priority.ALWAYS);
 		title.getStyleClass().add("header");
 		title.setOnMouseClicked(event -> {
@@ -161,7 +160,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 			 }
 			 mouseOver = true;
 		});
-		titlePane.setOnMouseExited(e ->{
+		titlePane.setOnMouseExited(e -> {
 			 showSnippet(false);
 			 if (expanded.not().get()) {
 				 showAttachment(false);
