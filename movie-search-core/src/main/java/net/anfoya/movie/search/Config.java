@@ -24,8 +24,8 @@ public class Config {
 						, "https://www.youtube.com/results?search_query=%s+official+trailer")
 				, new SimpleMovieConnector(
 						"C Pas Bien"
-						, "https://www.cpasbien.pw"
-						, "https://www.cpasbien.pw/recherche/%s.html")
+						, "http://www.cpasbien.io"
+						, "http://www.cpasbien.io/recherche/%s.html")
 				, new SimpleMovieConnector(
 						"Pirate Bay"
 						, "https://pirateproxy.sx"
