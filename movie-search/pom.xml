@@ -30,7 +30,7 @@
 			            <configuration>
 			                <headerType>gui</headerType>
 			                <outfile>MovieSearch.exe</outfile>
-			                <jar>../movie-search-core\target\MovieSearch.jar</jar>
+			                <jar>../movie-search-core/target/MovieSearch.jar</jar>
 			                <errTitle>MovieSearch Err</errTitle>
 			                <classPath>
 			                    <mainClass>net.anfoya.movie.search.javafx.entrypoint.MovieSearchApp</mainClass>
@@ -55,6 +55,40 @@
 			            </configuration>
 			        </execution>
 				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.7</version>
+				<executions>
+					<execution>
+						<phase>install</phase>
+						<configuration>
+							<target>
+								<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
+									classpathref="maven.plugin.classpath" />
+								<bundleapp outputdirectory="target" name="MovieSearch"
+									displayname="MovieSearch"
+									icon="../mail-common/src/main/resources/net/anfoya/mail/img/Mail.icns"
+									identifier="net.anfoya.mail-client" shortversion="1.0"
+									copyright="ANFOYA.net" mainclassname="net.anfoya.movie.search.javafx.entrypoint.MovieSearchApp">
+									<classpath file="target/MovieSearch.jar" />
+									<option value="-Xmx1g" />
+									<runtime dir="../../jre/mac_jre1.8.0_60/Contents/Home" />
+								</bundleapp>
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>com.oracle.appbundler</groupId>
+						<artifactId>appbundler</artifactId>
+						<version>1.0</version>
+					</dependency>
+				</dependencies>
 			</plugin>
 		</plugins>
 	</build>
