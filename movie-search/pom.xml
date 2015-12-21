@@ -29,7 +29,7 @@
 			            </goals>
 			            <configuration>
 			                <headerType>gui</headerType>
-			                <outfile>MovieSearch.exe</outfile>
+			                <outfile>target/MovieSearch.exe</outfile>
 			                <jar>../movie-search-core/target/MovieSearch.jar</jar>
 			                <errTitle>MovieSearch Err</errTitle>
 			                <classPath>
@@ -73,7 +73,7 @@
 									copyright="ANFOYA.net" mainclassname="net.anfoya.movie.search.javafx.entrypoint.MovieSearchApp">
 									<classpath file="../movie-search-core/target/MovieSearch.jar" />
 									<option value="-Xmx1g" />
-									<runtime dir="/Library/Java/JavaVirtualMachines/jdk1.8.0_60.jdk/Contents/Home" />
+									<!-- runtime dir="/Library/Java/JavaVirtualMachines/jdk1.8.0_60.jdk/Contents/Home" / -->
 								</bundleapp>
 							</target>
 						</configuration>
