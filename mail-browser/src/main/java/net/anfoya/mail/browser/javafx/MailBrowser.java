@@ -64,7 +64,6 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 
 		sectionListPane = new SectionListPane<S, T>(mailService, undoService, SHOW_EXCLUDE_BOX);
 		sectionListPane.setFocusTraversable(false);
-		sectionListPane.prefHeightProperty().bind(sectionListPane.heightProperty());
 		sectionListPane.setSectionDisableWhenZero(false);
 		sectionListPane.setLazyCount(true);
 		sectionListPane.setOnSelectTag(e -> refreshAfterTagSelected());

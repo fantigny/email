@@ -20,9 +20,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.SplitPane;
 import javafx.scene.image.Image;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import net.anfoya.cluster.StatusManager;
@@ -104,31 +103,28 @@ public class MovieBrowserApp extends Application {
 	}
 
 	private void initGui(final Stage primaryStage) {
-		final BorderPane mainPane = new BorderPane();
+		final SplitPane mainPane = new SplitPane();
 		mainPane.setPadding(new Insets(5));
+		mainPane.setDividerPosition(0, .10);
+		mainPane.setDividerPosition(1, .34);
 
 		final Scene scene = new Scene(mainPane, 1524, 780);
 		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/excludebox.css").toExternalForm());
-//		scene.getStylesheets().add(getClass().getResource("/net/anfoya/javafx/scene/control/button_flat.css").toExternalForm());
-
-		final HBox selectionPane = new HBox();
-		mainPane.setLeft(selectionPane);
+		scene.getStylesheets().add("file:///Users/fantigny/git/java/mail-common/src/main/resources/net/anfoya/mail/css/style.css");
+		scene.getStylesheets().add("file:///Users/fantigny/git/java/mail-common/src/main/resources/net/anfoya/mail/css/scrollbar.css");
 
 		/* tag list */ {
-			sectionListPane.setPrefWidth(250);
-			sectionListPane.prefHeightProperty().bind(selectionPane.heightProperty());
 			sectionListPane.setLazyCount(false);
-			sectionListPane.setSectionDisableWhenZero(true);
+			sectionListPane.setSectionDisableWhenZero(false);
 			sectionListPane.setOnSelectSection(e -> updateMovieCount());
 			sectionListPane.setOnSelectTag( e -> refreshMovieList());
 			if (profile != Profile.RESTRICTED) {
-				selectionPane.getChildren().add(sectionListPane);
+				mainPane.getItems().add(sectionListPane);
 			}
 		}
 
 		/* movie list */ {
 			movieListPane.setPrefWidth(250);
-			movieListPane.prefHeightProperty().bind(selectionPane.heightProperty());
 			movieListPane.addSelectionListener((ov, oldVal, newVal) -> {
 				if (!movieListPane.isRefreshing()) {
 					// update movie details when (a) movie(s) is/are selected
@@ -144,7 +140,7 @@ public class MovieBrowserApp extends Application {
 				}
 			});
 
-			selectionPane.getChildren().add(movieListPane);
+			mainPane.getItems().add(movieListPane);
 		}
 
 		/* movie panel */ {
@@ -163,7 +159,7 @@ public class MovieBrowserApp extends Application {
 			});
 			moviePane.setOnUpdateMovie(event -> refreshMovieList());
 
-			mainPane.setCenter(moviePane);
+			mainPane.getItems().add(moviePane);
 		}
 
 		primaryStage.setTitle("Movie browser");

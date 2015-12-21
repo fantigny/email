@@ -206,10 +206,18 @@ public class MovieTagService implements TagService<Section, Tag> {
 	}
 
 	@Override
-	public int getCountForSection(Section section, Set<Tag> includes, Set<Tag> excludes, String itemPattern)
+	public int getCountForSection(Section section, Set<Tag> includes, Set<Tag> excludes, String pattern)
 			throws TagException {
-		// TODO Auto-generated method stub
-		return 0;
+		try {
+			return movieTagDao.countSectionMovies(section, includes, excludes, pattern);
+		} catch (final SQLException e) {
+			LOGGER.error("counting movies with name pattern: %{}% and tags: ({}), exc: ({})", pattern, includes, excludes, e);
+			final Alert alertDialog = new Alert(AlertType.ERROR);
+			alertDialog.setHeaderText("error counting movies with name pattern: %" + pattern + "% and tags: " + includes.toString() + ", exc: " + excludes.toString());
+			alertDialog.setContentText(e.getMessage());
+			alertDialog.show();
+			return 0;
+		}
 	}
 
 	@Override

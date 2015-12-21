@@ -7,12 +7,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import net.anfoya.movie.browser.model.Movie;
 import net.anfoya.movie.browser.model.Section;
 import net.anfoya.movie.browser.model.Tag;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class MovieTagDao {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MovieTagDao.class);
@@ -125,7 +125,7 @@ public class MovieTagDao {
 		connection.close();
 	}
 
-	public int countSectionMovies(final Section section, final Set<Tag> includes, final Set<Tag> excludes, final String namePattern, final String tagPattern) throws SQLException {
+	public int countSectionMovies(final Section section, final Set<Tag> includes, final Set<Tag> excludes, final String namePattern) throws SQLException {
 		final boolean incClause = !includes.isEmpty(), excClause = !excludes.isEmpty(), nameClause = !namePattern.isEmpty();
 		String sql = "SELECT COUNT(DISTINCT(mt.movie_id)) AS movie_count"
 				+ " FROM movie_tag mt"
@@ -171,7 +171,7 @@ public class MovieTagDao {
 		final PreparedStatement statement = connection.prepareStatement(sql);
 		int i=0;
 		statement.setString(++i, section.getName());
-		statement.setString(++i, tagPattern);
+		statement.setString(++i, namePattern);
 		if (incClause) {
 			statement.setInt(++i, includes.size());
 			for(final Tag tag: includes) {

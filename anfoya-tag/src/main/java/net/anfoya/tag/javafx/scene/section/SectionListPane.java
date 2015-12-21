@@ -96,44 +96,44 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 		});
 		sectionAcc.expandedPaneProperty().addListener((ov, o, n) -> selectSectionHandler.handle(null));
 
-		final StackPane stackPane = new StackPane(sectionAcc);
-		stackPane.setAlignment(Pos.BOTTOM_CENTER);
+		final StackPane centerPane = new StackPane(sectionAcc);
+		centerPane.setAlignment(Pos.BOTTOM_CENTER);
 
 		final ExtItemDropPane<T> extItemDropPane = new ExtItemDropPane<T>();
-		extItemDropPane.prefWidthProperty().bind(stackPane.widthProperty());
+		extItemDropPane.prefWidthProperty().bind(centerPane.widthProperty());
 
 		sectionDropPane = new SectionDropPane<S>(tagService, undoService);
-		sectionDropPane.prefWidthProperty().bind(stackPane.widthProperty());
+		sectionDropPane.prefWidthProperty().bind(centerPane.widthProperty());
 
 		tagDropPane = new TagDropPane<S, T>(tagService, undoService);
-		tagDropPane.prefWidthProperty().bind(stackPane.widthProperty());
+		tagDropPane.prefWidthProperty().bind(centerPane.widthProperty());
 
-		stackPane.setOnDragEntered(e -> {
+		centerPane.setOnDragEntered(e -> {
 			if (e.getDragboard().hasContent(Section.SECTION_DATA_FORMAT)
-					&& !stackPane.getChildren().contains(sectionDropPane)) {
-				stackPane.getChildren().add(sectionDropPane);
+					&& !centerPane.getChildren().contains(sectionDropPane)) {
+				centerPane.getChildren().add(sectionDropPane);
 			} else if (e.getDragboard().hasContent(Tag.TAG_DATA_FORMAT)
-					&& !stackPane.getChildren().contains(tagDropPane)) {
+					&& !centerPane.getChildren().contains(tagDropPane)) {
 				final Tag tag = (Tag) e.getDragboard().getContent(Tag.TAG_DATA_FORMAT);
 				tagDropPane.setSystem(tag.isSystem());
-				stackPane.getChildren().add(tagDropPane);
+				centerPane.getChildren().add(tagDropPane);
 			} else if (e.getDragboard().hasContent(ExtItemDropPane.ADD_TAG_DATA_FORMAT)
-					&& !stackPane.getChildren().contains(extItemDropPane)) {
-				stackPane.getChildren().add(extItemDropPane);
+					&& !centerPane.getChildren().contains(extItemDropPane)) {
+				centerPane.getChildren().add(extItemDropPane);
 			}
 		});
-		stackPane.setOnDragExited(e -> {
-			if (stackPane.getChildren().contains(sectionDropPane)) {
-				stackPane.getChildren().remove(sectionDropPane);
+		centerPane.setOnDragExited(e -> {
+			if (centerPane.getChildren().contains(sectionDropPane)) {
+				centerPane.getChildren().remove(sectionDropPane);
 			}
-			if (stackPane.getChildren().contains(tagDropPane)) {
-				stackPane.getChildren().remove(tagDropPane);
+			if (centerPane.getChildren().contains(tagDropPane)) {
+				centerPane.getChildren().remove(tagDropPane);
 			}
-			if (stackPane.getChildren().contains(extItemDropPane)) {
-				stackPane.getChildren().remove(extItemDropPane);
+			if (centerPane.getChildren().contains(extItemDropPane)) {
+				centerPane.getChildren().remove(extItemDropPane);
 			}
 		});
-		setCenter(stackPane);
+		setCenter(centerPane);
 
 		selectedTagsPane = new SelectedTagsPane<T>();
 		selectedTagsPane.setRemoveTagCallBack(tag -> {
@@ -165,12 +165,11 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 		initTagName = tagName;
 
 		refreshAsync(v -> {
-			for(final TitledPane sectionPane: sectionAcc.getPanes()) {
+			for(final TitledPane tp: sectionAcc.getPanes()) {
 				@SuppressWarnings("unchecked")
-				final TagList<S, T> tagList = (TagList<S, T>) sectionPane.getContent();
-				if (tagList.getSection().getName().equals(sectionName)) {
-					sectionPane.setExpanded(true);
-					tagList.selectLight(tagName);
+				final SectionPane<Section, Tag> sectionPane = (SectionPane<Section, Tag>) tp;
+				if (sectionPane.getSection().getName().equals(sectionName)) {
+					sectionPane.selectLight(tagName);
 					break;
 				}
 			}

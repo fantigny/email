@@ -191,9 +191,7 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 			}
 		}
 
-		final Runnable tagListTask = () -> {
-			tagList.updateCount(queryCount, tags, includes, excludes, itemPattern);
-		};
+		final Runnable tagListTask = () -> tagList.updateCount(queryCount, tags, includes, excludes, itemPattern);
 		if (!lazyCount || isExpanded()) {
 			lazyCountTask = null;
 			tagListTask.run();
@@ -280,9 +278,9 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 
 	public void setOnSelectTag(final EventHandler<ActionEvent> handler) {
 		tagList.setOnIncExcTag(handler);
-		tagList.setOnSelectTag(event -> {
+		tagList.setOnSelectTag(e -> {
 			if (isExpanded()) {
-				handler.handle(event);
+				handler.handle(e);
 			}
 		});
 	}
@@ -293,5 +291,12 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 
 	public void clearSelection() {
 		tagList.getSelectionModel().clearSelection();
+	}
+
+	public void selectLight(String tagName) {
+		if (!isTag) {
+			setExpanded(true);
+		}
+		tagList.selectLight(tagName);
 	}
 }

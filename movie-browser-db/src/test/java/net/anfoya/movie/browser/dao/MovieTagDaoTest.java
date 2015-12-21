@@ -8,14 +8,14 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import junit.framework.Assert;
 import net.anfoya.movie.browser.model.Movie;
 import net.anfoya.movie.browser.model.Section;
 import net.anfoya.movie.browser.model.Tag;
-
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 public class MovieTagDaoTest {
 	private static final Set<Tag> EMPTY = new HashSet<Tag>();
@@ -113,11 +113,11 @@ public class MovieTagDaoTest {
 		movieDao.add(new LinkedHashSet<Movie>() { { add(new Movie(name, 0)); } });
 		final Set<Movie> movies = movieDao.find(name);
 
-		Assert.assertEquals(0, movieTagDao.countSectionMovies(new Section(sectionName), new LinkedHashSet<Tag>() { { add(tag); } }, EMPTY, name, ""));
+		Assert.assertEquals(0, movieTagDao.countSectionMovies(new Section(sectionName), new LinkedHashSet<Tag>() { { add(tag); } }, EMPTY, name));
 
 		movieTagDao.addTag(movies, tag);
 
-		Assert.assertEquals(1, movieTagDao.countSectionMovies(new Section(sectionName), new LinkedHashSet<Tag>() { { add(tag); } }, EMPTY, name, ""));
+		Assert.assertEquals(1, movieTagDao.countSectionMovies(new Section(sectionName), new LinkedHashSet<Tag>() { { add(tag); } }, EMPTY, name));
 	}
 
 	@Test @SuppressWarnings("serial")
