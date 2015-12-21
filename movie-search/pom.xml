@@ -35,7 +35,7 @@
 			                <classPath>
 			                    <mainClass>net.anfoya.movie.search.javafx.entrypoint.MovieSearchApp</mainClass>
 			                </classPath>
-			                <!-- icon>../mail-common/src/main/resources/net/anfoya/mail/image/Mail.ico</icon -->
+			                <icon>../movie-search-core/src/main/resources/net/anfoya/movie/search/javafx/entrypoint/MovieSearch.ico</icon>
 			                <jre>
 			                    <minVersion>1.8.0</minVersion>
 			                    <initialHeapSize>128</initialHeapSize>
@@ -66,10 +66,10 @@
 							<target>
 								<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
 									classpathref="maven.plugin.classpath" />
-								<bundleapp outputdirectory="target" name="MovieSearch"
-									displayname="MovieSearch"
-									icon="../mail-common/src/main/resources/net/anfoya/mail/img/Mail.icns"
-									identifier="net.anfoya.mail-client" shortversion="1.0"
+								<bundleapp outputdirectory="target" name="Movie Search"
+									displayname="Movie Search"
+									icon="../movie-search-core/src/main/resources/net/anfoya/movie/search/javafx/entrypoint/MovieSearch.icns"
+									identifier="net.anfoya.movie-search" shortversion="1.0"
 									copyright="ANFOYA.net" mainclassname="net.anfoya.movie.search.javafx.entrypoint.MovieSearchApp">
 									<classpath file="../movie-search-core/target/MovieSearch.jar" />
 									<option value="-Xmx1g" />
