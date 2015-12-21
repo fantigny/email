@@ -155,11 +155,11 @@ public class MailClient extends Application {
 
 		stage.titleProperty().unbind();
 		stage.setScene(mailBrowser);
+		initSize(stage);
 		stage.show();
 		mailBrowser.initData();
 
 		initTitle(stage);
-		initSize(stage);
 	}
 
 	private void initTitle(final Stage stage) {
@@ -182,11 +182,11 @@ public class MailClient extends Application {
 	private void initSize(final Stage stage) {
 		final Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
 
-		stage.setMinWidth(800);
 		stage.setWidth(1400);
+		stage.setMinWidth(800);
 
-		stage.setMinHeight(600);
 		stage.setHeight(800);
+		stage.setMinHeight(600);
 
 		if (stage.getWidth() > bounds.getWidth()
 				|| stage.getHeight() > bounds.getHeight()) {
@@ -201,7 +201,6 @@ public class MailClient extends Application {
 		if (stage.getY() < bounds.getMinY() || stage.getY() > bounds.getMaxY()) {
 			stage.setY(bounds.getMinY());
 		}
-
 	}
 
 	private void initMacOs() {
