@@ -9,6 +9,6 @@ public class Section extends SimpleSection {
 	public static final Section MEI_LIN = new Section(Tag.MEI_LIN_NAME);
 
 	public Section(final String name) {
-		super(name, name);
+		super(name);
 	}
 }

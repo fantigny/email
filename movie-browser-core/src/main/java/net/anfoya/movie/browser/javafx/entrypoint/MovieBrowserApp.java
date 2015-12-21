@@ -9,6 +9,8 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 
+import org.slf4j.bridge.SLF4JBridgeHandler;
+
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.concurrent.Worker.State;
@@ -29,7 +31,6 @@ import net.anfoya.java.net.cookie.PersistentCookieStore;
 import net.anfoya.java.net.url.CustomHandlerFactory;
 import net.anfoya.java.net.url.filter.Matcher;
 import net.anfoya.java.net.url.filter.RuleSet;
-import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.movie.browser.javafx.ComponentBuilder;
 import net.anfoya.movie.browser.javafx.consolidation.FileConsolidationService;
 import net.anfoya.movie.browser.javafx.consolidation.MovieConsolidationService;
@@ -41,8 +42,6 @@ import net.anfoya.movie.browser.model.Section;
 import net.anfoya.movie.browser.model.Tag;
 import net.anfoya.movie.browser.service.MovieService;
 import net.anfoya.tag.javafx.scene.section.SectionListPane;
-
-import org.slf4j.bridge.SLF4JBridgeHandler;
 
 public class MovieBrowserApp extends Application {
 	private static final Duration CONSOLIDATION_DELAY = Duration.seconds(5);
@@ -91,10 +90,7 @@ public class MovieBrowserApp extends Application {
 
 	@Override
     public void start(final Stage primaryStage) {
-		primaryStage.setOnCloseRequest(event -> {
-			ThreadPool.getInstance().shutdown();
-			statusMgr.shutdown();
-		});
+		primaryStage.setOnCloseRequest(event -> statusMgr.shutdown());
 
 		ruleSet.load();
 		ruleSet.setWithException(false);
@@ -123,13 +119,8 @@ public class MovieBrowserApp extends Application {
 			sectionListPane.prefHeightProperty().bind(selectionPane.heightProperty());
 			sectionListPane.setLazyCount(false);
 			sectionListPane.setSectionDisableWhenZero(true);
-			sectionListPane.setTagChangeListener((ov, oldVal, newVal) -> {
-				refreshMovieList();
-			});
-			sectionListPane.setUpdateSectionCallback(v -> {
-				updateMovieCount();
-				return null;
-			});
+			sectionListPane.setOnSelectSection(e -> updateMovieCount());
+			sectionListPane.setOnSelectTag( e -> refreshMovieList());
 			if (profile != Profile.RESTRICTED) {
 				selectionPane.getChildren().add(sectionListPane);
 			}
@@ -184,10 +175,9 @@ public class MovieBrowserApp extends Application {
 	private void initData() {
 		refreshSectionList();
 		if (profile == Profile.RESTRICTED) {
-			sectionListPane.selectTag(Section.MEI_LIN, Tag.MEI_LIN_NAME);
+			sectionListPane.init(Section.MEI_LIN.getName(), Tag.MEI_LIN_NAME);
 		} else  {
-			sectionListPane.selectTag(Section.TO_WATCH, Tag.TO_WATCH_NAME);
-			sectionListPane.expand(new Section("Style"));
+			sectionListPane.init(Section.TO_WATCH.getName(), Tag.TO_WATCH_NAME);
 		}
 
 		fileConsoService.reset();
@@ -245,14 +235,14 @@ public class MovieBrowserApp extends Application {
 	}
 
 	private void refreshMovieList() {
-		movieListPane.refreshWithTags(sectionListPane.getAllTags(), sectionListPane.getIncludedTags(), sectionListPane.getExcludedTags());
+		movieListPane.refreshWithTags(sectionListPane.getAllTags(), sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
 	}
 
 	private void updateMovieCount() {
 		final int currentCount = movieListPane.getMovieCount();
 		final Set<Tag> availableTags = movieListPane.getMoviesTags();
 		final String namePattern = movieListPane.getNamePattern();
-		sectionListPane.updateCount(currentCount, availableTags, namePattern);
+		sectionListPane.updateItemCount(availableTags, currentCount, namePattern, true);
 	}
 
 	private void refreshMovie() {

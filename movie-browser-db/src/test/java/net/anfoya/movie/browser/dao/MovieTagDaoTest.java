@@ -50,7 +50,7 @@ public class MovieTagDaoTest {
 		final String sectionName = name + "Section";
 
 		tagDao.add(new Tag(name, sectionName));
-		final Tag tag = tagDao.find(name);
+		final Tag tag = tagDao.findByName(name);
 		movieDao.add(new LinkedHashSet<Movie>() { { add(new Movie(name, 0)); } });
 		final Set<Movie> movies = movieDao.find(name);
 
@@ -67,7 +67,7 @@ public class MovieTagDaoTest {
 		final String sectionName = name + "Section";
 
 		tagDao.add(new Tag(name, sectionName));
-		final Tag tag = tagDao.find(name);
+		final Tag tag = tagDao.findByName(name);
 		movieDao.add(new LinkedHashSet<Movie>() { { add(new Movie(name, 0)); } });
 		final Set<Movie> movies = movieDao.find(name);
 
@@ -88,7 +88,7 @@ public class MovieTagDaoTest {
 		final String sectionName = name + "Section";
 
 		tagDao.add(new Tag(name, sectionName));
-		final Tag tag = tagDao.find(name);
+		final Tag tag = tagDao.findByName(name);
 		movieDao.add(new LinkedHashSet<Movie>() { { add(new Movie(name, 0)); } });
 		final Set<Movie> movies = movieDao.find(name);
 
@@ -109,7 +109,7 @@ public class MovieTagDaoTest {
 		final String sectionName = name + "Section";
 
 		tagDao.add(new Tag(name, sectionName));
-		final Tag tag = tagDao.find(name);
+		final Tag tag = tagDao.findByName(name);
 		movieDao.add(new LinkedHashSet<Movie>() { { add(new Movie(name, 0)); } });
 		final Set<Movie> movies = movieDao.find(name);
 
@@ -129,7 +129,7 @@ public class MovieTagDaoTest {
 
 		Tag aTag = new Tag(name + "_aTag", sectionName);
 		tagDao.add(aTag);
-		aTag = tagDao.find(aTag.getName());
+		aTag = tagDao.findByName(aTag.getName());
 		for(int i=0; i<3; i++) {
 			final String movieName = name + i;
 			movieDao.add(new LinkedHashSet<Movie>() { { add(new Movie(movieName, 0)); } });
@@ -145,7 +145,7 @@ public class MovieTagDaoTest {
 		final String sectionName = name + "Section";
 
 		tagDao.add(new Tag(name, sectionName));
-		final Tag tag = tagDao.find(name);
+		final Tag tag = tagDao.findByName(name);
 		movieDao.add(new LinkedHashSet<Movie>() { { add(new Movie(name, 0)); } });
 		final Set<Movie> movies = movieDao.find(name);
 
@@ -165,7 +165,7 @@ public class MovieTagDaoTest {
 		for(int i=0; i<3; i++) {
 			final String tagName = name + i;
 			tagDao.add(new Tag(tagName, sectionName));
-			tags.add(tagDao.find(tagName));
+			tags.add(tagDao.findByName(tagName));
 		}
 
 		final Tag tag1 = tags.get(0);
@@ -216,7 +216,7 @@ public class MovieTagDaoTest {
 
 		Tag aTag = new Tag(name + "_aTag", sectionName);
 		tagDao.add(aTag);
-		aTag = tagDao.find(aTag.getName());
+		aTag = tagDao.findByName(aTag.getName());
 		for(int i=0; i<3; i++) {
 			final String movieName = name + i;
 			movieDao.add(new HashSet<Movie>() { { add(new Movie(movieName, 0)); } });

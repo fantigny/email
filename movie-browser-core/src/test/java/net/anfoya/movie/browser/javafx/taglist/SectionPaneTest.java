@@ -4,6 +4,15 @@ import java.sql.SQLException;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.jgroups.JChannel;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import de.saxsys.javafx.test.JfxRunner;
+import de.saxsys.javafx.test.TestInJfxThread;
 import javafx.scene.control.Labeled;
 import net.anfoya.cluster.StatusManager;
 import net.anfoya.cluster.UpdateManager;
@@ -16,17 +25,6 @@ import net.anfoya.movie.browser.model.Section;
 import net.anfoya.movie.browser.model.Tag;
 import net.anfoya.movie.browser.service.MovieTagService;
 import net.anfoya.tag.javafx.scene.section.SectionPane;
-import net.anfoya.tag.javafx.scene.tag.TagList;
-
-import org.jgroups.JChannel;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import de.saxsys.javafx.test.JfxRunner;
-import de.saxsys.javafx.test.TestInJfxThread;
 
 @RunWith(JfxRunner.class)
 public class SectionPaneTest {
@@ -72,14 +70,13 @@ public class SectionPaneTest {
 			}
 
 			tagDao.add(new Tag(tagName, section.getName()));
-			final Tag tag = tagDao.find(tagName);
+			final Tag tag = tagDao.findByName(tagName);
 			movieTagDao.addTag(movies, tag);
 			tags.add(tag);
 		}
 
-		final TagList<Section, Tag> tagList = new TagList<Section, Tag>(tagService, section);
-		final SectionPane<Section, Tag> sectionPane = new SectionPane<Section, Tag>(tagService, section, tagList);
-		sectionPane.refresh(EMPTY_TAG_SET, "");
+		final SectionPane<Section, Tag> sectionPane = new SectionPane<Section, Tag>(section, tagService, true);
+		sectionPane.refresh("", EMPTY_TAG_SET, EMPTY_TAG_SET, "");
 
 		final Labeled title = (Labeled) sectionPane.getGraphic();
 		Assert.assertEquals(section.getName(), title.getText());

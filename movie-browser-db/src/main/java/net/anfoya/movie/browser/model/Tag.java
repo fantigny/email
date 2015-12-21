@@ -16,7 +16,7 @@ public class Tag extends SimpleTag {
 	private final String section;
 
 	public Tag(final int id, final String name, final String section) {
-		super("" + id, name);
+		super("" + id, name, name, false);
 		this.id = id;
 		this.section = section;
 	}

@@ -8,11 +8,11 @@ import java.sql.Statement;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import net.anfoya.movie.browser.model.Section;
-import net.anfoya.movie.browser.model.Tag;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import net.anfoya.movie.browser.model.Section;
+import net.anfoya.movie.browser.model.Tag;
 
 public class TagDao {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TagDao.class);
@@ -95,27 +95,6 @@ public class TagDao {
 		return count;
 	}
 
-	public Tag find(final String tagName) throws SQLException {
-		final String sql = "SELECT id, name, section"
-				+ " FROM tag"
-				+ " WHERE name = ?";
-
-		LOGGER.debug(sql);
-		final Connection connection = dataSource.getConnection();
-		final PreparedStatement statement = connection.prepareStatement(sql);
-		statement.setString(1, tagName);
-		final ResultSet rs = statement.executeQuery();
-		Tag tag = null;
-		if (rs.next()) {
-			tag = new Tag(rs.getInt("id"), tagName, rs.getString("section"));
-		}
-
-		rs.close();
-		statement.close();
-		connection.close();
-		return tag;
-	}
-
 	public Set<Tag> find() throws SQLException {
 		final String sql = "SELECT id, name, section"
 				+ " FROM tag"
@@ -147,11 +126,10 @@ public class TagDao {
 		return tags;
 	}
 
-	public Set<Tag> find(final Section section, final String tagPattern) throws SQLException {
+	public Set<Tag> find(final Section section) throws SQLException {
 		final String sql = "SELECT id, name"
 				+ " FROM tag"
 				+ " WHERE section = ?"
-				+ " AND name LIKE CONCAT('%', ?, '%')"
 				+ " ORDER BY CASE"
 					+ " WHEN name = ? THEN 1"
 					+ " WHEN name = ? THEN 2"
@@ -164,13 +142,63 @@ public class TagDao {
 		final PreparedStatement statement = connection.prepareStatement(sql);
 		int i = 0;
 		statement.setString(++i, section.getName());
-		statement.setString(++i, tagPattern);
 		statement.setString(++i, Tag.NO_TAG_NAME);
 		statement.setString(++i, Tag.TO_WATCH_NAME);
 		final ResultSet rs = statement.executeQuery();
 		final Set<Tag> tags = new LinkedHashSet<Tag>();
 		while (rs.next()) {
 			tags.add(new Tag(rs.getInt("id"), rs.getString("name"), section.getName()));
+		}
+
+		rs.close();
+		statement.close();
+		connection.close();
+		return tags;
+	}
+
+	public Tag findByName(final String name) throws SQLException {
+		final String sql = "SELECT id, name, section"
+				+ " FROM tag"
+				+ " WHERE name = ?";
+
+		LOGGER.debug(sql);
+		final Connection connection = dataSource.getConnection();
+		final PreparedStatement statement = connection.prepareStatement(sql);
+		statement.setString(1, name);
+		final ResultSet rs = statement.executeQuery();
+		Tag tag = null;
+		if (rs.next()) {
+			tag = new Tag(rs.getInt("id"), name, rs.getString("section"));
+		}
+
+		rs.close();
+		statement.close();
+		connection.close();
+		return tag;
+	}
+
+	public Set<Tag> find(final String tagPattern) throws SQLException {
+		final String sql = "SELECT id, name, section"
+				+ " FROM tag"
+				+ " WHERE name LIKE CONCAT('%', ?, '%')"
+				+ " ORDER BY CASE"
+					+ " WHEN name = ? THEN 1"
+					+ " WHEN name = ? THEN 2"
+					+ " ELSE 3"
+					+ " END"
+				+ " , name";
+
+		LOGGER.debug(sql);
+		final Connection connection = dataSource.getConnection();
+		final PreparedStatement statement = connection.prepareStatement(sql);
+		int i = 0;
+		statement.setString(++i, tagPattern);
+		statement.setString(++i, Tag.NO_TAG_NAME);
+		statement.setString(++i, Tag.TO_WATCH_NAME);
+		final ResultSet rs = statement.executeQuery();
+		final Set<Tag> tags = new LinkedHashSet<Tag>();
+		while (rs.next()) {
+			tags.add(new Tag(rs.getInt("id"), rs.getString("name"), rs.getString("section")));
 		}
 
 		rs.close();

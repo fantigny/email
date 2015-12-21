@@ -70,7 +70,7 @@ public class MovieTagsPane extends TitledPane {
 			}
 		}
 
-		final Set<Tag> allTags = tagService.getTags();
+		final Set<Tag> allTags = tagService.getTags("");
 		for(final Tag tag: allTags) {
 			final CheckBox checkBox = new CheckBox(tag.getName());
 			checkBox.setOnAction(checkBoxEventHandler);

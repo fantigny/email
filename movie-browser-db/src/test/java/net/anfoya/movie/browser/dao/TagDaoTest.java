@@ -4,13 +4,13 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Set;
 
-import junit.framework.Assert;
-import net.anfoya.movie.browser.model.Section;
-import net.anfoya.movie.browser.model.Tag;
-
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import junit.framework.Assert;
+import net.anfoya.movie.browser.model.Section;
+import net.anfoya.movie.browser.model.Tag;
 
 public class TagDaoTest {
 
@@ -37,12 +37,12 @@ public class TagDaoTest {
 		final String tagName = "add";
 		final String sectionName = tagName + "Section";
 
-		Tag tag = tagDao.find(tagName);
+		Tag tag = tagDao.findByName(tagName);
 		Assert.assertNull(tag);
 
 		tagDao.add(new Tag(tagName, sectionName));
 
-		tag = tagDao.find(tagName);
+		tag = tagDao.findByName(tagName);
 		Assert.assertNotNull(tag);
 		Assert.assertEquals(tagName, tag.getName());
 		Assert.assertEquals(sectionName, tag.getSection());
@@ -72,18 +72,18 @@ public class TagDaoTest {
 		int count = tagDao.delOrphanTags();
 		Assert.assertEquals(0, count);
 
-		Tag tag = tagDao.find(tagName);
+		Tag tag = tagDao.findByName(tagName);
 		Assert.assertNull(tag);
 
 		tagDao.add(new Tag(tagName, sectionName));
 
-		tag = tagDao.find(tagName);
+		tag = tagDao.findByName(tagName);
 		Assert.assertNotNull(tag);
 
 		count = tagDao.delOrphanTags();
 		Assert.assertEquals(1, count);
 
-		tag = tagDao.find(tagName);
+		tag = tagDao.findByName(tagName);
 		Assert.assertNull(tag);
 	}
 
@@ -93,18 +93,18 @@ public class TagDaoTest {
 		final String sectionName = tagName + "Section";
 		final Section section = new Section(sectionName);
 
-		Tag tag = tagDao.find(tagName);
+		Tag tag = tagDao.findByName(tagName);
 		Assert.assertNull(tag);
 
-		Set<Tag> tags = tagDao.find(section, "");
+		Set<Tag> tags = tagDao.find(section);
 		Assert.assertEquals(0, tags.size());
 
 		tagDao.add(new Tag(tagName, sectionName));
 
-		tag = tagDao.find(tagName);
+		tag = tagDao.findByName(tagName);
 		Assert.assertNotNull(tag);
 
-		tags = tagDao.find(section, "");
+		tags = tagDao.find(section);
 		Assert.assertEquals(1, tags.size());
 
 		tags = tagDao.find();
@@ -116,18 +116,18 @@ public class TagDaoTest {
 		final String tagName = "updateSection";
 		final String sectionName = tagName + "Section";
 
-		Tag tag = tagDao.find(tagName);
+		Tag tag = tagDao.findByName(tagName);
 		Assert.assertNull(tag);
 
 		tagDao.add(new Tag(tagName, sectionName));
 
-		tag = tagDao.find(tagName);
+		tag = tagDao.findByName(tagName);
 		Assert.assertNotNull(tag);
 
 		final String newSection = "newSection";
 		tagDao.updateSection(tag.copyWithSection(newSection));
 
-		tag = tagDao.find(tagName);
+		tag = tagDao.findByName(tagName);
 		Assert.assertEquals(newSection, tag.getSection());
 	}
 

@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.net.URLStreamHandler;
 
 import org.slf4j.Logger;
@@ -34,7 +35,7 @@ public class DownloadAndStartConnection extends GoBackUrlConnection {
 		try {
 			download();
 		} catch (final IOException e) {
-			LOGGER.error("download {}", file,e);
+			LOGGER.error("download {}", url,e);
 			return;
 		}
 
@@ -57,8 +58,10 @@ public class DownloadAndStartConnection extends GoBackUrlConnection {
 			return;
 		}
 
+		final URLConnection uc = new URL(null, url.toString(), handler).openConnection(); // avoid handler factory re-entrance
+        uc.addRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.130 Safari/537.36");
 		try (
-				BufferedInputStream bis = new BufferedInputStream(new URL(null, url.toString(), handler).openStream()); // avoid handler factory re-entrance
+				BufferedInputStream bis = new BufferedInputStream(uc.getInputStream());
 				BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(file));
 				) {
 			int data; while((data=bis.read()) != -1) {

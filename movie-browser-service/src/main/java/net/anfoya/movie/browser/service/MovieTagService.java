@@ -4,19 +4,21 @@ import java.sql.SQLException;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.util.Callback;
 import net.anfoya.cluster.UpdateManager;
 import net.anfoya.movie.browser.dao.MovieTagDao;
 import net.anfoya.movie.browser.dao.TagDao;
 import net.anfoya.movie.browser.model.Movie;
 import net.anfoya.movie.browser.model.Section;
 import net.anfoya.movie.browser.model.Tag;
+import net.anfoya.tag.model.SpecialTag;
 import net.anfoya.tag.service.TagException;
 import net.anfoya.tag.service.TagService;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class MovieTagService implements TagService<Section, Tag> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MovieTagService.class);
@@ -87,10 +89,13 @@ public class MovieTagService implements TagService<Section, Tag> {
 	}
 
 	@Override
-	public Set<Tag> getTags() {
-		Set<Tag> tags;
+	public Set<Tag> getTags(String pattern) {
 		try {
-			tags = tagDao.find();
+			if (pattern.isEmpty()) {
+				return tagDao.find();
+			} else {
+				return tagDao.find(pattern);
+			}
 		} catch (final SQLException e) {
 			LOGGER.error("listing tags", e);
 			final Alert alertDialog = new Alert(AlertType.ERROR);
@@ -99,25 +104,20 @@ public class MovieTagService implements TagService<Section, Tag> {
 			alertDialog.show();
 			return null;
 		}
-
-		return tags;
 	}
 
 	@Override
-	public Set<Tag> getTags(final Section section, final String tagPattern) {
-		Set<Tag> tags;
+	public Set<Tag> getTags(Section section) {
 		try {
-			tags = tagDao.find(section, tagPattern);
+			return tagDao.find(section);
 		} catch (final SQLException e) {
-			LOGGER.error("finding tags for section: {}", section.getName(), e);
+			LOGGER.error("listing tags", e);
 			final Alert alertDialog = new Alert(AlertType.ERROR);
-			alertDialog.setHeaderText("error finding tags for section: " + section.getName());
+			alertDialog.setHeaderText("error listing tags");
 			alertDialog.setContentText(e.getMessage());
 			alertDialog.show();
 			return null;
 		}
-
-		return tags;
 	}
 
 	public int delOrphanTags() {
@@ -150,7 +150,7 @@ public class MovieTagService implements TagService<Section, Tag> {
 				}
 				updateMgr.updatePerformed();
 			}
-			return tagDao.find(name);
+			return tagDao.findByName(name);
 		} catch (final SQLException e) {
 			LOGGER.error("loading tag: {}", name, e);
 			final Alert alertDialog = new Alert(AlertType.ERROR);
@@ -192,21 +192,6 @@ public class MovieTagService implements TagService<Section, Tag> {
 	}
 
 	@Override
-	public int getCountForSection(final Section section, final Set<Tag> includes, final Set<Tag> excludes, final String namePattern, final String tagPattern) {
-		try {
-			return movieTagDao.countSectionMovies(section, includes, excludes, namePattern, tagPattern);
-		} catch (final SQLException e) {
-			LOGGER.error("counting movies for section: {}, name pattern {} and tags: ({}), exc: ({})", section.getName(), namePattern, includes, excludes, e);
-			final Alert alertDialog = new Alert(AlertType.ERROR);
-			alertDialog.setHeaderText("error counting movies for section: " + section.getName() + ", name pattern " + namePattern + ", tag pattern " + tagPattern + " and tags: " + includes.toString() + ", exc: " + excludes.toString());
-			alertDialog.setContentText(e.getMessage());
-			alertDialog.show();
-			return 0;
-		}
-	}
-
-
-	@Override
 	public int getCountForTags(final Set<Tag> includes, final Set<Tag> excludes, final String pattern) throws TagException {
 		try {
 			return movieTagDao.countMovies(includes, excludes, pattern);
@@ -221,37 +206,98 @@ public class MovieTagService implements TagService<Section, Tag> {
 	}
 
 	@Override
-	public Section addSection(final String sectionName) throws TagException {		
+	public int getCountForSection(Section section, Set<Tag> includes, Set<Tag> excludes, String itemPattern)
+			throws TagException {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public Section addSection(String name) throws TagException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Section rename(final Section Section, final String name) throws TagException {
+	public void remove(Section Section) throws TagException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public Section rename(Section Section, String name) throws TagException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public void remove(final Section Section) throws TagException {
+	public void hide(Section Section) throws TagException {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public Tag addTag(final String name) throws TagException {
+	public void show(Section Section) throws TagException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public Tag findTag(String name) throws TagException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Tag rename(final Tag Tag, final String name) throws TagException {
+	public Tag getTag(String id) throws TagException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public void remove(final Tag tag) throws TagException {
+	public Set<Tag> getHiddenTags() throws TagException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Tag getSpecialTag(SpecialTag specialTag) throws TagException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Tag addTag(String name) throws TagException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void remove(Tag tag) throws TagException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public Tag rename(Tag tag, String name) throws TagException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void hide(Tag tag) throws TagException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void show(Tag tag) throws TagException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void addOnUpdateTagOrSection(Callback<Void, Void> callback) {
 		// TODO Auto-generated method stub
 
 	}

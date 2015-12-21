@@ -2,6 +2,10 @@ package net.anfoya.movie.browser.javafx;
 
 import java.io.IOException;
 
+import org.jgroups.JChannel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import net.anfoya.cluster.LockManager;
 import net.anfoya.cluster.StatusManager;
 import net.anfoya.cluster.UpdateManager;
@@ -24,10 +28,6 @@ import net.anfoya.movie.browser.service.MovieService;
 import net.anfoya.movie.browser.service.MovieTagService;
 import net.anfoya.movie.browser.service.ProfileService;
 import net.anfoya.tag.javafx.scene.section.SectionListPane;
-
-import org.jgroups.JChannel;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ComponentBuilder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ComponentBuilder.class);
@@ -104,7 +104,9 @@ public class ComponentBuilder {
 				, movieService
 				, movieFileService);
 
-		this.sectionListPane = new SectionListPane<Section, Tag>(tagService);
+		this.sectionListPane = new SectionListPane<Section, Tag>(tagService, null, true);
+		this.sectionListPane.setSectionDisableWhenZero(false);
+
 		this.movieListPane = new MovieListPane(movieService);
 		this.moviePane = new MoviePane(movieService, tagService, profile);
 	}
