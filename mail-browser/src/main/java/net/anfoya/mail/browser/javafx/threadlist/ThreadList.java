@@ -19,6 +19,7 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.input.KeyCode;
@@ -59,6 +60,7 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 
 	public ThreadList(final MailService<S, T, H, M, C> mailService) {
         getStyleClass().add("thread-list");
+        setPlaceholder(new Label("empty"));
 		this.mailService = mailService;
 
 		includes = new LinkedHashSet<T>();

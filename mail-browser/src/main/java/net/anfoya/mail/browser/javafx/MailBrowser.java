@@ -56,8 +56,6 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 
 		splitPane = (SplitPane) getRoot();
 		splitPane.getStyleClass().add("background");
-		splitPane.setDividerPosition(0, .2);
-		splitPane.setDividerPosition(1, .5);
 
 		final UndoService undoService = new UndoService();
 
@@ -85,10 +83,11 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		threadPane.managedProperty().bind(threadPane.visibleProperty());
 		splitPane.getItems().add(threadPane);
 
+		splitPane.setDividerPositions(.2, .5);
+		splitPane.setOnKeyPressed(e -> toggleMiniMode(e));
 		SplitPane.setResizableWithParent(sectionListPane, false);
 		SplitPane.setResizableWithParent(threadListPane, false);
 		SplitPane.setResizableWithParent(threadPane, true);
-		splitPane.setOnKeyPressed(e -> toggleMiniMode(e));
 
 		Notifier.INSTANCE.popupLifetime().bind(Settings.getSettings().popupLifetime());
 	}
