@@ -183,10 +183,7 @@ public class MailClient extends Application {
 		final Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
 
 		stage.setWidth(1400);
-		stage.setMinWidth(800);
-
 		stage.setHeight(800);
-		stage.setMinHeight(600);
 
 		if (stage.getWidth() > bounds.getWidth()
 				|| stage.getHeight() > bounds.getHeight()) {

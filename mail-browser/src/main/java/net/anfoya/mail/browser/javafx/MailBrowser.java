@@ -12,7 +12,10 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.SplitPane;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
+import javafx.stage.Window;
 import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.control.Notification.Notifier;
@@ -39,6 +42,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 
 	private final MailService<S, T, H, M, C> mailService;
 
+	private final SplitPane splitPane;
 	private final SectionListPane<S, T> sectionListPane;
 	private final ThreadListPane<S, T, H, M, C> threadListPane;
 	private final ThreadPane<S, T, H, M, C> threadPane;
@@ -50,15 +54,10 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		StyleHelper.addCommonCss(this);
 		StyleHelper.addCss(this, "/net/anfoya/javafx/scene/control/excludebox.css");
 
-		final SplitPane splitPane = (SplitPane) getRoot();
+		splitPane = (SplitPane) getRoot();
 		splitPane.getStyleClass().add("background");
-		if (SHOW_EXCLUDE_BOX) {
-			splitPane.setDividerPosition(0, .10);
-			splitPane.setDividerPosition(1, .34);
-		} else {
-			splitPane.setDividerPosition(0, .08);
-			splitPane.setDividerPosition(1, .32);
-		}
+		splitPane.setDividerPosition(0, .2);
+		splitPane.setDividerPosition(1, .5);
 
 		final UndoService undoService = new UndoService();
 
@@ -83,9 +82,61 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		threadPane = new ThreadPane<S, T, H, M, C>(mailService, undoService);
 		threadPane.setFocusTraversable(false);
 		threadPane.setOnUpdateThread(e -> refreshAfterThreadUpdate());
+		threadPane.managedProperty().bind(threadPane.visibleProperty());
 		splitPane.getItems().add(threadPane);
 
+		SplitPane.setResizableWithParent(sectionListPane, false);
+		SplitPane.setResizableWithParent(threadListPane, false);
+		SplitPane.setResizableWithParent(threadPane, true);
+		splitPane.setOnKeyPressed(e -> toggleMiniMode(e));
+
 		Notifier.INSTANCE.popupLifetime().bind(Settings.getSettings().popupLifetime());
+	}
+
+	private void toggleMiniMode(KeyEvent e) {
+		final KeyCode code = e.getCode();
+		final boolean left = code == KeyCode.LEFT;
+		final boolean right = code == KeyCode.RIGHT;
+		if (!left && !right) {
+			return;
+		}
+		e.consume();
+
+		final boolean toMini = splitPane.getItems().contains(threadPane);
+		if (left && !toMini || right && toMini) {
+			return;
+		}
+
+		final Window window = getWindow();
+		final double newWidth = getWindow().getWidth() + (toMini? -1: 1) * (threadPane.getWidth() + 1);
+		LOGGER.debug("cur -- {} = {} + {} + {}"
+				, window.getWidth()
+				, sectionListPane.getWidth()
+				, threadListPane.getWidth()
+				, threadPane.getWidth());
+		LOGGER.debug("new -- {} {} {} = {}"
+				, window.getWidth()
+				, toMini? "-": "+"
+				, threadPane.getWidth()
+				, newWidth);
+
+		Platform.runLater(() -> {
+			if (toMini) {
+				splitPane.getItems().remove(threadPane);
+			} else {
+				splitPane.getItems().add(threadPane);
+				refreshAfterThreadSelected();
+			}
+			SplitPane.setResizableWithParent(threadListPane, toMini);
+			SplitPane.setResizableWithParent(threadPane, !toMini);
+			window.setWidth(newWidth);
+		});
+
+		LOGGER.debug("aft -- {} = {} + {} + {}"
+				, window.getWidth()
+				, sectionListPane.getWidth()
+				, threadListPane.getWidth()
+				, threadPane.getWidth());
 	}
 
 	public void setOnSignout(EventHandler<ActionEvent> handler) {
@@ -201,6 +252,11 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 			return;
 		}
 		LOGGER.debug("refreshAfterThreadSelected");
+
+		final boolean isMini = !splitPane.getItems().contains(threadPane);
+		if (isMini) {
+			return;
+		}
 
 		final Set<H> threads = threadListPane.getSelectedThreads();
 		if (threads.size() == 1 && threads.iterator().next() instanceof GmailMoreThreads) {
