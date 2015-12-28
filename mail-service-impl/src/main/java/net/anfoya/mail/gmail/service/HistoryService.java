@@ -50,14 +50,15 @@ public class HistoryService extends TimerTask {
 
 		disconnected = new ReadOnlyBooleanWrapper(false);
 
+		final SerializedFile<BigInteger> file = new SerializedFile<BigInteger>(FILE_PREFIX + user);
 		try {
-			historyId = new SerializedFile<BigInteger>(FILE_PREFIX + user).load();
-		} catch (ClassNotFoundException | IOException e) {
+			historyId = file.load();
+		} catch (final Exception e) {
 			historyId = null;
 		}
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			try {
-				new SerializedFile<BigInteger>(FILE_PREFIX + user).save(historyId);
+				file.save(historyId);
 			} catch (final IOException e) {
 				LOGGER.error("saving history id", e);
 			}

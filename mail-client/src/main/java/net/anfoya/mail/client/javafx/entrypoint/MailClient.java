@@ -39,6 +39,9 @@ import net.anfoya.mail.service.Message;
 public class MailClient extends Application {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailClient.class);
 
+	private static final int DEFAULT_WIDTH = 1400;
+	private static final int DEFAULT_HEIGHT = 800;
+
 	private GmailService gmail;
 	private Stage stage;
 
@@ -182,20 +185,24 @@ public class MailClient extends Application {
 	private void initSize(final Stage stage) {
 		final Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
 
-		stage.setWidth(1400);
-		stage.setHeight(800);
+		LOGGER.info("init size to {}x{}", DEFAULT_WIDTH, DEFAULT_HEIGHT);
+		stage.setWidth(DEFAULT_WIDTH);
+		stage.setHeight(DEFAULT_HEIGHT);
 
 		if (stage.getWidth() > bounds.getWidth()
 				|| stage.getHeight() > bounds.getHeight()) {
+			LOGGER.info("maximize to {}x{}", bounds.getWidth(), bounds.getHeight());
 			stage.setWidth(bounds.getWidth());
 			stage.setHeight(bounds.getHeight());
 			stage.setMaximized(true);
 		}
 
 		if (stage.getX() < bounds.getMinX() || stage.getX() > bounds.getMaxX()) {
+			LOGGER.info("move to minX {}", bounds.getMinX());
 			stage.setX(bounds.getMinX());
 		}
 		if (stage.getY() < bounds.getMinY() || stage.getY() > bounds.getMaxY()) {
+			LOGGER.info("move to minY {}", bounds.getMinY());
 			stage.setY(bounds.getMinY());
 		}
 	}
