@@ -27,7 +27,6 @@ import com.google.gdata.data.contacts.ContactEntry;
 import com.google.gdata.data.extensions.Email;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.util.Callback;
 import javafx.util.Duration;
 import net.anfoya.mail.gmail.model.GmailContact;
@@ -83,13 +82,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	private HistoryService historyService;
 	private ContactService contactService;
 
-	private final ReadOnlyBooleanWrapper disconnectedProperty;
-
 	private String address;
-
-	public GmailService() {
-		disconnectedProperty = new ReadOnlyBooleanWrapper();
-	}
 
 	@Override
 	public void connect(final String appName) throws GMailException {
@@ -120,22 +113,18 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			return null;
 		});
 		historyService.start(PULL_PERIOD);
-
-		disconnectedProperty.bind(historyService.disconnected());
 	}
 
 	@Override
 	public void disconnect() {
 	    connectionService.disconnect();
 	    historyService.stop();
-	    disconnectedProperty.unbind();
-	    disconnectedProperty.set(true);
 	    clearCache();
 	}
 
 	@Override
 	public void reconnect() throws GMailException {
-		if (!disconnectedProperty.get()) {
+		if (!disconnectedProperty().get()) {
 			return;
 		}
 
@@ -148,7 +137,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 	@Override
 	public ReadOnlyBooleanProperty disconnectedProperty() {
-		return disconnectedProperty.getReadOnlyProperty();
+		return historyService.disconnected();
 	}
 
 	@Override
@@ -429,7 +418,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		}
 	}
 
-	private boolean hasSubLabel(Label label, Collection<Label> labels) {
+	private boolean hasSubLabel(final Label label, final Collection<Label> labels) {
 		final String name = label.getName();
 		for(final Label l: labels) {
 			final String n = l.getName();
@@ -442,7 +431,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		return false;
 	}
 
-	private Set<GmailTag> sortSystemTags(Set<GmailTag> tags) {
+	private Set<GmailTag> sortSystemTags(final Set<GmailTag> tags) {
 		final Set<GmailTag> alphaTags = new TreeSet<GmailTag>(tags);
 		final Set<GmailTag> sorted = new LinkedHashSet<GmailTag>();
 
@@ -767,7 +756,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	@Override
-	public void addOnUpdateTagOrSection(Callback<Void, Void> callback) {
+	public void addOnUpdateTagOrSection(final Callback<Void, Void> callback) {
 		historyService.addOnUpdateLabel(callback);
 	}
 
@@ -907,7 +896,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		return null;
 	}
 
-	private GmailTag getSpecialTag(String id) {
+	private GmailTag getSpecialTag(final String id) {
 		for(final SpecialTag s: SpecialTag.values()) {
 			final GmailTag tag = getSpecialTag(s);
 			if (tag.getId().equals(id)) {

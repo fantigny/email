@@ -3,7 +3,6 @@ package net.anfoya.mail.gmail.service;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -48,7 +47,7 @@ public class HistoryService extends TimerTask {
 		this.gmail = gmail;
 		this.user = user;
 
-		disconnected = new ReadOnlyBooleanWrapper(false);
+		disconnected = new ReadOnlyBooleanWrapper();
 
 		final SerializedFile<BigInteger> file = new SerializedFile<BigInteger>(FILE_PREFIX + user);
 		try {
@@ -80,12 +79,14 @@ public class HistoryService extends TimerTask {
 		ThreadPool.getInstance().submitLow(() -> {
 			try {
 				final List<History> updates = getUpdates();
+				disconnected.set(false);
 				if (updates != null) {
 					invokeCallbacks(updates);
 				}
 			} catch (final HistoryException e) {
 				if (e.getCause() instanceof UnknownHostException
 						|| e.getCause() instanceof SocketTimeoutException) {
+					disconnected.set(true);
 					LOGGER.error("connection lost {}", e.getCause().getMessage());
 				} else {
 					LOGGER.error("pull updates", e);
@@ -104,9 +105,7 @@ public class HistoryService extends TimerTask {
 			}
 
 			final ListHistoryResponse response = gmail.users().history().list(user).setStartHistoryId(historyId).execute();
-			if (disconnected.get()) {
-				disconnected.set(false);
-			}
+			disconnected.set(false);
 
 			final BigInteger previous = historyId;
 			historyId = response.getHistoryId();
@@ -122,14 +121,7 @@ public class HistoryService extends TimerTask {
 			}
 		} catch (final Exception e) {
 			historyId = null;
-			if (e instanceof ConnectException) {
-				if (!disconnected.get()) {
-					disconnected.set(true);
-				}
-				return null;
-			} else {
-				throw new HistoryException("getting history id", e);
-			}
+			throw new HistoryException("getting history id", e);
 		} finally {
 			LOGGER.debug("got history id: {} ({}ms)", historyId, System.currentTimeMillis()-start);
 		}

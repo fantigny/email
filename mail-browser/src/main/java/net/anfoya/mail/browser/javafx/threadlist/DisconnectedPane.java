@@ -15,7 +15,7 @@ import net.anfoya.mail.service.MailService;
 public class DisconnectedPane extends GridPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DisconnectedPane.class);
 
-	public DisconnectedPane(MailService<?, ?, ?, ?, ?> mailService) {
+	public DisconnectedPane(final MailService<?, ?, ?, ?, ?> mailService) {
 		getStyleClass().add("droparea-grid");
 		setVisible(false);
 		setOpacity(0);
@@ -53,11 +53,5 @@ public class DisconnectedPane extends GridPane {
 				timeline.playFrom(Duration.seconds(.5));
 			}
 		});
-
-		setOnMouseEntered(e -> {
-			timeline.stop();
-			setOpacity(1);
-		});
-		setOnMouseExited(e -> timeline.playFrom(Duration.seconds(.5)));
 	}
 }
