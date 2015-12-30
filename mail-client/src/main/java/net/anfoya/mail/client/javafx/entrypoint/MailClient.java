@@ -194,7 +194,7 @@ public class MailClient extends Application {
 			LOGGER.info("maximize to {}x{}", bounds.getWidth(), bounds.getHeight());
 			stage.setWidth(bounds.getWidth());
 			stage.setHeight(bounds.getHeight());
-//			stage.setMaximized(true);
+//			stage.setMaximized(true);  // buggy on osx 10.7
 		}
 
 		if (stage.getX() < bounds.getMinX() || stage.getX() > bounds.getMaxX()) {

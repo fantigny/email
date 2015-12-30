@@ -89,6 +89,12 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		SplitPane.setResizableWithParent(threadListPane, false);
 		SplitPane.setResizableWithParent(threadPane, true);
 
+		mailService.disconnectedProperty().addListener((ov, o, n) -> {
+			if (!n & o) {
+				Platform.runLater(() -> refreshAfterTagSelected());
+			}
+		});
+
 		Notifier.INSTANCE.popupLifetime().bind(Settings.getSettings().popupLifetime());
 	}
 
