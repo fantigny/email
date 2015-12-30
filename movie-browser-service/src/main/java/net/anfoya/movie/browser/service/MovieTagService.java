@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.util.Callback;
 import net.anfoya.cluster.UpdateManager;
 import net.anfoya.movie.browser.dao.MovieTagDao;
 import net.anfoya.movie.browser.dao.TagDao;
@@ -305,7 +304,7 @@ public class MovieTagService implements TagService<Section, Tag> {
 	}
 
 	@Override
-	public void addOnUpdateTagOrSection(Callback<Void, Void> callback) {
+	public void addOnUpdateTagOrSection(Runnable callback) {
 		// TODO Auto-generated method stub
 
 	}

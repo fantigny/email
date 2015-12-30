@@ -108,10 +108,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		labelService = new LabelService(gmail, USER);
 
 		historyService = new HistoryService(gmail, USER);
-		historyService.addOnUpdateLabel(lList -> {
-			labelService.clearCache();
-			return null;
-		});
+		historyService.addOnUpdateLabel(() -> labelService.clearCache());
 		historyService.start(PULL_PERIOD);
 	}
 
@@ -756,13 +753,13 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	@Override
-	public void addOnUpdateTagOrSection(final Callback<Void, Void> callback) {
+	public void addOnUpdateTagOrSection(final Runnable callback) {
 		historyService.addOnUpdateLabel(callback);
 	}
 
 	@Override
-	public void addOnUpdateMessage(final Callback<Void, Void> callback) {
-		historyService.addOnUpdateMessage(mList -> callback.call(null));
+	public void addOnUpdateMessage(Runnable callback) {
+		historyService.addOnUpdateMessage(mSet -> callback.run());
 	}
 
 	@Override
@@ -790,7 +787,6 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			if (!threads.isEmpty()) {
 				callback.call(threads);
 			}
-			return null;
 		});
 	}
 

@@ -20,7 +20,6 @@ import javafx.scene.control.TitledPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
-import javafx.util.Callback;
 import javafx.util.Duration;
 import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.concurrent.ThreadPool;
@@ -164,7 +163,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 		initSectionName = sectionName;
 		initTagName = tagName;
 
-		refreshAsync(v -> {
+		refreshAsync(() -> {
 			for(final TitledPane tp: sectionAcc.getPanes()) {
 				@SuppressWarnings("unchecked")
 				final SectionPane<Section, Tag> sectionPane = (SectionPane<Section, Tag>) tp;
@@ -173,7 +172,6 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 					break;
 				}
 			}
-			return null;
 		});
 	}
 
@@ -286,7 +284,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 		}
 	}
 
-	public synchronized void refreshAsync(final Callback<Void, Void> callback) {
+	public synchronized void refreshAsync(final Runnable callback) {
 		final long taskId = ++refreshTaskId;
 		if (refreshTask != null && refreshTask.isRunning()) {
 			refreshTask.cancel();
@@ -312,7 +310,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 			refreshTags();
 			selectedTagsPane.refresh(getAllSelectedTags());
 			if (callback != null) {
-				callback.call(null);
+				callback.run();
 			}
 		});
 		refreshTask.setOnFailed(e -> LOGGER.error("getting sections", e.getSource().getException()));
@@ -331,10 +329,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 		}
 
 		if (patternField.getText().isEmpty()) {
-			refreshAsync(v -> {
-				init(initSectionName, initTagName);
-				return null;
-			});
+			refreshAsync(() -> init(initSectionName, initTagName));
 		} else {
 			patternDelay = new DelayTimeline(Duration.millis(500), e -> refreshWithPattern());
 			patternDelay.play();

@@ -277,7 +277,7 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		i++;
 
 		refreshHidden();
-		mailService.addOnUpdateTagOrSection(v -> refreshHidden());
+		mailService.addOnUpdateTagOrSection(() -> refreshHidden());
 
 		return new Tab("settings", new ScrollPane(gridPane));
 	}

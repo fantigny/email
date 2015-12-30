@@ -24,9 +24,9 @@ import com.google.api.services.gmail.model.Message;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
-import javafx.util.Callback;
 import javafx.util.Duration;
 import net.anfoya.java.io.SerializedFile;
+import net.anfoya.java.util.VoidCallback;
 import net.anfoya.java.util.concurrent.ThreadPool;
 
 public class HistoryService extends TimerTask {
@@ -36,9 +36,9 @@ public class HistoryService extends TimerTask {
 	private final Gmail gmail;
 	private final String user;
 	private final ReadOnlyBooleanWrapper disconnected;
-	private final Set<Callback<Set<Message>, Void>> updateMessageCallBacks;
-	private final Set<Callback<Set<Message>, Void>> addedMessageCallBacks;
-	private final Set<Callback<Void, Void>> updateLabelCallBacks;
+	private final Set<VoidCallback<Set<Message>>> updateMessageCallBacks;
+	private final Set<VoidCallback<Set<Message>>> addedMessageCallBacks;
+	private final Set<Runnable> updateLabelCallBacks;
 
 	private Timer timer;
 	private BigInteger historyId;
@@ -48,6 +48,11 @@ public class HistoryService extends TimerTask {
 		this.user = user;
 
 		disconnected = new ReadOnlyBooleanWrapper();
+		disconnected.addListener((ov, o, n) -> {
+			if (!n & o) {
+
+			}
+		});
 
 		final SerializedFile<BigInteger> file = new SerializedFile<BigInteger>(FILE_PREFIX + user);
 		try {
@@ -63,9 +68,9 @@ public class HistoryService extends TimerTask {
 			}
 		}));
 
-		updateMessageCallBacks = new LinkedHashSet<Callback<Set<Message>, Void>>();
-		addedMessageCallBacks = new LinkedHashSet<Callback<Set<Message>, Void>>();
-		updateLabelCallBacks = new LinkedHashSet<Callback<Void, Void>>();
+		updateMessageCallBacks = new LinkedHashSet<VoidCallback<Set<Message>>>();
+		addedMessageCallBacks = new LinkedHashSet<VoidCallback<Set<Message>>>();
+		updateLabelCallBacks = new LinkedHashSet<Runnable>();
 	}
 
 	public void start(final Duration pullPeriod) {
@@ -129,7 +134,7 @@ public class HistoryService extends TimerTask {
 
 	private void invokeCallbacks(final List<History> updates) {
 		if (updates.isEmpty()) {
-			updateLabelCallBacks.forEach(c -> c.call(null));
+			updateLabelCallBacks.forEach(c -> c.run());
 			return;
 		}
 
@@ -161,22 +166,22 @@ public class HistoryService extends TimerTask {
 		}
 	}
 
-	public void addOnUpdateMessage(final Callback<Set<Message>, Void> callback) {
+	public void addOnUpdateMessage(final VoidCallback<Set<Message>> callback) {
 		updateMessageCallBacks.add(callback);
 	}
 
-	public void addOnAddedMessage(final Callback<Set<Message>, Void> callback) {
+	public void addOnAddedMessage(final VoidCallback<Set<Message>> callback) {
 		addedMessageCallBacks.add(callback);
 	}
 
-	public void addOnUpdateLabel(final Callback<Void, Void> callback) {
+	public void addOnUpdateLabel(final Runnable callback) {
 		updateLabelCallBacks.add(callback);
 	}
 
 	public void clearCache() {
 		historyId = null;
 		new SerializedFile<BigInteger>(FILE_PREFIX + user).clear();
-		updateLabelCallBacks.forEach(c -> c.call(null));
+		updateLabelCallBacks.forEach(c -> c.run());
 	}
 
 	public ReadOnlyBooleanProperty disconnected() {

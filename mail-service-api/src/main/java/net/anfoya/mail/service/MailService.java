@@ -22,7 +22,7 @@ public interface MailService<
 
 	public void clearCache();
 
-	public void addOnUpdateMessage(Callback<Void, Void> callback);
+	public void addOnUpdateMessage(final Runnable callback);
 	public void addOnNewMessage(Callback<Set<H>, Void> callback);
 
 	public Set<S> getHiddenSections() throws MailException;
@@ -71,5 +71,5 @@ public interface MailService<
 
 	@Override public T moveToSection(T tag, S section) throws MailException;
 
-	@Override public void addOnUpdateTagOrSection(Callback<Void, Void> callback);
+	@Override public void addOnUpdateTagOrSection(Runnable callback);
 }

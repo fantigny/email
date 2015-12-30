@@ -89,12 +89,6 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		SplitPane.setResizableWithParent(threadListPane, false);
 		SplitPane.setResizableWithParent(threadPane, true);
 
-		mailService.disconnectedProperty().addListener((ov, o, n) -> {
-			if (!n & o) {
-				Platform.runLater(() -> refreshAfterTagSelected());
-			}
-		});
-
 		Notifier.INSTANCE.popupLifetime().bind(Settings.getSettings().popupLifetime());
 	}
 
@@ -153,14 +147,8 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 //		sectionListPane.init("Bank", "HK HSBC");
 		sectionListPane.init(GmailSection.SYSTEM.getName(), mailService.getSpecialTag(SpecialTag.INBOX).getName());
 
-		mailService.addOnUpdateMessage(p -> {
-			Platform.runLater(() -> refreshAfterUpdateMessage());
-			return null;
-		});
-		mailService.addOnUpdateTagOrSection(p -> {
-			Platform.runLater(() -> refreshAfterUpdateTagOrSection());
-			return null;
-		});
+		mailService.addOnUpdateMessage(() -> Platform.runLater(() -> refreshAfterUpdateMessage()));
+		mailService.addOnUpdateTagOrSection(() -> Platform.runLater(() -> refreshAfterUpdateTagOrSection()));
 
 	}
 
@@ -185,10 +173,8 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		LOGGER.debug("refreshAfterUpdateMessage");
 		LOGGER.info("message update detected");
 
-		sectionListPane.refreshAsync(v -> {
-			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
-			return null;
-		});
+		sectionListPane.refreshAsync(() ->
+			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags()));
 
 		if (System.getProperty("os.name").contains("OS X")) {
 			ThreadPool.getInstance().submitLow(() -> {
@@ -225,10 +211,8 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		}
 		LOGGER.debug("refreshAfterSectionUpdate");
 
-		sectionListPane.refreshAsync(v -> {
-			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
-			return null;
-		});
+		sectionListPane.refreshAsync(() ->
+			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags()));
 	}
 
 	private void refreshAfterSectionSelect() {
@@ -246,10 +230,8 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		}
 		LOGGER.debug("refreshAfterTagUpdate");
 
-		sectionListPane.refreshAsync(v -> {
-			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
-			return null;
-		});
+		sectionListPane.refreshAsync(() ->
+			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags()));
 	}
 
 	private void refreshAfterThreadSelected() {
@@ -316,10 +298,8 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		}
 		LOGGER.debug("refreshAfterPatternUpdate");
 
-		sectionListPane.refreshAsync(e -> {
-			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
-			return null;
-		});
+		sectionListPane.refreshAsync(() ->
+			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags()));
 	}
 
 	private void refreshAfterThreadUpdate() {
@@ -328,9 +308,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		}
 		LOGGER.debug("refreshAfterThreadUpdate");
 
-		sectionListPane.refreshAsync(e -> {
-			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
-			return null;
-		});
+		sectionListPane.refreshAsync(() ->
+			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags()));
 	}
 }

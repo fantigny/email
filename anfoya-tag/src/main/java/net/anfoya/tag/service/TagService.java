@@ -2,7 +2,6 @@ package net.anfoya.tag.service;
 
 import java.util.Set;
 
-import javafx.util.Callback;
 import net.anfoya.tag.model.SpecialTag;
 
 public interface TagService<S extends Section, T extends Tag> {
@@ -33,5 +32,5 @@ public interface TagService<S extends Section, T extends Tag> {
 
 	public T moveToSection(T tag, S section) throws TagException;
 
-	public void addOnUpdateTagOrSection(Callback<Void, Void> callback);
+	public void addOnUpdateTagOrSection(Runnable callback);
 }
