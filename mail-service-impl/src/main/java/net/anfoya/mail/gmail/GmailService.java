@@ -88,7 +88,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	private String address;
 
 	public GmailService() {
-		disconnectedProperty = new ReadOnlyBooleanWrapper(true);
+		disconnectedProperty = new ReadOnlyBooleanWrapper();
 	}
 
 	@Override
