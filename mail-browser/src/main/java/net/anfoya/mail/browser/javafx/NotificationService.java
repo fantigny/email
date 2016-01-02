@@ -22,7 +22,6 @@ public class NotificationService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(NotificationService.class);
 
 	private final Stage stage;
-
 	private final Image originalIcon;
 
 	public NotificationService(final Stage stage) {
@@ -60,7 +59,7 @@ public class NotificationService {
 						final WritableImage icon = SwingFXUtils.toFXImage(SwingFXUtils.fromFXImage(image, null), null);
 						stage.getIcons().setAll(icon);
 					} catch (final Exception e) {
-						LOGGER.error("show badge {}", text, e);
+						LOGGER.error("set icon badge {}", text, e);
 					}
 				});
 			}
