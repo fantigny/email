@@ -33,8 +33,11 @@ public class NotificationService {
 		this.stage = stage;
 
 		applicationIcon = new Image(this.getClass().getResource("/net/anfoya/mail/img/Mail64.png").toExternalForm());
+
 		snapshotParameters = new SnapshotParameters();
 		snapshotParameters.setFill(Color.TRANSPARENT);
+
+		badgeTask = null;
 	}
 
 	public synchronized void setIconBadge(final String text) {
@@ -44,7 +47,7 @@ public class NotificationService {
 			if (System.getProperty("os.name").contains("OS X")) {
 				com.apple.eawt.Application.getApplication().setDockIconBadge(text);
 			} else {
-				if (badgeTask != null && badgeTask.isRunning()) {
+				if (badgeTask != null) {
 					badgeTask.cancel();
 				}
 				badgeTask = new Task<Canvas>() {
