@@ -37,9 +37,7 @@ public class NotificationService {
 		if (System.getProperty("os.name").contains("OS X")) {
 			com.apple.eawt.Application.getApplication().setDockIconBadge(null);
 		} else {
-			if (originalIcon != null) {
-				onApplicationThread(() -> stage.getIcons().setAll(originalIcon));
-			}
+			onApplicationThread(() -> stage.getIcons().setAll(originalIcon));
 		}
 	}
 
