@@ -37,7 +37,6 @@ import javafx.stage.Popup;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javafx.util.Callback;
 import javafx.util.Duration;
 
 
@@ -55,26 +54,26 @@ public class Notification {
     public final String       TITLE;
     public final String       MESSAGE;
     public final Image        IMAGE;
-	public final Callback<Void, Void> CALLBACK;
+	public final Runnable     CALLBACK;
 
 
     // ******************** Constructors **************************************
     public Notification(final String TITLE, final String MESSAGE) {
         this(TITLE, MESSAGE, null, null);
     }
-    public Notification(final String TITLE, final String MESSAGE, final Callback<Void, Void> CALLBACK) {
+    public Notification(final String TITLE, final String MESSAGE, final Runnable CALLBACK) {
         this(TITLE, MESSAGE, null, CALLBACK);
     }
     public Notification(final String MESSAGE, final Image IMAGE) {
         this("", MESSAGE, IMAGE, null);
     }
-    public Notification(final String MESSAGE, final Image IMAGE, final Callback<Void, Void> CALLBACK) {
+    public Notification(final String MESSAGE, final Image IMAGE, final Runnable CALLBACK) {
         this("", MESSAGE, IMAGE, CALLBACK);
     }
     public Notification(final String TITLE, final String MESSAGE, final Image IMAGE) {
         this(TITLE, MESSAGE, IMAGE, null);
     }
-    public Notification(final String TITLE, final String MESSAGE, final Image IMAGE, final Callback<Void, Void> CALLBACK) {
+    public Notification(final String TITLE, final String MESSAGE, final Image IMAGE, final Runnable CALLBACK) {
         this.TITLE   = TITLE;
         this.MESSAGE = MESSAGE;
         this.IMAGE   = IMAGE;
@@ -237,7 +236,7 @@ public class Notification {
         public void notify(final String TITLE, final String MESSAGE, final Image IMAGE) {
         	notify(TITLE, MESSAGE, IMAGE);
         }
-        public void notify(final String TITLE, final String MESSAGE, final Image IMAGE, Callback<Void, Void> CALLBACK) {
+        public void notify(final String TITLE, final String MESSAGE, final Image IMAGE, Runnable CALLBACK) {
             notify(new Notification(TITLE, MESSAGE, IMAGE, CALLBACK));
         }
 
@@ -249,7 +248,7 @@ public class Notification {
         public void notifyInfo(final String TITLE, final String MESSAGE) {
         	notifyInfo(TITLE, MESSAGE, null);
         }
-        public void notifyInfo(final String TITLE, final String MESSAGE, Callback<Void, Void> CALLBACK) {
+        public void notifyInfo(final String TITLE, final String MESSAGE, Runnable CALLBACK) {
             notify(new Notification(TITLE, MESSAGE, Notification.INFO_ICON, CALLBACK));
         }
 
@@ -261,7 +260,7 @@ public class Notification {
         public void notifyWarning(final String TITLE, final String MESSAGE) {
         	notifyWarning(TITLE, MESSAGE, null);
         }
-        public void notifyWarning(final String TITLE, final String MESSAGE, Callback<Void, Void> CALLBACK) {
+        public void notifyWarning(final String TITLE, final String MESSAGE, Runnable CALLBACK) {
             notify(new Notification(TITLE, MESSAGE, Notification.WARNING_ICON, CALLBACK));
         }
 
@@ -273,7 +272,7 @@ public class Notification {
         public void notifySuccess(final String TITLE, final String MESSAGE) {
         	notifySuccess(TITLE, MESSAGE, null);
         }
-        public void notifySuccess(final String TITLE, final String MESSAGE, Callback<Void, Void> CALLBACK) {
+        public void notifySuccess(final String TITLE, final String MESSAGE, Runnable CALLBACK) {
             notify(new Notification(TITLE, MESSAGE, Notification.SUCCESS_ICON, CALLBACK));
         }
 
@@ -285,7 +284,7 @@ public class Notification {
         public void notifyError(final String TITLE, final String MESSAGE) {
         	notifyError(TITLE, MESSAGE, null);
         }
-        public void notifyError(final String TITLE, final String MESSAGE, Callback<Void, Void> CALLBACK) {
+        public void notifyError(final String TITLE, final String MESSAGE, Runnable CALLBACK) {
             notify(new Notification(TITLE, MESSAGE, Notification.ERROR_ICON, CALLBACK));
         }
 
@@ -355,7 +354,7 @@ public class Notification {
                 	stage.hide();
                 }
                 if (NOTIFICATION.CALLBACK != null) {
-                	NOTIFICATION.CALLBACK.call(null);
+                	NOTIFICATION.CALLBACK.run();
                 }
             });
 

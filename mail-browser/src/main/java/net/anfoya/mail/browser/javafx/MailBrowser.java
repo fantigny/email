@@ -1,7 +1,6 @@
 package net.anfoya.mail.browser.javafx;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -41,15 +40,18 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	private static final boolean SHOW_EXCLUDE_BOX = Settings.getSettings().showExcludeBox().get();
 
 	private final MailService<S, T, H, M, C> mailService;
+	private final NotificationService notificationService;
 
 	private final SplitPane splitPane;
 	private final SectionListPane<S, T> sectionListPane;
 	private final ThreadListPane<S, T, H, M, C> threadListPane;
 	private final ThreadPane<S, T, H, M, C> threadPane;
 
-	public MailBrowser(final MailService<S, T, H, M, C> mailService) throws MailException {
+	public MailBrowser(final MailService<S, T, H, M, C> mailService
+			, NotificationService notificationService) throws MailException {
 		super(new SplitPane(), Color.TRANSPARENT);
 		this.mailService = mailService;
+		this.notificationService = notificationService;
 
 		StyleHelper.addCommonCss(this);
 		StyleHelper.addCss(this, "/net/anfoya/javafx/scene/control/excludebox.css");
@@ -176,23 +178,16 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		sectionListPane.refreshAsync(() ->
 			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags()));
 
-		if (System.getProperty("os.name").contains("OS X")) {
-			ThreadPool.getInstance().submitLow(() -> {
-				final Set<T> includes = new HashSet<T>();
-				int unreadCount = 0;
-				try {
-					includes.add(mailService.getSpecialTag(SpecialTag.UNREAD));
-					unreadCount = mailService.findThreads(includes, Collections.emptySet(), "", 200).size();
-				} catch (final MailException e) {
-					LOGGER.error("counting unread messages", e);
-				}
-				if (unreadCount > 0) {
-					com.apple.eawt.Application.getApplication().setDockIconBadge("" + unreadCount);
-				} else {
-					com.apple.eawt.Application.getApplication().setDockIconBadge(null);
-				}
-			}, "counting unread messages");
-		}
+		final Set<T> includes = Collections.singleton(mailService.getSpecialTag(SpecialTag.UNREAD));
+		ThreadPool.getInstance().submitLow(() -> {
+			int count = 0;
+			try {
+				count = mailService.findThreads(includes, Collections.emptySet(), "", 200).size();
+			} catch (final MailException e) {
+				LOGGER.error("counting unread messages", e);
+			}
+			notificationService.setIconCount(count);
+		}, "counting unread messages");
 	}
 
 	private void refreshAfterUpdateTagOrSection() {

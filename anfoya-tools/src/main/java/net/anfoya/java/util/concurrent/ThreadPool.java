@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javafx.util.Callback;
+import net.anfoya.java.util.VoidCallback;
 
 public final class ThreadPool {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadPool.class);
@@ -53,10 +53,10 @@ public final class ThreadPool {
 	private final ExecutorService delegateHigh;
 	private final ExecutorService delegateLow;
 
-	private final Set<Callback<Map<Future<?>, String>, Void>> changeCallbacks;
+	private final Set<VoidCallback<Map<Future<?>, String>>> changeCallbacks;
 	private final Map<Future<?>, String> futureDesc;
 
-	private final Set<Callback<Boolean, Void>> highRunningCallbacks;
+	private final Set<VoidCallback<Boolean>> highRunningCallbacks;
 	private final Set<Future<?>> highFutures;
 
 
@@ -66,10 +66,10 @@ public final class ThreadPool {
 		delegateHigh = Executors.newFixedThreadPool(30, new NamedThreadFactory("norm-prority-threadpool", Thread.NORM_PRIORITY));
 		delegateLow = Executors.newFixedThreadPool(20, new NamedThreadFactory(" min-prority-threadpool", Thread.MIN_PRIORITY));
 
-		changeCallbacks = new HashSet<Callback<Map<Future<?>,String>,Void>>();
+		changeCallbacks = new HashSet<VoidCallback<Map<Future<?>, String>>>();
 		futureDesc = new ConcurrentHashMap<Future<?>, String>();
 
-		highRunningCallbacks = new CopyOnWriteArraySet<Callback<Boolean, Void>>();
+		highRunningCallbacks = new CopyOnWriteArraySet<VoidCallback<Boolean>>();
 		highFutures = new CopyOnWriteArraySet<Future<?>>();
 
 		new Timer("threadpool-cleanup-timer", true).schedule(new TimerTask() {
@@ -120,12 +120,12 @@ public final class ThreadPool {
 		return submit(delegateLow, callable, description);
 	}
 
-	public void setOnChange(final Callback<Map<Future<?>, String>, Void> callback) {
+	public void setOnChange(final VoidCallback<Map<Future<?>, String>> callback) {
 		changeCallbacks.add(callback);
 		callback.call(futureDesc);
 	}
 
-	public void setOnHighRunning(final Callback<Boolean, Void> callback) {
+	public void setOnHighRunning(final VoidCallback<Boolean> callback) {
 		highRunningCallbacks.add(callback);
 		callback.call(highFutures.size() > 0);
 	}

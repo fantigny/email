@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.control.Alert;
@@ -19,8 +18,8 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.javafx.scene.control.Notification.Notifier;
 import net.anfoya.mail.browser.javafx.MailBrowser;
+import net.anfoya.mail.browser.javafx.NotificationService;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.settings.VersionHelper;
 import net.anfoya.mail.browser.javafx.util.UrlHelper;
@@ -42,6 +41,7 @@ public class MailClient extends Application {
 	private static final int DEFAULT_WIDTH = 1400;
 	private static final int DEFAULT_HEIGHT = 800;
 
+	private NotificationService notificationService;
 	private GmailService gmail;
 	private Stage stage;
 
@@ -58,11 +58,10 @@ public class MailClient extends Application {
 	@Override
 	public void start(final Stage stage) throws Exception {
 		this.stage = stage;
-
 		stage.setOnCloseRequest(e -> confirmClose(e));
-
 		stage.initStyle(StageStyle.UNIFIED);
-		initMacOs();
+
+		notificationService = new NotificationService(stage);
 
 		showBrowser();
 
@@ -129,15 +128,10 @@ public class MailClient extends Application {
 		final VersionHelper checker = new VersionHelper();
 		checker.isLastestProperty().addListener((ov, o, n) -> {
 			if (!n) {
-				Platform.runLater(() -> {
-					Notifier.INSTANCE.notifySuccess(
-							"FisherMail - " + checker.getLatestVersion()
-							, "click here to download"
-							, v -> {
-								UrlHelper.open(Settings.DOWNLOAD_URL);
-								return null;
-							});
-				});
+				notificationService.notifySuccess(
+					"FisherMail - " + checker.getLatestVersion()
+					, "click here to download"
+					, () -> UrlHelper.open(Settings.DOWNLOAD_URL));
 			}
 		});
 	}
@@ -149,7 +143,9 @@ public class MailClient extends Application {
 
 		MailBrowser<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact> mailBrowser;
 		try {
-			mailBrowser = new MailBrowser<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact>(gmail);
+			mailBrowser = new MailBrowser<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact>(
+					gmail
+					, notificationService);
 		} catch (final MailException e) {
 			LOGGER.error("load mail browser", e);
 			return;
@@ -207,59 +203,6 @@ public class MailClient extends Application {
 		}
 	}
 
-	private void initMacOs() {
-		if (!System.getProperty("os.name").contains("OS X")) {
-			return;
-		}
-//		final MenuItem aboutItem = new MenuItem("About FisherMail");
-//		final MenuItem preferencesItem = new MenuItem("Preferences...");
-//		final MenuItem browserItem = new MenuItem("Mail Browser");
-//		browserItem.setAccelerator(new KeyCodeCombination(KeyCode.B, KeyCombination.SHORTCUT_DOWN));
-//		final MenuItem composerItem = new MenuItem("Mail Composer");
-//		composerItem.setAccelerator(new KeyCodeCombination(KeyCode.C, KeyCombination.SHORTCUT_DOWN));
-//		final MenuItem tipsItem = new MenuItem("Tips and Tricks");
-//		final MenuBar menuBar = new MenuBar(
-//				new Menu("Window", (Node)null
-//						, aboutItem
-//						, new SeparatorMenuItem()
-//						, preferencesItem
-//						, new SeparatorMenuItem()
-//						, composerItem
-//						, browserItem)
-//				, new Menu("Help", (Node)null
-//						, tipsItem));
-//		menuBar.setUseSystemMenuBar(true);
-//		stage.sceneProperty().addListener(c -> {
-//			stage.getScene().setRoot(new BorderPane(stage.getScene().getRoot(), menuBar, null, null, null));
-//		});
-//		LOGGER.info("initialize OS X stage behaviour");
-//		Platform.setImplicitExit(false);
-//		com.apple.eawt.Application.getApplication().addAppEventListener(new AppReOpenedListener() {
-//			@Override
-//			public void appReOpened(final AppReOpenedEvent e) {
-//				LOGGER.info("OS X AppReOpenedListener");
-//				if (!stage.isShowing()) {
-//					LOGGER.debug("OS X show()");
-//					Platform.runLater(() -> stage.show());
-//				}
-//				if (stage.isIconified()) {
-//					LOGGER.debug("OS X setIconified(false)");
-//					Platform.runLater(() -> stage.setIconified(false));
-//				}
-//				if (!stage.isFocused()) {
-//					LOGGER.debug("OS X requestFocus()");
-//					Platform.runLater(() -> stage.requestFocus());
-//				}
-//			}
-//		});
-//
-//		final List<MenuBase> menus = new ArrayList<>();
-//		menus.add(GlobalMenuAdapter.adapt(new Menu("java")));
-//
-//		final TKSystemMenu menu = Toolkit.getToolkit().getSystemMenu();
-//		menu.setMenus(menus);
-	}
-
 	private void initNewThreadNotifier() {
 		if (gmail.disconnectedProperty().get()) {
 			return;
@@ -277,17 +220,16 @@ public class MailClient extends Application {
 								, m.getSnippet());
 					}
 				};
-				task.setOnSucceeded(e -> Notifier.INSTANCE.notifySuccess(
+				task.setOnSucceeded(e -> notificationService.notifySuccess(
 						t.getSubject()
 						, task.getValue()
-						, v -> {
+						, () -> {
 							if (stage.isIconified()) {
 								stage.setIconified(false);
 							}
 							if (!stage.isFocused()) {
 								stage.requestFocus();
 							}
-							return null;
 						}));
 				task.setOnFailed(e -> LOGGER.error("notify new thread {}", t.getId(), e.getSource().getException()));
 				ThreadPool.getInstance().submitLow(task, "notify new thread");

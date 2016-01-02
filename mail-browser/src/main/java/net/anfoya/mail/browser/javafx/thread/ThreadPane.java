@@ -74,7 +74,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 
 	private final ObservableList<Node> messagePanes;
 
-	private T unread;
+	private final T unread;
 
 	private EventHandler<ActionEvent> updateHandler;
 	private EventHandler<ActionEvent> signoutHandler;
@@ -126,7 +126,6 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 				stopRotateTransition.setDuration(Duration.seconds(.5 * stopRotateTransition.getByAngle() / 360d));
 				stopRotateTransition.play();
 			}
-			return null;
 		});
 
 		final Button signoutButton = new Button();

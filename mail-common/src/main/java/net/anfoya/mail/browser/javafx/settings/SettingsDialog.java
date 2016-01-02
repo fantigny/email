@@ -88,10 +88,7 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 	private Tab buildTaskTab() {
 		final ListView<String> taskList = new ListView<String>();
 		taskList.setPlaceholder(new Label("idle"));
-		ThreadPool.getInstance().setOnChange(map -> {
-			Platform.runLater(() -> taskList.getItems().setAll(map.values()));
-			return null;
-		});
+		ThreadPool.getInstance().setOnChange(map -> Platform.runLater(() -> taskList.getItems().setAll(map.values())));
 		return new Tab("tasks", taskList);
 	}
 
