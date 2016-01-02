@@ -32,7 +32,13 @@ public class NotificationService {
 	public NotificationService(final Stage stage) {
 		this.stage = stage;
 
-		applicationIcon = new Image(this.getClass().getResource("/net/anfoya/mail/img/Mail64.png").toExternalForm());
+		if (System.getProperty("os.name").contains("OS X")) {
+			applicationIcon = null;
+		} else if (stage.getIcons().isEmpty()) {
+			applicationIcon = new Image(this.getClass().getResource("/net/anfoya/mail/img/Mail64.png").toExternalForm());
+		} else {
+			applicationIcon = stage.getIcons().get(0);
+		}
 
 		snapshotParameters = new SnapshotParameters();
 		snapshotParameters.setFill(Color.TRANSPARENT);
