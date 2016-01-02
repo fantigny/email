@@ -1,23 +1,16 @@
 package net.anfoya.mail.browser.javafx;
 
-import java.awt.image.BufferedImage;
-import java.io.File;
-
-import javax.imageio.ImageIO;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.VPos;
-import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
-import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -49,29 +42,25 @@ public class NotificationService {
 				final GraphicsContext gc = canvas.getGraphicsContext2D();
 				gc.drawImage(originalIcon, 0, 0);
 				gc.setFill(Color.RED);
-				gc.fillOval(96, 0, 160, 160);
+				gc.fillOval(28, 0, 36, 36);
 				gc.setFill(Color.WHITE);
-				gc.setFont(Font.font(null, FontWeight.BOLD, 112));
+				gc.setFont(Font.font("arial", FontWeight.BOLD, 24));
 				gc.setTextAlign(TextAlignment.CENTER);
 				gc.setTextBaseline(VPos.CENTER);
 				gc.setLineWidth(20);
-				gc.fillText(text, 176, 71, 100);
+				gc.fillText(text, 45, 18, 32);
+
+				final WritableImage image = new WritableImage((int)canvas.getWidth(), (int)canvas.getHeight());
+				final SnapshotParameters parameters = new SnapshotParameters();
+				parameters.setFill(Color.TRANSPARENT);
 
 				onFxThread(() -> {
 					try {
-						@SuppressWarnings("unused") final Scene scene = new Scene(new StackPane(canvas));
-						final WritableImage image = new WritableImage((int)canvas.getWidth(), (int)canvas.getHeight());
-						final SnapshotParameters parameters = new SnapshotParameters();
-						parameters.setFill(Color.TRANSPARENT);
 						canvas.snapshot(parameters, image);
-
-						final BufferedImage bImage = SwingFXUtils.fromFXImage(image, null);
-						ImageIO.write(bImage, "png", new File("c:/Users/Fred/Desktop/image.png"));
-						stage.getIcons().setAll(originalIcon);
-						stage.getIcons().setAll(new Image("file:c:/Users/Fred/Desktop/image.png", false));
-//						stage.getIcons().setAll(image);
+						final WritableImage icon = SwingFXUtils.toFXImage(SwingFXUtils.fromFXImage(image, null), null);
+						stage.getIcons().setAll(icon);
 					} catch (final Exception e) {
-						LOGGER.error("showing badge {}", text, e);
+						LOGGER.error("show badge {}", text, e);
 					}
 				});
 			}
