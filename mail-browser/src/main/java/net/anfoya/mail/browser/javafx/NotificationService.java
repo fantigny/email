@@ -35,7 +35,7 @@ public class NotificationService {
 	public NotificationService(final Stage stage) {
 		this.stage = stage;
 
-		originalIcon = new Image(this.getClass().getResource("/net/anfoya/mail/img/Mail48.png").toExternalForm());
+		originalIcon = new Image(this.getClass().getResource("/net/anfoya/mail/img/Mail64.png").toExternalForm());
 	}
 
 	public void setIconBadge(final String text) {
@@ -82,9 +82,7 @@ public class NotificationService {
 		if (System.getProperty("os.name").contains("OS X")) {
 			com.apple.eawt.Application.getApplication().setDockIconBadge(null);
 		} else {
-			if (originalIcon != null) {
-				onFxThread(() -> stage.getIcons().setAll(originalIcon));
-			}
+			onFxThread(() -> stage.getIcons().setAll(originalIcon));
 		}
 	}
 
