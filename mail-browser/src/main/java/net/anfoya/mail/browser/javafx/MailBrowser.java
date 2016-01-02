@@ -149,9 +149,24 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 //		sectionListPane.init("Bank", "HK HSBC");
 		sectionListPane.init(GmailSection.SYSTEM.getName(), mailService.getSpecialTag(SpecialTag.INBOX).getName());
 
+		refreshUnreadCount();
+
 		mailService.addOnUpdateMessage(() -> Platform.runLater(() -> refreshAfterUpdateMessage()));
 		mailService.addOnUpdateTagOrSection(() -> Platform.runLater(() -> refreshAfterUpdateTagOrSection()));
 
+	}
+
+	private void refreshUnreadCount() {
+		final Set<T> includes = Collections.singleton(mailService.getSpecialTag(SpecialTag.UNREAD));
+		ThreadPool.getInstance().submitLow(() -> {
+			int count = 0;
+			try {
+				count = mailService.findThreads(includes, Collections.emptySet(), "", 200).size();
+			} catch (final MailException e) {
+				LOGGER.error("counting unread messages", e);
+			}
+			notificationService.setIconBadge("" + (count > 0? count: ""));
+		}, "counting unread messages");
 	}
 
 	private final boolean refreshAfterTagSelected = true;
@@ -175,19 +190,9 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		LOGGER.debug("refreshAfterUpdateMessage");
 		LOGGER.info("message update detected");
 
+		refreshUnreadCount();
 		sectionListPane.refreshAsync(() ->
 			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags()));
-
-		final Set<T> includes = Collections.singleton(mailService.getSpecialTag(SpecialTag.UNREAD));
-		ThreadPool.getInstance().submitLow(() -> {
-			int count = 0;
-			try {
-				count = mailService.findThreads(includes, Collections.emptySet(), "", 200).size();
-			} catch (final MailException e) {
-				LOGGER.error("counting unread messages", e);
-			}
-			notificationService.setIconCount(count);
-		}, "counting unread messages");
 	}
 
 	private void refreshAfterUpdateTagOrSection() {

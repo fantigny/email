@@ -1,52 +1,57 @@
 package net.anfoya.mail.browser.javafx;
 
 import javafx.application.Platform;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import net.anfoya.javafx.scene.control.Notification.Notifier;
 
 public class NotificationService {
 	private final Stage stage;
 
-	private boolean showZeroCount;
+	private Image originalIcon = null;
 
 	public NotificationService(Stage stage) {
 		this.stage = stage;
-
-		showZeroCount = false;
+		originalIcon = stage.getIcons().get(0);
 	}
 
-	public void setShowZeroCount(boolean show) {
-		showZeroCount = show;
-	}
-
-	public void setIconCount(int count) {
-		if (count == 0 && !showZeroCount) {
-			resetIcon();
-			return;
-		}
-
-		if (!System.getProperty("os.name").contains("OS X")) {
-			com.apple.eawt.Application.getApplication().setDockIconBadge("" + count);
+	public void setIconBadge(String text) {
+		if (text.isEmpty()) {
+			resetIconBadge();
 		} else {
-//TODO			stage.getIcons().setAll(icon);
+			if (System.getProperty("os.name").contains("OS X")) {
+				com.apple.eawt.Application.getApplication().setDockIconBadge(text);
+			} else {
+				final Canvas canvas = new Canvas(originalIcon.getWidth(), originalIcon.getHeight());
+				final GraphicsContext gc = canvas.getGraphicsContext2D();
+				gc.drawImage(originalIcon, originalIcon.getWidth(), originalIcon.getHeight());
+				gc.fillOval(225, 31, 250, 56);
+				onApplicationThread(() -> stage.getIcons().setAll(canvas.snapshot(null, null)));
+			}
 		}
 	}
 
-	public void resetIcon() {
-		if (!System.getProperty("os.name").contains("OS X")) {
+	public void resetIconBadge() {
+		if (System.getProperty("os.name").contains("OS X")) {
 			com.apple.eawt.Application.getApplication().setDockIconBadge(null);
 		} else {
-//			final Image icon = new Image("http://icons.iconarchive.com/icons/custom-icon-design/flatastic-8/256/Refresh-icon.png");
-			//TODO			stage.getIcons().setAll(icon);
+			if (originalIcon != null) {
+				onApplicationThread(() -> stage.getIcons().setAll(originalIcon));
+			}
 		}
 	}
 
 	public void notifySuccess(String subject, String value, Runnable callback) {
-		final Runnable notify = () -> Notifier.INSTANCE.notifySuccess(subject, value, callback);
+		onApplicationThread(() -> Notifier.INSTANCE.notifySuccess(subject, value, callback));
+	}
+
+	private void onApplicationThread(Runnable runnable) {
 		if (Platform.isFxApplicationThread()) {
-			notify.run();
+			runnable.run();
 		} else {
-			Platform.runLater(notify);
+			Platform.runLater(runnable);
 		}
 	}
 }
