@@ -33,11 +33,6 @@ public class Settings implements Serializable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Settings.class);
 	private static final String FILENAME = System.getProperty("java.io.tmpdir") + File.separatorChar + "fsm-settings";
 
-	private static final Settings SETTINGS = new Settings();
-	public static Settings getSettings() {
-		return SETTINGS;
-	}
-
 	private final BooleanProperty showToolbar;
 	private final BooleanProperty showExcludeBox;
 	private final BooleanProperty archiveOnDrop;

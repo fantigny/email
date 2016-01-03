@@ -37,7 +37,6 @@ import org.slf4j.LoggerFactory;
 
 import com.sun.mail.util.BASE64DecoderStream;
 
-import net.anfoya.mail.browser.javafx.settings.Settings;
 import sun.misc.BASE64Encoder;
 import sun.misc.IOUtils;
 
@@ -94,7 +93,7 @@ public class MessageHelper {
 		return names;
 	}
 
-	public static String quote(String html) {
+	public static String quote(final String html) {
 		return new StringBuffer()
 				.append("<br><br>")
 				.append("<blockquote class='gmail_quote' style='margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex'>")
@@ -103,16 +102,16 @@ public class MessageHelper {
 				.toString();
 	}
 
-	public static String addSignature(String html) {
+	public static String addSignature(final String html, final String signature) {
 		return new StringBuffer()
 				.append("<p>")
-				.append(Settings.getSettings().htmlSignature().get())
+				.append(signature)
 				.append("</p>")
 				.append(html)
 				.toString();
 	}
 
-	public static String addStyle(String html) {
+	public static String addStyle(final String html) {
 		return new StringBuffer()
 				.append("<style>")
 				.append("html,body {")
@@ -234,7 +233,7 @@ public class MessageHelper {
 		return new StringBuilder();
 	}
 
-	private StringBuilder buildImgAnchor(File file) throws UnsupportedEncodingException {
+	private StringBuilder buildImgAnchor(final File file) throws UnsupportedEncodingException {
 		return new StringBuilder()
 				.append("<a href='").append(file.toURI()).append("'>")
 				.append("<table><tr><td align='center'>")
@@ -247,7 +246,7 @@ public class MessageHelper {
 			.append("</a>");
 	}
 
-	private String getBase64SystemIcon(File file) {
+	private String getBase64SystemIcon(final File file) {
 		try {
 			final byte[] imgBytes;
 			final String iconFileName = String.format(SYS_ICON, file.getName().substring(file.getName().lastIndexOf(".") + 1));
@@ -274,13 +273,13 @@ public class MessageHelper {
 		return Collections.unmodifiableSet(attachmentNames);
 	}
 
-	public void removeMyselfFromRecipient(String myAddress, MimeMessage reply) throws MessagingException {
+	public void removeMyselfFromRecipient(final String myAddress, final MimeMessage reply) throws MessagingException {
 		removeMyselfFromRecipient(myAddress, reply, RecipientType.TO);
 		removeMyselfFromRecipient(myAddress, reply, RecipientType.CC);
 		removeMyselfFromRecipient(myAddress, reply, RecipientType.BCC);
 	}
 
-	public void removeMyselfFromRecipient(String myAddress, MimeMessage reply, RecipientType type) throws MessagingException {
+	public void removeMyselfFromRecipient(final String myAddress, final MimeMessage reply, final RecipientType type) throws MessagingException {
 		final Address[] addresses = reply.getRecipients(type);
 		if (addresses == null || addresses.length == 0) {
 			return;

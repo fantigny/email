@@ -46,6 +46,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.browser.javafx.css.StyleHelper;
+import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.mime.MessageHelper;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
@@ -60,6 +61,8 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 	private static final int AUTO_SAVE_DELAY = 60; // seconds
 
 	private final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService;
+	private final Settings settings;
+
 	private final EventHandler<ActionEvent> updateHandler;
 	private final MessageHelper helper;
 	private final String myAddress;
@@ -83,7 +86,9 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 
 	private M draft;
 
-	public MailComposer(final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService, final EventHandler<ActionEvent> updateHandler) {
+	public MailComposer(final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService
+			, final EventHandler<ActionEvent> updateHandler
+			, final Settings settings) {
 		super(StageStyle.UNIFIED);
 		setTitle("FisherMail");
 
@@ -101,6 +106,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 
 		this.mailService = mailService;
 		this.updateHandler = updateHandler;
+		this.settings = settings;
 
 		// load contacts from server
 		addressContacts = new ConcurrentHashMap<String, C>();
@@ -143,7 +149,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		editor.editedProperty().addListener((ov, o, n) -> editedProperty.set(editedProperty.get() || n));
 		editor.setOnMailtoCallback(p -> {
 			try {
-				new MailComposer<M, C>(mailService, updateHandler).newMessage(p);
+				new MailComposer<M, C>(mailService, updateHandler, settings).newMessage(p);
 			} catch (final MailException e) {
 				LOGGER.error("creating new mail to {}", p, e);
 			}
@@ -243,7 +249,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		ThreadPool.getInstance().submitHigh(task, "creating draft");
 	}
 
-	public void editOrReply(final String id, boolean all) {
+	public void editOrReply(final String id, final boolean all) {
 		// try to find a draft with this id
 		try {
 			draft = mailService.getDraft(id);
@@ -354,7 +360,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 			html = MessageHelper.quote(html);
 		}
 		if (signature) {
-			html = MessageHelper.addSignature(html);
+			html = MessageHelper.addSignature(html, settings.htmlSignature().get());
 		}
 		html = MessageHelper.addStyle(html);
 		editor.setHtmlText(html);

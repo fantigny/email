@@ -41,6 +41,7 @@ public class MailClient extends Application {
 	private static final int DEFAULT_WIDTH = 1400;
 	private static final int DEFAULT_HEIGHT = 800;
 
+	private Settings settings;
 	private NotificationService notificationService;
 	private GmailService gmail;
 	private Stage stage;
@@ -51,7 +52,7 @@ public class MailClient extends Application {
 
 	@Override
 	public void init() throws Exception {
-		Settings.getSettings().load();
+		initSettings();
 		initGmail();
 	}
 
@@ -70,11 +71,11 @@ public class MailClient extends Application {
 	}
 
 	private void confirmClose(final WindowEvent e) {
-		if (Settings.getSettings().confirmOnQuit().get()) {
+		if (settings.confirmOnQuit().get()) {
 			final CheckBox checkBox = new CheckBox("don't show again");
 			checkBox.selectedProperty().addListener((ov, o, n) -> {
-				Settings.getSettings().confirmOnQuit().set(!n);
-				Settings.getSettings().save();
+				settings.confirmOnQuit().set(!n);
+				settings.save();
 			});
 
 			final Alert alert = new Alert(AlertType.CONFIRMATION);
@@ -89,11 +90,11 @@ public class MailClient extends Application {
 
 	private void signout() {
 		boolean signout = false;
-		if (Settings.getSettings().confirmOnSignout().get()) {
+		if (settings.confirmOnSignout().get()) {
 			final CheckBox checkBox = new CheckBox("don't show again");
 			checkBox.selectedProperty().addListener((ov, o, n) -> {
-				Settings.getSettings().confirmOnSignout().set(!n);
-				Settings.getSettings().save();
+				settings.confirmOnSignout().set(!n);
+				settings.save();
 			});
 
 			final Alert alert = new Alert(AlertType.CONFIRMATION);
@@ -124,6 +125,11 @@ public class MailClient extends Application {
 		}
 	}
 
+	private void initSettings() {
+		settings = new Settings();
+		settings.load();
+	}
+
 	private void checkVersion() {
 		final VersionHelper checker = new VersionHelper();
 		checker.isLastestProperty().addListener((ov, o, n) -> {
@@ -145,7 +151,8 @@ public class MailClient extends Application {
 		try {
 			mailBrowser = new MailBrowser<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact>(
 					gmail
-					, notificationService);
+					, notificationService
+					, settings);
 		} catch (final MailException e) {
 			LOGGER.error("load mail browser", e);
 			return;

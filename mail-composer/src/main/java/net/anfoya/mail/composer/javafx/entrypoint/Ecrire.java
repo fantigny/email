@@ -2,6 +2,7 @@ package net.anfoya.mail.composer.javafx.entrypoint;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
+import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.client.App;
 import net.anfoya.mail.composer.javafx.MailComposer;
 import net.anfoya.mail.gmail.GmailService;
@@ -19,7 +20,10 @@ public class Ecrire extends Application {
 
 		final GmailService mailService = new GmailService();
 		mailService.connect(App.MAIL_CLIENT);
-		new MailComposer<GmailMessage, GmailContact>(mailService, e -> messageUpdated()).newMessage("frederic.antigny+ecrire@gmail.com");
+		final Settings settings = new Settings();
+		settings.load();
+		new MailComposer<GmailMessage, GmailContact>(mailService, e -> messageUpdated(), settings)
+			.newMessage("frederic.antigny+ecrire@gmail.com");
 		Thread.sleep(2000);
 	}
 

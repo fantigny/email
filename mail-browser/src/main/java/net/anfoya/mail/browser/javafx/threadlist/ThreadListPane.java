@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -57,12 +56,12 @@ import net.anfoya.tag.model.SpecialTag;
 
 public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends BorderPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadListPane.class);
-	private static final ReadOnlyBooleanProperty ARCHIVE_ON_DROP = Settings.getSettings().archiveOnDrop();
 
 	public static final DataFormat DND_THREADS_DATA_FORMAT = new DataFormat("DND_THREADS_DATA_FORMAT");
 
 	private final MailService<S, T, H, M, C> mailService;
 	private final UndoService undoService;
+	private final Settings settings;
 
 	private final ThreadList<S, T, H, M, C> threadList;
 	private final ResetTextField patternField;
@@ -79,10 +78,12 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	private EventHandler<ActionEvent> updateHandler;
 	private S currentSection;
 
-	public ThreadListPane(final MailService<S, T, H, M, C> mailService,
-			UndoService undoService) throws MailException {
+	public ThreadListPane(final MailService<S, T, H, M, C> mailService
+			, final UndoService undoService
+			, final Settings settings) throws MailException {
 		this.mailService = mailService;
 		this.undoService = undoService;
+		this.settings = settings;
 
 		inbox = mailService.getSpecialTag(SpecialTag.INBOX);
 		spam = mailService.getSpecialTag(SpecialTag.SPAM);
@@ -92,7 +93,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		patternField = new ResetTextField();
 		patternField.setPromptText("thread search");
 
-		threadList = new ThreadList<S, T, H, M, C>(mailService);
+		threadList = new ThreadList<S, T, H, M, C>(mailService, settings);
 		threadList.setOnDragDetected(e -> {
 			final ClipboardContent content = new ClipboardContent();
 			content.put(ExtItemDropPane.ADD_TAG_DATA_FORMAT, "");
@@ -144,7 +145,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		newButton.setTooltip(new Tooltip("new"));
 		newButton.setOnAction(event -> {
 			try {
-				new MailComposer<M, C>(mailService, updateHandler).newMessage("");
+				new MailComposer<M, C>(mailService, updateHandler, settings).newMessage("");
 			} catch (final Exception e) {
 				LOGGER.error("load new message composer", e);
 			}
@@ -169,7 +170,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		toolbar.setOnTrash(e -> trashSelected());
 		toolbar.setOnSpam(e -> toggleSpam());
 
-		final BooleanProperty showToolbar = Settings.getSettings().showToolbar();
+		final BooleanProperty showToolbar = settings.showToolbar();
 		if (showToolbar.get()) {
 			topBox.getChildren().add(toolbar);
 		}
@@ -225,7 +226,8 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		try {
 			for (final H t : threadList.getSelectedThreads()) {
 				final M message = mailService.getMessage(t.getLastMessageId());
-				new MailComposer<M, C>(mailService, updateHandler).forward(message);
+				new MailComposer<M, C>(mailService, updateHandler, settings)
+					.forward(message);
 			}
 		} catch (final Exception e) {
 			LOGGER.error("load forward composer", e);
@@ -236,7 +238,8 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		try {
 			for (final H t : threadList.getSelectedThreads()) {
 				final M message = mailService.getMessage(t.getLastMessageId());
-				new MailComposer<M, C>(mailService, updateHandler).reply(message, all);
+				new MailComposer<M, C>(mailService, updateHandler, settings)
+					.reply(message, all);
 			}
 		} catch (final Exception e) {
 			LOGGER.error("load reply{} composer", all ? " all" : "", e);
@@ -335,12 +338,12 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		}
 	}
 
-	private Void addTagForThreads(final T tag, final Set<H> threads, String description, Callable<Object> undo) {
+	private Void addTagForThreads(final T tag, final Set<H> threads, final String description, final Callable<Object> undo) {
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
 				mailService.addTagForThreads(tag, threads);
-				if (ARCHIVE_ON_DROP.get() && !tag.isSystem()) {
+				if (settings.archiveOnDrop().get() && !tag.isSystem()) {
 					mailService.archive(threads);
 				}
 				return null;
@@ -355,7 +358,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		return null;
 	}
 
-	private Void removeTagForThreads(final T tag, final Set<H> threads, String description, Callable<Object> undo) {
+	private Void removeTagForThreads(final T tag, final Set<H> threads, final String description, final Callable<Object> undo) {
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
@@ -385,7 +388,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 					mailService.moveToSection(tag, currentSection);
 				}
 				mailService.addTagForThreads(tag, threads);
-				if (ARCHIVE_ON_DROP.get() && hasInbox) {
+				if (settings.archiveOnDrop().get() && hasInbox) {
 					mailService.archive(threads);
 				}
 				return tag;
@@ -394,7 +397,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		task.setOnSucceeded(e -> {
 			undoService.set(() -> {
 				mailService.remove(task.getValue());
-				if (ARCHIVE_ON_DROP.get() && hasInbox) {
+				if (settings.archiveOnDrop().get() && hasInbox) {
 					mailService.addTagForThreads(inbox, threads);
 				}
 				return null;
@@ -470,7 +473,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		threadList.setOnUpdate(handler);
 	}
 
-	public void setCurrentSection(S section) {
+	public void setCurrentSection(final S section) {
 		currentSection = section;
 	}
 }

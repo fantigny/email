@@ -17,7 +17,6 @@ import javafx.scene.paint.Color;
 import javafx.stage.Window;
 import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.javafx.scene.control.Notification.Notifier;
 import net.anfoya.mail.browser.javafx.css.StyleHelper;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
@@ -37,8 +36,6 @@ import net.anfoya.tag.model.SpecialTag;
 public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends Scene {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailBrowser.class);
 
-	private static final boolean SHOW_EXCLUDE_BOX = Settings.getSettings().showExcludeBox().get();
-
 	private final MailService<S, T, H, M, C> mailService;
 	private final NotificationService notificationService;
 
@@ -48,7 +45,8 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	private final ThreadPane<S, T, H, M, C> threadPane;
 
 	public MailBrowser(final MailService<S, T, H, M, C> mailService
-			, NotificationService notificationService) throws MailException {
+			, final NotificationService notificationService
+			, final Settings settings) throws MailException {
 		super(new SplitPane(), Color.TRANSPARENT);
 		this.mailService = mailService;
 		this.notificationService = notificationService;
@@ -61,7 +59,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 
 		final UndoService undoService = new UndoService();
 
-		sectionListPane = new SectionListPane<S, T>(mailService, undoService, SHOW_EXCLUDE_BOX);
+		sectionListPane = new SectionListPane<S, T>(mailService, undoService, settings.showExcludeBox().get());
 		sectionListPane.setFocusTraversable(false);
 		sectionListPane.setSectionDisableWhenZero(false);
 		sectionListPane.setLazyCount(true);
@@ -71,7 +69,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		sectionListPane.setOnUpdateTag(e -> refreshAfterTagUpdate());
 		splitPane.getItems().add(sectionListPane);
 
-		threadListPane = new ThreadListPane<S, T, H, M, C>(mailService, undoService);
+		threadListPane = new ThreadListPane<S, T, H, M, C>(mailService, undoService, settings);
 		threadListPane.prefHeightProperty().bind(splitPane.heightProperty());
 		threadListPane.setOnSelectThread(e -> refreshAfterThreadSelected());
 		threadListPane.setOnLoadThreadList(e -> refreshAfterThreadListLoad());
@@ -79,7 +77,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		threadListPane.setOnUpdateThread(e -> refreshAfterThreadUpdate());
 		splitPane.getItems().add(threadListPane);
 
-		threadPane = new ThreadPane<S, T, H, M, C>(mailService, undoService);
+		threadPane = new ThreadPane<S, T, H, M, C>(mailService, undoService, settings);
 		threadPane.setFocusTraversable(false);
 		threadPane.setOnUpdateThread(e -> refreshAfterThreadUpdate());
 		threadPane.managedProperty().bind(threadPane.visibleProperty());
@@ -90,11 +88,9 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		SplitPane.setResizableWithParent(sectionListPane, false);
 		SplitPane.setResizableWithParent(threadListPane, false);
 		SplitPane.setResizableWithParent(threadPane, true);
-
-		Notifier.INSTANCE.popupLifetime().bind(Settings.getSettings().popupLifetime());
 	}
 
-	private void toggleMiniMode(KeyEvent e) {
+	private void toggleMiniMode(final KeyEvent e) {
 		final KeyCode code = e.getCode();
 		final boolean left = code == KeyCode.LEFT;
 		final boolean right = code == KeyCode.RIGHT;
@@ -140,7 +136,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 				, threadPane.getWidth());
 	}
 
-	public void setOnSignout(EventHandler<ActionEvent> handler) {
+	public void setOnSignout(final EventHandler<ActionEvent> handler) {
 		threadPane.setOnSignout(handler);
 
 	}

@@ -46,6 +46,7 @@ import javafx.util.Duration;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.javafx.scene.web.WebViewFitContent;
 import net.anfoya.mail.browser.javafx.attachment.AttachmentLoader;
+import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
 import net.anfoya.mail.browser.javafx.util.UrlHelper;
 import net.anfoya.mail.composer.javafx.MailComposer;
@@ -68,6 +69,8 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 
 	private final String messageId;
 	private final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService;
+	private final Settings settings;
+
 	private final BooleanProperty expanded;
 	private final BooleanProperty collapsible;
 
@@ -93,10 +96,14 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 
 	private VBox arrowBox;
 
-	public MessagePane(final String messageId, final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService) {
+	public MessagePane(final String messageId
+			, final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService
+			, final Settings settings) {
 		getStyleClass().add("message");
 		this.mailService = mailService;
 		this.messageId = messageId;
+		this.settings = settings;
+
 		expanded = new SimpleBooleanProperty();
 		collapsible = new SimpleBooleanProperty();
 		helper = new MessageHelper();
@@ -197,7 +204,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		getChildren().addAll(titlePane, messageView);
 	}
 
-	private void handleExtLink(WebView view, String url) {
+	private void handleExtLink(final WebView view, final String url) {
 		if (url != null && !url.isEmpty()) {
 			Platform.runLater(() -> {
 				view.getEngine().getLoadWorker().cancel();
@@ -205,7 +212,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 			});
 			UrlHelper.open(url, recipient -> {
 				try {
-					new MailComposer<M, C>(mailService, updateHandler).newMessage(recipient);
+					new MailComposer<M, C>(mailService, updateHandler, settings).newMessage(recipient);
 				} catch (final MailException e) {
 					LOGGER.error("create new mail to {}", recipient, e);
 				}
@@ -299,7 +306,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		this.updateHandler = handler;
 	}
 
-	private Node buildRecipientLabel(Address address) {
+	private Node buildRecipientLabel(final Address address) {
 		final InternetAddress internetAddress = (InternetAddress) address;
 		final Label label = new Label(MessageHelper.getName(internetAddress));
 		label.setTooltip(new Tooltip(internetAddress.getAddress()));
@@ -364,7 +371,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		}
 	}
 
-	public void onContainAttachment(EventHandler<ActionEvent> handler) {
+	public void onContainAttachment(final EventHandler<ActionEvent> handler) {
 		attachmentHandler = handler;
 	}
 

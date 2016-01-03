@@ -58,7 +58,7 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 
 	private boolean firstLoad = true;
 
-	public ThreadList(final MailService<S, T, H, M, C> mailService) {
+	public ThreadList(final MailService<S, T, H, M, C> mailService, final Settings settings) {
         getStyleClass().add("thread-list");
         setPlaceholder(new Label("empty"));
 		this.mailService = mailService;
@@ -83,7 +83,8 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 				final Set<H> threads = getSelectedThreads();
 				if (threads.size() > 0 && threads.iterator().next().getMessageIds().size() > 0) {
 					final String id = threads.iterator().next().getLastMessageId();
-					new MailComposer<M, C>(mailService, updateHandler).editOrReply(id, Settings.getSettings().replyAllDblClick().get());
+					new MailComposer<M, C>(mailService, updateHandler, settings)
+						.editOrReply(id, settings.replyAllDblClick().get());
 				}
 			}
 		});
@@ -91,7 +92,7 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 		getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 		getSelectionModel().selectedIndexProperty().addListener((ov, o, n) -> checkForSelection(o.intValue(), n.intValue()));
 
-		getItems().addListener((Change<? extends H> c) -> setFocusTraversable(!getItems().isEmpty()));
+		getItems().addListener((final Change<? extends H> c) -> setFocusTraversable(!getItems().isEmpty()));
 	}
 
 	public void setOnLoad(final EventHandler<ActionEvent> handler) {
@@ -212,7 +213,7 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 		loadHandler.handle(null);
 	}
 
-	private void restoreSelection(List<H> oldList, int oldSelectedIndex, Set<H> oldSelectedList) {
+	private void restoreSelection(final List<H> oldList, final int oldSelectedIndex, final Set<H> oldSelectedList) {
 		getSelectionModel().clearSelection();
 
 		if (getItems().isEmpty()) {

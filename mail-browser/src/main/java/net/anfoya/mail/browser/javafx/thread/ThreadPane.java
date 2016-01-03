@@ -34,6 +34,7 @@ import javafx.util.Duration;
 import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.browser.javafx.message.MessagePane;
+import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.settings.SettingsDialog;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
@@ -60,6 +61,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 
 	private final MailService<S, T, H, M, C> mailService;
 	private final UndoService undoService;
+	private final Settings settings;
 
 	private final HBox iconBox;
 	private final TextField subjectField;
@@ -83,10 +85,13 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 
 	private boolean markRead;
 
-	public ThreadPane(final MailService<S, T, H, M, C> mailService, UndoService undoService) {
+	public ThreadPane(final MailService<S, T, H, M, C> mailService
+			, final UndoService undoService
+			, final Settings settings) {
 		getStyleClass().add("thread");
 		this.mailService = mailService;
 		this.undoService = undoService;
+		this.settings = settings;
 
 		unread = mailService.getSpecialTag(SpecialTag.UNREAD);
 
@@ -104,7 +109,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		settingsButton.setFocusTraversable(false);
 		settingsButton.setGraphic(new ImageView(new Image(SETTINGS_PNG)));
 		settingsButton.setTooltip(new Tooltip("settings"));
-		settingsButton.setOnAction(e -> showSettings());
+		settingsButton.setOnAction(e -> showSettings(settings));
 
 		final Node graphics = settingsButton.getGraphic();
 
@@ -170,10 +175,10 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		setBottom(tagsPane);
 	}
 
-	private void showSettings() {
+	private void showSettings(final Settings settings) {
 		if (settingsDialog == null
 				|| !settingsDialog.isShowing()) {
-			settingsDialog = new SettingsDialog<S, T>(mailService, undoService);
+			settingsDialog = new SettingsDialog<S, T>(mailService, undoService, settings);
 			settingsDialog.show();
 		}
 		settingsDialog.toFront();
@@ -188,7 +193,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		signoutHandler = handler;
 	}
 
-	public void refresh(final Set<H> threads, boolean markRead) {
+	public void refresh(final Set<H> threads, final boolean markRead) {
 		this.threads = threads;
 		this.markRead = markRead;
 
@@ -286,7 +291,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	}
 
 	private MessagePane<M, C> createMessagePane(final String id) {
-		final MessagePane<M, C> messagePane = new MessagePane<M, C>(id, mailService);
+		final MessagePane<M, C> messagePane = new MessagePane<M, C>(id, mailService, settings);
 		messagePane.focusTraversableProperty().bind(focusTraversableProperty());
 		messagePane.setScrollHandler(webScrollHandler);
 		messagePane.setUpdateHandler(updateHandler);
@@ -297,7 +302,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		return messagePane;
 	}
 
-	private void showIcon(Image icon) {
+	private void showIcon(final Image icon) {
 		for(final Node n: iconBox.getChildren()) {
 			if (n instanceof ImageView && ((ImageView)n).getImage() == icon) {
 				return;

@@ -58,18 +58,22 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
     private final MailService<S, T, ? extends Thread, ? extends Message, ? extends Contact> mailService;
     private final UndoService undoService;
 
+    private final Settings settings;
 	private final TabPane tabPane;
 
 	private FlowPane hiddenSectionsPane;
 	private FlowPane hiddenTagsPane;
 
-	public SettingsDialog(MailService<S, T, ? extends Thread, ? extends Message, ? extends Contact> mailService, UndoService undoService) {
+	public SettingsDialog(final MailService<S, T, ? extends Thread, ? extends Message, ? extends Contact> mailService
+			, final UndoService undoService
+			, final Settings settings) {
 		initStyle(StageStyle.UNIFIED);
 		setTitle("FisherMail - profile");
-		setOnCloseRequest(e -> Settings.getSettings().save());
+		setOnCloseRequest(e -> settings.save());
 
 		this.mailService = mailService;
 		this.undoService = undoService;
+		this.settings = settings;
 
 		tabPane = new TabPane(buildSettingsTab(), buildAboutTab(), buildHelpTab(), buildTaskTab());
 		tabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
@@ -140,7 +144,7 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		return new Tab("about", gridPane);
 	}
 
-	private void addVersionMessage(GridPane gridPane, String version) {
+	private void addVersionMessage(final GridPane gridPane, final String version) {
 		final Label newLabel = new Label("new version (" + version + ") available at ");
 		newLabel.setTextFill(Color.WHITE);
 		final Hyperlink hyperlink = new Hyperlink(Settings.DOWNLOAD_URL.split("/")[2]);
@@ -159,38 +163,38 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 
 	private Tab buildSettingsTab() {
 		final SwitchButton toolButton = new SwitchButton();
-		toolButton.setSwitchOn(Settings.getSettings().showToolbar().get());
-		toolButton.switchOnProperty().addListener((ov, o, n) -> Settings.getSettings().showToolbar().set(n));
+		toolButton.setSwitchOn(settings.showToolbar().get());
+		toolButton.switchOnProperty().addListener((ov, o, n) -> settings.showToolbar().set(n));
 
 		final SwitchButton showExcButton = new SwitchButton();
-		showExcButton.setSwitchOn(Settings.getSettings().showExcludeBox().get());
-		showExcButton.switchOnProperty().addListener((ov, o, n) -> Settings.getSettings().showExcludeBox().set(n));
+		showExcButton.setSwitchOn(settings.showExcludeBox().get());
+		showExcButton.switchOnProperty().addListener((ov, o, n) -> settings.showExcludeBox().set(n));
 
 		final SwitchButton replyAllDblClickButton = new SwitchButton();
-		replyAllDblClickButton.setSwitchOn(Settings.getSettings().replyAllDblClick().get());
-		replyAllDblClickButton.switchOnProperty().addListener((ov, o, n) -> Settings.getSettings().replyAllDblClick().set(n));
+		replyAllDblClickButton.setSwitchOn(settings.replyAllDblClick().get());
+		replyAllDblClickButton.switchOnProperty().addListener((ov, o, n) -> settings.replyAllDblClick().set(n));
 
 		final SwitchButton archOnDropButton = new SwitchButton();
-		archOnDropButton.setSwitchOn(Settings.getSettings().archiveOnDrop().get());
-		archOnDropButton.switchOnProperty().addListener((ov, o, n) -> Settings.getSettings().archiveOnDrop().set(n));
+		archOnDropButton.setSwitchOn(settings.archiveOnDrop().get());
+		archOnDropButton.switchOnProperty().addListener((ov, o, n) -> settings.archiveOnDrop().set(n));
 
-		final TextField popupLifetimeField = new TextField("" + Settings.getSettings().popupLifetime().get());
+		final TextField popupLifetimeField = new TextField("" + settings.popupLifetime().get());
 		popupLifetimeField.setPrefColumnCount(3);
 		popupLifetimeField.textProperty().addListener((ov, o, n) -> {
 			try {
 				final int delay = Integer.parseInt(n);
-				Settings.getSettings().popupLifetime().set(delay);
+				settings.popupLifetime().set(delay);
 			} catch (final Exception e) {
 				((StringProperty)ov).setValue(o);
 			}
 		});
 
-		final TextArea signatureHtml = new TextArea(Settings.getSettings().
+		final TextArea signatureHtml = new TextArea(settings.
 				htmlSignature().get().replaceAll("<br>", "\n"));
 		signatureHtml.setPrefRowCount(5);
 		signatureHtml.setPrefColumnCount(20);
 		signatureHtml.textProperty().addListener((ov, o, n) -> {
-			Settings.getSettings().htmlSignature().set(n
+			settings.htmlSignature().set(n
 					.replaceAll("<[Bb][Rr]>\\n", "<br>")
 					.replaceAll("\\n", "<br>"));
 		});
@@ -211,21 +215,21 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 
 		final Button resetButton = new Button("clear");
 		resetButton.setOnAction(e -> {
-			Settings.getSettings().reset();
+			settings.reset();
 			close();
 		});
 
 		final SwitchButton confirmOnQuitButton = new SwitchButton();
-		confirmOnQuitButton.setSwitchOn(Settings.getSettings().confirmOnQuit().get());
-		confirmOnQuitButton.switchOnProperty().addListener((ov, o, n) -> Settings.getSettings().confirmOnQuit().set(n));
+		confirmOnQuitButton.setSwitchOn(settings.confirmOnQuit().get());
+		confirmOnQuitButton.switchOnProperty().addListener((ov, o, n) -> settings.confirmOnQuit().set(n));
 
 		final SwitchButton confirmOnSignoutButton = new SwitchButton();
-		confirmOnSignoutButton.setSwitchOn(Settings.getSettings().confirmOnSignout().get());
-		confirmOnSignoutButton.switchOnProperty().addListener((ov, o, n) -> Settings.getSettings().confirmOnSignout().set(n));
+		confirmOnSignoutButton.setSwitchOn(settings.confirmOnSignout().get());
+		confirmOnSignoutButton.switchOnProperty().addListener((ov, o, n) -> settings.confirmOnSignout().set(n));
 
 		final SwitchButton muteButton = new SwitchButton();
-		muteButton.setSwitchOn(Settings.getSettings().mute().get());
-		muteButton.switchOnProperty().addListener((ov, o, n) -> Settings.getSettings().mute().set(n));
+		muteButton.setSwitchOn(settings.mute().get());
+		muteButton.switchOnProperty().addListener((ov, o, n) -> settings.mute().set(n));
 
 		final GridPane gridPane = new GridPane();
 		gridPane.setPadding(new Insets(5));
@@ -306,7 +310,7 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		return null;
 	}
 
-	private Void show(S section, Label label) {
+	private Void show(final S section, final Label label) {
 		Platform.runLater(() -> hiddenSectionsPane.getChildren().remove(label));
 		final Task<Void> task = new Task<Void>() {
 			@Override
@@ -322,7 +326,7 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		return null;
 	}
 
-	private Void show(T tag, Label label) {
+	private Void show(final T tag, final Label label) {
 		Platform.runLater(() -> hiddenTagsPane.getChildren().remove(label));
 		final Task<Void> task = new Task<Void>() {
 			@Override
