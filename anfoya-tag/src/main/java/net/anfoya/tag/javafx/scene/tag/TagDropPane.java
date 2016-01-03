@@ -127,7 +127,7 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 		};
 		task.setOnSucceeded(event -> updateHandler.handle(null));
 		task.setOnFailed(e -> LOGGER.error("moving label {} to section {}", tag.getName(), finalAnswer, e.getSource().getException()));
-		ThreadPool.getInstance().submitHigh(task, "moving label " + tag.getName() + " to section " + finalAnswer);
+		ThreadPool.getThreadPool().submitHigh(task, "moving label " + tag.getName() + " to section " + finalAnswer);
 
 		return null;
 	}
@@ -171,7 +171,7 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 			updateHandler.handle(null);
 		});
 		task.setOnFailed(e -> LOGGER.error("rename {} to {}", tag.getName(), finalAnswer, e.getSource().getException()));
-		ThreadPool.getInstance().submitHigh(task, "rename " + tag.getName() + " to " + finalAnswer);
+		ThreadPool.getThreadPool().submitHigh(task, "rename " + tag.getName() + " to " + finalAnswer);
 
 		return null;
 	}
@@ -195,7 +195,7 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 				};
 				task.setOnSucceeded(event -> updateHandler.handle(null));
 				task.setOnFailed(e -> LOGGER.error("removing {}", tag.getName(), e.getSource().getException()));
-				ThreadPool.getInstance().submitHigh(task, "removing " + tag.getName());
+				ThreadPool.getThreadPool().submitHigh(task, "removing " + tag.getName());
 			});
 
 		return null;
@@ -219,7 +219,7 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 			updateHandler.handle(null);
 		});
 		task.setOnFailed(e -> LOGGER.error(description, e.getSource().getException()));
-		ThreadPool.getInstance().submitHigh(task, description);
+		ThreadPool.getThreadPool().submitHigh(task, description);
 
 		return null;
 	}

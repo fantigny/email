@@ -267,7 +267,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 			messageView.getEngine().loadContent(loadTask.getValue());
 		});
 		loadTask.setOnFailed(e -> LOGGER.error("load message {}", messageId, e.getSource().getException()));
-		ThreadPool.getInstance().submitHigh(loadTask, "load message " + messageId);
+		ThreadPool.getThreadPool().submitHigh(loadTask, "load message " + messageId);
 	}
 
 	public void setScrollHandler(final EventHandler<ScrollEvent> handler) {

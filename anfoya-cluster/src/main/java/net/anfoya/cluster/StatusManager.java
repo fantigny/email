@@ -42,7 +42,7 @@ public class StatusManager extends ReceiverAdapter {
 		this.channel.setDiscardOwnMessages(true);
 
 		// lazy initialization for faster startup
-		initFuture = ThreadPool.getInstance().submitHigh(new Callable<Boolean>() {
+		initFuture = ThreadPool.getThreadPool().submitHigh(new Callable<Boolean>() {
 			@Override
 			public Boolean call() throws Exception {
 				// connect and fetch state

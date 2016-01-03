@@ -92,7 +92,7 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 	private Tab buildTaskTab() {
 		final ListView<String> taskList = new ListView<String>();
 		taskList.setPlaceholder(new Label("idle"));
-		ThreadPool.getInstance().setOnChange(map -> Platform.runLater(() -> taskList.getItems().setAll(map.values())));
+		ThreadPool.getThreadPool().setOnChange(map -> Platform.runLater(() -> taskList.getItems().setAll(map.values())));
 		return new Tab("tasks", taskList);
 	}
 
@@ -321,7 +321,7 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		};
 		task.setOnSucceeded(e -> undoService.set(() -> { mailService.hide(section); return null; }, "show"));
 		task.setOnFailed(ev -> LOGGER.error("show {}", section.getName(), ev.getSource().getException()));
-		ThreadPool.getInstance().submitHigh(task, "show " + section.getName());
+		ThreadPool.getThreadPool().submitHigh(task, "show " + section.getName());
 
 		return null;
 	}
@@ -337,7 +337,7 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		};
 		task.setOnSucceeded(e -> undoService.set(() -> { mailService.hide(tag); return null; }, "show"));
 		task.setOnFailed(e -> LOGGER.error("show {}", tag.getName(), e.getSource().getException()));
-		ThreadPool.getInstance().submitHigh(task, "show " + tag.getName());
+		ThreadPool.getThreadPool().submitHigh(task, "show " + tag.getName());
 
 		return null;
 	}

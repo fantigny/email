@@ -19,25 +19,28 @@ import org.slf4j.LoggerFactory;
 
 import net.anfoya.java.util.VoidCallback;
 
-public final class ThreadPool2 {
-	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadPool2.class);
+public final class ObservableThreadPool {
+	private static final Logger LOGGER = LoggerFactory.getLogger(ObservableThreadPool.class);
+	private static final long CLEANUP_PERIOD_MS = 250;
 
 	private static class NamedThreadFactory implements ThreadFactory {
-	    private final ThreadGroup group;
-	    private final AtomicInteger threadNumber = new AtomicInteger(1);
-	    private final String namePrefix;
+	    private final String name;
 	    private final int priority;
 
+	    private final ThreadGroup group;
+	    private final AtomicInteger threadNumber = new AtomicInteger(1);
+
 	    protected NamedThreadFactory(final String name, final int priority) {
+	    	this.name = name;
+	    	this.priority = priority;
+
 	        final SecurityManager s = System.getSecurityManager();
 	        group = s != null? s.getThreadGroup(): Thread.currentThread().getThreadGroup();
-	        namePrefix = name + "-";
-	        this.priority = priority;
 	    }
 
 	    @Override
 		public Thread newThread(final Runnable r) {
-	        final Thread t = new Thread(group, r, namePrefix + threadNumber.getAndIncrement());
+	        final Thread t = new Thread(group, r, String.format("tp-%s-%d", name, threadNumber.getAndIncrement()));
             t.setDaemon(true);
             t.setPriority(priority);
 	        return t;
@@ -45,26 +48,21 @@ public final class ThreadPool2 {
 	}
 
 	private final ExecutorService delegate;
-
-	private final Set<VoidCallback<Map<Future<?>, String>>> changeCallbacks;
 	private final Map<Future<?>, String> futureDesc;
+	private final Set<VoidCallback<Map<Future<?>, String>>> onChangeCallbacks;
 
-	public ThreadPool2(final String name, final int priority) {
-		delegate = Executors.newFixedThreadPool(20, new NamedThreadFactory(" min-prority-threadpool", priority));
-
-		changeCallbacks = new HashSet<VoidCallback<Map<Future<?>, String>>>();
+	public ObservableThreadPool(final String name, final int priority) {
+		delegate = Executors.newCachedThreadPool(new NamedThreadFactory(name, priority));
 		futureDesc = new ConcurrentHashMap<Future<?>, String>();
+		onChangeCallbacks = new HashSet<VoidCallback<Map<Future<?>, String>>>();
 
-		new Timer("threadpool-cleanup-timer", true).schedule(new TimerTask() {
-			@Override
-			public void run() {
-				cleanupFutures();
-			}
-		}, 1000, 1000);
+		new Timer(String.format("tp-%s-cleanup", name), true).schedule(
+			new TimerTask() { @Override public void run() { cleanupFutures(); } }
+			, CLEANUP_PERIOD_MS, CLEANUP_PERIOD_MS);
 
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdown()));
 
-		LOGGER.info("singleton is created");
+		LOGGER.info("created thread pool {}", name);
 	}
 
 	private void shutdown() {
@@ -86,19 +84,8 @@ public final class ThreadPool2 {
 	}
 
 	public void setOnChange(final VoidCallback<Map<Future<?>, String>> callback) {
-		changeCallbacks.add(callback);
+		onChangeCallbacks.add(callback);
 		callback.call(futureDesc);
-	}
-
-	public void wait(final int ms, final String description) {
-		final String desc = "waiting for " + description;
-		submit(() -> {
-			try {
-				Thread.sleep(ms);
-			} catch (final Exception e) {
-				LOGGER.error(desc, e);
-			}
-		}, desc);
 	}
 
 	private void submit(final ExecutorService delegate, final Runnable runnable, final String description) {
@@ -111,7 +98,7 @@ public final class ThreadPool2 {
 
 	private <T> Future<T> addFuture(final ExecutorService delegate, final Future<T> future, final String description) {
 		futureDesc.put(future, description);
-		changeCallbacks.forEach(c -> c.call(futureDesc));
+		onChangeCallbacks.forEach(c -> c.call(futureDesc));
 
 		return future;
 	}
@@ -125,7 +112,7 @@ public final class ThreadPool2 {
 			}
 		}
 		if (changed) {
-			changeCallbacks.forEach(c -> c.call(futureDesc));
+			onChangeCallbacks.forEach(c -> c.call(futureDesc));
 		}
 	}
 }

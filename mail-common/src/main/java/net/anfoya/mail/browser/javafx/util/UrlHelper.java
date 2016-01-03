@@ -21,7 +21,7 @@ public class UrlHelper {
 		if (uri.getScheme().equals("mailto")) {
 			onMailto.call(uri.getSchemeSpecificPart());
 		} else {
-			ThreadPool.getInstance().submitHigh(() -> {
+			ThreadPool.getThreadPool().submitHigh(() -> {
 				try {
 					Desktop.getDesktop().browse(uri);
 				} catch (final Exception e) {

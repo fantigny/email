@@ -97,7 +97,7 @@ public class SectionDropPane<S extends Section> extends GridPane {
 			updateHandler.handle(null);
 		});
 		task.setOnFailed(e -> LOGGER.error(description, e.getSource().getException()));
-		ThreadPool.getInstance().submitHigh(task, description);
+		ThreadPool.getThreadPool().submitHigh(task, description);
 
 		return null;
 	}
@@ -119,7 +119,7 @@ public class SectionDropPane<S extends Section> extends GridPane {
 				};
 				task.setOnSucceeded(event -> updateHandler.handle(null));
 				task.setOnFailed(e -> LOGGER.error("removing section {}", section.getName(), e.getSource().getException()));
-				ThreadPool.getInstance().submitHigh(task, "removing section " + section.getName());
+				ThreadPool.getThreadPool().submitHigh(task, "removing section " + section.getName());
 			});
 
 		return null;
@@ -141,7 +141,7 @@ public class SectionDropPane<S extends Section> extends GridPane {
 			updateHandler.handle(null);
 		});
 		task.setOnFailed(e -> LOGGER.error(description, e.getSource().getException()));
-		ThreadPool.getInstance().submitHigh(task, description);
+		ThreadPool.getThreadPool().submitHigh(task, description);
 
 		return null;
 	}

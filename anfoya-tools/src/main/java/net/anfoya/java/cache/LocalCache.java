@@ -79,7 +79,7 @@ public class LocalCache<K, V> {
 
 	private void clean() {
 		if (map.size() > limit) {
-			ThreadPool.getInstance().submitLow(() -> {
+			ThreadPool.getThreadPool().submitLow(() -> {
 				if (!cleaning.getAndSet(true)) {
 					try {
 						cleanAsync();

@@ -154,7 +154,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 
 	private void refreshUnreadCount() {
 		final Set<T> includes = Collections.singleton(mailService.getSpecialTag(SpecialTag.UNREAD));
-		ThreadPool.getInstance().submitLow(() -> {
+		ThreadPool.getThreadPool().submitLow(() -> {
 			int count = 0;
 			try {
 				count = mailService.findThreads(includes, Collections.emptySet(), "", 200).size();

@@ -121,7 +121,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		final RotateTransition stopRotateTransition = new RotateTransition(Duration.INDEFINITE, graphics);
 		rotateTransition.setInterpolator(Interpolator.EASE_OUT);
 
-		ThreadPool.getInstance().setOnHighRunning(r -> {
+		ThreadPool.getThreadPool().setOnHighRunning(r -> {
 			if (r) {
 				stopRotateTransition.stop();
 				rotateTransition.play();
@@ -355,7 +355,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 			}
 			updateHandler.handle(null);
 		});
-		ThreadPool.getInstance().submitHigh(task, "remove tag {} for threads");
+		ThreadPool.getThreadPool().submitHigh(task, "remove tag {} for threads");
 		return null;
 	}
 }

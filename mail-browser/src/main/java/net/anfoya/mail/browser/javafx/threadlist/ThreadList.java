@@ -180,7 +180,7 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 			}
 			refresh(loadTask.getValue());
 		});
-		ThreadPool.getInstance().submitHigh(loadTask, "loading thread list");
+		ThreadPool.getThreadPool().submitHigh(loadTask, "loading thread list");
 	}
 
 	private void refresh(final Set<H> threads) {
@@ -306,6 +306,6 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 		};
 		task.setOnSucceeded(e -> updateHandler.handle(null));
 		task.setOnFailed(e -> LOGGER.error("archiving threads {}", threads));
-		ThreadPool.getInstance().submitHigh(task, "archiving threads");
+		ThreadPool.getThreadPool().submitHigh(task, "archiving threads");
 	}
 }

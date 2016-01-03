@@ -54,7 +54,7 @@ public class ComboBoxAutoShow {
 				}
 			});
 			task.setOnFailed(e -> LOGGER.error("filtering items with {}", n, e.getSource().getException()));
-			ThreadPool.getInstance().submitHigh(task, "filtering items with " + n);
+			ThreadPool.getThreadPool().submitHigh(task, "filtering items with " + n);
 		});
 	}
 }

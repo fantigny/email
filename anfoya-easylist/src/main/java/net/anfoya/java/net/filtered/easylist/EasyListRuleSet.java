@@ -124,14 +124,14 @@ public class EasyListRuleSet implements RuleSet {
 	@Override
 	public void load() {
 		final SerializedFile<Set<Rule>> local = new SerializedFile<Set<Rule>>(CONFIG.getExceptionsFilePath());
-		final Future<?> future = ThreadPool.getInstance().submitHigh(() -> {
+		final Future<?> future = ThreadPool.getThreadPool().submitHigh(() -> {
 			final long start = System.currentTimeMillis();
 			exceptions.addAll(local.load());
 			exclusions.addAll(new SerializedFile<Set<Rule>>(CONFIG.getExclusionsFilePath()).load());
 			LOGGER.info("loaded {} local rules (in {}ms)", getRuleCount(), System.currentTimeMillis()-start);
 			return null;
 		}, "load local rules");
-		ThreadPool.getInstance().submitHigh(() -> {
+		ThreadPool.getThreadPool().submitHigh(() -> {
 			try {
 				future.get();
 			} catch (InterruptedException | ExecutionException e) {

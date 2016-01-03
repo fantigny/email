@@ -81,7 +81,7 @@ public class HistoryService extends TimerTask {
 
 	@Override
 	public void run() {
-		ThreadPool.getInstance().submitLow(() -> {
+		ThreadPool.getThreadPool().submitLow(() -> {
 			try {
 				final List<History> updates = getUpdates();
 				disconnected.set(false);

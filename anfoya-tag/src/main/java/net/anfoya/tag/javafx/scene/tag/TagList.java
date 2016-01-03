@@ -194,7 +194,7 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 			}
 		});
 		thisTagTask.setOnFailed(e -> LOGGER.error("loading [this] tag", e.getSource().getException()));
-		ThreadPool.getInstance().submitLow(thisTagTask, "loading [this] tag");
+		ThreadPool.getThreadPool().submitLow(thisTagTask, "loading [this] tag");
 	}
 
 	public synchronized void updateCount(final int queryCount, final Set<T> availableTags, final Set<T> includes, final Set<T> excludes, final String itemPattern) {
@@ -244,7 +244,7 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 			item.countProperty().set(task.getValue());
 		});
 		task.setOnFailed(e -> LOGGER.error("getting message count for tag {}", item.getTag().getName(), e.getSource().getException()));
-		ThreadPool.getInstance().submitLow(task, "getting message count for tag " + item.getTag().getName());
+		ThreadPool.getThreadPool().submitLow(task, "getting message count for tag " + item.getTag().getName());
 
 		return task;
 	}

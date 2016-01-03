@@ -233,6 +233,6 @@ public class RecipientListPane<C extends Contact> extends HBox {
 			final double availableWidth = (double) e.getSource().getValue();
 			comboField.setPrefWidth(availableWidth < 150? flowPane.getWidth(): availableWidth);
 		});
-		ThreadPool.getInstance().submitHigh(organiseTask, "organizing labels and combo");
+		ThreadPool.getThreadPool().submitHigh(organiseTask, "organizing labels and combo");
 	}
 }

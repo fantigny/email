@@ -150,7 +150,7 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 		};
 		task.setOnSucceeded(e -> updateHandler.handle(null));
 		task.setOnFailed(e -> LOGGER.error("moving {} to {}", tag, section, e.getSource().getException()));
-		ThreadPool.getInstance().submitHigh(task, "moving " + tag.getName() + " to " + section.getName());
+		ThreadPool.getThreadPool().submitHigh(task, "moving " + tag.getName() + " to " + section.getName());
 	}
 
 	private void expandAfterDelay() {
@@ -184,7 +184,7 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 				sectionItem.countProperty().set(sectionTask.getValue());
 			});
 			sectionTask.setOnFailed(e -> LOGGER.error("getting message count for section {}", tagList.getSection().getName(), e.getSource().getException()));
-			ThreadPool.getInstance().submitLow(sectionTask, "getting message count for section " + tagList.getSection().getName());
+			ThreadPool.getThreadPool().submitLow(sectionTask, "getting message count for section " + tagList.getSection().getName());
 		} else {
 			if (tagList.getSectionItem() == null) {
 				sectionItem.countProperty().set(0);

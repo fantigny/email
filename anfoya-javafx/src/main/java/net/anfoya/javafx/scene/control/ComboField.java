@@ -198,7 +198,7 @@ public class ComboField extends TextField {
 			}
 		});
 		filterTask.setOnFailed(e -> LOGGER.error("filtering items with {}", n, e.getSource().getException()));
-		ThreadPool.getInstance().submitHigh(filterTask, "filtering items with " + n);
+		ThreadPool.getThreadPool().submitHigh(filterTask, "filtering items with " + n);
 	}
 
 	private void updatePopup(final ObservableList<String> items) {

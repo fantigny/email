@@ -87,7 +87,7 @@ public class NotificationService {
 				badgeTask.setOnFailed(e -> LOGGER.error("create icon badge {}", text, e.getSource().getException()));
 				badgeTask.setOnSucceeded(e -> stage.getIcons().setAll(SwingFXUtils.toFXImage(SwingFXUtils.fromFXImage(
 								badgeTask.getValue().snapshot(snapshotParameters, null), null), null)));
-				ThreadPool.getInstance().submitLow(badgeTask, "set icon badge");
+				ThreadPool.getThreadPool().submitLow(badgeTask, "set icon badge");
 			}
 		}
 	}

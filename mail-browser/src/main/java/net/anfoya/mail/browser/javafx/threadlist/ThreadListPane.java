@@ -273,7 +273,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 			updateHandler.handle(null);
 		});
 		task.setOnFailed(e -> LOGGER.error(description, e.getSource().getException()));
-		ThreadPool.getInstance().submitHigh(task, description);
+		ThreadPool.getThreadPool().submitHigh(task, description);
 	}
 
 	private void archiveSelected() {
@@ -294,7 +294,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 			updateHandler.handle(null);
 		});
 		task.setOnFailed(e -> LOGGER.error(description, e.getSource().getException()));
-		ThreadPool.getInstance().submitHigh(task, description);
+		ThreadPool.getThreadPool().submitHigh(task, description);
 	}
 
 	private void toggleFlag() {
@@ -354,7 +354,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 			undoService.set(undo, description);
 			updateHandler.handle(null);
 		});
-		ThreadPool.getInstance().submitHigh(task, description);
+		ThreadPool.getThreadPool().submitHigh(task, description);
 		return null;
 	}
 
@@ -371,7 +371,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 			undoService.set(undo, description);
 			updateHandler.handle(null);
 		});
-		ThreadPool.getInstance().submitHigh(task, description);
+		ThreadPool.getThreadPool().submitHigh(task, description);
 		return null;
 	}
 
@@ -405,7 +405,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 			updateHandler.handle(null);
 		});
 		task.setOnFailed(e -> LOGGER.error(description, e.getSource().getException()));
-		ThreadPool.getInstance().submitHigh(task, description);
+		ThreadPool.getThreadPool().submitHigh(task, description);
 	}
 
 	public String getNamePattern() {

@@ -314,7 +314,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 			}
 		});
 		refreshTask.setOnFailed(e -> LOGGER.error("getting sections", e.getSource().getException()));
-		ThreadPool.getInstance().submitHigh(refreshTask, "getting sections");
+		ThreadPool.getThreadPool().submitHigh(refreshTask, "getting sections");
 	}
 
 	//TODO: not working

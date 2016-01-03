@@ -182,7 +182,7 @@ public class MailClient extends Application {
 		};
 		titleTask.setOnSucceeded(e -> stage.setTitle("FisherMail - " + e.getSource().getValue()));
 		titleTask.setOnFailed(e -> LOGGER.error("load user's name", e.getSource().getException()));
-		ThreadPool.getInstance().submitLow(titleTask, "load user's name");
+		ThreadPool.getThreadPool().submitLow(titleTask, "load user's name");
 	}
 
 	private void initSize(final Stage stage) {
@@ -239,7 +239,7 @@ public class MailClient extends Application {
 							}
 						}));
 				task.setOnFailed(e -> LOGGER.error("notify new thread {}", t.getId(), e.getSource().getException()));
-				ThreadPool.getInstance().submitLow(task, "notify new thread");
+				ThreadPool.getThreadPool().submitLow(task, "notify new thread");
 			});
 
 			return null;
