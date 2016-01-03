@@ -8,7 +8,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -20,8 +19,8 @@ import org.slf4j.LoggerFactory;
 
 import net.anfoya.java.util.VoidCallback;
 
-public final class ThreadPool {
-	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadPool.class);
+public final class ThreadPool2 {
+	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadPool2.class);
 
 	private static class NamedThreadFactory implements ThreadFactory {
 	    private final ThreadGroup group;
@@ -44,33 +43,17 @@ public final class ThreadPool {
 	        return t;
 	    }
 	}
-	// singleton
-	private final static ThreadPool THREAD_POOL = new ThreadPool();
-	public static ThreadPool getInstance() {
-		return THREAD_POOL;
-	}
 
-	private final ExecutorService delegateHigh;
-	private final ExecutorService delegateLow;
+	private final ExecutorService delegate;
 
 	private final Set<VoidCallback<Map<Future<?>, String>>> changeCallbacks;
 	private final Map<Future<?>, String> futureDesc;
 
-	private final Set<VoidCallback<Boolean>> highRunningCallbacks;
-	private final Set<Future<?>> highFutures;
-
-
-	private ThreadPool() {
-//		delegateHigh = Executors.newCachedThreadPool(new NamedThreadFactory("high", Thread.NORM_PRIORITY));
-//		delegateLow = Executors.newCachedThreadPool(new NamedThreadFactory("low", Thread.MIN_PRIORITY));
-		delegateHigh = Executors.newFixedThreadPool(30, new NamedThreadFactory("norm-prority-threadpool", Thread.NORM_PRIORITY));
-		delegateLow = Executors.newFixedThreadPool(20, new NamedThreadFactory(" min-prority-threadpool", Thread.MIN_PRIORITY));
+	public ThreadPool2(final String name, final int priority) {
+		delegate = Executors.newFixedThreadPool(20, new NamedThreadFactory(" min-prority-threadpool", priority));
 
 		changeCallbacks = new HashSet<VoidCallback<Map<Future<?>, String>>>();
 		futureDesc = new ConcurrentHashMap<Future<?>, String>();
-
-		highRunningCallbacks = new CopyOnWriteArraySet<VoidCallback<Boolean>>();
-		highFutures = new CopyOnWriteArraySet<Future<?>>();
 
 		new Timer("threadpool-cleanup-timer", true).schedule(new TimerTask() {
 			@Override
@@ -79,45 +62,27 @@ public final class ThreadPool {
 			}
 		}, 1000, 1000);
 
-		new Timer("threadpool-high-count-timer", true).schedule(new TimerTask() {
-			@Override
-			public void run() {
-				cleanHighFutures();
-			}
-		}, 250, 250);
-
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-			shutdown(delegateHigh);
-			shutdown(delegateLow);
-		}));
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdown()));
 
 		LOGGER.info("singleton is created");
 	}
 
-	private void shutdown(final ExecutorService service) {
-		if (!service.isShutdown()) {
-			service.shutdown();
-			LOGGER.info("shutdown {}", service);
-		} else if (!service.isTerminated()) {
-			service.shutdownNow();
-			LOGGER.info("shutdown now {}", service);
+	private void shutdown() {
+		if (!delegate.isShutdown()) {
+			delegate.shutdown();
+			LOGGER.info("shutdown {}", delegate);
+		} else if (!delegate.isTerminated()) {
+			delegate.shutdownNow();
+			LOGGER.info("shutdown now {}", delegate);
 		}
 	}
 
-	public void submitHigh(final Runnable runnable, final String description) {
-		submit(delegateHigh, runnable, description);
+	public void submit(final Runnable runnable, final String description) {
+		submit(delegate, runnable, description);
 	}
 
-	public void submitLow(final Runnable runnable, final String description) {
-		submit(delegateLow, runnable, description);
-	}
-
-	public <T> Future<T> submitHigh(final Callable<T> callable, final String description) {
-		return submit(delegateHigh, callable, description);
-	}
-
-	public <T> Future<T> submitLow(final Callable<T> callable, final String description) {
-		return submit(delegateLow, callable, description);
+	public <T> Future<T> submit(final Callable<T> callable, final String description) {
+		return submit(delegate, callable, description);
 	}
 
 	public void setOnChange(final VoidCallback<Map<Future<?>, String>> callback) {
@@ -125,14 +90,9 @@ public final class ThreadPool {
 		callback.call(futureDesc);
 	}
 
-	public void setOnHighRunning(final VoidCallback<Boolean> callback) {
-		highRunningCallbacks.add(callback);
-		callback.call(highFutures.size() > 0);
-	}
-
 	public void wait(final int ms, final String description) {
 		final String desc = "waiting for " + description;
-		submitLow(() -> {
+		submit(() -> {
 			try {
 				Thread.sleep(ms);
 			} catch (final Exception e) {
@@ -153,11 +113,6 @@ public final class ThreadPool {
 		futureDesc.put(future, description);
 		changeCallbacks.forEach(c -> c.call(futureDesc));
 
-		if (delegate == delegateHigh) {
-			highFutures.add(future);
-			highRunningCallbacks.forEach(c -> c.call(true));
-		}
-
 		return future;
 	}
 
@@ -171,19 +126,6 @@ public final class ThreadPool {
 		}
 		if (changed) {
 			changeCallbacks.forEach(c -> c.call(futureDesc));
-		}
-	}
-
-	private void cleanHighFutures() {
-		boolean changed = false;
-		for(final Future<?> f: highFutures) {
-			if (f.isDone()) {
-				highFutures.remove(f);
-				changed = true;
-			}
-		}
-		if (changed) {
-			highRunningCallbacks.forEach(c -> c.call(highFutures.size() > 0));
 		}
 	}
 }
