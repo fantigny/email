@@ -37,8 +37,8 @@ import javafx.scene.layout.VBox;
 import javafx.scene.media.AudioClip;
 import javafx.util.Duration;
 import net.anfoya.java.undo.UndoService;
+import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.java.util.concurrent.ThreadPool.ThreadPriority;
 import net.anfoya.javafx.scene.animation.DelayTimeline;
 import net.anfoya.javafx.scene.control.ResetTextField;
 import net.anfoya.javafx.scene.dnd.DndHelper;
@@ -274,7 +274,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 			updateHandler.handle(null);
 		});
 		task.setOnFailed(e -> LOGGER.error(description, e.getSource().getException()));
-		ThreadPool.getDefault().submit(ThreadPriority.MAX, description, task);
+		ThreadPool.getDefault().submit(PoolPriority.MAX, description, task);
 	}
 
 	private void archiveSelected() {
@@ -295,7 +295,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 			updateHandler.handle(null);
 		});
 		task.setOnFailed(e -> LOGGER.error(description, e.getSource().getException()));
-		ThreadPool.getDefault().submit(ThreadPriority.MAX, description, task);
+		ThreadPool.getDefault().submit(PoolPriority.MAX, description, task);
 	}
 
 	private void toggleFlag() {
@@ -355,7 +355,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 			undoService.set(undo, description);
 			updateHandler.handle(null);
 		});
-		ThreadPool.getDefault().submit(ThreadPriority.MAX, description, task);
+		ThreadPool.getDefault().submit(PoolPriority.MAX, description, task);
 		return null;
 	}
 
@@ -372,7 +372,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 			undoService.set(undo, description);
 			updateHandler.handle(null);
 		});
-		ThreadPool.getDefault().submit(ThreadPriority.MAX, description, task);
+		ThreadPool.getDefault().submit(PoolPriority.MAX, description, task);
 		return null;
 	}
 
@@ -406,7 +406,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 			updateHandler.handle(null);
 		});
 		task.setOnFailed(e -> LOGGER.error(description, e.getSource().getException()));
-		ThreadPool.getDefault().submit(ThreadPriority.MAX, description, task);
+		ThreadPool.getDefault().submit(PoolPriority.MAX, description, task);
 	}
 
 	public String getNamePattern() {

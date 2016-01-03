@@ -18,8 +18,8 @@ import javafx.scene.control.ListCell;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.java.util.concurrent.ThreadPool.ThreadPriority;
 import net.anfoya.javafx.scene.control.ComboField;
 import net.anfoya.javafx.scene.control.RemoveLabel;
 import net.anfoya.javafx.util.LabelHelper;
@@ -234,6 +234,6 @@ public class RecipientListPane<C extends Contact> extends HBox {
 			final double availableWidth = (double) e.getSource().getValue();
 			comboField.setPrefWidth(availableWidth < 150? flowPane.getWidth(): availableWidth);
 		});
-		ThreadPool.getDefault().submit(ThreadPriority.MAX, "organizing labels and combo", organiseTask);
+		ThreadPool.getDefault().submit(PoolPriority.MAX, "organizing labels and combo", organiseTask);
 	}
 }

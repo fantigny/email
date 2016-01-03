@@ -17,8 +17,9 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
+import net.anfoya.java.util.concurrent.ObservableExecutors;
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.java.util.concurrent.ThreadPool.ThreadPriority;
+import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.mail.browser.javafx.MailBrowser;
 import net.anfoya.mail.browser.javafx.NotificationService;
 import net.anfoya.mail.browser.javafx.settings.Settings;
@@ -53,6 +54,7 @@ public class MailClient extends Application {
 
 	@Override
 	public void init() throws Exception {
+		initThreadPool();
 		initSettings();
 		initGmail();
 	}
@@ -126,6 +128,12 @@ public class MailClient extends Application {
 		}
 	}
 
+	private void initThreadPool() {
+		ThreadPool.setDefault(ObservableExecutors.newCachedThreadPool("min", Thread.MIN_PRIORITY)
+				,  null
+				,  ObservableExecutors.newCachedThreadPool("max", Thread.MAX_PRIORITY));
+	}
+
 	private void initSettings() {
 		settings = new Settings();
 		settings.load();
@@ -183,7 +191,7 @@ public class MailClient extends Application {
 		};
 		titleTask.setOnSucceeded(e -> stage.setTitle("FisherMail - " + e.getSource().getValue()));
 		titleTask.setOnFailed(e -> LOGGER.error("load user's name", e.getSource().getException()));
-		ThreadPool.getDefault().submit(ThreadPriority.MIN, "load user's name", titleTask);
+		ThreadPool.getDefault().submit(PoolPriority.MIN, "load user's name", titleTask);
 	}
 
 	private void initSize(final Stage stage) {
@@ -240,7 +248,7 @@ public class MailClient extends Application {
 							}
 						}));
 				task.setOnFailed(e -> LOGGER.error("notify new thread {}", t.getId(), e.getSource().getException()));
-				ThreadPool.getDefault().submit(ThreadPriority.MIN, "notify new thread", task);
+				ThreadPool.getDefault().submit(PoolPriority.MIN, "notify new thread", task);
 			});
 
 			return null;

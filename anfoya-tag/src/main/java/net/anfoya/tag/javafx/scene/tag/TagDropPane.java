@@ -18,8 +18,8 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import net.anfoya.java.undo.UndoService;
+import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.java.util.concurrent.ThreadPool.ThreadPriority;
 import net.anfoya.javafx.scene.dnd.DndPaneTranslationHelper;
 import net.anfoya.javafx.scene.dnd.DropArea;
 import net.anfoya.tag.javafx.scene.section.SectionDropPane;
@@ -128,7 +128,7 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 		};
 		task.setOnSucceeded(event -> updateHandler.handle(null));
 		task.setOnFailed(e -> LOGGER.error("moving label {} to section {}", tag.getName(), finalAnswer, e.getSource().getException()));
-		ThreadPool.getDefault().submit(ThreadPriority.MAX, "moving label " + tag.getName() + " to section " + finalAnswer, task);
+		ThreadPool.getDefault().submit(PoolPriority.MAX, "moving label " + tag.getName() + " to section " + finalAnswer, task);
 
 		return null;
 	}
@@ -172,7 +172,7 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 			updateHandler.handle(null);
 		});
 		task.setOnFailed(e -> LOGGER.error("rename {} to {}", tag.getName(), finalAnswer, e.getSource().getException()));
-		ThreadPool.getDefault().submit(ThreadPriority.MAX, "rename " + tag.getName() + " to " + finalAnswer, task);
+		ThreadPool.getDefault().submit(PoolPriority.MAX, "rename " + tag.getName() + " to " + finalAnswer, task);
 
 		return null;
 	}
@@ -196,7 +196,7 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 				};
 				task.setOnSucceeded(event -> updateHandler.handle(null));
 				task.setOnFailed(e -> LOGGER.error("removing {}", tag.getName(), e.getSource().getException()));
-				ThreadPool.getDefault().submit(ThreadPriority.MAX, "removing " + tag.getName(), task);
+				ThreadPool.getDefault().submit(PoolPriority.MAX, "removing " + tag.getName(), task);
 			});
 
 		return null;
@@ -220,7 +220,7 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 			updateHandler.handle(null);
 		});
 		task.setOnFailed(e -> LOGGER.error(description, e.getSource().getException()));
-		ThreadPool.getDefault().submit(ThreadPriority.MAX, description, task);
+		ThreadPool.getDefault().submit(PoolPriority.MAX, description, task);
 
 		return null;
 	}

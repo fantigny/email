@@ -33,7 +33,7 @@ import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.java.util.concurrent.ThreadPool.ThreadPriority;
+import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.mail.browser.javafx.message.MessagePane;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.settings.SettingsDialog;
@@ -122,15 +122,15 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		final RotateTransition stopRotateTransition = new RotateTransition(Duration.INDEFINITE, graphics);
 		rotateTransition.setInterpolator(Interpolator.EASE_OUT);
 
-		ThreadPool.getDefault().setOnChange(ThreadPriority.MAX, map -> {
+		ThreadPool.getDefault().setOnChange(PoolPriority.MAX, map -> {
 			if (map.isEmpty()) {
-				stopRotateTransition.stop();
-				rotateTransition.play();
-			} else {
 				rotateTransition.stop();
 				stopRotateTransition.setByAngle(360d - graphics.getRotate() % 360d);
 				stopRotateTransition.setDuration(Duration.seconds(.5 * stopRotateTransition.getByAngle() / 360d));
 				stopRotateTransition.play();
+			} else {
+				stopRotateTransition.stop();
+				rotateTransition.play();
 			}
 		});
 
@@ -356,7 +356,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 			}
 			updateHandler.handle(null);
 		});
-		ThreadPool.getDefault().submit(ThreadPriority.MAX, "remove tag {} for threads", task);
+		ThreadPool.getDefault().submit(PoolPriority.MAX, "remove tag {} for threads", task);
 		return null;
 	}
 }

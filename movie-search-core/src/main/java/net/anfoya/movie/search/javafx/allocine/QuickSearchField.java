@@ -11,8 +11,8 @@ import org.slf4j.LoggerFactory;
 import javafx.application.Platform;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
+import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.java.util.concurrent.ThreadPool.ThreadPriority;
 import net.anfoya.javafx.scene.control.ComboFieldOld;
 import net.anfoya.movie.connector.AllocineConnector;
 import net.anfoya.movie.connector.MovieConnector;
@@ -97,7 +97,7 @@ public class QuickSearchField extends ComboFieldOld<MovieVo> {
 
 		final long requestTime = System.nanoTime();
 		this.requestTime.set(requestTime);
-		ThreadPool.getDefault().submit(ThreadPriority.MAX, "search " + qsVo.toString(), () -> {
+		ThreadPool.getDefault().submit(PoolPriority.MAX, "search " + qsVo.toString(), () -> {
 			try {
 				quickSearch(requestTime, qsVo.toString());
 			} catch (final InterruptedException e) {

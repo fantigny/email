@@ -15,8 +15,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.web.WebHistory;
 import javafx.scene.web.WebHistory.Entry;
 import javafx.scene.web.WebView;
+import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.java.util.concurrent.ThreadPool.ThreadPriority;
 import net.anfoya.javafx.scene.control.TitledProgressBar;
 import net.anfoya.javafx.scene.layout.LocationPane;
 import net.anfoya.movie.connector.MovieConnector;
@@ -92,7 +92,7 @@ public class SearchTab extends Tab {
 			}
 		};
 		task.setOnSucceeded(e -> search(task.getValue()));
-		ThreadPool.getDefault().submit(ThreadPriority.MAX, "search " + pattern, task);
+		ThreadPool.getDefault().submit(PoolPriority.MAX, "search " + pattern, task);
 	}
 
 	public void search(final MovieVo movieVo) {

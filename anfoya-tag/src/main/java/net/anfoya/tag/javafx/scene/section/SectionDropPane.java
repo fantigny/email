@@ -15,8 +15,8 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import net.anfoya.java.undo.UndoService;
+import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.java.util.concurrent.ThreadPool.ThreadPriority;
 import net.anfoya.javafx.scene.dnd.DropArea;
 import net.anfoya.tag.service.Section;
 import net.anfoya.tag.service.Tag;
@@ -98,7 +98,7 @@ public class SectionDropPane<S extends Section> extends GridPane {
 			updateHandler.handle(null);
 		});
 		task.setOnFailed(e -> LOGGER.error(description, e.getSource().getException()));
-		ThreadPool.getDefault().submit(ThreadPriority.MAX, description, task);
+		ThreadPool.getDefault().submit(PoolPriority.MAX, description, task);
 
 		return null;
 	}
@@ -120,7 +120,7 @@ public class SectionDropPane<S extends Section> extends GridPane {
 				};
 				task.setOnSucceeded(event -> updateHandler.handle(null));
 				task.setOnFailed(e -> LOGGER.error("removing section {}", section.getName(), e.getSource().getException()));
-				ThreadPool.getDefault().submit(ThreadPriority.MAX, "removing section " + section.getName(), task);
+				ThreadPool.getDefault().submit(PoolPriority.MAX, "removing section " + section.getName(), task);
 			});
 
 		return null;
@@ -142,7 +142,7 @@ public class SectionDropPane<S extends Section> extends GridPane {
 			updateHandler.handle(null);
 		});
 		task.setOnFailed(e -> LOGGER.error(description, e.getSource().getException()));
-		ThreadPool.getDefault().submit(ThreadPriority.MAX, description, task);
+		ThreadPool.getDefault().submit(PoolPriority.MAX, description, task);
 
 		return null;
 	}

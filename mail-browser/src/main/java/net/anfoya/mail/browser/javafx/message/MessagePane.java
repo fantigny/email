@@ -43,8 +43,8 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.scene.web.WebView;
 import javafx.util.Duration;
+import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.java.util.concurrent.ThreadPool.ThreadPriority;
 import net.anfoya.javafx.scene.web.WebViewFitContent;
 import net.anfoya.mail.browser.javafx.attachment.AttachmentLoader;
 import net.anfoya.mail.browser.javafx.settings.Settings;
@@ -268,7 +268,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 			messageView.getEngine().loadContent(loadTask.getValue());
 		});
 		loadTask.setOnFailed(e -> LOGGER.error("load message {}", messageId, e.getSource().getException()));
-		ThreadPool.getDefault().submit(ThreadPriority.MAX, "load message " + messageId, loadTask);
+		ThreadPool.getDefault().submit(PoolPriority.MAX, "load message " + messageId, loadTask);
 	}
 
 	public void setScrollHandler(final EventHandler<ScrollEvent> handler) {

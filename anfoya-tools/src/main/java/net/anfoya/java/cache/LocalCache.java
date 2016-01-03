@@ -11,8 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import net.anfoya.java.io.SerializedFile;
+import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.java.util.concurrent.ThreadPool.ThreadPriority;
 
 public class LocalCache<K, V> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LocalCache.class);
@@ -80,7 +80,7 @@ public class LocalCache<K, V> {
 
 	private void clean() {
 		if (map.size() > limit) {
-			ThreadPool.getDefault().submit(ThreadPriority.MIN, "cleaning cache " + name, () -> {
+			ThreadPool.getDefault().submit(PoolPriority.MIN, "cleaning cache " + name, () -> {
 				if (!cleaning.getAndSet(true)) {
 					try {
 						cleanAsync();

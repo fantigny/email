@@ -21,8 +21,8 @@ import net.anfoya.java.io.SerializedFile;
 import net.anfoya.java.net.filtered.easylist.loader.InternetLoader;
 import net.anfoya.java.net.filtered.easylist.model.Rule;
 import net.anfoya.java.net.url.filter.RuleSet;
+import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.java.util.concurrent.ThreadPool.ThreadPriority;
 
 public class EasyListRuleSet implements RuleSet {
 	private static final Logger LOGGER = LoggerFactory.getLogger(EasyListRuleSet.class);
@@ -125,14 +125,14 @@ public class EasyListRuleSet implements RuleSet {
 	@Override
 	public void load() {
 		final SerializedFile<Set<Rule>> local = new SerializedFile<Set<Rule>>(CONFIG.getExceptionsFilePath());
-		final Future<?> future = ThreadPool.getDefault().submit(ThreadPriority.MAX, "load local rules", () -> {
+		final Future<?> future = ThreadPool.getDefault().submit(PoolPriority.MAX, "load local rules", () -> {
 			final long start = System.currentTimeMillis();
 			exceptions.addAll(local.load());
 			exclusions.addAll(new SerializedFile<Set<Rule>>(CONFIG.getExclusionsFilePath()).load());
 			LOGGER.info("loaded {} local rules (in {}ms)", getRuleCount(), System.currentTimeMillis()-start);
 			return null;
 		});
-		ThreadPool.getDefault().submit(ThreadPriority.MAX, "load cache", () -> {
+		ThreadPool.getDefault().submit(PoolPriority.MAX, "load cache", () -> {
 			try {
 				future.get();
 			} catch (InterruptedException | ExecutionException e) {

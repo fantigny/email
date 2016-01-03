@@ -10,8 +10,8 @@ import javafx.concurrent.Task;
 import javafx.scene.control.ComboBox;
 import javafx.util.Callback;
 import net.anfoya.java.lang.StringHelper;
+import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.java.util.concurrent.ThreadPool.ThreadPriority;
 
 public class ComboBoxAutoShow {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ComboBoxAutoShow.class);
@@ -55,7 +55,7 @@ public class ComboBoxAutoShow {
 				}
 			});
 			task.setOnFailed(e -> LOGGER.error("filtering items with {}", n, e.getSource().getException()));
-			ThreadPool.getDefault().submit(ThreadPriority.MAX, "filtering items with " + n, task);
+			ThreadPool.getDefault().submit(PoolPriority.MAX, "filtering items with " + n, task);
 		});
 	}
 }

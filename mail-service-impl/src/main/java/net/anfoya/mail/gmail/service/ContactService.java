@@ -15,8 +15,8 @@ import com.google.gdata.client.contacts.ContactsService;
 import com.google.gdata.data.contacts.ContactEntry;
 import com.google.gdata.data.contacts.ContactFeed;
 
+import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.java.util.concurrent.ThreadPool.ThreadPriority;
 
 
 //TODO: refresh contacts
@@ -37,7 +37,7 @@ public class ContactService {
 	}
 
 	public ContactService init() {
-		future = ThreadPool.getDefault().submit(ThreadPriority.MIN, "getting contacts", () -> {
+		future = ThreadPool.getDefault().submit(PoolPriority.MIN, "getting contacts", () -> {
 			final Query query = new Query(new URL("https://www.google.com/m8/feeds/contacts/" + user + "/full"));
 			query.setMaxResults(10000);
 			return gcontact.query(query, ContactFeed.class).getEntries();

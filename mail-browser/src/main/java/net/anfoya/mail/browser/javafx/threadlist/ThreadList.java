@@ -23,8 +23,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.input.KeyCode;
+import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.java.util.concurrent.ThreadPool.ThreadPriority;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.composer.javafx.MailComposer;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
@@ -181,7 +181,7 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 			}
 			refresh(loadTask.getValue());
 		});
-		ThreadPool.getDefault().submit(ThreadPriority.MAX, "loading thread list", loadTask);
+		ThreadPool.getDefault().submit(PoolPriority.MAX, "loading thread list", loadTask);
 	}
 
 	private void refresh(final Set<H> threads) {
@@ -307,6 +307,6 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 		};
 		task.setOnSucceeded(e -> updateHandler.handle(null));
 		task.setOnFailed(e -> LOGGER.error("archiving threads {}", threads));
-		ThreadPool.getDefault().submit(ThreadPriority.MAX, "archiving threads", task);
+		ThreadPool.getDefault().submit(PoolPriority.MAX, "archiving threads", task);
 	}
 }
