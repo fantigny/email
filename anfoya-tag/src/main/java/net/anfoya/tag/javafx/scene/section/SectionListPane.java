@@ -23,6 +23,7 @@ import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.java.util.concurrent.ThreadPool.ThreadPriority;
 import net.anfoya.javafx.scene.animation.DelayTimeline;
 import net.anfoya.javafx.scene.control.ResetTextField;
 import net.anfoya.tag.javafx.scene.dnd.ExtItemDropPane;
@@ -314,7 +315,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 			}
 		});
 		refreshTask.setOnFailed(e -> LOGGER.error("getting sections", e.getSource().getException()));
-		ThreadPool.getThreadPool().submitHigh(refreshTask, "getting sections");
+		ThreadPool.getDefault().submit(ThreadPriority.MAX, "getting sections", refreshTask);
 	}
 
 	//TODO: not working

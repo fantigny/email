@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import javafx.util.Callback;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.java.util.concurrent.ThreadPool.ThreadPriority;
 
 public class UrlHelper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UrlHelper.class);
@@ -21,13 +22,13 @@ public class UrlHelper {
 		if (uri.getScheme().equals("mailto")) {
 			onMailto.call(uri.getSchemeSpecificPart());
 		} else {
-			ThreadPool.getThreadPool().submitHigh(() -> {
+			ThreadPool.getDefault().submit(ThreadPriority.MAX, "open " + url, () -> {
 				try {
 					Desktop.getDesktop().browse(uri);
 				} catch (final Exception e) {
 					LOGGER.error("open {}", url, e);
 				}
-			}, "open " + url);
+			});
 		}
 	}
 }

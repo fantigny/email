@@ -20,6 +20,7 @@ import javafx.event.EventHandler;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.java.util.concurrent.ThreadPool.ThreadPriority;
 import net.anfoya.tag.service.Section;
 import net.anfoya.tag.service.Tag;
 import net.anfoya.tag.service.TagException;
@@ -194,7 +195,7 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 			}
 		});
 		thisTagTask.setOnFailed(e -> LOGGER.error("loading [this] tag", e.getSource().getException()));
-		ThreadPool.getThreadPool().submitLow(thisTagTask, "loading [this] tag");
+		ThreadPool.getDefault().submit(ThreadPriority.MIN, "loading [this] tag", thisTagTask);
 	}
 
 	public synchronized void updateCount(final int queryCount, final Set<T> availableTags, final Set<T> includes, final Set<T> excludes, final String itemPattern) {
@@ -244,7 +245,7 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 			item.countProperty().set(task.getValue());
 		});
 		task.setOnFailed(e -> LOGGER.error("getting message count for tag {}", item.getTag().getName(), e.getSource().getException()));
-		ThreadPool.getThreadPool().submitLow(task, "getting message count for tag " + item.getTag().getName());
+		ThreadPool.getDefault().submit(ThreadPriority.MIN, "getting message count for tag " + item.getTag().getName(), task);
 
 		return task;
 	}

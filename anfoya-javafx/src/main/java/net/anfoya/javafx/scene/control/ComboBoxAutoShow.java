@@ -1,5 +1,8 @@
 package net.anfoya.javafx.scene.control;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -8,9 +11,7 @@ import javafx.scene.control.ComboBox;
 import javafx.util.Callback;
 import net.anfoya.java.lang.StringHelper;
 import net.anfoya.java.util.concurrent.ThreadPool;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.anfoya.java.util.concurrent.ThreadPool.ThreadPriority;
 
 public class ComboBoxAutoShow {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ComboBoxAutoShow.class);
@@ -54,7 +55,7 @@ public class ComboBoxAutoShow {
 				}
 			});
 			task.setOnFailed(e -> LOGGER.error("filtering items with {}", n, e.getSource().getException()));
-			ThreadPool.getThreadPool().submitHigh(task, "filtering items with " + n);
+			ThreadPool.getDefault().submit(ThreadPriority.MAX, "filtering items with " + n, task);
 		});
 	}
 }

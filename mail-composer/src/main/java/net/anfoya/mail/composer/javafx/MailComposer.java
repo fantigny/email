@@ -45,6 +45,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.java.util.concurrent.ThreadPool.ThreadPriority;
 import net.anfoya.mail.browser.javafx.css.StyleHelper;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.mime.MessageHelper;
@@ -151,7 +152,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 			try {
 				new MailComposer<M, C>(mailService, updateHandler, settings).newMessage(p);
 			} catch (final MailException e) {
-				LOGGER.error("creating new mail to {}", p, e);
+				LOGGER.error("create new mail to {}", p, e);
 			}
 			return null;
 		});
@@ -212,8 +213,8 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 				setTitle(getTitle() + " - " + contact.getFullname() + " (" + contact.getEmail() + ")");
 			}
 		});
-		contactTask.setOnFailed(e -> LOGGER.error("loading contacts", e.getSource().getException()));
-		ThreadPool.getThreadPool().submitHigh(contactTask, "loading contacts");
+		contactTask.setOnFailed(e -> LOGGER.error("load contacts", e.getSource().getException()));
+		ThreadPool.getDefault().submit(ThreadPriority.MAX, "load contacts", contactTask);
 	}
 
 	public void newMessage(final String recipient) throws MailException {
@@ -244,9 +245,9 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 				return null;
 			}
 		};
-		task.setOnFailed(e -> LOGGER.error("creating draft", e.getSource().getException()));
+		task.setOnFailed(e -> LOGGER.error("create  draft", e.getSource().getException()));
 		task.setOnSucceeded(e -> initComposer(false, true));
-		ThreadPool.getThreadPool().submitHigh(task, "creating draft");
+		ThreadPool.getDefault().submit(ThreadPriority.MAX, "create  draft", task);
 	}
 
 	public void editOrReply(final String id, final boolean all) {
@@ -254,7 +255,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		try {
 			draft = mailService.getDraft(id);
 		} catch (final MailException e) {
-			LOGGER.error("loading draft for id {}", id, e);
+			LOGGER.error("load draft for id {}", id, e);
 		}
 		if (draft != null) {
 			// edit
@@ -265,7 +266,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 				final M message = mailService.getMessage(id);
 				reply(message, all);
 			} catch (final MailException e) {
-				LOGGER.error("loading message for id {}", id, e);
+				LOGGER.error("load message for id {}", id, e);
 			}
 		}
 	}
@@ -283,9 +284,9 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 				return null;
 			}
 		};
-		task.setOnFailed(event -> LOGGER.error("creating reply draft", event.getSource().getException()));
+		task.setOnFailed(event -> LOGGER.error("create  reply draft", event.getSource().getException()));
 		task.setOnSucceeded(e -> initComposer(true, true));
-		ThreadPool.getThreadPool().submitHigh(task, "creating reply draft");
+		ThreadPool.getDefault().submit(ThreadPriority.MAX, "create  reply draft", task);
 	}
 
 	public void forward(final M message) {
@@ -301,9 +302,9 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 				return null;
 			}
 		};
-		task.setOnFailed(event -> LOGGER.error("creating forward draft", event.getSource().getException()));
+		task.setOnFailed(event -> LOGGER.error("create  forward draft", event.getSource().getException()));
 		task.setOnSucceeded(e -> initComposer(true, true));
-		ThreadPool.getThreadPool().submitHigh(task, "creating forward draft");
+		ThreadPool.getDefault().submit(ThreadPriority.MAX, "create  forward draft", task);
 	}
 
 	private void initComposer(final boolean quote, final boolean signature) {
@@ -315,7 +316,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 				toListBox.addRecipient(a);
 			}
 		} catch (final MessagingException e) {
-			LOGGER.error("reading recipients");
+			LOGGER.error("read recipients");
 		}
 
 		boolean displayCC = false;
@@ -325,7 +326,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 				displayCC = true;
 			}
 		} catch (final MessagingException e) {
-			LOGGER.error("reading cc list");
+			LOGGER.error("read cc list");
 		}
 
 		try {
@@ -334,7 +335,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 				displayCC = true;
 			}
 		} catch (final MessagingException e) {
-			LOGGER.error("reading bcc list");
+			LOGGER.error("read bcc list");
 		}
 
 		if (displayCC) {
@@ -354,7 +355,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 			html = helper.toHtml(message);
 		} catch (IOException | MessagingException e) {
 			html = "";
-			LOGGER.error("getting html content", e);
+			LOGGER.error("get html content", e);
 		}
 		if (!html.isEmpty() && quote) {
 			html = MessageHelper.quote(html);
@@ -412,13 +413,13 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		};
 		task.setOnFailed(e -> {
 			editedProperty.set(true);
-			LOGGER.error("saving draft", e.getSource().getException());
+			LOGGER.error("save  draft", e.getSource().getException());
 		});
 		task.setOnSucceeded(e -> {
 			editedProperty.set(false);
 			saveButton.setText("saved");
 		});
-		ThreadPool.getThreadPool().submitHigh(task, "saving draft");
+		ThreadPool.getDefault().submit(ThreadPriority.MAX, "save  draft", task);
 	}
 
 	private MimeMessage buildMessage() throws MessagingException {
@@ -457,7 +458,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 			}
 			message.setFrom(from);
 		} catch (final UnsupportedEncodingException e) {
-			LOGGER.error("loading user data", e);
+			LOGGER.error("load user data", e);
 		}
 
 		for(final String address: toListBox.getRecipients()) {
@@ -506,9 +507,9 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 				return null;
 			}
 		};
-		task.setOnFailed(e -> LOGGER.error("sending message", e.getSource().getException()));
+		task.setOnFailed(e -> LOGGER.error("send message", e.getSource().getException()));
 		task.setOnSucceeded(e -> updateHandler.handle(null));
-		ThreadPool.getThreadPool().submitHigh(task, "sending message");
+		ThreadPool.getDefault().submit(ThreadPriority.MAX, "send message", task);
 
 		close();
 	}
@@ -522,9 +523,9 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 				return null;
 			}
 		};
-		task.setOnFailed(e -> LOGGER.error("deleting draft {}", draft, e.getSource().getException()));
+		task.setOnFailed(e -> LOGGER.error("delete draft {}", draft, e.getSource().getException()));
 		task.setOnSucceeded(e -> updateHandler.handle(null));
-		ThreadPool.getThreadPool().submitHigh(task, "deleting draft");
+		ThreadPool.getDefault().submit(ThreadPriority.MAX, "delete draft", task);
 
 		close();
 	}

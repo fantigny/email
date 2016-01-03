@@ -33,6 +33,7 @@ import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.java.util.concurrent.ThreadPool.ThreadPriority;
 import net.anfoya.mail.browser.javafx.message.MessagePane;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.settings.SettingsDialog;
@@ -121,8 +122,8 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		final RotateTransition stopRotateTransition = new RotateTransition(Duration.INDEFINITE, graphics);
 		rotateTransition.setInterpolator(Interpolator.EASE_OUT);
 
-		ThreadPool.getThreadPool().setOnHighRunning(r -> {
-			if (r) {
+		ThreadPool.getDefault().setOnChange(ThreadPriority.MAX, map -> {
+			if (map.isEmpty()) {
 				stopRotateTransition.stop();
 				rotateTransition.play();
 			} else {
@@ -355,7 +356,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 			}
 			updateHandler.handle(null);
 		});
-		ThreadPool.getThreadPool().submitHigh(task, "remove tag {} for threads");
+		ThreadPool.getDefault().submit(ThreadPriority.MAX, "remove tag {} for threads", task);
 		return null;
 	}
 }

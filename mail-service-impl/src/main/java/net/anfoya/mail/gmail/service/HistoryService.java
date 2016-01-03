@@ -28,6 +28,7 @@ import javafx.util.Duration;
 import net.anfoya.java.io.SerializedFile;
 import net.anfoya.java.util.VoidCallback;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.java.util.concurrent.ThreadPool.ThreadPriority;
 
 public class HistoryService extends TimerTask {
 	private static final Logger LOGGER = LoggerFactory.getLogger(HistoryService.class);
@@ -81,7 +82,7 @@ public class HistoryService extends TimerTask {
 
 	@Override
 	public void run() {
-		ThreadPool.getThreadPool().submitLow(() -> {
+		ThreadPool.getDefault().submit(ThreadPriority.MIN, "pull updates", () -> {
 			try {
 				final List<History> updates = getUpdates();
 				disconnected.set(false);
@@ -97,7 +98,7 @@ public class HistoryService extends TimerTask {
 					LOGGER.error("pull updates", e);
 				}
 			}
-		}, "pull updates");
+		});
 	}
 
 	public List<History> getUpdates() throws HistoryException {

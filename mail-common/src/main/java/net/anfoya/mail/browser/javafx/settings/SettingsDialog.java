@@ -28,7 +28,6 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -39,6 +38,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.java.util.concurrent.ThreadPool.ThreadPriority;
 import net.anfoya.javafx.scene.control.RemoveLabel;
 import net.anfoya.mail.browser.javafx.css.StyleHelper;
 import net.anfoya.mail.browser.javafx.util.UrlHelper;
@@ -92,7 +92,7 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 	private Tab buildTaskTab() {
 		final ListView<String> taskList = new ListView<String>();
 		taskList.setPlaceholder(new Label("idle"));
-		ThreadPool.getThreadPool().setOnChange(map -> Platform.runLater(() -> taskList.getItems().setAll(map.values())));
+		ThreadPool.getDefault().setOnChange(ThreadPriority.MIN, map -> Platform.runLater(() -> taskList.getItems().setAll(map.values())));
 		return new Tab("tasks", taskList);
 	}
 
@@ -128,11 +128,11 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 
 		GridPane.setRowSpan(image, 3);
 		GridPane.setMargin(image, new Insets(20));
-		GridPane.setVgrow(image, Priority.ALWAYS);
+		GridPane.setVgrow(image, javafx.scene.layout.Priority.ALWAYS);
 		GridPane.setValignment(image, VPos.CENTER);
 		gridPane.add(image, 0, 0);
 
-		GridPane.setVgrow(textPane, Priority.ALWAYS);
+		GridPane.setVgrow(textPane, javafx.scene.layout.Priority.ALWAYS);
 		gridPane.add(textPane, 1, 0);
 
 		checker.isLastestProperty().addListener((ov, o, n) -> {
@@ -321,7 +321,7 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		};
 		task.setOnSucceeded(e -> undoService.set(() -> { mailService.hide(section); return null; }, "show"));
 		task.setOnFailed(ev -> LOGGER.error("show {}", section.getName(), ev.getSource().getException()));
-		ThreadPool.getThreadPool().submitHigh(task, "show " + section.getName());
+		ThreadPool.getDefault().submit(ThreadPriority.MAX, "show " + section.getName(), task);
 
 		return null;
 	}
@@ -337,7 +337,7 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		};
 		task.setOnSucceeded(e -> undoService.set(() -> { mailService.hide(tag); return null; }, "show"));
 		task.setOnFailed(e -> LOGGER.error("show {}", tag.getName(), e.getSource().getException()));
-		ThreadPool.getThreadPool().submitHigh(task, "show " + tag.getName());
+		ThreadPool.getDefault().submit(ThreadPriority.MAX, "show " + tag.getName(), task);
 
 		return null;
 	}

@@ -2,6 +2,9 @@ package net.anfoya.javafx.scene.control;
 
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
@@ -20,9 +23,7 @@ import javafx.stage.Popup;
 import javafx.util.Callback;
 import net.anfoya.java.lang.StringHelper;
 import net.anfoya.java.util.concurrent.ThreadPool;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.anfoya.java.util.concurrent.ThreadPool.ThreadPriority;
 
 public class ComboField extends TextField {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ComboField.class);
@@ -198,7 +199,7 @@ public class ComboField extends TextField {
 			}
 		});
 		filterTask.setOnFailed(e -> LOGGER.error("filtering items with {}", n, e.getSource().getException()));
-		ThreadPool.getThreadPool().submitHigh(filterTask, "filtering items with " + n);
+		ThreadPool.getDefault().submit(ThreadPriority.MAX, "filtering items with " + n, filterTask);
 	}
 
 	private void updatePopup(final ObservableList<String> items) {

@@ -12,6 +12,7 @@ import javafx.application.Platform;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.java.util.concurrent.ThreadPool.ThreadPriority;
 import net.anfoya.javafx.scene.control.ComboFieldOld;
 import net.anfoya.movie.connector.AllocineConnector;
 import net.anfoya.movie.connector.MovieConnector;
@@ -96,7 +97,7 @@ public class QuickSearchField extends ComboFieldOld<MovieVo> {
 
 		final long requestTime = System.nanoTime();
 		this.requestTime.set(requestTime);
-		ThreadPool.getThreadPool().submitHigh(() -> {
+		ThreadPool.getDefault().submit(ThreadPriority.MAX, "search " + qsVo.toString(), () -> {
 			try {
 				quickSearch(requestTime, qsVo.toString());
 			} catch (final InterruptedException e) {
@@ -105,7 +106,7 @@ public class QuickSearchField extends ComboFieldOld<MovieVo> {
 				LOGGER.error("loading \"{}\"", qsVo.toString(), e);
 				return;
 			}
-		}, "search " + qsVo.toString());
+		});
 	}
 
 	private void quickSearch(final long requestId, final String pattern) throws InterruptedException, MalformedURLException, IOException {

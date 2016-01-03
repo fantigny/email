@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 import javafx.util.Callback;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.java.util.concurrent.ThreadPool.ThreadPriority;
 
 public class StatusManager extends ReceiverAdapter {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StatusManager.class);
@@ -42,14 +43,14 @@ public class StatusManager extends ReceiverAdapter {
 		this.channel.setDiscardOwnMessages(true);
 
 		// lazy initialization for faster startup
-		initFuture = ThreadPool.getThreadPool().submitHigh(new Callable<Boolean>() {
+		initFuture = ThreadPool.getDefault().submit(ThreadPriority.MAX, "initialize cluster", new Callable<Boolean>() {
 			@Override
 			public Boolean call() throws Exception {
 				// connect and fetch state
 				channel.connect(clusterName, null, 1000);
 				return Boolean.TRUE;
 			}
-		}, "initialize cluster");
+		});
 	}
 
 	@Override

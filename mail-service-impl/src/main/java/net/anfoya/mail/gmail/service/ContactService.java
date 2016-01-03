@@ -7,8 +7,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import net.anfoya.java.util.concurrent.ThreadPool;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +14,9 @@ import com.google.gdata.client.Query;
 import com.google.gdata.client.contacts.ContactsService;
 import com.google.gdata.data.contacts.ContactEntry;
 import com.google.gdata.data.contacts.ContactFeed;
+
+import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.java.util.concurrent.ThreadPool.ThreadPriority;
 
 
 //TODO: refresh contacts
@@ -36,11 +37,11 @@ public class ContactService {
 	}
 
 	public ContactService init() {
-		future = ThreadPool.getThreadPool().submitLow(() -> {
+		future = ThreadPool.getDefault().submit(ThreadPriority.MIN, "getting contacts", () -> {
 			final Query query = new Query(new URL("https://www.google.com/m8/feeds/contacts/" + user + "/full"));
 			query.setMaxResults(10000);
 			return gcontact.query(query, ContactFeed.class).getEntries();
-		}, "getting contacts");
+		});
 		return this;
 	}
 

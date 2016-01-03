@@ -9,60 +9,33 @@ import java.util.TimerTask;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import net.anfoya.java.util.VoidCallback;
 
-public final class ObservableThreadPool {
-	private static final Logger LOGGER = LoggerFactory.getLogger(ObservableThreadPool.class);
+public final class ObservableExecutorService {
+	private static final Logger LOGGER = LoggerFactory.getLogger(ObservableExecutorService.class);
 	private static final long CLEANUP_PERIOD_MS = 250;
 
-	private static class NamedThreadFactory implements ThreadFactory {
-	    private final String name;
-	    private final int priority;
-
-	    private final ThreadGroup group;
-	    private final AtomicInteger threadNumber = new AtomicInteger(1);
-
-	    protected NamedThreadFactory(final String name, final int priority) {
-	    	this.name = name;
-	    	this.priority = priority;
-
-	        final SecurityManager s = System.getSecurityManager();
-	        group = s != null? s.getThreadGroup(): Thread.currentThread().getThreadGroup();
-	    }
-
-	    @Override
-		public Thread newThread(final Runnable r) {
-	        final Thread t = new Thread(group, r, String.format("tp-%s-%d", name, threadNumber.getAndIncrement()));
-            t.setDaemon(true);
-            t.setPriority(priority);
-	        return t;
-	    }
-	}
-
-	private final ExecutorService delegate;
+	private final NamedExecutorService delegate;
 	private final Map<Future<?>, String> futureDesc;
 	private final Set<VoidCallback<Map<Future<?>, String>>> onChangeCallbacks;
 
-	public ObservableThreadPool(final String name, final int priority) {
-		delegate = Executors.newCachedThreadPool(new NamedThreadFactory(name, priority));
+	public ObservableExecutorService(NamedExecutorService service) {
+		this.delegate = service;
 		futureDesc = new ConcurrentHashMap<Future<?>, String>();
 		onChangeCallbacks = new HashSet<VoidCallback<Map<Future<?>, String>>>();
 
-		new Timer(String.format("tp-%s-cleanup", name), true).schedule(
+		new Timer(String.format("tp-%s-cleanup", delegate.getName()), true).schedule(
 			new TimerTask() { @Override public void run() { cleanupFutures(); } }
 			, CLEANUP_PERIOD_MS, CLEANUP_PERIOD_MS);
 
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdown()));
 
-		LOGGER.info("created thread pool {}", name);
+		LOGGER.info("created thread pool {}", delegate.getName());
 	}
 
 	private void shutdown() {

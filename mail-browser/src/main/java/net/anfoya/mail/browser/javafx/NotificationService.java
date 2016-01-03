@@ -19,6 +19,7 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.java.util.concurrent.ThreadPool.ThreadPriority;
 import net.anfoya.javafx.scene.control.Notification.Notifier;
 
 public class NotificationService {
@@ -87,7 +88,7 @@ public class NotificationService {
 				badgeTask.setOnFailed(e -> LOGGER.error("create icon badge {}", text, e.getSource().getException()));
 				badgeTask.setOnSucceeded(e -> stage.getIcons().setAll(SwingFXUtils.toFXImage(SwingFXUtils.fromFXImage(
 								badgeTask.getValue().snapshot(snapshotParameters, null), null), null)));
-				ThreadPool.getThreadPool().submitLow(badgeTask, "set icon badge");
+				ThreadPool.getDefault().submit(ThreadPriority.MIN, "set icon badge", badgeTask);
 			}
 		}
 	}

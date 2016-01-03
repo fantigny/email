@@ -18,6 +18,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.java.util.concurrent.ThreadPool.ThreadPriority;
 import net.anfoya.mail.browser.javafx.MailBrowser;
 import net.anfoya.mail.browser.javafx.NotificationService;
 import net.anfoya.mail.browser.javafx.settings.Settings;
@@ -182,7 +183,7 @@ public class MailClient extends Application {
 		};
 		titleTask.setOnSucceeded(e -> stage.setTitle("FisherMail - " + e.getSource().getValue()));
 		titleTask.setOnFailed(e -> LOGGER.error("load user's name", e.getSource().getException()));
-		ThreadPool.getThreadPool().submitLow(titleTask, "load user's name");
+		ThreadPool.getDefault().submit(ThreadPriority.MIN, "load user's name", titleTask);
 	}
 
 	private void initSize(final Stage stage) {
@@ -239,7 +240,7 @@ public class MailClient extends Application {
 							}
 						}));
 				task.setOnFailed(e -> LOGGER.error("notify new thread {}", t.getId(), e.getSource().getException()));
-				ThreadPool.getThreadPool().submitLow(task, "notify new thread");
+				ThreadPool.getDefault().submit(ThreadPriority.MIN, "notify new thread", task);
 			});
 
 			return null;

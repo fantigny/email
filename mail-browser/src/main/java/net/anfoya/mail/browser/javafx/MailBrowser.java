@@ -17,6 +17,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.Window;
 import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.java.util.concurrent.ThreadPool.ThreadPriority;
 import net.anfoya.mail.browser.javafx.css.StyleHelper;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
@@ -154,7 +155,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 
 	private void refreshUnreadCount() {
 		final Set<T> includes = Collections.singleton(mailService.getSpecialTag(SpecialTag.UNREAD));
-		ThreadPool.getThreadPool().submitLow(() -> {
+		ThreadPool.getDefault().submit(ThreadPriority.MIN, "counting unread messages", () -> {
 			int count = 0;
 			try {
 				count = mailService.findThreads(includes, Collections.emptySet(), "", 200).size();
@@ -162,7 +163,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 				LOGGER.error("counting unread messages", e);
 			}
 			notificationService.setIconBadge("" + (count > 0? count: ""));
-		}, "counting unread messages");
+		});
 	}
 
 	private final boolean refreshAfterTagSelected = true;
