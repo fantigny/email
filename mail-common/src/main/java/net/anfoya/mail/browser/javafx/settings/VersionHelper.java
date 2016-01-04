@@ -61,14 +61,14 @@ public class VersionHelper {
 					final BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
 				reader.lines().forEach(l -> myVersion = l);
 			} catch (final IOException e) {
-				LOGGER.error("error reading version from {}", VERSION_TXT_RESOURCE, e);
+				LOGGER.error("error read version from {}", VERSION_TXT_RESOURCE, e);
 			}
 		}
 		try (InputStream in = new URL(VERSION_TXT_URL).openStream();
 				BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
 			reader.lines().forEach(l -> latestVersion = l);
 		} catch (final IOException e) {
-			LOGGER.error("error reading version from {}", VERSION_TXT_URL, e);
+			LOGGER.error("error read version from {}", VERSION_TXT_URL, e);
 		}
 		isLatestProperty.set(myVersion.equals(latestVersion));
 	}

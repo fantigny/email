@@ -31,7 +31,7 @@ public class CacheData<T extends GenericJson> implements Serializable {
 			try {
 				t = new JsonObjectParser(new JacksonFactory()).parseAndClose(new StringReader(json), clazz);
 			} catch (final IOException e) {
-				throw new CacheException("parsing json", e);
+				throw new CacheException("parse json", e);
 			}
 		}
 

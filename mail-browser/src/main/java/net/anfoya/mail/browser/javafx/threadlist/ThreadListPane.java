@@ -37,8 +37,8 @@ import javafx.scene.layout.VBox;
 import javafx.scene.media.AudioClip;
 import javafx.util.Duration;
 import net.anfoya.java.undo.UndoService;
-import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.javafx.scene.animation.DelayTimeline;
 import net.anfoya.javafx.scene.control.ResetTextField;
 import net.anfoya.javafx.scene.dnd.DndHelper;
@@ -324,13 +324,11 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		try {
 			if (threads.iterator().next().getTagIds().contains(spam.getId())) {
 				removeTagForThreads(spam, threads, "not spam", null);
-				addTagForThreads(inbox, threads, "not spam"
-						, () -> addTagForThreads(spam, threads, "spam", null));
+				addTagForThreads(inbox, threads, "not spam", () -> addTagForThreads(spam, threads, "not spam", null));
 			} else {
-				addTagForThreads(spam, threads, "spam"
-						, () -> {
-						removeTagForThreads(spam, threads, "not spam", null);
-						addTagForThreads(inbox, threads, "not spam", null);
+				addTagForThreads(spam, threads, "spam", () -> {
+					removeTagForThreads(spam, threads, "spam", null);
+					addTagForThreads(inbox, threads, "spam", null);
 					return null;
 				});
 			}
@@ -339,7 +337,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		}
 	}
 
-	private Void addTagForThreads(final T tag, final Set<H> threads, final String description, final Callable<Object> undo) {
+	private Void addTagForThreads(final T tag, final Set<H> threads, final String desc, final Callable<Object> undo) {
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
@@ -350,16 +348,16 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 				return null;
 			}
 		};
-		task.setOnFailed(e -> LOGGER.error("add tag {} for threads {}", tag, threads, e.getSource().getException()));
+		task.setOnFailed(e -> LOGGER.error(desc, e.getSource().getException()));
 		task.setOnSucceeded(e -> {
-			undoService.set(undo, description);
+			undoService.set(undo, desc);
 			updateHandler.handle(null);
 		});
-		ThreadPool.getDefault().submit(PoolPriority.MAX, description, task);
+		ThreadPool.getDefault().submit(PoolPriority.MAX, desc, task);
 		return null;
 	}
 
-	private Void removeTagForThreads(final T tag, final Set<H> threads, final String description, final Callable<Object> undo) {
+	private Void removeTagForThreads(final T tag, final Set<H> threads, final String desc, final Callable<Object> undo) {
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
@@ -367,19 +365,19 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 				return null;
 			}
 		};
-		task.setOnFailed(e -> LOGGER.error("remove tag {} for threads {}", tag, threads, e.getSource().getException()));
+		task.setOnFailed(e -> LOGGER.error(desc, e.getSource().getException()));
 		task.setOnSucceeded(e -> {
-			undoService.set(undo, description);
+			undoService.set(undo, desc);
 			updateHandler.handle(null);
 		});
-		ThreadPool.getDefault().submit(PoolPriority.MAX, description, task);
+		ThreadPool.getDefault().submit(PoolPriority.MAX, desc, task);
 		return null;
 	}
 
 	private void createTagForThreads(final String name, final Set<H> threads) {
 		final Iterator<H> iterator = threads.iterator();
 		final boolean hasInbox = iterator.hasNext() && iterator.next().getTagIds().contains(inbox.getId());
-		final String description = "add " + name;
+		final String desc = "add " + name;
 
 		final Task<T> task = new Task<T>() {
 			@Override
@@ -402,11 +400,11 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 					mailService.addTagForThreads(inbox, threads);
 				}
 				return null;
-			}, description);
+			}, desc);
 			updateHandler.handle(null);
 		});
-		task.setOnFailed(e -> LOGGER.error(description, e.getSource().getException()));
-		ThreadPool.getDefault().submit(PoolPriority.MAX, description, task);
+		task.setOnFailed(e -> LOGGER.error(desc, e.getSource().getException()));
+		ThreadPool.getDefault().submit(PoolPriority.MAX, desc, task);
 	}
 
 	public String getNamePattern() {
@@ -452,7 +450,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 				try {
 					tags.add(mailService.getTag(id));
 				} catch (final MailException e) {
-					LOGGER.error("getting tag {}", id, e);
+					LOGGER.error("get tag {}", id, e);
 				}
 			}
 		}

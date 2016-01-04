@@ -206,7 +206,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 				try {
 					toRefresh = tagService.getTags(sectionPane.getSection());
 				} catch (final TagException e) {
-					LOGGER.error("getting section count", e);
+					LOGGER.error("get section count", e);
 				}
 			}
 			sectionPane.updateCountAsync(queryCount, toRefresh, includes, excludes, itemPattern, pattern);
@@ -314,8 +314,8 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 				callback.run();
 			}
 		});
-		refreshTask.setOnFailed(e -> LOGGER.error("getting sections", e.getSource().getException()));
-		ThreadPool.getDefault().submit(PoolPriority.MAX, "getting sections", refreshTask);
+		refreshTask.setOnFailed(e -> LOGGER.error("get sections", e.getSource().getException()));
+		ThreadPool.getDefault().submit(PoolPriority.MAX, "get sections", refreshTask);
 	}
 
 	//TODO: not working

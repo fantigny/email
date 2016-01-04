@@ -130,7 +130,7 @@ public class ThreadService {
 			}
 			return get(ids, true, threadResponse.getNextPageToken() == null? null: page);
 		} catch (final IOException e) {
-			throw new ThreadException("getting threads for query " + query, e);
+			throw new ThreadException("get threads for query " + query, e);
 		} finally {
 			LOGGER.debug("get threads in {}ms for query {}", System.currentTimeMillis()-start, query);
 		}

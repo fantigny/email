@@ -15,14 +15,14 @@
 	-fx-background-color: black;     
 	-fx-text-fill: white;
 	-fx-font-size: 12px;
-	-fx-padding: 4 5 4 5;
+	-fx-padd: 4 5 4 5;
 }
 
 .split-pane *.split-pane-divider {
     -fx-min-width: 1;
     -fx-pref-width: 1;
     -fx-background-color: lightgray;
-    -fx-padding: 0;
+    -fx-padd: 0;
     -fx-border-width: 0;
     -fx-background-insets: 0;
 }
@@ -70,7 +70,7 @@
 }
 
 .label-dnd {
-	-fx-padding: 2 5 2 5;
+	-fx-padd: 2 5 2 5;
 	-fx-background-insets: 1 1 1 1;
 	-fx-background-color: white;
 	
@@ -85,7 +85,7 @@
 .label-list-pane {	
 }
 .label-list-pane .label {
-    -fx-padding: 2 5 2 5;
+    -fx-padd: 2 5 2 5;
     -fx-background-color: transparent;
     
     -fx-border-width: 1;
@@ -139,7 +139,7 @@
 
 /* thread list */
 .thread-list {
-	-fx-padding: 0;
+	-fx-padd: 0;
 	-fx-border: 0;
 }
 .thread-list .cell {
@@ -175,22 +175,22 @@
 .thread .message .arrow-button {
     -fx-background-insets: 0;
     -fx-background-radius: 0;
-    -fx-padding: 5 7 7 0;
+    -fx-padd: 5 7 7 0;
 }
 .thread .message .arrow {
     -fx-background-color: -fx-mark-color;
     -fx-background-insets: 1 0 -1 0, 0;
-    -fx-padding: 0.25em 0.3125em 0.25em 0.3125em; /* 3 3.75 3 3.75 */
+    -fx-padd: 0.25em 0.3125em 0.25em 0.3125em; /* 3 3.75 3 3.75 */
     -fx-shape: "M 0 0 h 7 l -3.5 4 z";
 }
 .thread .message .header {
-    -fx-padding: 5;
+    -fx-padd: 5;
     -fx-background-color: lightgray;
 }
 
 /* undo button */
 .undo {
-    -fx-padding: 2;
+    -fx-padd: 2;
 	-fx-opacity: 0.9;
 	-fx-background-radius: 5;
     -fx-background-color: wheat;
@@ -206,7 +206,7 @@
 
 /* disconnected button */
 .disconnected, .disconnected:hover, .disconnected:selected {
-    -fx-padding: 2;
+    -fx-padd: 2;
 	-fx-opacity: 0.9;
 	-fx-background-radius: 5;
     -fx-background-color: lightsalmon;
@@ -226,7 +226,7 @@
 	-fx-border-width: 0 0 1 0;
 }
 .combofield {
-	-fx-padding: 2;
+	-fx-padd: 2;
 }
 .message-editor {
 	-fx-background-color: transparent;

@@ -11,12 +11,12 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 
-import net.anfoya.java.cache.FileSerieSerializedMap;
-import net.anfoya.mail.gmail.cache.CacheData;
-
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Draft;
 import com.google.api.services.gmail.model.Message;
+
+import net.anfoya.java.cache.FileSerieSerializedMap;
+import net.anfoya.mail.gmail.cache.CacheData;
 
 public class MessageService {
 	private static final String FILE_PREFIX = System.getProperty("java.io.tmpdir") + File.separatorChar + "fsm-cache-id-messages-";
@@ -46,7 +46,7 @@ public class MessageService {
 				message = gmail.users().messages().get(user, id).setFormat("raw").execute();
 				idMessages.put(id, new CacheData<Message>(message));
 			} catch (final IOException e) {
-				throw new MessageException("getting message " + id, e);
+				throw new MessageException("get message " + id, e);
 			}
 		}
 
@@ -57,7 +57,7 @@ public class MessageService {
 		try {
 			gmail.users().messages().delete(user, id).execute();
 		} catch (final IOException e) {
-			throw new MessageException("deleting message " + id, e);
+			throw new MessageException("delete message " + id, e);
 		}
 	}
 
@@ -69,7 +69,7 @@ public class MessageService {
 			draft.setMessage(message);
 			gmail.users().drafts().send(user, draft).execute();
 		} catch (final IOException e) {
-			throw new MessageException("sending draft " + id, e);
+			throw new MessageException("send draft " + id, e);
 		}
 	}
 
@@ -81,7 +81,7 @@ public class MessageService {
 			draft.setMessage(message);
 			gmail.users().drafts().update(user, id, draft).execute();
 		} catch (final IOException e) {
-			throw new MessageException("saving draft " + id, e);
+			throw new MessageException("save draft " + id, e);
 		}
 	}
 
@@ -99,7 +99,7 @@ public class MessageService {
 		    draft.setId(id);
 		    return draft;
 		} catch (IOException | MessagingException e) {
-			throw new MessageException("creating draft", e);
+			throw new MessageException("create draft", e);
 		}
 	}
 
@@ -107,7 +107,7 @@ public class MessageService {
 		try {
 			gmail.users().drafts().delete(user, id).execute();
 		} catch (final IOException e) {
-			throw new MessageException("deleting draft " + id, e);
+			throw new MessageException("delete draft " + id, e);
 		}
 	}
 
@@ -122,7 +122,7 @@ public class MessageService {
 			}
 			return draft;
 		} catch (final IOException e) {
-			throw new MessageException("getting draft for message " + id, e);
+			throw new MessageException("get draft for message " + id, e);
 		}
 	}
 
@@ -130,7 +130,7 @@ public class MessageService {
 		try {
 			return gmail.users().drafts().get(user, id).setFormat("raw").execute();
 		} catch (final IOException e) {
-			throw new MessageException("getting draft " + id, e);
+			throw new MessageException("get draft " + id, e);
 		}
 	}
 

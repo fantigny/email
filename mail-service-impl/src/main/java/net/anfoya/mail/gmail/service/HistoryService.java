@@ -27,8 +27,8 @@ import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.util.Duration;
 import net.anfoya.java.io.SerializedFile;
 import net.anfoya.java.util.VoidCallback;
-import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 
 public class HistoryService extends TimerTask {
 	private static final Logger LOGGER = LoggerFactory.getLogger(HistoryService.class);
@@ -65,7 +65,7 @@ public class HistoryService extends TimerTask {
 			try {
 				file.save(historyId);
 			} catch (final IOException e) {
-				LOGGER.error("saving history id", e);
+				LOGGER.error("save history id", e);
 			}
 		}));
 
@@ -127,7 +127,7 @@ public class HistoryService extends TimerTask {
 			}
 		} catch (final Exception e) {
 			historyId = null;
-			throw new HistoryException("getting history id", e);
+			throw new HistoryException("get history id", e);
 		} finally {
 			LOGGER.debug("got history id: {} ({}ms)", historyId, System.currentTimeMillis()-start);
 		}

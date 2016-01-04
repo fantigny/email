@@ -119,8 +119,8 @@ public class SectionDropPane<S extends Section> extends GridPane {
 					}
 				};
 				task.setOnSucceeded(event -> updateHandler.handle(null));
-				task.setOnFailed(e -> LOGGER.error("removing section {}", section.getName(), e.getSource().getException()));
-				ThreadPool.getDefault().submit(PoolPriority.MAX, "removing section " + section.getName(), task);
+				task.setOnFailed(e -> LOGGER.error("remove section {}", section.getName(), e.getSource().getException()));
+				ThreadPool.getDefault().submit(PoolPriority.MAX, "remove section " + section.getName(), task);
 			});
 
 		return null;

@@ -96,7 +96,7 @@ public class MessageHelper {
 	public static String quote(final String html) {
 		return new StringBuffer()
 				.append("<br><br>")
-				.append("<blockquote class='gmail_quote' style='margin:0 0 0 .8ex;border-left:1px #ccc solid;padding-left:1ex'>")
+				.append("<blockquote class='gmail_quote' style='margin:0 0 0 .8ex;border-left:1px #ccc solid;padd-left:1ex'>")
 				.append(html)
 				.append("</blockquote>")
 				.toString();
@@ -122,7 +122,7 @@ public class MessageHelper {
 				.append(" color: #222222 !important;")
 				.append(" background-color: #FDFDFD !important; }")
 				.append("p {")
-				.append(" padding-left:1ex !important;")
+				.append(" padd-left:1ex !important;")
 				.append(" margin: 2px 0 !important; }")
 				.append("</style>")
 				.append(html)
@@ -166,7 +166,7 @@ public class MessageHelper {
 		if (content instanceof String) {
 			final boolean isPlainContent = type.contains("text/plain");
 			if (isHtml && isPlainContent) {
-				LOGGER.info("discarding {}", type);
+				LOGGER.info("discard {}", type);
 				return new StringBuilder();
 			}
 
@@ -178,7 +178,7 @@ public class MessageHelper {
 				try { encoding = part.getHeader("Content-Transfer-Encoding")[0]; }
 				catch(final Exception e) { encoding = MimeUtility.getEncoding(part.getDataHandler()); }
 
-				LOGGER.info("decoding {}, {}", type, encoding);
+				LOGGER.info("decode {}, {}", type, encoding);
 				final byte[] bytes = ((String) content).getBytes();
 				if (bytes.length > 0) {
 					try (ByteArrayInputStream byteStream = new ByteArrayInputStream(bytes);
@@ -196,7 +196,7 @@ public class MessageHelper {
 			final MimeBodyPart bodyPart = (MimeBodyPart) part;
 			if (type.contains("text/calendar")) {
 				final File file = File.createTempFile("event-", ".ics", new File(TEMP));
-				LOGGER.info("saving inline calendar {}", file);
+				LOGGER.info("save inline calendar {}", file);
 				bodyPart.saveFile(file);
 				return buildImgAnchor(file);
 			}
@@ -204,7 +204,7 @@ public class MessageHelper {
 					&& !MimeBodyPart.ATTACHMENT.equals(bodyPart.getDisposition())) {
 				final String cid = bodyPart.getContentID().replaceAll("[<,>]", "");
 				final File file = new File(TEMP + cid);
-				LOGGER.info("saving cid {}", file);
+				LOGGER.info("save cid {}", file);
 				bodyPart.saveFile(file);
 				cidUris.put(cid, file.toURI().toString());
 				return new StringBuilder();
@@ -213,7 +213,7 @@ public class MessageHelper {
 				final String filename = MimeUtility.decodeText(bodyPart.getFileName());
 				if (MimeBodyPart.INLINE.equals(bodyPart.getDisposition())) {
 					final File file = new File(TEMP + filename);
-					LOGGER.info("saving inline file {}", file);
+					LOGGER.info("save inline file {}", file);
 					bodyPart.saveFile(file);
 					if (type.contains("image/")) {
 						return new StringBuilder("<img src='").append(file.toURI()).append("'>");
@@ -222,7 +222,7 @@ public class MessageHelper {
 					}
 				}
 				if (MimeBodyPart.ATTACHMENT.equals(bodyPart.getDisposition())) {
-					LOGGER.info("saving reference to attachment {}", filename);
+					LOGGER.info("save reference to attachment {}", filename);
 					attachmentNames.add(filename);
 					return new StringBuilder();
 				}
@@ -264,7 +264,7 @@ public class MessageHelper {
 
 			return new BASE64Encoder().encode(imgBytes);
 		} catch (final IOException e) {
-			LOGGER.error("reading system icon for {}", file.getName(), e);
+			LOGGER.error("read system icon for {}", file.getName(), e);
 			return "";
 		}
 	}

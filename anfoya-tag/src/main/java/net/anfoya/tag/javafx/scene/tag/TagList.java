@@ -108,7 +108,7 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 				tags = tagService.getTags(pattern);
 			}
 		} catch (final TagException e) {
-			LOGGER.error("loading tags for section {} and pattern \"{}\"", section.getName(), pattern, e);
+			LOGGER.error("load tags for section {} and pattern \"{}\"", section.getName(), pattern, e);
 			return;
 		}
 
@@ -194,8 +194,8 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 				getItems().remove(item);
 			}
 		});
-		thisTagTask.setOnFailed(e -> LOGGER.error("loading [this] tag", e.getSource().getException()));
-		ThreadPool.getDefault().submit(PoolPriority.MIN, "loading [this] tag", thisTagTask);
+		thisTagTask.setOnFailed(e -> LOGGER.error("load [this] tag", e.getSource().getException()));
+		ThreadPool.getDefault().submit(PoolPriority.MIN, "load [this] tag", thisTagTask);
 	}
 
 	public synchronized void updateCount(final int queryCount, final Set<T> availableTags, final Set<T> includes, final Set<T> excludes, final String itemPattern) {
@@ -244,8 +244,8 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 			}
 			item.countProperty().set(task.getValue());
 		});
-		task.setOnFailed(e -> LOGGER.error("getting message count for tag {}", item.getTag().getName(), e.getSource().getException()));
-		ThreadPool.getDefault().submit(PoolPriority.MIN, "getting message count for tag " + item.getTag().getName(), task);
+		task.setOnFailed(e -> LOGGER.error("get message count for tag {}", item.getTag().getName(), e.getSource().getException()));
+		ThreadPool.getDefault().submit(PoolPriority.MIN, "get message count for tag " + item.getTag().getName(), task);
 
 		return task;
 	}

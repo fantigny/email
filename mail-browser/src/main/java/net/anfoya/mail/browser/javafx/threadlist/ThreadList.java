@@ -134,7 +134,7 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 				try {
 					tags.add(mailService.getTag(id));
 				} catch (final MailException e) {
-					LOGGER.error("loading tag", e);
+					LOGGER.error("load tag", e);
 				}
 			}
 		}
@@ -169,19 +169,19 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 		loadTask = new Task<Set<H>>() {
 			@Override
 			protected Set<H> call() throws InterruptedException, MailException {
-				LOGGER.debug("loading for includes {}, excludes {}, pattern: {}, pageMax: {}", includes, excludes, pattern, page);
+				LOGGER.debug("load for includes {}, excludes {}, pattern: {}, pageMax: {}", includes, excludes, pattern, page);
 				final Set <H> threads = mailService.findThreads(includes, excludes, pattern, page);
 				return threads;
 			}
 		};
-		loadTask.setOnFailed(e -> LOGGER.error("loading thread list", e.getSource().getException()));
+		loadTask.setOnFailed(e -> LOGGER.error("load thread list", e.getSource().getException()));
 		loadTask.setOnSucceeded(e -> {
 			if (taskId != loadTaskId) {
 				return;
 			}
 			refresh(loadTask.getValue());
 		});
-		ThreadPool.getDefault().submit(PoolPriority.MAX, "loading thread list", loadTask);
+		ThreadPool.getDefault().submit(PoolPriority.MAX, "load thread list", loadTask);
 	}
 
 	private void refresh(final Set<H> threads) {
@@ -306,7 +306,7 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 			}
 		};
 		task.setOnSucceeded(e -> updateHandler.handle(null));
-		task.setOnFailed(e -> LOGGER.error("archiving threads {}", threads));
-		ThreadPool.getDefault().submit(PoolPriority.MAX, "archiving threads", task);
+		task.setOnFailed(e -> LOGGER.error("archive threads {}", threads));
+		ThreadPool.getDefault().submit(PoolPriority.MAX, "archive threads", task);
 	}
 }

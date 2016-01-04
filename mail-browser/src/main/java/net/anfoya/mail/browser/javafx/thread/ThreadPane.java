@@ -235,7 +235,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 					try {
 						tags.add(mailService.getTag(id));
 					} catch (final MailException e) {
-						LOGGER.error("getting tag {}", id, e);
+						LOGGER.error("get tag {}", id, e);
 					}
 				}
 			}
@@ -340,6 +340,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	}
 
 	private Void remove(final Set<H> threads, final T tag, final boolean undo) {
+		final String desc = String.format("remove tag %s", tag);
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
@@ -347,16 +348,16 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 				return null;
 			}
 		};
-		task.setOnFailed(e -> LOGGER.error("remove tag {} for threads {}", tag, threads, e.getSource().getException()));
+		task.setOnFailed(e -> LOGGER.error(desc, tag, threads, e.getSource().getException()));
 		task.setOnSucceeded(e -> {
 			if (undo) {
 				undoService.set(
 						() -> { mailService.addTagForThreads(tag, threads); return null; }
-						, "remove " + tag.getName());
+						, desc);
 			}
 			updateHandler.handle(null);
 		});
-		ThreadPool.getDefault().submit(PoolPriority.MAX, "remove tag {} for threads", task);
+		ThreadPool.getDefault().submit(PoolPriority.MAX, desc, task);
 		return null;
 	}
 }

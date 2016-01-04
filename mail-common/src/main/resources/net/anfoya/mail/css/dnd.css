@@ -1,12 +1,12 @@
 .droparea-grid {
 	-fx-alignment: BOTTOM-CENTER;
-    -fx-padding: 4;
+    -fx-padd: 4;
     -fx-hgap: 4;
     -fx-vgap: 4;
 }
 
 .dropbutton-box {
-    -fx-padding: 2;
+    -fx-padd: 2;
 
 	-fx-opacity: 0.9;
 	-fx-background-radius: 5;

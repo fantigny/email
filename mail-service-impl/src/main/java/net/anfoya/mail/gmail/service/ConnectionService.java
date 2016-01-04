@@ -122,7 +122,7 @@ public class ConnectionService {
 		try {
 			prefs.flush();
 		} catch (final BackingStoreException e) {
-			LOGGER.error("removing refresh token", e);
+			LOGGER.error("remove authentication token", e);
 		}
 		try {
 			final GenericUrl url = new GenericUrl(String.format(
@@ -133,7 +133,7 @@ public class ConnectionService {
 				.buildGetRequest(url)
 				.execute();
 		} catch (final IOException e) {
-			LOGGER.error("error revoking token", e);
+			LOGGER.error("revoke authentication token", e);
 		}
 		CookieManager.setDefault(new CookieManager());
 	}

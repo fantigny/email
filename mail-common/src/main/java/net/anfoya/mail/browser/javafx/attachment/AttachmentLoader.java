@@ -42,18 +42,18 @@ public class AttachmentLoader<M extends Message> {
 	}
 
 	public void start(final String filename) throws MailException, UnsupportedEncodingException, IOException, MessagingException {
-		LOGGER.info("opening attachment {} for message {}", filename, messageId);
 		final String filepath = saveAttachment(filename);
-		LOGGER.info("starting {}", filepath);
+
+		LOGGER.info("start {}", filepath);
 		try {
 			Desktop.getDesktop().open(new File(filepath));
 		} catch (final IOException e) {
-			LOGGER.error("starting {}", filepath, e);
+			LOGGER.error("start {}", filepath, e);
 		}
 	}
-	
+
 	public String saveAttachment(final String name) throws MailException, UnsupportedEncodingException, IOException, MessagingException {
-		LOGGER.info("downloading attachment {} for message {}", name, messageId);
+		LOGGER.info("download attachment {} for message {}", name, messageId);
 		final M message = mailService.getMessage(messageId);
 		return saveAttachment(message.getMimeMessage(), name);
 	}

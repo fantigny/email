@@ -1,7 +1,12 @@
 package net.anfoya.mail.browser.javafx.settings;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,8 +42,8 @@ import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import net.anfoya.java.undo.UndoService;
-import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.javafx.scene.control.RemoveLabel;
 import net.anfoya.mail.browser.javafx.css.StyleHelper;
 import net.anfoya.mail.browser.javafx.util.UrlHelper;
@@ -64,6 +69,8 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 	private FlowPane hiddenSectionsPane;
 	private FlowPane hiddenTagsPane;
 
+	private final Map<PoolPriority, Collection<String>> idTasks;
+
 	public SettingsDialog(final MailService<S, T, ? extends Thread, ? extends Message, ? extends Contact> mailService
 			, final UndoService undoService
 			, final Settings settings) {
@@ -74,6 +81,8 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		this.mailService = mailService;
 		this.undoService = undoService;
 		this.settings = settings;
+
+		idTasks = new ConcurrentHashMap<PoolPriority, Collection<String>>();
 
 		tabPane = new TabPane(buildSettingsTab(), buildAboutTab(), buildHelpTab(), buildTaskTab());
 		tabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
@@ -92,8 +101,18 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 	private Tab buildTaskTab() {
 		final ListView<String> taskList = new ListView<String>();
 		taskList.setPlaceholder(new Label("idle"));
-		ThreadPool.getDefault().setOnChange(PoolPriority.MIN, map -> Platform.runLater(() -> taskList.getItems().setAll(map.values())));
+		ThreadPool.getDefault().setOnChange(PoolPriority.MIN, map -> Platform.runLater(() -> taskList.getItems().setAll(getTasks(PoolPriority.MIN, map))));
+		ThreadPool.getDefault().setOnChange(PoolPriority.MAX, map -> Platform.runLater(() -> taskList.getItems().setAll(getTasks(PoolPriority.MAX, map))));
 		return new Tab("tasks", taskList);
+	}
+
+	private Collection<String> getTasks(PoolPriority priority, Map<Future<?>, String> map) {
+		idTasks.put(priority, map.values());
+
+		final Collection<String> tasks = new ArrayList<>();
+		idTasks.values().forEach(c -> tasks.addAll(c));
+
+		return tasks;
 	}
 
 	private Tab buildHelpTab() {

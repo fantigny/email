@@ -433,14 +433,14 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		multipart.addBodyPart(bodyPart);
 
 		editor.getAttachments().forEach(f -> {
-			LOGGER.debug("adding attachment {}", f);
+			LOGGER.debug("add attachment {}", f);
 			try {
 				final MimeBodyPart part = new MimeBodyPart();
 				part.attachFile(f);
 				part.setFileName(MimeUtility.encodeText(f.getName()));
 				multipart.addBodyPart(part);
 			} catch (final Exception e) {
-				LOGGER.error("adding attachment {}", f);
+				LOGGER.error("add attachment {}", f);
 			}
 		});
 

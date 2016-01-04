@@ -150,8 +150,8 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 			}
 		};
 		task.setOnSucceeded(e -> updateHandler.handle(null));
-		task.setOnFailed(e -> LOGGER.error("moving {} to {}", tag, section, e.getSource().getException()));
-		ThreadPool.getDefault().submit(PoolPriority.MAX, "moving " + tag.getName() + " to " + section.getName(), task);
+		task.setOnFailed(e -> LOGGER.error("move {} to {}", tag, section, e.getSource().getException()));
+		ThreadPool.getDefault().submit(PoolPriority.MAX, "move " + tag.getName() + " to " + section.getName(), task);
 	}
 
 	private void expandAfterDelay() {
@@ -184,8 +184,8 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 				}
 				sectionItem.countProperty().set(sectionTask.getValue());
 			});
-			sectionTask.setOnFailed(e -> LOGGER.error("getting message count for section {}", tagList.getSection().getName(), e.getSource().getException()));
-			ThreadPool.getDefault().submit(PoolPriority.MIN, "getting message count for section " + tagList.getSection().getName(), sectionTask);
+			sectionTask.setOnFailed(e -> LOGGER.error("get message count for section {}", tagList.getSection().getName(), e.getSource().getException()));
+			ThreadPool.getDefault().submit(PoolPriority.MIN, "get message count for section " + tagList.getSection().getName(), sectionTask);
 		} else {
 			if (tagList.getSectionItem() == null) {
 				sectionItem.countProperty().set(0);

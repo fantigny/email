@@ -37,7 +37,7 @@ public class ContactService {
 	}
 
 	public ContactService init() {
-		future = ThreadPool.getDefault().submit(PoolPriority.MIN, "getting contacts", () -> {
+		future = ThreadPool.getDefault().submit(PoolPriority.MIN, "get contacts", () -> {
 			final Query query = new Query(new URL("https://www.google.com/m8/feeds/contacts/" + user + "/full"));
 			query.setMaxResults(10000);
 			return gcontact.query(query, ContactFeed.class).getEntries();
@@ -51,7 +51,7 @@ public class ContactService {
 				contacts.addAll(future.get());
 				LOGGER.info("loaded {} contacts", contacts.size());
 			} catch (InterruptedException | ExecutionException e) {
-				throw new ContactException("getting contacts", e);
+				throw new ContactException("get contacts", e);
 			}
 		}
 		return contacts;

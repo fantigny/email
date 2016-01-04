@@ -216,7 +216,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		try {
 		    return new GmailMessage(messageService.getMessage(id));
 		} catch (final MessageException | MessagingException e) {
-			throw new GMailException("loading message id: " + id, e);
+			throw new GMailException("load message id: " + id, e);
 		}
 	}
 
@@ -229,7 +229,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			}
 			return new GmailMessage(draft);
 		} catch (final MessageException | MessagingException e) {
-			throw new GMailException("creating draft", e);
+			throw new GMailException("create draft", e);
 		}
 	}
 
@@ -258,7 +258,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			LOGGER.debug("get sections: {}", sections);
 			return sections;
 		} catch (final LabelException e) {
-			throw new GMailException("getting sections", e);
+			throw new GMailException("get sections", e);
 		}
 	}
 
@@ -283,7 +283,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			LOGGER.debug("get hidden sections: {}", hiddenSections);
 			return hiddenSections;
 		} catch (final LabelException e) {
-			throw new GMailException("getting hidden sections", e);
+			throw new GMailException("get hidden sections", e);
 		}
 	}
 
@@ -294,7 +294,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			try {
 				tag = new GmailTag(labelService.get(id));
 			} catch (final LabelException e) {
-				throw new GMailException("getting tag " + id, e);
+				throw new GMailException("get tag " + id, e);
 			}
 		}
 		return tag;
@@ -345,7 +345,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			}
 			return tags;
 		} catch (final LabelException e) {
-			throw new GMailException("getting hidden tags", e);
+			throw new GMailException("get hidden tags", e);
 		}
 	}
 
@@ -411,7 +411,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			LOGGER.debug("tags for section({}) tagPattern({}): {}", section == null? "": section.getPath(), tags);
 			return tags;
 		} catch (final LabelException e) {
-			throw new GMailException("getting tags for section " + section.getName(), e);
+			throw new GMailException("get tags for section " + section.getName(), e);
 		}
 	}
 
@@ -453,7 +453,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			final String name = sectionName + "/" + tag.getName();
 			return new GmailTag(labelService.rename(tag.getId(), name));
 		} catch (final LabelException e) {
-			throw new GMailException("moving " + tag.getName() + " to " + sectionName, e);
+			throw new GMailException("move " + tag.getName() + " to " + sectionName, e);
 		}
 	}
 
@@ -502,7 +502,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 			return threadService.count(query.toString());
 		} catch (final ThreadException e) {
-			throw new GMailException("counting threads", e);
+			throw new GMailException("count threads", e);
 		}
 	}
 
@@ -565,7 +565,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 			return threadService.count(query.toString());
 		} catch (final ThreadException e) {
-			throw new GMailException("counting threads for " + section.getPath(), e);
+			throw new GMailException("count threads for " + section.getPath(), e);
 		}
 	}
 
@@ -577,7 +577,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			labelIds.add(tag.getId());
 			threadService.update(threadIds, labelIds, true);
 		} catch (final ThreadException e) {
-			throw new GMailException("adding tag " + tag.getName(), e);
+			throw new GMailException("add tag " + tag.getName(), e);
 		}
 	}
 
@@ -589,7 +589,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			labelIds.add(tag.getId());
 			threadService.update(threadIds, labelIds, false);
 		} catch (final ThreadException e) {
-			throw new GMailException("removing tag " + tag.getName(), e);
+			throw new GMailException("remove tag " + tag.getName(), e);
 		}
 	}
 
@@ -598,7 +598,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		try {
 			labelService.hide(tag.getId());
 		} catch (final LabelException e) {
-			throw new GMailException("hiding tag " + tag.getName(), e);
+			throw new GMailException("hide tag " + tag.getName(), e);
 		}
 	}
 
@@ -607,7 +607,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		try {
 			labelService.show(tag.getId());
 		} catch (final LabelException e) {
-			throw new GMailException("showing tag " + tag.getName(), e);
+			throw new GMailException("show tag " + tag.getName(), e);
 		}
 	}
 
@@ -616,7 +616,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		try {
 			labelService.hide(section.getId());
 		} catch (final LabelException e) {
-			throw new GMailException("hiding section " + section.getName(), e);
+			throw new GMailException("hide section " + section.getName(), e);
 		}
 	}
 
@@ -625,7 +625,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		try {
 			labelService.show(section.getId());
 		} catch (final LabelException e) {
-			throw new GMailException("showing section " + section.getName(), e);
+			throw new GMailException("show section " + section.getName(), e);
 		}
 	}
 
@@ -683,7 +683,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		try {
 			return new GmailSection(labelService.add(name));
 		} catch (final LabelException e) {
-			throw new GMailException("adding section \"" + name + "\"", e);
+			throw new GMailException("add section \"" + name + "\"", e);
 		}
 	}
 
@@ -692,7 +692,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		try {
 			return new GmailTag(labelService.add(name));
 		} catch (final LabelException e) {
-			throw new GMailException("adding tag \"" + name + "\"", e);
+			throw new GMailException("add tag \"" + name + "\"", e);
 		}
 	}
 
@@ -725,7 +725,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			labelIds.add(GmailTag.INBOX.getId());
 			threadService.update(ids, labelIds, false);
 		} catch (final ThreadException e) {
-			throw new GMailException("archiving threads " + threads, e);
+			throw new GMailException("archive threads " + threads, e);
 		}
 	}
 
@@ -735,7 +735,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			final Set<String> ids = threads.stream().map(GmailThread::getId).collect(Collectors.toSet());
 			threadService.trash(ids);
 		} catch (final ThreadException e) {
-			throw new GMailException("trashing threads " + threads, e);
+			throw new GMailException("trash threads " + threads, e);
 		}
 	}
 
@@ -748,7 +748,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 				messageService.removeMessage(message.getId());
 			}
 		} catch (final MessageException e) {
-			throw new GMailException("removing message " + message.getId(), e);
+			throw new GMailException("remove message " + message.getId(), e);
 		}
 	}
 
@@ -771,7 +771,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 				try {
 					t = threadService.get(Collections.singleton(m.getThreadId()), false, null).iterator().next();
 				} catch (final Exception e) {
-					LOGGER.error("loading thread id {} for message id {}", m.getThreadId(), m.getId(), e);
+					LOGGER.error("load thread id {} for message id {}", m.getThreadId(), m.getId(), e);
 					return;
 				}
 				final GmailThread thread = new GmailThread(t);
@@ -795,7 +795,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		try {
 			messageService.send(draft.getId(), draft.getRaw());
 		} catch (final MessageException | IOException | MessagingException e) {
-			throw new GMailException("sending message", e);
+			throw new GMailException("send message", e);
 		}
 	}
 
@@ -804,7 +804,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		try {
 			messageService.save(draft.getId(), draft.getRaw());
 		} catch (final MessageException | IOException | MessagingException e) {
-			throw new GMailException("saving message", e);
+			throw new GMailException("save message", e);
 		}
 	}
 
@@ -817,7 +817,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 				}
 			}
 		} catch (final GMailException e) {
-			LOGGER.error("loading personal contact", e);
+			LOGGER.error("load personal contact", e);
 		}
 		return new GmailContact(address, "");
 	}
@@ -838,7 +838,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			}
 			return contacts;
 		} catch (final ContactException e) {
-			throw new GMailException("getting contacts", e);
+			throw new GMailException("get contacts", e);
 		}
 	}
 
@@ -851,7 +851,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			}
 			return new GmailMessage(draft);
 		} catch (final MessageException | MessagingException e) {
-			throw new GMailException("getting draft", e);
+			throw new GMailException("get draft", e);
 		}
 	}
 

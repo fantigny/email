@@ -49,7 +49,7 @@ public class LabelService {
 					}
 					new SerializedFile<Map<String, CacheData<Label>>>(FILE_PREFIX + user).save(map);
 				} catch (final IOException e) {
-					LOGGER.error("saving history id", e);
+					LOGGER.error("save history id", e);
 				}
 			}
 		}));
@@ -62,7 +62,7 @@ public class LabelService {
 					idLabels.put(l.getId(), l);
 				}
 			} catch (final IOException e) {
-				throw new LabelException("getting labels", e);
+				throw new LabelException("get labels", e);
 			}
 			LOGGER.debug("all labels: {}", idLabels.values());
 		}
@@ -84,7 +84,7 @@ public class LabelService {
 			gmail.users().labels().update(user, labelId, label).execute();
 			return label;
 		} catch (final IOException e) {
-			throw new LabelException("renaming (id: " + labelId + ") to \"" + name + "\"", e);
+			throw new LabelException("rename (id: " + labelId + ") to \"" + name + "\"", e);
 		}
 	}
 
@@ -100,7 +100,7 @@ public class LabelService {
 			idLabels.put(label.getId(), label);
 			return label;
 		} catch (final IOException e) {
-			throw new LabelException("adding \"" + name + "\"", e);
+			throw new LabelException("add \"" + name + "\"", e);
 		}
 	}
 
@@ -109,7 +109,7 @@ public class LabelService {
 			idLabels.remove(labelId);
 			gmail.users().labels().delete(user, labelId).execute();
 		} catch (final IOException e) {
-			throw new LabelException("removing \"" + labelId + "\"", e);
+			throw new LabelException("remove \"" + labelId + "\"", e);
 		}
 	}
 
@@ -126,7 +126,7 @@ public class LabelService {
 			}
 			gmail.users().labels().update(user, labelId, label).execute();
 		} catch (final IOException e) {
-			throw new LabelException("hiding \"" + labelId + "\"", e);
+			throw new LabelException("hide \"" + labelId + "\"", e);
 		}
 	}
 
@@ -143,7 +143,7 @@ public class LabelService {
 			}
 			gmail.users().labels().update(user, labelId, label).execute();
 		} catch (final IOException e) {
-			throw new LabelException("showing \"" + labelId + "\"", e);
+			throw new LabelException("show \"" + labelId + "\"", e);
 		}
 	}
 

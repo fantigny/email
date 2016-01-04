@@ -5,15 +5,11 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import net.anfoya.java.util.VoidCallback;
 
 public class ThreadPool {
 	public enum PoolPriority { MIN, REG, MAX };
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadPool.class);
 	private static final Map<PoolPriority, ObservableExecutorService> priorityPools = new HashMap<PoolPriority, ObservableExecutorService>();
 
 	private static ThreadPool THREAD_POOL = null;
@@ -21,7 +17,7 @@ public class ThreadPool {
 	// initialize
 	public static void setDefault(ObservableExecutorService min, ObservableExecutorService reg, ObservableExecutorService max) {
 		if (THREAD_POOL != null) {
-			throw new IllegalStateException("default thread pool already defined");
+			throw new IllegalStateException("already initialized");
 		}
 
 		THREAD_POOL = new ThreadPool(min, reg, max);
@@ -54,16 +50,5 @@ public class ThreadPool {
 
 	public void setOnChange(final PoolPriority priority, final VoidCallback<Map<Future<?>, String>> callback) {
 		priorityPools.get(priority).setOnChange(callback);
-	}
-
-	public void wait(final int ms, final String description) {
-		final String desc = "waiting for " + description;
-		submit(PoolPriority.MIN, desc, () -> {
-			try {
-				Thread.sleep(ms);
-			} catch (final Exception e) {
-				LOGGER.error(desc, e);
-			}
-		});
 	}
 }

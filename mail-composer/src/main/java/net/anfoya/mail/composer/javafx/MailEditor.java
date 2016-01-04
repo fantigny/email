@@ -152,7 +152,7 @@ public class MailEditor extends BorderPane {
 			try {
 				Desktop.getDesktop().open(file);
 			} catch (final IOException e) {
-				LOGGER.error("starting {}", name, e);
+				LOGGER.error("start {}", name, e);
 			}
 		});
 		attachment.setOnDragDetected(e -> {
@@ -179,7 +179,7 @@ public class MailEditor extends BorderPane {
 
 	private boolean toolbarCleaned = false;
 	private synchronized void cleanToolBar() {
-		LOGGER.debug("cleaning tool bars");
+		LOGGER.debug("clean tool bars");
 		if (toolbarCleaned) {
 			return;
 		}

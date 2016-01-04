@@ -127,8 +127,8 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 			}
 		};
 		task.setOnSucceeded(event -> updateHandler.handle(null));
-		task.setOnFailed(e -> LOGGER.error("moving label {} to section {}", tag.getName(), finalAnswer, e.getSource().getException()));
-		ThreadPool.getDefault().submit(PoolPriority.MAX, "moving label " + tag.getName() + " to section " + finalAnswer, task);
+		task.setOnFailed(e -> LOGGER.error("move label {} to section {}", tag.getName(), finalAnswer, e.getSource().getException()));
+		ThreadPool.getDefault().submit(PoolPriority.MAX, "move label " + tag.getName() + " to section " + finalAnswer, task);
 
 		return null;
 	}
@@ -195,8 +195,8 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 					}
 				};
 				task.setOnSucceeded(event -> updateHandler.handle(null));
-				task.setOnFailed(e -> LOGGER.error("removing {}", tag.getName(), e.getSource().getException()));
-				ThreadPool.getDefault().submit(PoolPriority.MAX, "removing " + tag.getName(), task);
+				task.setOnFailed(e -> LOGGER.error("remove {}", tag.getName(), e.getSource().getException()));
+				ThreadPool.getDefault().submit(PoolPriority.MAX, "remove " + tag.getName(), task);
 			});
 
 		return null;

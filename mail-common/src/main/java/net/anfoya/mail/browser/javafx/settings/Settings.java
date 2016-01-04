@@ -63,7 +63,7 @@ public class Settings implements Serializable {
 			LOGGER.warn("no settings found {}", FILENAME);
 			return;
 		} catch (final Exception e) {
-			LOGGER.error("loading settings {}", FILENAME, e);
+			LOGGER.error("load settings {}", FILENAME, e);
 			return;
 		}
 
@@ -113,7 +113,7 @@ public class Settings implements Serializable {
 		try {
 			new SerializedFile<List<Object>>(FILENAME).save(list);
 		} catch (final IOException e) {
-			LOGGER.error("saving settings {}", FILENAME, e);
+			LOGGER.error("save settings {}", FILENAME, e);
 		}
 	}
 

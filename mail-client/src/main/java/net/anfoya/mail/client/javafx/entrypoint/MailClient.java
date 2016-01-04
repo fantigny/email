@@ -83,7 +83,7 @@ public class MailClient extends Application {
 
 			final Alert alert = new Alert(AlertType.CONFIRMATION);
 			alert.setTitle("FisherMail");
-			alert.setHeaderText("closing this window will stop FisherMail\ryou will no longer receive new mail notification");
+			alert.setHeaderText("do you want to close FisherMail?\ryou will no longer receive new mail notification");
 			alert.getDialogPane().contentProperty().set(checkBox);
 			alert.showAndWait()
 				.filter(response -> response == ButtonType.CANCEL)

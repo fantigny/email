@@ -115,7 +115,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		messageView.getEngine().setCreatePopupHandler(handler -> messageView.getEngine());
 		messageView.getEngine().locationProperty().addListener((ov, o, n) -> handleExtLink(messageView.getWebView(), n));
 
-		recipientFlow = new TextFlow(new Text("loading..."));
+		recipientFlow = new TextFlow(new Text("load..."));
 		dateText = new Text();
 
 		iconBox = new HBox();
