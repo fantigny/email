@@ -20,8 +20,8 @@ import javafx.stage.WindowEvent;
 import net.anfoya.java.util.concurrent.ObservableExecutors;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
+import net.anfoya.javafx.notification.NotificationService;
 import net.anfoya.mail.browser.javafx.MailBrowser;
-import net.anfoya.mail.browser.javafx.NotificationService;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.settings.VersionHelper;
 import net.anfoya.mail.browser.javafx.util.UrlHelper;
@@ -82,8 +82,9 @@ public class MailClient extends Application {
 			});
 
 			final Alert alert = new Alert(AlertType.CONFIRMATION);
+			alert.initOwner(stage);
 			alert.setTitle("FisherMail");
-			alert.setHeaderText("do you want to close FisherMail?\ryou will no longer receive new mail notification");
+			alert.setHeaderText("you are about to close FisherMail\rnew e-mail notification will be stopped");
 			alert.getDialogPane().contentProperty().set(checkBox);
 			alert.showAndWait()
 				.filter(response -> response == ButtonType.CANCEL)

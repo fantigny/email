@@ -107,6 +107,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		subjectField.setEditable(false);
 
 		final Button settingsButton = new Button();
+		settingsButton.getStyleClass().add("flat-button");
 		settingsButton.setFocusTraversable(false);
 		settingsButton.setGraphic(new ImageView(new Image(SETTINGS_PNG)));
 		settingsButton.setTooltip(new Tooltip("settings"));
@@ -135,6 +136,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		});
 
 		final Button signoutButton = new Button();
+		signoutButton.getStyleClass().add("flat-button");
 		signoutButton.setFocusTraversable(false);
 		signoutButton.setGraphic(new ImageView(new Image(SIGNOUT_PNG)));
 		signoutButton.setTooltip(new Tooltip("sign out"));

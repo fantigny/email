@@ -49,7 +49,7 @@ public class RecipientListPane<C extends Contact> extends HBox {
 
 		this.title = new Label(title);
 		this.title.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
-		this.title.setStyle("-fx-text-fill: gray; -fx-padd: 2 0 0 0");
+		this.title.setStyle("-fx-text-fill: gray; -fx-padding: 2 0 0 0");
 		getChildren().add(this.title);
 
 		flowPane = new FlowPane(3,  2);

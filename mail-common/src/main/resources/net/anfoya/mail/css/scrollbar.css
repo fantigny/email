@@ -26,7 +26,7 @@
 .scroll-bar:horizontal .decrement-button {
     -fx-background-color:transparent;
     -fx-background-radius: 0em;
-    -fx-padd:0 0 10 0;
+    -fx-padding:0 0 10 0;
 }
 
 /* The increment and decrement button CSS class of scrollbar */
@@ -34,13 +34,13 @@
 .scroll-bar:vertical .decrement-button {
     -fx-background-color:transparent;
     -fx-background-radius: 0em;
-    -fx-padd:0 10 0 0;
+    -fx-padding:0 10 0 0;
 }
 
 .scroll-bar .increment-arrow,
 .scroll-bar .decrement-arrow {
     -fx-shape: " ";
-    -fx-padd:0;
+    -fx-padding:0;
 }
 
 /* The main scrollbar **thumb** CSS class which we drag every time (movable) */

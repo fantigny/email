@@ -141,6 +141,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		centerPane.getChildren().add(new DisconnectedPane(mailService));
 
 		final Button newButton = new Button();
+		newButton.getStyleClass().add("flat-button");
 		newButton.setFocusTraversable(false);
 		newButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/img/new.png"))));
 		newButton.setTooltip(new Tooltip("new"));
