@@ -66,6 +66,7 @@ public class MailClient extends Application {
 		stage.initStyle(StageStyle.UNIFIED);
 
 		notificationService = new NotificationService(stage);
+		notificationService.popupLifeTime().bind(settings.popupLifetime());
 
 		showBrowser();
 
