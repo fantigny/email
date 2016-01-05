@@ -23,8 +23,10 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.input.KeyCode;
-import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
+import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
+import net.anfoya.mail.browser.javafx.message.MailReader;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.composer.javafx.MailComposer;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
@@ -59,7 +61,9 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 
 	private boolean firstLoad = true;
 
-	public ThreadList(final MailService<S, T, H, M, C> mailService, final Settings settings) {
+	public ThreadList(final MailService<S, T, H, M, C> mailService
+			, UndoService undoService
+			, final Settings settings) {
         getStyleClass().add("thread-list");
         setPlaceholder(new Label("empty"));
 		this.mailService = mailService;
@@ -80,12 +84,20 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 			}
 		});
 		setOnMousePressed(event -> {
-			if (event.isPrimaryButtonDown() && event.getClickCount() == 2) {
+			if (event.getClickCount() == 2) {
 				final Set<H> threads = getSelectedThreads();
-				if (threads.size() > 0 && threads.iterator().next().getMessageIds().size() > 0) {
-					final String id = threads.iterator().next().getLastMessageId();
-					new MailComposer<M, C>(mailService, updateHandler, settings)
-						.editOrReply(id, settings.replyAllDblClick().get());
+				if (!threads.isEmpty() && !threads.iterator().next().getMessageIds().isEmpty()) {
+					if (event.isPrimaryButtonDown()) {
+						new MailReader<S, T, H, M, C>(mailService
+								, undoService
+								, settings
+								, threads.iterator().next()
+								, updateHandler).show();
+					} else if (event.isSecondaryButtonDown()) {
+						final String id = threads.iterator().next().getLastMessageId();
+						new MailComposer<M, C>(mailService, updateHandler, settings)
+							.editOrReply(id, settings.replyAllDblClick().get());
+					}
 				}
 			}
 		});

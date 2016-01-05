@@ -94,7 +94,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		patternField = new ResetTextField();
 		patternField.setPromptText("thread search");
 
-		threadList = new ThreadList<S, T, H, M, C>(mailService, settings);
+		threadList = new ThreadList<S, T, H, M, C>(mailService, undoService, settings);
 		threadList.setOnDragDetected(e -> {
 			final ClipboardContent content = new ClipboardContent();
 			content.put(ExtItemDropPane.ADD_TAG_DATA_FORMAT, "");
