@@ -1,4 +1,4 @@
-package net.anfoya.mail.browser.javafx;
+package net.anfoya.javafx.notification;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
