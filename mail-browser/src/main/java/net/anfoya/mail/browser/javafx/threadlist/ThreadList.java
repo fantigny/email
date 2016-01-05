@@ -23,6 +23,8 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
@@ -43,6 +45,8 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadList.class);
 
 	private final MailService<S, T, H, M, C> mailService;
+	private final UndoService undoService;
+	private final Settings settings;
 
 	private Set<T> includes;
 	private Set<T> excludes;
@@ -67,6 +71,8 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
         getStyleClass().add("thread-list");
         setPlaceholder(new Label("empty"));
 		this.mailService = mailService;
+		this.undoService = undoService;
+		this.settings = settings;
 
 		includes = new LinkedHashSet<T>();
 		excludes = new LinkedHashSet<T>();
@@ -77,35 +83,44 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 		resetSelection = true;
 
 		setCellFactory(param -> new ThreadListCell<H>());
-		setOnKeyPressed(event -> {
-			if (event.getCode() == KeyCode.BACK_SPACE
-					|| event.getCode() == KeyCode.DELETE) {
-				archive();
-			}
-		});
-		setOnMousePressed(event -> {
-			if (event.getClickCount() == 2) {
-				final Set<H> threads = getSelectedThreads();
-				if (!threads.isEmpty() && !threads.iterator().next().getMessageIds().isEmpty()) {
-					if (event.isPrimaryButtonDown()) {
-						new MailReader<S, T, H, M, C>(mailService
-								, undoService
-								, settings
-								, threads.iterator().next()
-								, updateHandler).show();
-					} else if (event.isSecondaryButtonDown()) {
-						final String id = threads.iterator().next().getLastMessageId();
-						new MailComposer<M, C>(mailService, updateHandler, settings)
-							.editOrReply(id, settings.replyAllDblClick().get());
-					}
-				}
-			}
-		});
+		setOnKeyPressed(e -> handleKey(e));
+		setOnMousePressed(e -> handleMouse(e));
 
 		getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 		getSelectionModel().selectedIndexProperty().addListener((ov, o, n) -> checkForSelection(o.intValue(), n.intValue()));
 
 		getItems().addListener((final Change<? extends H> c) -> setFocusTraversable(!getItems().isEmpty()));
+	}
+
+	private void handleKey(KeyEvent e) {
+		if (e.getCode() == KeyCode.BACK_SPACE
+				|| e.getCode() == KeyCode.DELETE) {
+			archive();
+		}
+	}
+
+	private void handleMouse(MouseEvent e) {
+		if (e.getClickCount() == 2) {
+			e.consume();
+		} else {
+			return;
+		}
+
+		final Set<H> threads = getSelectedThreads();
+		if (threads.isEmpty()) {
+			return;
+		}
+		final H thread = threads.iterator().next();
+		if (e.isPrimaryButtonDown()) {
+			new MailReader<S, T, H, M, C>(mailService
+					, undoService
+					, settings
+					, threads.iterator().next()
+					, updateHandler).show();
+		} else if (e.isSecondaryButtonDown()) {
+			new MailComposer<M, C>(mailService, updateHandler, settings)
+				.editOrReply(thread.getLastMessageId(), settings.replyAllDblClick().get());
+		}
 	}
 
 	public void setOnLoad(final EventHandler<ActionEvent> handler) {
