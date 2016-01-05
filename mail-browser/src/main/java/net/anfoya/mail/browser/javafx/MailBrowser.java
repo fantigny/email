@@ -9,12 +9,13 @@ import org.slf4j.LoggerFactory;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.SplitPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.stage.Window;
 import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
@@ -58,6 +59,8 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 
 		splitPane = (SplitPane) getRoot();
 		splitPane.getStyleClass().add("background");
+		splitPane.setDividerPositions(.2, .5);
+		splitPane.setOnKeyPressed(e -> toggleViewMode(e));
 
 		final UndoService undoService = new UndoService();
 
@@ -85,57 +88,70 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		threadPane.managedProperty().bind(threadPane.visibleProperty());
 		splitPane.getItems().add(threadPane);
 
-		splitPane.setDividerPositions(.2, .5);
-		splitPane.setOnKeyPressed(e -> toggleMiniMode(e));
-		SplitPane.setResizableWithParent(sectionListPane, false);
-		SplitPane.setResizableWithParent(threadListPane, false);
-		SplitPane.setResizableWithParent(threadPane, true);
+		setResizablePane(threadPane);
 	}
 
-	private void toggleMiniMode(final KeyEvent e) {
+	private void setResizablePane(Node node) {
+		splitPane.getItems().forEach(n -> SplitPane.setResizableWithParent(n, node == n));
+	}
+
+	private void toggleViewMode(final KeyEvent e) {
 		final KeyCode code = e.getCode();
 		final boolean left = code == KeyCode.LEFT;
 		final boolean right = code == KeyCode.RIGHT;
-		if (!left && !right) {
-			return;
-		}
-		e.consume();
-
-		final boolean toMini = splitPane.getItems().contains(threadPane);
-		if (left && !toMini || right && toMini) {
+		if (left || right) {
+			e.consume();
+		} else {
 			return;
 		}
 
-		final Window window = getWindow();
-		final double newWidth = getWindow().getWidth() + (toMini? -1: 1) * (threadPane.getWidth() + 1);
-		LOGGER.debug("cur -- {} = {} + {} + {}"
-				, window.getWidth()
-				, sectionListPane.getWidth()
-				, threadListPane.getWidth()
-				, threadPane.getWidth());
-		LOGGER.debug("new -- {} {} {} = {}"
-				, window.getWidth()
-				, toMini? "-": "+"
-				, threadPane.getWidth()
-				, newWidth);
+		final boolean toMicro = left
+				&& splitPane.getItems().contains(sectionListPane)
+				&& !splitPane.getItems().contains(threadPane);
+		final boolean toMini = !toMicro
+				&& (left
+						&& splitPane.getItems().contains(sectionListPane)
+						&& splitPane.getItems().contains(threadPane)
+					|| right
+						&& !splitPane.getItems().contains(sectionListPane)
+						&& !splitPane.getItems().contains(threadPane));
+		final boolean toFull = !toMicro && !toMini
+				&& right
+				&& !splitPane.getItems().contains(threadPane);
+
+		if (!toMicro && !toMini && !toFull) {
+			return;
+		}
+
+		final double width = getWindow().getWidth();
+		final double newWidth;
+		final Pane resizablePane;
+		final Runnable splitPaneUpdate;
+		if (toMicro) {
+			newWidth = width - sectionListPane.getWidth();
+			splitPaneUpdate = () -> splitPane.getItems().remove(sectionListPane);
+			resizablePane = threadListPane;
+		} else if (toMini) {
+			if (splitPane.getItems().contains(threadPane)) {
+				newWidth = width - threadPane.getWidth() - 1;
+				splitPaneUpdate = () -> splitPane.getItems().remove(threadPane);
+			} else {
+				newWidth = width + sectionListPane.getWidth();
+				splitPaneUpdate = () -> splitPane.getItems().add(0, sectionListPane);
+			}
+			resizablePane = threadListPane;
+		} else {
+			newWidth = width + threadPane.getWidth();
+			splitPaneUpdate = () -> splitPane.getItems().add(threadPane);
+			resizablePane = threadPane;
+		}
 
 		Platform.runLater(() -> {
-			if (toMini) {
-				splitPane.getItems().remove(threadPane);
-			} else {
-				splitPane.getItems().add(threadPane);
-				refreshAfterThreadSelected();
-			}
-			SplitPane.setResizableWithParent(threadListPane, toMini);
-			SplitPane.setResizableWithParent(threadPane, !toMini);
-			window.setWidth(newWidth);
+			splitPaneUpdate.run();
+			getWindow().setWidth(newWidth);
+			setResizablePane(resizablePane);
+			refreshAfterThreadUpdate();
 		});
-
-		LOGGER.debug("aft -- {} = {} + {} + {}"
-				, window.getWidth()
-				, sectionListPane.getWidth()
-				, threadListPane.getWidth()
-				, threadPane.getWidth());
 	}
 
 	public void setOnSignout(final EventHandler<ActionEvent> handler) {
