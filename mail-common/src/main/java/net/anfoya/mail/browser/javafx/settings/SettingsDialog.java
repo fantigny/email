@@ -238,6 +238,10 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 			close();
 		});
 
+		final SwitchButton roamingSettingsButton = new SwitchButton();
+		roamingSettingsButton.setSwitchOn(settings.globalSettings().get());
+		roamingSettingsButton.switchOnProperty().addListener((ov, o, n) -> settings.globalSettings().set(n));
+
 		final SwitchButton confirmOnQuitButton = new SwitchButton();
 		confirmOnQuitButton.setSwitchOn(settings.confirmOnQuit().get());
 		confirmOnQuitButton.switchOnProperty().addListener((ov, o, n) -> settings.confirmOnQuit().set(n));
@@ -265,14 +269,11 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		gridPane.add(new Label("show tool bar")									, 0, i);
 		gridPane.add(toolButton													, 1, i);
 		i++;
-		gridPane.add(new Label("show exclude box (restart needed)")				, 0, i);
-		gridPane.add(showExcButton												, 1, i);
-		i++;
-		gridPane.add(new Label("thread list double click replies all")			, 0, i);
-		gridPane.add(replyAllDblClickButton										, 1, i);
-		i++;
 		gridPane.add(new Label("archive on drop")								, 0, i);
 		gridPane.add(archOnDropButton											, 1, i);
+		i++;
+		gridPane.add(new Label("roaming settings")								, 0, i);
+		gridPane.add(roamingSettingsButton										, 1, i);
 		i++;
 		gridPane.add(new Label("mute")											, 0, i);
 		gridPane.add(muteButton													, 1, i);
@@ -289,6 +290,12 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		gridPane.add(new Label("hidden tag")									, 0, i);
 		gridPane.add(hiddenTagsPane												, 1, i, 1, 2);
 		i += 2;
+		gridPane.add(new Label("show exclude box (restart needed)")				, 0, i);
+		gridPane.add(showExcButton												, 1, i);
+		i++;
+		gridPane.add(new Label("thread list double right click replies all")	, 0, i);
+		gridPane.add(replyAllDblClickButton										, 1, i);
+		i++;
 		gridPane.add(new Label("reset cached data")								, 0, i);
 		gridPane.add(refreshButton												, 1, i);
 		i++;

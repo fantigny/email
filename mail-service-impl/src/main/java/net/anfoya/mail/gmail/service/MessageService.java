@@ -4,21 +4,29 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.Base64;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Draft;
+import com.google.api.services.gmail.model.ListMessagesResponse;
 import com.google.api.services.gmail.model.Message;
 
 import net.anfoya.java.cache.FileSerieSerializedMap;
 import net.anfoya.mail.gmail.cache.CacheData;
 
 public class MessageService {
+	private static final Logger LOGGER = LoggerFactory.getLogger(MessageService.class);
+
 	private static final String FILE_PREFIX = System.getProperty("java.io.tmpdir") + File.separatorChar + "fsm-cache-id-messages-";
 
 	private final Map<String, CacheData<Message>> idMessages;
@@ -43,7 +51,12 @@ public class MessageService {
 		}
 		if (message == null) {
 			try {
-				message = gmail.users().messages().get(user, id).setFormat("raw").execute();
+				message = gmail
+							.users()
+							.messages()
+							.get(user, id)
+							.setFormat("raw")
+							.execute();
 				idMessages.put(id, new CacheData<Message>(message));
 			} catch (final IOException e) {
 				throw new MessageException("get message " + id, e);
@@ -55,7 +68,11 @@ public class MessageService {
 
 	public void removeMessage(final String id) throws MessageException {
 		try {
-			gmail.users().messages().delete(user, id).execute();
+			gmail
+				.users()
+				.messages()
+				.trash(user, id)
+				.execute();
 		} catch (final IOException e) {
 			throw new MessageException("delete message " + id, e);
 		}
@@ -128,7 +145,12 @@ public class MessageService {
 
 	public Draft getDraft(final String id) throws MessageException {
 		try {
-			return gmail.users().drafts().get(user, id).setFormat("raw").execute();
+			return gmail
+					.users()
+					.drafts()
+					.get(user, id)
+					.setFormat("raw")
+					.execute();
 		} catch (final IOException e) {
 			throw new MessageException("get draft " + id, e);
 		}
@@ -136,5 +158,46 @@ public class MessageService {
 
 	public void clearCache() {
 		idMessages.clear();
+	}
+
+	public Message insert(String subject, String raw) throws MessageException {
+		try {
+			for(final Message m: find(subject)) {
+				removeMessage(m.getId());
+			}
+		} catch (final Exception e) {
+			LOGGER.error("remove older message ", subject);
+		}
+		try {
+			final Message message = new Message();
+			message.setRaw(raw);
+			return gmail
+					.users()
+					.messages()
+					.insert(user, message)
+					.execute();
+		} catch (final Exception e) {
+			throw new MessageException("insert message " + subject, e);
+		}
+	}
+
+	public Set<Message> find(String subject) throws MessageException {
+		final Set<Message> messages = new LinkedHashSet<Message>();
+		try {
+			final ListMessagesResponse response = gmail
+					.users()
+					.messages()
+					.list(user)
+					.setQ("subject:" + subject)
+					.execute();
+			if (response.getMessages() != null) {
+				for(final Message m: response.getMessages()) {
+					messages.add(m);
+				}
+			}
+			return messages;
+		} catch (final Exception e) {
+			throw new MessageException("find message", e);
+		}
 	}
 }

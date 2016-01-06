@@ -55,8 +55,8 @@ public class MailClient extends Application {
 	@Override
 	public void init() throws Exception {
 		initThreadPool();
-		initSettings();
 		initGmail();
+		initSettings();
 	}
 
 	@Override
@@ -77,10 +77,7 @@ public class MailClient extends Application {
 	private void confirmClose(final WindowEvent e) {
 		if (settings.confirmOnQuit().get()) {
 			final CheckBox checkBox = new CheckBox("don't show again");
-			checkBox.selectedProperty().addListener((ov, o, n) -> {
-				settings.confirmOnQuit().set(!n);
-				settings.save();
-			});
+			checkBox.selectedProperty().addListener((ov, o, n) -> settings.confirmOnQuit().set(!n));
 
 			final Alert alert = new Alert(AlertType.CONFIRMATION);
 			alert.initOwner(stage);
@@ -97,10 +94,7 @@ public class MailClient extends Application {
 		boolean signout = false;
 		if (settings.confirmOnSignout().get()) {
 			final CheckBox checkBox = new CheckBox("don't show again");
-			checkBox.selectedProperty().addListener((ov, o, n) -> {
-				settings.confirmOnSignout().set(!n);
-				settings.save();
-			});
+			checkBox.selectedProperty().addListener((ov, o, n) -> settings.confirmOnSignout().set(!n));
 
 			final Alert alert = new Alert(AlertType.CONFIRMATION);
 			alert.setTitle("FisherMail");
@@ -137,7 +131,7 @@ public class MailClient extends Application {
 	}
 
 	private void initSettings() {
-		settings = new Settings();
+		settings = new Settings(gmail);
 		settings.load();
 	}
 

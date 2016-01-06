@@ -1,10 +1,15 @@
 package net.anfoya.mail.browser.javafx.settings;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -18,6 +23,9 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import net.anfoya.java.io.SerializedFile;
+import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
+import net.anfoya.mail.service.MailService;
 
 @SuppressWarnings("serial")
 public class Settings implements Serializable {
@@ -33,6 +41,10 @@ public class Settings implements Serializable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Settings.class);
 	private static final String FILENAME = System.getProperty("java.io.tmpdir") + File.separatorChar + "fsm-settings";
 
+	private static final String PERSISTENT_ID = "FisherMail ## global settings ##";
+
+	private final MailService<?, ?, ?, ?, ?> mailService;
+
 	private final BooleanProperty showToolbar;
 	private final BooleanProperty showExcludeBox;
 	private final BooleanProperty archiveOnDrop;
@@ -42,8 +54,11 @@ public class Settings implements Serializable {
 	private final BooleanProperty confirmOnQuit;
 	private final BooleanProperty confirmOnSignout;
 	private final BooleanProperty mute;
+	private final BooleanProperty globalSettings;
 
-	public Settings() {
+	public Settings(MailService<?, ?, ?, ?, ?> mailService) {
+		this.mailService = mailService;
+
 		showToolbar = new SimpleBooleanProperty(true);
 		showExcludeBox = new SimpleBooleanProperty(false);
 		archiveOnDrop = new SimpleBooleanProperty(true);
@@ -53,12 +68,44 @@ public class Settings implements Serializable {
 		confirmOnQuit = new SimpleBooleanProperty(true);
 		confirmOnSignout = new SimpleBooleanProperty(true);
 		mute = new SimpleBooleanProperty(false);
+		globalSettings = new SimpleBooleanProperty(true);
 	}
 
+	public List<?> toList() {
+		final List<Object> list = new ArrayList<Object>();
+		Collections.addAll(list
+				, showToolbar.get()
+				, showExcludeBox.get()
+				, archiveOnDrop.get()
+				, popupLifetime.get()
+				, htmlSignature.get()
+				, replyAllDblClick.get()
+				, confirmOnQuit.get()
+				, confirmOnSignout.get()
+				, mute.get()
+				, globalSettings.get());
+
+		return list;
+	}
+
+	public void fromList(List<?> list) {
+		final Iterator<?> i = list.iterator();
+		if (i.hasNext()) { showToolbar		.set((Boolean) i.next()); }
+		if (i.hasNext()) { showExcludeBox	.set((Boolean) i.next()); }
+		if (i.hasNext()) { archiveOnDrop	.set((Boolean) i.next()); }
+		if (i.hasNext()) { popupLifetime	.set((Integer) i.next()); }
+		if (i.hasNext()) { htmlSignature	.set((String)  i.next()); }
+		if (i.hasNext()) { replyAllDblClick	.set((Boolean) i.next()); }
+		if (i.hasNext()) { confirmOnQuit	.set((Boolean) i.next()); }
+		if (i.hasNext()) { confirmOnSignout	.set((Boolean) i.next()); }
+		if (i.hasNext()) { mute				.set((Boolean) i.next()); }
+		if (i.hasNext()) { globalSettings	.set((Boolean) i.next()); }
+	}
+
+
 	public void load() {
-		final List<Object> list;
 		try {
-			list = new SerializedFile<List<Object>>(FILENAME).load();
+			fromList(new SerializedFile<List<Object>>(FILENAME).load());
 		} catch (final FileNotFoundException e) {
 			LOGGER.warn("no settings found {}", FILENAME);
 			return;
@@ -67,58 +114,50 @@ public class Settings implements Serializable {
 			return;
 		}
 
-		final Iterator<Object> i = list.iterator();
-		if (i.hasNext()) {
-			showToolbar.set((boolean) i.next());
-		}
-		if (i.hasNext()) {
-			showExcludeBox.set((boolean) i.next());
-		}
-		if (i.hasNext()) {
-			archiveOnDrop.set((boolean) i.next());
-		}
-		if (i.hasNext()) {
-			popupLifetime.set((int) i.next());
-		}
-		if (i.hasNext()) {
-			htmlSignature.set((String) i.next());
-		}
-		if (i.hasNext()) {
-			replyAllDblClick.set((Boolean) i.next());
-		}
-		if (i.hasNext()) {
-			confirmOnQuit.set((Boolean) i.next());
-		}
-		if (i.hasNext()) {
-			confirmOnSignout.set((Boolean) i.next());
-		}
-		if (i.hasNext()) {
-			mute.set((Boolean) i.next());
+		if (globalSettings.get()) {
+			ThreadPool.getDefault().submit(PoolPriority.MIN, "load global settings", () -> {
+				byte[] bytes;
+				try {
+					bytes = mailService.readBytes(PERSISTENT_ID);
+				} catch (final Exception e) {
+					LOGGER.error("load global settings", e);
+					return;
+				}
+				if (bytes.length == 0) {
+					LOGGER.warn("global settings not found");
+					return;
+				}
+				try (ByteArrayInputStream bis = new ByteArrayInputStream(bytes)) {
+					fromList((List<?>) new ObjectInputStream(bis).readObject());
+				} catch (final Exception e) {
+					LOGGER.error("read global settings", e);
+				}
+			});
 		}
 	}
 
 	public void save() {
-		final List<Object> list = new ArrayList<Object>();
-
-		list.add(showToolbar.get());
-		list.add(showExcludeBox.get());
-		list.add(archiveOnDrop.get());
-		list.add(popupLifetime.get());
-		list.add(htmlSignature.get());
-		list.add(replyAllDblClick.get());
-		list.add(confirmOnQuit.get());
-		list.add(confirmOnSignout.get());
-		list.add(mute.get());
-
 		try {
-			new SerializedFile<List<Object>>(FILENAME).save(list);
+			new SerializedFile<List<?>>(FILENAME).save(toList());
 		} catch (final IOException e) {
 			LOGGER.error("save settings {}", FILENAME, e);
+		}
+
+		if (globalSettings.get()) {
+			ThreadPool.getDefault().submit(PoolPriority.MIN, "save global settings", () -> {
+				try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+						ObjectOutputStream oos = new ObjectOutputStream(bos)) {
+					oos.writeObject(toList());
+					mailService.persistBytes(PERSISTENT_ID, bos.toByteArray());
+				} catch (final Exception e) {
+					LOGGER.error("saving global settings", e);
+				}
+			});
 		}
 	}
 
 	public void reset() {
-		new Settings().save();
+		new Settings(mailService).save();
 		load();
 	}
 
@@ -156,5 +195,9 @@ public class Settings implements Serializable {
 
 	public BooleanProperty mute() {
 		return mute;
+	}
+
+	public BooleanProperty globalSettings() {
+		return globalSettings;
 	}
 }

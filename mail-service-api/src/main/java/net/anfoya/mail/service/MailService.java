@@ -45,6 +45,9 @@ public interface MailService<
 	public C getContact();
 	public Set<C> getContacts() throws MailException;
 
+	public void persistBytes(String id, byte[] bytes) throws MailException;
+	public byte[] readBytes(String id) throws MailException;
+
 	@Override public Set<S> getSections() throws MailException;
 	@Override public int getCountForSection(S section, Set<T> includes, Set<T> excludes, String itemPattern) throws MailException;
 

@@ -247,6 +247,7 @@ public class ThreadService {
 	}
 
 	private Set<Thread> load(Set<String> ids) throws ThreadException {
+		final long start = System.currentTimeMillis();
 		final Set<Thread> threads = new HashSet<Thread>();
 		if (ids.isEmpty()) {
 			return threads;
@@ -277,6 +278,8 @@ public class ThreadService {
 			latch.await();
 		} catch (final Exception e) {
 			throw new ThreadException("load threads " + ids, e);
+		} finally {
+			LOGGER.debug("load threads in {}ms, thread ids {}", System.currentTimeMillis()-start, ids);
 		}
 
 		return threads;

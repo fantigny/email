@@ -1,5 +1,6 @@
 package net.anfoya.mail.gmail;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -8,11 +9,14 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.internet.MimeMessage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +29,7 @@ import com.google.api.services.gmail.model.Thread;
 import com.google.gdata.client.contacts.ContactsService;
 import com.google.gdata.data.contacts.ContactEntry;
 import com.google.gdata.data.extensions.Email;
+import com.sun.mail.util.BASE64DecoderStream;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.util.Callback;
@@ -900,5 +905,41 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			}
 		}
 		return null;
+	}
+
+	@Override
+	public void persistBytes(String id, byte[] bytes) throws GMailException {
+		try {
+			final MimeMessage message = new MimeMessage(Session.getDefaultInstance(new Properties()));
+			message.setSubject(id);
+			message.setContent(bytes, "application/octet-stream");
+			message.saveChanges();
+			messageService.insert(id, GmailMessage.toRaw(message));
+		} catch (final Exception e) {
+			throw new GMailException("persist id", e);
+		}
+	}
+
+	@Override
+	public byte[] readBytes(String id) throws GMailException {
+		try {
+			final Set<Message> messages = messageService.find(id);
+			if (messages.isEmpty()) {
+				return new byte[0];
+			}
+			final String messageId = messages.iterator().next().getId();
+			final MimeMessage message = GmailMessage.getMimeMessage(messageService.getMessage(messageId));
+			try (final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+					BASE64DecoderStream bds = (BASE64DecoderStream) message.getContent()) {
+				final byte[] bytes = new byte[128];
+				int n = 0;
+				while ((n=bds.read(bytes)) > 0) {
+					bos.write(bytes, 0, n);
+				}
+				return bos.toByteArray();
+			}
+		} catch (final Exception e) {
+			throw new GMailException("read " + id, e);
+		}
 	}
 }
