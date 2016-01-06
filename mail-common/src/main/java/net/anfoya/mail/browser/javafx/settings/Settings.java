@@ -123,10 +123,6 @@ public class Settings implements Serializable {
 					LOGGER.error("load global settings", e);
 					return;
 				}
-				if (bytes.length == 0) {
-					LOGGER.warn("global settings not found");
-					return;
-				}
 				try (ByteArrayInputStream bis = new ByteArrayInputStream(bytes)) {
 					fromList((List<?>) new ObjectInputStream(bis).readObject());
 				} catch (final Exception e) {

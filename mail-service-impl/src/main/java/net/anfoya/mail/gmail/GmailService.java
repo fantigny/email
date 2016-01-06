@@ -924,9 +924,6 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	public byte[] readBytes(String id) throws GMailException {
 		try {
 			final Set<Message> messages = messageService.find(id);
-			if (messages.isEmpty()) {
-				return new byte[0];
-			}
 			final String messageId = messages.iterator().next().getId();
 			final MimeMessage message = GmailMessage.getMimeMessage(messageService.getMessage(messageId));
 			try (final ByteArrayOutputStream bos = new ByteArrayOutputStream();
