@@ -1,5 +1,6 @@
 package test.geos.entrypoint;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -11,38 +12,58 @@ import test.geos.cluster.ClusterBuilder;
 import test.geos.geo.Geo;
 import test.geos.matrix.Matrix;
 import test.geos.matrix.MatrixBuilder;
-import test.geos.matrix.MatrixBuilderException;
-import test.geos.matrix.MatrixParam;
+import test.geos.matrix.MatrixException;
 import test.geos.matrix.MatrixParamBuilder;
-import test.geos.matrix.MatrixParamBuilderException;
+import test.geos.matrix.MatrixParamException;
 
 public class GeoClusterAnalyser {
 
+	// long version
+//	public static void main(String... args) {
+//		// init
+//		Matrix<Geo> matrix;
+//		try {
+//			final MatrixParam param = new MatrixParamBuilder(args).build();
+//			matrix = new MatrixBuilder(param).build();
+//		} catch (final MatrixParamException | MatrixException e) {
+//			matrix = null;
+//			System.err.println(e.getMessage());
+//		}
+//
+//		// find biggest cluster
+//		Cluster cluster = null;
+//		if (matrix != null) {
+//			cluster = new GeoClusterAnalyser(matrix).getBiggestCluster();
+//		}
+//
+//		// display
+//		print(System.out, cluster);
+//	}
+
+	// short version
 	public static void main(String... args) {
-		MatrixParam param = null;
 		try {
-			param = new MatrixParamBuilder(args).build();
-		} catch (final MatrixParamBuilderException e) {
-			e.printStackTrace();
-			System.exit(-1);
+			print(System.out,
+					new GeoClusterAnalyser(
+						new MatrixBuilder(
+								new MatrixParamBuilder(
+										args
+										).build()
+								).build()
+						).getBiggestCluster());
+		} catch (MatrixException | MatrixParamException e) {
+			System.err.println(e.getMessage());
 		}
+	}
 
-		Matrix<Geo> matrix = null;
-		try {
-			matrix = new MatrixBuilder(param).build();
-		} catch (final MatrixBuilderException e) {
-			e.printStackTrace();
-			System.exit(-2);
-		}
-
-		final Cluster cluster = new GeoClusterAnalyser(matrix).getBiggestCluster();
-
+	private static void print(PrintStream stream, Cluster cluster) {
 		if (cluster == null) {
 			System.out.println("no cluster found");
 		} else {
 			System.out.println("The Geos in the largest cluster of occupied Geos for this GeoBlock are:");
-			cluster.print(System.out);
+			cluster.print(stream);
 		}
+		System.out.println();
 	}
 
 	private final Matrix<Geo> matrix;
@@ -57,7 +78,7 @@ public class GeoClusterAnalyser {
 		final Set<Geo> clusteredGeos = new HashSet<Geo>();
 		final int width = matrix.getWidth(), height = matrix.getHeight();
 		for(int x=0; x < width; x++) {
-			for(int y=0; y < height; y++) {
+			for(int y=height-1; y >= 0; y--) {
 				if (!matrix.isNull(x, y) && !clusteredGeos.contains(matrix.getAt(x, y))) {
 					final Cluster cluster = builder.buildFrom(x, y);
 					clusters.add(cluster);

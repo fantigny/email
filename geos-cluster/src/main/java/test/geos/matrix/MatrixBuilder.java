@@ -1,10 +1,12 @@
 package test.geos.matrix;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Scanner;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 
 import test.geos.geo.Geo;
+import test.geos.geo.GeoBuilder;
+import test.geos.geo.GeoException;
 
 public class MatrixBuilder {
 	private final MatrixParam param;
@@ -13,51 +15,48 @@ public class MatrixBuilder {
 		this.param = param;
 	}
 
-	public Matrix<Geo> build() throws MatrixBuilderException {
-		final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+	public Matrix<Geo> build() throws MatrixException {
+		final GeoBuilder builder = new GeoBuilder();
 
 		final int width = param.getWidth();
 		final int height = param.getHeight();
 		final Geo[][] geos = new Geo[width][height];
+		final long maxId = width * height - 1;
 
-		try (Scanner scanner = new Scanner(param.getCsv())) {
-			scanner.useDelimiter("\\s*,\\s*|\r\n|\r|\n");
-			long lineIndex = 1;
-			while(scanner.hasNext()) {
-				final long id;
+		try (FileReader fileReader = new FileReader(param.getCsv());
+				BufferedReader reader = new BufferedReader(fileReader)) {
+			long lineIndex = 0;
+			String line;
+			while((line = reader.readLine()) != null) {
+				lineIndex++;
+
+				Geo geo;
 				try {
-					id = scanner.nextLong();
-				} catch (final Exception e) {
-					System.err.println("invalid id on line " + lineIndex);
-					e.printStackTrace();
+					geo = builder.build(line);
+				} catch (final GeoException e) {
+					System.err.println(e.getMessage() + " on line " + lineIndex);
 					continue;
 				}
-				final String name;
-				try {
-					name = scanner.next();
-				} catch (final Exception e) {
-					System.err.println("invalid id on line " + lineIndex);
-					e.printStackTrace();
-					continue;
-				}
-				final Date date;
-				try {
-					date = dateFormat.parse(scanner.next());
-				} catch (final Exception e) {
-					System.err.println("invalid id on line " + lineIndex);
-					e.printStackTrace();
+
+				final long id = geo.getId();
+				if (id > maxId) {
+					System.err.println("id too large on line " + lineIndex);
 					continue;
 				}
 
 				final int x = (int) (id % width);
 				final int y = height - 1 - (int) (id / width);
-				geos[x][y] = new Geo(id, name, date);
+				if (geos[x][y] != null) {
+					System.err.println("duplicate id on line " + lineIndex);
+					continue;
+				}
 
-				lineIndex++;
+				geos[x][y] = geo;
 			}
-		} catch (final Exception e) {
-			throw new MatrixBuilderException(e);
+		} catch (final IOException e) {
+			throw new MatrixException("parsing matrix", e);
 		}
+
 		return new Matrix<Geo>(geos);
 	}
 }

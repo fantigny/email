@@ -18,12 +18,6 @@ public class Cluster {
 	public Set<Geo> getGeos() {
 		return geos;
 	}
-	public void print(PrintStream stream) {
-		for(final Geo g: geos) {
-			g.print(stream);
-		}
-		stream.println();
-	}
 	public long getSize() {
 		return size;
 	}
@@ -34,5 +28,8 @@ public class Cluster {
 					.sum();
 		}
 		return sum;
+	}
+	public void print(PrintStream stream) {
+		geos.forEach(g -> g.print(stream));
 	}
 }

@@ -18,10 +18,10 @@ import test.geos.cluster.Cluster;
 import test.geos.geo.Geo;
 import test.geos.matrix.Matrix;
 import test.geos.matrix.MatrixBuilder;
-import test.geos.matrix.MatrixBuilderException;
+import test.geos.matrix.MatrixException;
 import test.geos.matrix.MatrixParam;
 import test.geos.matrix.MatrixParamBuilder;
-import test.geos.matrix.MatrixParamBuilderException;
+import test.geos.matrix.MatrixParamException;
 
 public class GeoClusterAnalyserTest {
 	private static final String BIG_MATRIX_PATH = System.getProperty("java.io.tmpdir") + File.separator + "bigMatrix.csv";
@@ -42,7 +42,7 @@ public class GeoClusterAnalyserTest {
 			for(int i = 0; i < 10000; i++) {
 				writer.write(String.format(lineFormat, id, id, dateFormat.format(calendar.getTime())));
 				writer.newLine();
-				id += random.nextInt(5);
+				id += 1 + random.nextInt(4);
 				calendar.add(Calendar.DAY_OF_YEAR, 1);
 			}
 		}
@@ -67,6 +67,62 @@ public class GeoClusterAnalyserTest {
 	}
 
 	@Test
+	public void emptyFile() {
+		GeoClusterAnalyser.main(
+				"2"
+				, "2"
+				, "src/test/resources/empty.csv");
+	}
+
+	@Test
+	public void tCluster() {
+		GeoClusterAnalyser.main(
+				"3"
+				, "3"
+				, "src/test/resources/tCluster.csv");
+	}
+
+	@Test
+	public void duplicateIdFile() {
+		GeoClusterAnalyser.main(
+				"2"
+				, "2"
+				, "src/test/resources/empty.csv");
+	}
+
+	@Test
+	public void badMatrixSize() {
+		GeoClusterAnalyser.main(
+				"3"
+				, "3"
+				, "src/test/resources/GeoBlockExample.csv");
+	}
+
+	@Test
+	public void badWidth() {
+		GeoClusterAnalyser.main(
+				"0"
+				, "1"
+				, null);
+	}
+
+	@Test
+	public void badHeight() {
+		GeoClusterAnalyser.main(
+				"1"
+				, "11111111111"
+				, null);
+	}
+
+	@Test
+	public void badFile() {
+		GeoClusterAnalyser.main(
+				"2"
+				, "2"
+				, "src/test/resources/bad.csv");
+	}
+
+	@Test
 	public void useCase1() {
 		GeoClusterAnalyser.main(
 				"4"
@@ -83,35 +139,46 @@ public class GeoClusterAnalyserTest {
 	}
 
 	@Test
-	public void perfTest1() throws MatrixParamBuilderException, MatrixBuilderException {
+	public void perfTest1() throws MatrixParamException, MatrixException {
 		perfTest(10000, 10000, BIG_CLUSTER_PATH);
 	}
 
 	@Test
-	public void perfTest2() throws MatrixParamBuilderException, MatrixBuilderException {
+	public void perfTest2() throws MatrixParamException, MatrixException {
 		perfTest(10000, 10000, BIG_MATRIX_PATH);
 	}
 
-	private void perfTest(int width, int height, String csvPath) throws MatrixParamBuilderException, MatrixBuilderException {
-		final long start = System.currentTimeMillis();
-		long inter = start;
-
+	private void perfTest(int width, int height, String csvPath) throws MatrixParamException, MatrixException {
 		final MatrixParam param = new MatrixParamBuilder("" + width, "" + height, csvPath).build();
-		System.out.println("MatrixParamBuilder: " + (System.currentTimeMillis()-inter));
-		inter = System.currentTimeMillis();
 
+		long inter = System.currentTimeMillis();
 		final Matrix<Geo> matrix = new MatrixBuilder(param).build();
-		System.out.println("MatrixBuilder: " + (System.currentTimeMillis()-inter));
-		inter = System.currentTimeMillis();
+		System.out.println("MatrixBuilder::build " + (System.currentTimeMillis()-inter) + "ms");
 
+		inter = System.currentTimeMillis();
 		final Cluster cluster = new GeoClusterAnalyser(matrix).getBiggestCluster();
-		System.out.println("getBiggestCluster: " + (System.currentTimeMillis()-inter));
+		System.out.println("GeoClusterAnalyser::getBiggestCluster " + (System.currentTimeMillis()-inter) + "ms");
 
 		cluster.print(new PrintStream(NULL_OUTPUT_STREAM));
-		System.out.println("display: " + (System.currentTimeMillis()-inter));
+		System.out.println("Cluster::print " + (System.currentTimeMillis()-inter) + "ms");
 
-		System.out.println("-----------------------");
-		System.out.println("total: " + (System.currentTimeMillis()-start));
 		System.out.println();
+	}
+
+	public static void main(String[] args) throws IOException, MatrixParamException, MatrixException {
+		final GeoClusterAnalyserTest test = new GeoClusterAnalyserTest();
+		test.init();
+
+		test.badFile();
+		test.badHeight();
+		test.badWidth();
+		test.duplicateIdFile();
+		test.emptyFile();
+		test.useCase1();
+		test.useCase2();
+		test.perfTest1();
+		test.perfTest2();
+
+		test.clean();
 	}
 }
