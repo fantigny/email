@@ -7,19 +7,16 @@ import test.geos.geo.Geo;
 
 public class Cluster {
 	private final Set<Geo> geos;
-	private final long size;
 	private long sum;
 	public Cluster(Set<Geo> geos) {
 		this.geos = geos;
-
-		size = geos.size();
-		sum = -1;
+		sum = -1; // lazy
 	}
 	public Set<Geo> getGeos() {
 		return geos;
 	}
 	public long getSize() {
-		return size;
+		return geos.size();
 	}
 	public long getSum() {
 		if (sum == -1) {

@@ -33,17 +33,17 @@ public class ClusterBuilder {
 			path.add(matrix.getAt(c.x, c.y));
 
 			final int up = c.y-1, down = c.y+1, right=c.x-1, left=c.x+1;
+			if (matrix.exists(left, c.y) && !path.contains(matrix.getAt(left, c.y))) {
+				stack.push(new Coordinate(left, c.y));
+			}
+			if (matrix.exists(c.x, down) && !path.contains(matrix.getAt(c.x, down))) {
+				stack.push(new Coordinate(c.x, down));
+			}
 			if (matrix.exists(right, c.y) && !path.contains(matrix.getAt(right, c.y))) {
 				stack.push(new Coordinate(right, c.y));
 			}
 			if (matrix.exists(c.x, up) && !path.contains(matrix.getAt(c.x, up))) {
 				stack.push(new Coordinate(c.x, up));
-			}
-			if (matrix.exists(c.x, down) && !path.contains(matrix.getAt(c.x, down))) {
-				stack.push(new Coordinate(c.x, down));
-			}
-			if (matrix.exists(left, c.y) && !path.contains(matrix.getAt(left, c.y))) {
-				stack.push(new Coordinate(left, c.y));
 			}
 		}
 		return new Cluster(path);
