@@ -86,6 +86,8 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 
 	private boolean markRead;
 
+	private Task<Set<T>> tagsTask;
+
 	public ThreadPane(final MailService<S, T, H, M, C> mailService
 			, final UndoService undoService
 			, final Settings settings) {
@@ -175,6 +177,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		setCenter(stackPane);
 
 		tagsPane = new SelectedTagsPane<T>();
+		tagsPane.setRemoveTagCallBack(t -> remove(threads, t, true));
 		setBottom(tagsPane);
 	}
 
@@ -222,29 +225,40 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		}
 	}
 
-	private void refreshTags() {
-		tagsPane.clear();
+	private synchronized void refreshTags() {
+		Platform.runLater(() -> tagsPane.clear());
 
 		if (threads == null || threads.size() == 0) {
 			return;
 		}
 
-		Platform.runLater(() -> {
-			//retrieve all tags for all threads
-			final Set<T> tags = new LinkedHashSet<T>();
-			for(final H t: threads) {
-				for(final String id: t.getTagIds()) {
-					try {
-						tags.add(mailService.getTag(id));
-					} catch (final MailException e) {
-						LOGGER.error("get tag {}", id, e);
+		if (tagsTask != null) {
+			tagsTask.cancel();
+		}
+
+		final String desc = "show threads' tags";
+		final String sentId = mailService.getSpecialTag(SpecialTag.SENT).getId();
+		tagsTask = new Task<Set<T>>() {
+			@Override
+			protected Set<T> call() throws Exception {
+				final Set<T> tags = new LinkedHashSet<T>();
+				for(final H t: threads) {
+					for(final String id: t.getTagIds()) {
+						if (!id.equals(sentId)) {
+							try {
+								tags.add(mailService.getTag(id));
+							} catch (final MailException e) {
+								LOGGER.error("get tag {}", id, e);
+							}
+						}
 					}
 				}
+				return tags;
 			}
-
-			tagsPane.setRemoveTagCallBack(t -> remove(threads, t, true));
-			tagsPane.refresh(tags);
-		});
+		};
+		tagsTask.setOnFailed(e -> LOGGER.error(desc, e.getSource().getException()));
+		tagsTask.setOnSucceeded(e -> tagsPane.refresh(tagsTask.getValue()));
+		ThreadPool.getDefault().submit(PoolPriority.MIN, desc, tagsTask);
 	}
 
 	private void refreshIcons() {

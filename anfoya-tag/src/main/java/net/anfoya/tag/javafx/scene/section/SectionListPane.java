@@ -22,8 +22,8 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
 import net.anfoya.java.undo.UndoService;
-import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.javafx.scene.animation.DelayTimeline;
 import net.anfoya.javafx.scene.control.ResetTextField;
 import net.anfoya.tag.javafx.scene.dnd.ExtItemDropPane;
@@ -57,10 +57,10 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 	private int refreshTaskId;
 
 	private DelayTimeline patternDelay;
-	private SectionDropPane<S> sectionDropPane;
-	private TagDropPane<S, T> tagDropPane;
+	private final SectionDropPane<S> sectionDropPane;
+	private final TagDropPane<S, T> tagDropPane;
 
-	private boolean showExcludeBox;
+	private final boolean showExcludeBox;
 
 	private String initSectionName;
 	private String initTagName;
@@ -136,10 +136,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 		setCenter(centerPane);
 
 		selectedTagsPane = new SelectedTagsPane<T>();
-		selectedTagsPane.setRemoveTagCallBack(tag -> {
-			clear(tag.getName());
-			return null;
-		});
+		selectedTagsPane.setRemoveTagCallBack(tag -> clear(tag.getName()));
 		setBottom(selectedTagsPane);
 	}
 
@@ -177,10 +174,10 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 	}
 
 	public void setOnSelectTag(final EventHandler<ActionEvent> handler) {
-		selectTagHandler = event -> {
+		selectTagHandler = e -> {
 			unselectOthers();
 			selectedTagsPane.refresh(getAllSelectedTags());
-			handler.handle(event);
+			handler.handle(e);
 		};
 	}
 

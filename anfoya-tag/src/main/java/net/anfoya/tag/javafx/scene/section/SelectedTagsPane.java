@@ -7,13 +7,13 @@ import java.util.TreeSet;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
-import javafx.util.Callback;
+import net.anfoya.java.util.VoidCallback;
 import net.anfoya.javafx.scene.control.RemoveLabel;
 import net.anfoya.tag.service.Tag;
 
 public class SelectedTagsPane<T extends Tag> extends FlowPane {
 
-	private Callback<T, Void> removeTagCallBack;
+	private VoidCallback<T> removeTagCallBack;
 
 	public SelectedTagsPane() {
 		getStyleClass().add("label-list-pane");
@@ -50,7 +50,7 @@ public class SelectedTagsPane<T extends Tag> extends FlowPane {
 		return label;
 	}
 
-	public void setRemoveTagCallBack(final Callback<T, Void> callback) {
+	public void setRemoveTagCallBack(final VoidCallback<T> callback) {
 		this.removeTagCallBack = callback;
 	}
 
