@@ -13,23 +13,23 @@ public class MatrixParamBuilder {
 		if (args.length != 3) {
 			throw new MatrixParamException("wrong number of arguments");
 		}
-		int x;
+		long width;
 		try {
-			x = Integer.valueOf(args[0]);
+			width = Long.valueOf(args[0]);
 		} catch (final Exception e) {
 			throw new MatrixParamException("invalid width (" + args[0] + ")", e);
 		}
-		if (x < 1) {
-			throw new MatrixParamException("invalid width (" + args[0] + ")");
+		if (width < 1) {
+			throw new MatrixParamException("invalid width (" + args[0] + "), should be greater than zero");
 		}
-		final int y;
+		final long height;
 		try {
-			y = Integer.valueOf(args[1]);
+			height = Long.valueOf(args[1]);
 		} catch (final Exception e) {
 			throw new MatrixParamException("invalid height (" + args[1] + ")", e);
 		}
-		if (y < 1) {
-			throw new MatrixParamException("invalid height (" + args[1] + ")");
+		if (height < 1) {
+			throw new MatrixParamException("invalid height (" + args[1] + ") should be greater than zero");
 		}
 		final File file;
 		try {
@@ -40,7 +40,7 @@ public class MatrixParamBuilder {
 		if (!file.exists()) {
 			throw new MatrixParamException("invalid csv file path");
 		}
-		return new MatrixParam(x, y, file);
+		return new MatrixParam(width, height, file);
 	}
 
 }

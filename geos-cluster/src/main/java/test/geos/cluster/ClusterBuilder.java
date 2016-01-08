@@ -8,44 +8,41 @@ import test.geos.geo.Geo;
 import test.geos.matrix.Matrix;
 
 public class ClusterBuilder {
-	enum Direction { TOP, RIGHT, BOTTOM, LEFT }
-	private class Coordinate {
-		private final int x;
-		private final int y;
-		public Coordinate(int x, int y) {
-			this.x = x;
-			this.y = y;
-		}
-	}
+	private final Matrix matrix;
 
-	private final Matrix<Geo> matrix;
-
-	public ClusterBuilder(Matrix<Geo> matrix) {
+	public ClusterBuilder(Matrix matrix) {
 		this.matrix = matrix;
 	}
 
-	public Cluster buildFrom(final int x, final int y) {
+	public Cluster buildFrom(Geo from) {
 		final Set<Geo> path = new TreeSet<Geo>();
-		final Stack<Coordinate> stack = new Stack<Coordinate>();
-		stack.push(new Coordinate(x, y));
+		final Stack<Geo> stack = new Stack<Geo>();
+		stack.push(from);
 		while(!stack.isEmpty()) {
-			final Coordinate c = stack.pop();
-			path.add(matrix.getAt(c.x, c.y));
+			final Geo geo = stack.pop();
+			path.add(geo);
 
-			final int up = c.y-1, down = c.y+1, right=c.x-1, left=c.x+1;
-			if (matrix.exists(left, c.y) && !path.contains(matrix.getAt(left, c.y))) {
-				stack.push(new Coordinate(left, c.y));
+			final long x = geo.getX();
+			final long y = geo.getY();
+
+			final Geo left = matrix.getAt(x - 1, y);
+			if (left != null && !path.contains(left)) {
+				stack.push(left);
 			}
-			if (matrix.exists(c.x, down) && !path.contains(matrix.getAt(c.x, down))) {
-				stack.push(new Coordinate(c.x, down));
+			final Geo down = matrix.getAt(x, y - 1);
+			if (down != null && !path.contains(down)) {
+				stack.push(down);
 			}
-			if (matrix.exists(right, c.y) && !path.contains(matrix.getAt(right, c.y))) {
-				stack.push(new Coordinate(right, c.y));
+			final Geo right = matrix.getAt(x + 1, y);
+			if (right != null && !path.contains(right)) {
+				stack.push(right);
 			}
-			if (matrix.exists(c.x, up) && !path.contains(matrix.getAt(c.x, up))) {
-				stack.push(new Coordinate(c.x, up));
+			final Geo up = matrix.getAt(x, y + 1);
+			if (up != null && !path.contains(up)) {
+				stack.push(up);
 			}
 		}
 		return new Cluster(path);
 	}
+
 }

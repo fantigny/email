@@ -15,7 +15,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import test.geos.cluster.Cluster;
-import test.geos.geo.Geo;
 import test.geos.matrix.Matrix;
 import test.geos.matrix.MatrixBuilder;
 import test.geos.matrix.MatrixException;
@@ -110,7 +109,7 @@ public class GeoClusterAnalyserTest {
 	public void badHeight() {
 		GeoClusterAnalyser.main(
 				"1"
-				, "11111111111"
+				, "99999999999999999999999999999999999999999999999999999999999"
 				, null);
 	}
 
@@ -152,7 +151,7 @@ public class GeoClusterAnalyserTest {
 		final MatrixParam param = new MatrixParamBuilder("" + width, "" + height, csvPath).build();
 
 		long inter = System.currentTimeMillis();
-		final Matrix<Geo> matrix = new MatrixBuilder(param).build();
+		final Matrix matrix = new MatrixBuilder(param).build();
 		System.out.println("MatrixBuilder::build " + (System.currentTimeMillis()-inter) + "ms");
 
 		inter = System.currentTimeMillis();
@@ -163,22 +162,5 @@ public class GeoClusterAnalyserTest {
 		System.out.println("Cluster::print " + (System.currentTimeMillis()-inter) + "ms");
 
 		System.out.println();
-	}
-
-	public static void main(String[] args) throws IOException, MatrixParamException, MatrixException {
-		final GeoClusterAnalyserTest test = new GeoClusterAnalyserTest();
-		test.init();
-
-		test.badFile();
-		test.badHeight();
-		test.badWidth();
-		test.duplicateIdFile();
-		test.emptyFile();
-		test.useCase1();
-		test.useCase2();
-		test.perfTest1();
-		test.perfTest2();
-
-		test.clean();
 	}
 }

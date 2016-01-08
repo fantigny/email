@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Collectors;
 
 import test.geos.cluster.Cluster;
@@ -66,21 +67,39 @@ public class GeoClusterAnalyser {
 		System.out.println();
 	}
 
-	private final Matrix<Geo> matrix;
+	private final Matrix matrix;
 
-	public GeoClusterAnalyser(Matrix<Geo> matrix) {
+	public GeoClusterAnalyser(Matrix matrix) {
 		this.matrix = matrix;
 	}
+
 	public List<Cluster> getClusters() {
 		final List<Cluster> clusters = new ArrayList<Cluster>();
 
 		final ClusterBuilder builder = new ClusterBuilder(matrix);
+		final Set<Geo> clusteredGeos = new ConcurrentSkipListSet<>();
+		matrix.getGeos().forEach(g -> {
+			if (!clusteredGeos.contains(g)) {
+				final Cluster cluster = builder.buildFrom(g);
+				clusters.add(cluster);
+				clusteredGeos.addAll(cluster.getGeos());
+			}
+		});
+
+		return clusters;
+	}
+
+	public List<Cluster> getClusters2() {
+		final List<Cluster> clusters = new ArrayList<Cluster>();
+
+		final ClusterBuilder builder = new ClusterBuilder(matrix);
 		final Set<Geo> clusteredGeos = new HashSet<Geo>();
-		final int width = matrix.getWidth(), height = matrix.getHeight();
-		for(int x=0; x < width; x++) {
-			for(int y=height-1; y >= 0; y--) {
-				if (!matrix.isNull(x, y) && !clusteredGeos.contains(matrix.getAt(x, y))) {
-					final Cluster cluster = builder.buildFrom(x, y);
+		final long width = matrix.getWidth(), height = matrix.getHeight();
+		for(long x=0; x < width; x++) {
+			for(long y=0; y < height; y++) {
+				final Geo geo = matrix.getAt(x, y);
+				if (geo != null && !clusteredGeos.contains(geo)) {
+					final Cluster cluster = builder.buildFrom(geo);
 					clusters.add(cluster);
 					clusteredGeos.addAll(cluster.getGeos());
 				}
