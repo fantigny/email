@@ -1,7 +1,7 @@
 package test.geos.matrix;
 
 import java.util.Collections;
-import java.util.Date;
+import java.util.Random;
 
 import org.junit.Test;
 
@@ -12,29 +12,28 @@ public class MatrixTest {
 
 	@Test
 	public void toX() {
-		Assert.assertEquals(1, Matrix.toX(4, 17));
+		Assert.assertEquals(1, new Matrix(4, 7, null).toX(17));
 	}
 
 	@Test
 	public void toY() {
-		Assert.assertEquals(1, Matrix.toY(4, 7, 21));
+		Assert.assertEquals(1, new Matrix(4, 7, null).toY(21));
 	}
 
 	@Test
-	public void coordinate() {
-		final long width = 7, height = 4, id = 22;
-		final Matrix matrix = new Matrix(
-				width
-				, height
-				, Collections.singletonMap(
-						id
-						, new Geo(id
-								, "" + id
-								, new Date()
-								, Matrix.toX(width, id)
-								, Matrix.toY(width, height, id)
-								)));
+	public void toId() {
+		Assert.assertEquals(11, new Matrix(4, 7, null).toId(3, 4));
+	}
 
-		Assert.assertEquals(id, matrix.getAt(1, 0).getId());
+	@Test
+	public void reflexivity() {
+		final long id = 1 + new Random(System.currentTimeMillis()).nextInt(50);
+
+		final Matrix matrix = new Matrix(
+				id * 2
+				, id * 3
+				, Collections.singletonMap(id, new Geo(id, null, null)));
+
+		Assert.assertEquals(id, matrix.getAt(matrix.toX(id), matrix.toY(id)).getId());
 	}
 }

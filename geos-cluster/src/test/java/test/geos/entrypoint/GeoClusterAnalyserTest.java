@@ -11,6 +11,7 @@ import java.util.Calendar;
 import java.util.Random;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -23,37 +24,34 @@ import test.geos.matrix.MatrixParamBuilder;
 import test.geos.matrix.MatrixParamException;
 
 public class GeoClusterAnalyserTest {
-	private static final String BIG_MATRIX_PATH = System.getProperty("java.io.tmpdir") + File.separator + "bigMatrix.csv";
-	private static final String BIG_CLUSTER_PATH = System.getProperty("java.io.tmpdir") + File.separator + "bigCluster.csv";
+	private static final String TEMP_FOLDER = System.getProperty("java.io.tmpdir") + File.separator;
+	private static final String TEN_THOUSAND_GEOS_PATH = TEMP_FOLDER + "10,000-geos.csv";
+	private static final String TEN_THOUSAND_GEOS_CLUSTER_PATH = TEMP_FOLDER + "10,000-geos-cluster.csv";
 	private static final OutputStream NULL_OUTPUT_STREAM = new OutputStream() { @Override public void write(int b) throws IOException {} };
 
 	@Before
 	public void init() throws IOException {
 		final Random random = new Random(System.currentTimeMillis());
 		final Calendar calendar = Calendar.getInstance();
-		final String lineFormat = "%d, username%d, %s";
+		final String lineFormat = "%d, name%d, %s";
 		final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
-		calendar.set(1900, 1, 1);
-		int id = 0;
-		try (FileWriter fileWriter = new FileWriter(BIG_MATRIX_PATH);
-				BufferedWriter writer = new BufferedWriter(fileWriter)) {
+		calendar.set(1, 1, 1);
+		int id1 = 0;
+		int id2 = 0;
+		try (BufferedWriter writer1 = new BufferedWriter(new FileWriter(TEN_THOUSAND_GEOS_PATH));
+				BufferedWriter writer2 = new BufferedWriter(new FileWriter(TEN_THOUSAND_GEOS_CLUSTER_PATH))) {
 			for(int i = 0; i < 10000; i++) {
-				writer.write(String.format(lineFormat, id, id, dateFormat.format(calendar.getTime())));
-				writer.newLine();
-				id += 1 + random.nextInt(4);
-				calendar.add(Calendar.DAY_OF_YEAR, 1);
-			}
-		}
+				final String d = dateFormat.format(calendar.getTime());
 
-		calendar.set(1900, 1, 1);
-		id = 0;
-		try (FileWriter fileWriter = new FileWriter(BIG_CLUSTER_PATH);
-				BufferedWriter writer = new BufferedWriter(fileWriter)) {
-			for(int i = 0; i < 10000; i++) {
-				writer.write(String.format(lineFormat, id, id, dateFormat.format(calendar.getTime())));
-				writer.newLine();
-				id += 1;
+				writer1.write(String.format(lineFormat, id1, id1, d));
+				writer1.newLine();
+				id1 += 1 + random.nextInt(3);
+
+				writer2.write(String.format(lineFormat, id2, id2, d));
+				writer2.newLine();
+				id2 += 1;
+
 				calendar.add(Calendar.DAY_OF_YEAR, 1);
 			}
 		}
@@ -61,8 +59,8 @@ public class GeoClusterAnalyserTest {
 
 	@After
 	public void clean() {
-		new File(BIG_CLUSTER_PATH).delete();
-		new File(BIG_MATRIX_PATH).delete();
+		new File(TEN_THOUSAND_GEOS_CLUSTER_PATH).delete();
+		new File(TEN_THOUSAND_GEOS_PATH).delete();
 	}
 
 	@Test
@@ -139,15 +137,16 @@ public class GeoClusterAnalyserTest {
 
 	@Test
 	public void perfTest1() throws MatrixParamException, MatrixException {
-		perfTest(10000, 10000, BIG_CLUSTER_PATH);
+		final Cluster cluster = perfTest(10000, 10000, TEN_THOUSAND_GEOS_CLUSTER_PATH);
+		Assert.assertEquals(10000, cluster.getSize());
 	}
 
 	@Test
 	public void perfTest2() throws MatrixParamException, MatrixException {
-		perfTest(10000, 10000, BIG_MATRIX_PATH);
+		perfTest(10000, 10000, TEN_THOUSAND_GEOS_PATH);
 	}
 
-	private void perfTest(int width, int height, String csvPath) throws MatrixParamException, MatrixException {
+	private Cluster perfTest(int width, int height, String csvPath) throws MatrixParamException, MatrixException {
 		final MatrixParam param = new MatrixParamBuilder("" + width, "" + height, csvPath).build();
 
 		long inter = System.currentTimeMillis();
@@ -162,5 +161,7 @@ public class GeoClusterAnalyserTest {
 		System.out.println("Cluster::print " + (System.currentTimeMillis()-inter) + "ms");
 
 		System.out.println();
+
+		return cluster;
 	}
 }

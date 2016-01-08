@@ -7,20 +7,13 @@ import java.util.Map;
 import test.geos.geo.Geo;
 
 public class Matrix {
-	public static long toX(long width, long id) {
-		return id % width;
-	}
-	public static long toY(long width, long height, long id) {
-		return height - 1 - (int) (id / width);
-	}
-
 	private final long width;
 	private final long height;
 	private final Map<Long, Geo> data;
 	public Matrix(long width, long height, Map<Long, Geo> data) {
 		this.width = width;
 		this.height = height;
-		this.data = Collections.unmodifiableMap(data);
+		this.data = data == null? null: Collections.unmodifiableMap(data);
 	}
 	public long getWidth() {
 		return width;
@@ -37,7 +30,13 @@ public class Matrix {
 	public Collection<Geo> getGeos() {
 		return data.values();
 	}
-	private long toId(long x, long y) {
+	public long toX(long id) {
+		return id % width;
+	}
+	public long toY(long id) {
+		return height - 1 - id / width;
+	}
+	public long toId(long x, long y) {
 		return (height - 1 - y) * width + x;
 	}
 }

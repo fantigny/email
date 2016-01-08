@@ -3,8 +3,6 @@ package test.geos.geo;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import test.geos.matrix.Matrix;
-
 public class GeoBuilder {
 
 	private final long width;
@@ -47,6 +45,6 @@ public class GeoBuilder {
 			throw new GeoException("invalid date (" + geoData[2] + ")", e);
 		}
 
-		return new Geo(id, name, date, Matrix.toX(width, id), Matrix.toY(width, height, id));
+		return new Geo(id, name, date);
 	}
 }

@@ -1,6 +1,7 @@
 package test.geos.cluster;
 
 import java.io.PrintStream;
+import java.util.Collections;
 import java.util.Set;
 
 import test.geos.geo.Geo;
@@ -13,7 +14,7 @@ public class Cluster {
 		sum = -1; // lazy
 	}
 	public Set<Geo> getGeos() {
-		return geos;
+		return Collections.unmodifiableSet(geos);
 	}
 	public long getSize() {
 		return geos.size();

@@ -10,15 +10,11 @@ public class Geo implements Comparable<Geo> {
 	private final long id;
 	private final String name;
 	private final Date date;
-	private final long x;
-	private final long y;
-	public Geo(long id, String name, Date date, long x, long y) {
+	public Geo(long id, String name, Date date) {
 		super();
 		this.id = id;
 		this.name = name;
 		this.date = date;
-		this.x = x;
-		this.y = y;
 	}
 	@Override
 	public int compareTo(Geo g) {
@@ -39,11 +35,5 @@ public class Geo implements Comparable<Geo> {
 				, name
 				, new SimpleDateFormat(PRINT_DATE_FORMAT).format(date));
 		stream.println();
-	}
-	public long getX() {
-		return x;
-	}
-	public long getY() {
-		return y;
 	}
 }
