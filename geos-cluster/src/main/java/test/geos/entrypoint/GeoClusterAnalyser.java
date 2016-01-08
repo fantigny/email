@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Collectors;
 
 import test.geos.cluster.Cluster;
@@ -18,43 +17,16 @@ import test.geos.matrix.MatrixParamBuilder;
 import test.geos.matrix.MatrixParamException;
 
 public class GeoClusterAnalyser {
-
-	// long version
-//	public static void main(String... args) {
-//		// init
-//		Matrix<Geo> matrix;
-//		try {
-//			final MatrixParam param = new MatrixParamBuilder(args).build();
-//			matrix = new MatrixBuilder(param).build();
-//		} catch (final MatrixParamException | MatrixException e) {
-//			matrix = null;
-//			System.err.println(e.getMessage());
-//		}
-//
-//		// find biggest cluster
-//		Cluster cluster = null;
-//		if (matrix != null) {
-//			cluster = new GeoClusterAnalyser(matrix).getBiggestCluster();
-//		}
-//
-//		// display
-//		print(System.out, cluster);
-//	}
-
 	// short version
-	public static void main(String... args) {
-		try {
-			print(System.out,
-					new GeoClusterAnalyser(
+	public static void main(String... args) throws MatrixException, MatrixParamException {
+		print(System.out,
+				new GeoClusterAnalyser(
 						new MatrixBuilder(
 								new MatrixParamBuilder(
 										args
 										).build()
 								).build()
 						).getBiggestCluster());
-		} catch (MatrixException | MatrixParamException e) {
-			System.err.println(e.getMessage());
-		}
 	}
 
 	private static void print(PrintStream stream, Cluster cluster) {
@@ -67,6 +39,10 @@ public class GeoClusterAnalyser {
 		System.out.println();
 	}
 
+	/****************/
+	/** END STATIC **/
+	/****************/
+
 	private final Matrix matrix;
 
 	public GeoClusterAnalyser(Matrix matrix) {
@@ -77,7 +53,7 @@ public class GeoClusterAnalyser {
 		final List<Cluster> clusters = new ArrayList<Cluster>();
 
 		final ClusterBuilder builder = new ClusterBuilder(matrix);
-		final Set<Geo> clusteredGeos = new ConcurrentSkipListSet<>();
+		final Set<Geo> clusteredGeos = new HashSet<Geo>();
 		matrix.getGeos().forEach(g -> {
 			if (!clusteredGeos.contains(g)) {
 				final Cluster cluster = builder.buildFrom(g);
@@ -89,35 +65,18 @@ public class GeoClusterAnalyser {
 		return clusters;
 	}
 
-	public List<Cluster> getClusters2() {
-		final List<Cluster> clusters = new ArrayList<Cluster>();
-
-		final ClusterBuilder builder = new ClusterBuilder(matrix);
-		final Set<Geo> clusteredGeos = new HashSet<Geo>();
-		final long width = matrix.getWidth(), height = matrix.getHeight();
-		for(long x=0; x < width; x++) {
-			for(long y=0; y < height; y++) {
-				final Geo geo = matrix.getAt(x, y);
-				if (geo != null && !clusteredGeos.contains(geo)) {
-					final Cluster cluster = builder.buildFrom(geo);
-					clusters.add(cluster);
-					clusteredGeos.addAll(cluster.getGeos());
-				}
-			}
-		}
-		return clusters;
-	}
-
 	public Cluster getBiggestCluster() {
-		Cluster biggest = null;
-
 		final List<Cluster> clusters = getClusters();
 		final long maxSize = clusters
 				.parallelStream()
 				.mapToLong(Cluster::getSize)
 				.max()
 				.orElse(0);
-		if (maxSize > 0) {
+
+		final Cluster biggest;
+		if (maxSize == 0) {
+			biggest = null;
+		} else {
 			final long minSum = clusters
 					.parallelStream()
 					.filter(c -> c.getSize() == maxSize)

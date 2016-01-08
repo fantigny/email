@@ -5,25 +5,19 @@ import java.util.Date;
 
 public class GeoBuilder {
 
-	private final long width;
-	private final long height;
 	private final SimpleDateFormat dateFormat;
-	private final long maxId;
 
-	public GeoBuilder(long matrixWidth, long matrixHeight) {
-		width = matrixWidth;
-		height = matrixHeight;
-		maxId = width * height - 1;
+	public GeoBuilder() {
 		dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 	}
 
 	public Geo build(String line) throws GeoException {
 		final String[] geoData = line.split("\\s*,\\s*");
 		if (geoData.length < 3) {
-			throw new GeoException("missing data");
+			throw new GeoException("missing data (" + line + ")");
 		}
 		if (geoData.length > 3) {
-			throw new GeoException("too much data");
+			throw new GeoException("too much data (" + line + ")");
 		}
 		final long id;
 		try {
@@ -33,9 +27,6 @@ public class GeoBuilder {
 		}
 		if (id < 0) {
 			throw new GeoException("invalid id (" + id + ")");
-		}
-		if (id > maxId) {
-			throw new GeoException("id (" + id + ") doesn't fit in matrix");
 		}
 		final String name = geoData[1];
 		final Date date;

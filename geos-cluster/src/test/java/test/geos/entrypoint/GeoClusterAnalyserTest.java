@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Iterator;
 import java.util.Random;
 
 import org.junit.After;
@@ -16,6 +17,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import test.geos.cluster.Cluster;
+import test.geos.geo.Geo;
 import test.geos.matrix.Matrix;
 import test.geos.matrix.MatrixBuilder;
 import test.geos.matrix.MatrixException;
@@ -64,47 +66,88 @@ public class GeoClusterAnalyserTest {
 	}
 
 	@Test
-	public void emptyFile() {
-		GeoClusterAnalyser.main(
-				"2"
-				, "2"
-				, "src/test/resources/empty.csv");
+	public void useCase1() throws MatrixException, MatrixParamException {
+		final MatrixParam param = new MatrixParamBuilder("4", "7", "src/test/resources/GeoBlockExample.csv").build();
+		final Cluster cluster = new GeoClusterAnalyser(new MatrixBuilder(param).build()).getBiggestCluster();
+		Assert.assertEquals(4, cluster.getSize());
+
+		final Iterator<Geo> iterator = cluster.getGeos().iterator();
+		Assert.assertEquals(13, iterator.next().getId());
+		Assert.assertEquals(17, iterator.next().getId());
+		Assert.assertEquals(21, iterator.next().getId());
+		Assert.assertEquals(22, iterator.next().getId());
 	}
 
 	@Test
-	public void tCluster() {
-		GeoClusterAnalyser.main(
-				"3"
-				, "3"
-				, "src/test/resources/tCluster.csv");
+	public void useCase2() throws MatrixException, MatrixParamException {
+		final MatrixParam param = new MatrixParamBuilder("7", "4", "src/test/resources/GeoBlockExample.csv").build();
+		final Cluster cluster = new GeoClusterAnalyser(new MatrixBuilder(param).build()).getBiggestCluster();
+		Assert.assertEquals(5, cluster.getSize());
+
+		final Iterator<Geo> iterator = cluster.getGeos().iterator();
+		Assert.assertEquals(4, iterator.next().getId());
+		Assert.assertEquals(5, iterator.next().getId());
+		Assert.assertEquals(6, iterator.next().getId());
+		Assert.assertEquals(11, iterator.next().getId());
+		Assert.assertEquals(13, iterator.next().getId());
 	}
 
 	@Test
-	public void duplicateIdFile() {
-		GeoClusterAnalyser.main(
-				"2"
-				, "2"
-				, "src/test/resources/empty.csv");
+	public void emptyFile() throws MatrixException, MatrixParamException {
+		final MatrixParam param = new MatrixParamBuilder("7", "4", "src/test/resources/empty.csv").build();
+		final Cluster cluster = new GeoClusterAnalyser(new MatrixBuilder(param).build()).getBiggestCluster();
+		Assert.assertNull(cluster);
 	}
 
 	@Test
-	public void badMatrixSize() {
-		GeoClusterAnalyser.main(
-				"3"
-				, "3"
-				, "src/test/resources/GeoBlockExample.csv");
+	public void plusCluster() throws MatrixException, MatrixParamException {
+		// 3 x 3 matrix with + shape cluster		. | x | .
+		//											x | x | x
+		//											. | x | .
+		final MatrixParam param = new MatrixParamBuilder("3", "3", "src/test/resources/plusCluster.csv").build();
+		final Cluster cluster = new GeoClusterAnalyser(new MatrixBuilder(param).build()).getBiggestCluster();
+		Assert.assertEquals(5, cluster.getSize());
+
+		final Iterator<Geo> iterator = cluster.getGeos().iterator();
+		Assert.assertEquals(1, iterator.next().getId());
+		Assert.assertEquals(3, iterator.next().getId());
+		Assert.assertEquals(4, iterator.next().getId());
+		Assert.assertEquals(5, iterator.next().getId());
+		Assert.assertEquals(7, iterator.next().getId());
 	}
 
 	@Test
-	public void badWidth() {
+	public void duplicateIdFile() throws MatrixException, MatrixParamException {
+		final MatrixParam param = new MatrixParamBuilder("3", "3", "src/test/resources/duplicateId.csv").build();
+		final Cluster cluster = new GeoClusterAnalyser(new MatrixBuilder(param).build()).getBiggestCluster();
+		Assert.assertEquals(1, cluster.getSize());
+
+		final Iterator<Geo> iterator = cluster.getGeos().iterator();
+		Assert.assertEquals(1, iterator.next().getId());
+	}
+
+	@Test
+	public void badIds() throws MatrixException, MatrixParamException {
+		final MatrixParam param = new MatrixParamBuilder("3", "3", "src/test/resources/GeoBlockExample.csv").build();
+		final Cluster cluster = new GeoClusterAnalyser(new MatrixBuilder(param).build()).getBiggestCluster();
+		Assert.assertEquals(3, cluster.getSize());
+
+		final Iterator<Geo> iterator = cluster.getGeos().iterator();
+		Assert.assertEquals(4, iterator.next().getId());
+		Assert.assertEquals(5, iterator.next().getId());
+		Assert.assertEquals(6, iterator.next().getId());
+	}
+
+	@Test(expected=MatrixParamException.class)
+	public void badWidth() throws MatrixException, MatrixParamException {
 		GeoClusterAnalyser.main(
 				"0"
 				, "1"
 				, null);
 	}
 
-	@Test
-	public void badHeight() {
+	@Test(expected=MatrixParamException.class)
+	public void badHeight() throws MatrixException, MatrixParamException {
 		GeoClusterAnalyser.main(
 				"1"
 				, "99999999999999999999999999999999999999999999999999999999999"
@@ -112,27 +155,25 @@ public class GeoClusterAnalyserTest {
 	}
 
 	@Test
-	public void badFile() {
-		GeoClusterAnalyser.main(
-				"2"
-				, "2"
-				, "src/test/resources/bad.csv");
+	public void badFile() throws MatrixException, MatrixParamException {
+		final MatrixParam param = new MatrixParamBuilder("2", "2", "src/test/resources/bad.csv").build();
+		final Cluster cluster = new GeoClusterAnalyser(new MatrixBuilder(param).build()).getBiggestCluster();
+		Assert.assertEquals(1, cluster.getSize());
+
+		final Iterator<Geo> iterator = cluster.getGeos().iterator();
+		Assert.assertEquals(1, iterator.next().getId());
 	}
 
 	@Test
-	public void useCase1() {
-		GeoClusterAnalyser.main(
-				"4"
-				, "7"
-				, "src/test/resources/GeoBlockExample.csv");
-	}
+	public void sameSize() throws MatrixParamException, MatrixException {
+		final MatrixParam param = new MatrixParamBuilder("4", "7", "src/test/resources/sameSize.csv").build();
+		final Cluster cluster = new GeoClusterAnalyser(new MatrixBuilder(param).build()).getBiggestCluster();
+		Assert.assertEquals(3, cluster.getSize());
 
-	@Test
-	public void useCase2() {
-		GeoClusterAnalyser.main(
-				"7"
-				, "4"
-				, "src/test/resources/GeoBlockExample.csv");
+		final Iterator<Geo> iterator = cluster.getGeos().iterator();
+		Assert.assertEquals(4, iterator.next().getId());
+		Assert.assertEquals(5, iterator.next().getId());
+		Assert.assertEquals(6, iterator.next().getId());
 	}
 
 	@Test

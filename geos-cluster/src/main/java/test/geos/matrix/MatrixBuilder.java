@@ -20,7 +20,8 @@ public class MatrixBuilder {
 	public Matrix build() throws MatrixException {
 		final long width = param.getWidth();
 		final long height = param.getHeight();
-		final GeoBuilder builder = new GeoBuilder(width, height);
+		final long maxId = width * height - 1;
+		final GeoBuilder builder = new GeoBuilder();
 		final Map<Long, Geo> data = new HashMap<Long, Geo>();
 
 		try (FileReader fileReader = new FileReader(param.getCsv());
@@ -39,7 +40,11 @@ public class MatrixBuilder {
 				}
 
 				if (geo != null) {
-					geo = data.put(geo.getId(), geo);
+					final long id = geo.getId();
+					if (id > maxId) {
+						System.err.println("id (" + id + ") doesn't fit in matrix " + width + " x " + height + "");
+					}
+					geo = data.put(id, geo);
 				}
 
 				if (geo != null) {
