@@ -274,7 +274,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 			subjectField.setText("");
 			break;
 		case 1:
-			final String count = thread.getMessageIds().isEmpty()? "": "(" + thread.getMessageIds().size() + "x) ";
+			final String count = thread.getMessageIds().size() < 2? "": "(" + thread.getMessageIds().size() + "x) ";
 			subjectField.setText(count + thread.getSubject());
 			break;
 		default:

@@ -66,6 +66,7 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 
 	private boolean firstLoad = true;
 
+	private final T sent;
 	private final T draft;
 
 	public ThreadList(final MailService<S, T, H, M, C> mailService
@@ -85,9 +86,9 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 		refreshing = false;
 		resetSelection = true;
 
+		sent = mailService.getSpecialTag(SpecialTag.SENT);
 		draft = mailService.getSpecialTag(SpecialTag.DRAFT);
 
-		setCellFactory(param -> new ThreadListCell<H>());
 		setOnKeyPressed(e -> handleKey(e));
 		setOnMousePressed(e -> handleMouse(e));
 
@@ -234,6 +235,7 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 		// display
 		refreshing = true;
 		resetSelection = true;
+		setCellFactory(param -> new ThreadListCell<H>(includes.contains(sent) || includes.contains(draft)));
 		getItems().setAll(sortedThreads);
 		restoreSelection(oldThreads, oldSelectedIndex, oldSelectedThreads);
 		refreshing = false;

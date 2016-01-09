@@ -44,6 +44,7 @@ public abstract class SimpleThread implements Thread {
 	private final Set<String> messageIds;
 	private final Set<String> tagIds;
 	private final String sender;
+	private final Set<String> recipients;
 	private final Date date;
 	private final String lastMessageId;
 
@@ -52,6 +53,7 @@ public abstract class SimpleThread implements Thread {
 			, final Set<String> messageIds
 			, final Set<String> tagIds
 			, final String sender
+			, final Set<String> recipients
 			, final Date date) {
 		this.id = id;
 		this.hash = id.hashCode();
@@ -59,6 +61,7 @@ public abstract class SimpleThread implements Thread {
 		this.messageIds = messageIds;
 		this.tagIds = tagIds;
 		this.sender = sender;
+		this.recipients = recipients;
 		this.date = date;
 
 		String lastMessageId = null;
@@ -104,6 +107,11 @@ public abstract class SimpleThread implements Thread {
 	}
 
 	@Override
+	public Set<String> getRecipients() {
+		return recipients;
+	}
+
+	@Override
 	public Date getDate() {
 		return date;
 	}
@@ -123,6 +131,5 @@ public abstract class SimpleThread implements Thread {
 		}
         return ((SimpleThread) other).id.equals(id);
     }
-
 
 }

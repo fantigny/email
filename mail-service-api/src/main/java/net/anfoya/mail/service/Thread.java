@@ -12,6 +12,7 @@ public interface Thread extends Serializable {
 
 	public Date getDate();
 	public String getSender();
+	public Set<String> getRecipients();
 	public String getSubject();
 
 	public Set<String> getTagIds();

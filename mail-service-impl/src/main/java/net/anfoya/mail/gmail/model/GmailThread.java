@@ -4,6 +4,7 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.mail.internet.MailDateFormat;
 
@@ -20,32 +21,26 @@ import net.anfoya.mail.model.SimpleThread;
 public class GmailThread extends SimpleThread {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GmailThread.class);
 
-	public GmailThread(final Thread thread) {
-		this(
-			thread.getId()
-			, findSubject(thread)
-			, getMessageIds(thread)
-			, getTagIds(thread)
-			, findSender(thread)
-			, findReceivedDate(thread));
-	}
-
-	public GmailThread(final String id, final String subject
-			, final Set<String> messageIds, final Set<String> tagIds
-			, final String sender, final Date received) {
-		super(id, subject, messageIds, tagIds, sender, received);
-	}
-
 	private static String findSubject(final Thread thread) {
 		return findHeader(thread, "Subject");
 	}
 
+	private static Set<String> findRecipients(Thread thread) {
+		return findHeaders(thread, "To")
+				.parallelStream()
+				.map(s -> cleanAddress(s))
+				.collect(Collectors.toSet());
+	}
+
 	private static String findSender(final Thread thread) {
-		String from = findHeader(thread, "From");
-		if (from.contains(" <")) {
-			from = from.substring(0, from.indexOf(" <"));
+		return cleanAddress(findHeader(thread, "From"));
+	}
+
+	private static String cleanAddress(String address) {
+		if (address.contains(" <")) {
+			address = address.substring(0, address.indexOf(" <"));
 		}
-		return from.replaceAll("\"", "");
+		return address.replaceAll("\"|'", "");
 	}
 
 	private static Date findReceivedDate(final Thread thread) {
@@ -113,6 +108,23 @@ public class GmailThread extends SimpleThread {
 		}
 
 		return headers;
+	}
+
+	public GmailThread(final Thread thread) {
+		this(
+			thread.getId()
+			, findSubject(thread)
+			, getMessageIds(thread)
+			, getTagIds(thread)
+			, findSender(thread)
+			, findRecipients(thread)
+			, findReceivedDate(thread));
+	}
+
+	public GmailThread(final String id, final String subject
+			, final Set<String> messageIds, final Set<String> tagIds
+			, final String sender, final Set<String> recipients, final Date received) {
+		super(id, subject, messageIds, tagIds, sender, recipients, received);
 	}
 
 	@Override
