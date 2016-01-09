@@ -43,8 +43,9 @@ public class MatrixBuilder {
 					final long id = geo.getId();
 					if (id > maxId) {
 						System.err.println("id (" + id + ") doesn't fit in matrix " + width + " x " + height + "");
+					} else {
+						geo = data.put(id, geo);
 					}
-					geo = data.put(id, geo);
 				}
 
 				if (geo != null) {

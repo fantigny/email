@@ -198,7 +198,8 @@ public class GeoClusterAnalyserTest {
 		final Cluster cluster = new GeoClusterAnalyser(matrix).getBiggestCluster();
 		System.out.println("GeoClusterAnalyser::getBiggestCluster " + (System.currentTimeMillis()-inter) + "ms");
 
-		cluster.print(new PrintStream(NULL_OUTPUT_STREAM));
+		inter = System.currentTimeMillis();
+		Cluster.print(new PrintStream(NULL_OUTPUT_STREAM), cluster);
 		System.out.println("Cluster::print " + (System.currentTimeMillis()-inter) + "ms");
 
 		System.out.println();

@@ -31,12 +31,12 @@ public class GeoClusterAnalyser {
 
 	private static void print(PrintStream stream, Cluster cluster) {
 		if (cluster == null) {
-			System.out.println("no cluster found");
+			stream.println("no cluster found");
 		} else {
-			System.out.println("The Geos in the largest cluster of occupied Geos for this GeoBlock are:");
-			cluster.print(stream);
+			stream.println("The Geos in the largest cluster of occupied Geos for this GeoBlock are:");
+			Cluster.print(stream, cluster);
 		}
-		System.out.println();
+		stream.println();
 	}
 
 	/****************/
