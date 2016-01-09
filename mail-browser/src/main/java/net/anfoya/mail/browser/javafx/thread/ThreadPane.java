@@ -203,9 +203,9 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		this.threads = threads;
 		this.markRead = markRead;
 
+		refreshThread();
 		refreshIcons();
 		refreshSubject();
-		refreshThread();
 		refreshTags();
 	}
 
@@ -263,7 +263,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 
 	private void refreshIcons() {
 		iconBox.getChildren().clear();
-		if (threads.size() == 1 && threads.iterator().next().isFlagged()) {
+		if (threads.size() == 1 && thread.isFlagged()) {
 			showIcon(FLAG_ICON);
 		}
 	}
@@ -274,7 +274,8 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 			subjectField.setText("");
 			break;
 		case 1:
-			subjectField.setText(threads.iterator().next().getSubject());
+			final String count = thread.getMessageIds().isEmpty()? "": "(" + thread.getMessageIds().size() + "x) ";
+			subjectField.setText(count + thread.getSubject());
 			break;
 		default:
 			subjectField.setText("multiple mails selected");
