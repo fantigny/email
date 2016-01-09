@@ -40,6 +40,7 @@ import net.anfoya.mail.service.Message;
 import net.anfoya.mail.service.Section;
 import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
+import net.anfoya.tag.model.SpecialTag;
 
 public class ThreadList<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends ListView<H> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadList.class);
@@ -65,6 +66,8 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 
 	private boolean firstLoad = true;
 
+	private final T draft;
+
 	public ThreadList(final MailService<S, T, H, M, C> mailService
 			, UndoService undoService
 			, final Settings settings) {
@@ -81,6 +84,8 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 
 		refreshing = false;
 		resetSelection = true;
+
+		draft = mailService.getSpecialTag(SpecialTag.DRAFT);
 
 		setCellFactory(param -> new ThreadListCell<H>());
 		setOnKeyPressed(e -> handleKey(e));
@@ -110,16 +115,19 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 		if (threads.isEmpty()) {
 			return;
 		}
-		final H thread = threads.iterator().next();
-		if (e.isPrimaryButtonDown()) {
-			new MailReader<S, T, H, M, C>(mailService
-					, undoService
-					, settings
-					, threads.iterator().next()
-					, updateHandler).show();
-		} else if (e.isSecondaryButtonDown()) {
-			new MailComposer<M, C>(mailService, updateHandler, settings)
-				.editOrReply(thread.getLastMessageId(), settings.replyAllDblClick().get());
+		final boolean isDraft = includes.contains(draft);
+		for(final H t: threads) {
+			if (isDraft) {
+				new MailComposer<M, C>(mailService, updateHandler, settings)
+					.editOrReply(t.getLastMessageId(), settings.replyAllDblClick().get());
+			} else {
+				new MailReader<S, T, H, M, C>(mailService
+						, undoService
+						, settings
+						, threads.iterator().next()
+						, updateHandler).show();
+			}
+
 		}
 	}
 
