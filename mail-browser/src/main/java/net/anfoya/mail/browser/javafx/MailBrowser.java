@@ -9,13 +9,13 @@ import org.slf4j.LoggerFactory;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.SplitPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.stage.Window;
 import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
@@ -48,14 +48,14 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	private final SectionListPane<S, T> sectionListPane;
 	private final ThreadListPane<S, T, H, M, C> threadListPane;
 	private final ThreadPane<S, T, H, M, C> threadPane;
-
+	
 	public MailBrowser(final MailService<S, T, H, M, C> mailService
 			, final NotificationService notificationService
 			, final Settings settings) throws MailException {
 		super(new SplitPane(), Color.TRANSPARENT);
 		this.mailService = mailService;
 		this.notificationService = notificationService;
-
+		
 		final UndoService undoService = new UndoService();
 
 		StyleHelper.addCommonCss(this);
@@ -93,8 +93,8 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		setResizablePane(threadPane);
 	}
 
-	private void setResizablePane(Node node) {
-		splitPane.getItems().forEach(n -> SplitPane.setResizableWithParent(n, node == n));
+	private void setResizablePane(Pane pane) {
+		splitPane.getItems().forEach(n -> SplitPane.setResizableWithParent(n, n == pane));
 	}
 
 	private void toggleViewMode(final KeyEvent e) {
@@ -126,39 +126,58 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 			return;
 		}
 
-		setMode(mode);
+		Platform.runLater(() -> setMode(mode));
 	}
 
 	private void setMode(Mode mode) {
-		final double width = getWindow().getWidth();
-		final double newWidth;
-		final Pane resizablePane;
-		final Runnable splitPaneUpdate;
-		if (mode == Mode.MICRO) {
-			newWidth = width - sectionListPane.getWidth();
-			splitPaneUpdate = () -> splitPane.getItems().remove(sectionListPane);
-			resizablePane = threadListPane;
-		} else if (mode == Mode.MINI) {
+		final Window window = getWindow();
+		final double width = window.getWidth();
+		switch(mode) {
+		case MICRO:
+			splitPane.getItems().remove(sectionListPane);
+			window.setWidth(width - sectionListPane.getWidth());
+			setResizablePane(threadListPane);
+			break;
+		case MINI:
 			if (splitPane.getItems().contains(threadPane)) {
-				newWidth = width - threadPane.getWidth() - 1;
-				splitPaneUpdate = () -> splitPane.getItems().remove(threadPane);
+				double div0 = getDivInPixels(0);
+				window.setWidth(width - threadPane.getWidth() - 1);
+				splitPane.getItems().setAll(sectionListPane, threadListPane);
+				setResizablePane(threadListPane);
+				splitPane.setDividerPositions(getDivInPercent(div0));
 			} else {
-				newWidth = width + sectionListPane.getWidth();
-				splitPaneUpdate = () -> splitPane.getItems().add(0, sectionListPane);
+				window.setWidth(width + sectionListPane.getWidth());
+				splitPane.getItems().setAll(sectionListPane, threadListPane);
+				setResizablePane(threadListPane);
 			}
-			resizablePane = threadListPane;
-		} else /* if (mode == Mode.FULL) */ {
-			newWidth = width + threadPane.getWidth();
-			splitPaneUpdate = () -> splitPane.getItems().add(threadPane);
-			resizablePane = threadPane;
+			break;
+		case FULL:
+			double div0 = getDivInPixels(0);
+			double div1 = getDivInPixels(1);			
+			window.setWidth(width + threadPane.getWidth());
+			splitPane.getItems().setAll(sectionListPane, threadListPane, threadPane);
+			setResizablePane(threadPane);
+			splitPane.setDividerPositions(getDivInPercent(div0), getDivInPercent(div1));
+			break;
 		}
-
-		Platform.runLater(() -> {
-			splitPaneUpdate.run();
-			getWindow().setWidth(newWidth);
-			setResizablePane(resizablePane);
-			refreshAfterThreadUpdate();
-		});
+	}
+	
+	private double getDivInPercent(double width) {
+		System.out.println(width + " / " + getWindow().getWidth() + " = " + width / getWindow().getWidth());
+		return width / getWindow().getWidth();
+	}
+	
+	private double getDivInPixels(int divIndex) {
+		switch(divIndex) {
+		case 0:
+			System.out.println("div0 = " + sectionListPane.getWidth() + " width = " + getWindow().getWidth());
+			return sectionListPane.getWidth();
+		case 1: 
+			System.out.println("div1 = " + (sectionListPane.getWidth() + threadListPane.getWidth() - 1) + " width = " + getWindow().getWidth());
+			return sectionListPane.getWidth() + threadListPane.getWidth() - 1;
+		default:
+			return -1;
+		}
 	}
 
 	public void setOnSignout(final EventHandler<ActionEvent> handler) {
@@ -191,6 +210,8 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		});
 	}
 
+	//TODO controller
+	
 	private final boolean refreshAfterTagSelected = true;
 	private final boolean refreshAfterThreadSelected = true;
 	private final boolean refreshAfterMoreResultsSelected = true;
