@@ -38,7 +38,6 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	public enum Mode { FULL, MINI, MICRO }
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailBrowser.class);
-	private static final int DIVIDER_WIDTH = 3;
 
 	private final MailService<S, T, H, M, C> mailService;
 	private final NotificationService notificationService;
@@ -74,7 +73,6 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		splitPane.getItems().add(sectionListPane);
 
 		threadListPane = new ThreadListPane<S, T, H, M, C>(mailService, undoService, settings);
-		threadListPane.setMaxWidth(SplitPane.USE_PREF_SIZE);
 		threadListPane.prefHeightProperty().bind(splitPane.heightProperty());
 		threadListPane.setOnSelectThread(e -> refreshAfterThreadSelected());
 		threadListPane.setOnLoadThreadList(e -> refreshAfterThreadListLoad());
@@ -126,20 +124,20 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		double newWidth = 0;
 		switch(mode) {
 		case MICRO:
-			newWidth = width - sectionListPane.getWidth() - DIVIDER_WIDTH;
-			splitPane.getItems().remove(sectionListPane);
+			newWidth = width - sectionListPane.getWidth() - 1;
+			splitPane.getItems().remove(0);
 			break;
 		case MINI:
-			if (splitPane.getItems().contains(threadPane)) {
-				newWidth = width - threadPane.getWidth();
-				splitPane.getItems().remove(threadPane);
+			if (splitPane.getItems().size() == 3) {
+				newWidth = width - threadPane.getWidth() - 1;
+				splitPane.getItems().remove(2);
 			} else {
-				newWidth = width + sectionListPane.getWidth() + DIVIDER_WIDTH;
+				newWidth = width + sectionListPane.getWidth() + 1;
 				splitPane.getItems().add(0, sectionListPane);
 			}
 			break;
 		case FULL:
-			newWidth = width + threadPane.getWidth() + DIVIDER_WIDTH;
+			newWidth = width + threadPane.getWidth() + 1;
 			splitPane.getItems().add(threadPane);
 			break;
 		}

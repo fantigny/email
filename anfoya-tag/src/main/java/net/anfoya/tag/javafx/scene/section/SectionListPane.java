@@ -17,9 +17,10 @@ import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.control.Accordion;
 import javafx.scene.control.TitledPane;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.concurrent.ThreadPool;
@@ -34,7 +35,7 @@ import net.anfoya.tag.service.Tag;
 import net.anfoya.tag.service.TagException;
 import net.anfoya.tag.service.TagService;
 
-public class SectionListPane<S extends Section, T extends Tag> extends BorderPane {
+public class SectionListPane<S extends Section, T extends Tag> extends VBox {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SectionListPane.class);
 
 	private final TagService<S, T> tagService;
@@ -66,6 +67,8 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 	private String initTagName;
 
 	public SectionListPane(final TagService<S, T> tagService, UndoService undoService, final boolean withExcludeBox) {
+		setPrefWidth(100);
+
 		this.tagService = tagService;
 		this.showExcludeBox = withExcludeBox;
 
@@ -76,7 +79,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 		patternField.prefWidthProperty().bind(widthProperty());
 		patternField.setPromptText("label search");
 		patternField.textProperty().addListener((ov, o, n) -> refreshWithPatternAsync());
-		setTop(new HBox(5, patternField));
+		getChildren().add(new HBox(5, patternField));
 
 		sectionAcc = new Accordion();
 		sectionAcc.getStyleClass().add("section-accordion");
@@ -133,11 +136,13 @@ public class SectionListPane<S extends Section, T extends Tag> extends BorderPan
 				centerPane.getChildren().remove(extItemDropPane);
 			}
 		});
-		setCenter(centerPane);
+		getChildren().add(centerPane);
 
 		selectedTagsPane = new SelectedTagsPane<T>();
 		selectedTagsPane.setRemoveTagCallBack(tag -> clear(tag.getName()));
-		setBottom(selectedTagsPane);
+		getChildren().add(selectedTagsPane);
+
+		VBox.setVgrow(centerPane, Priority.ALWAYS);
 	}
 
 	public void setOnUpdateTag(final EventHandler<ActionEvent> handler) {
