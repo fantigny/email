@@ -10,7 +10,6 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
-import javafx.scene.control.SplitPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
@@ -42,7 +41,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	private final MailService<S, T, H, M, C> mailService;
 	private final NotificationService notificationService;
 
-	private final SplitPane splitPane;
+	private final FixedSplitPane splitPane;
 	private final SectionListPane<S, T> sectionListPane;
 	private final ThreadListPane<S, T, H, M, C> threadListPane;
 	private final ThreadPane<S, T, H, M, C> threadPane;
@@ -50,7 +49,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	public MailBrowser(final MailService<S, T, H, M, C> mailService
 			, final NotificationService notificationService
 			, final Settings settings) throws MailException {
-		super(new SplitPane(), Color.TRANSPARENT);
+		super(new FixedSplitPane(), Color.TRANSPARENT);
 		this.mailService = mailService;
 		this.notificationService = notificationService;
 
@@ -59,7 +58,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		StyleHelper.addCommonCss(this);
 		StyleHelper.addCss(this, "/net/anfoya/javafx/scene/control/excludebox.css");
 
-		splitPane = (SplitPane) getRoot();
+		splitPane = (FixedSplitPane) getRoot();
 		splitPane.getStyleClass().add("background");
 
 		sectionListPane = new SectionListPane<S, T>(mailService, undoService, settings.showExcludeBox().get());
@@ -70,7 +69,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		sectionListPane.setOnSelectSection(e -> refreshAfterSectionSelect());
 		sectionListPane.setOnUpdateSection(e -> refreshAfterSectionUpdate());
 		sectionListPane.setOnUpdateTag(e -> refreshAfterTagUpdate());
-		splitPane.getItems().add(sectionListPane);
+		splitPane.getPanes().add(sectionListPane);
 
 		threadListPane = new ThreadListPane<S, T, H, M, C>(mailService, undoService, settings);
 		threadListPane.prefHeightProperty().bind(splitPane.heightProperty());
@@ -78,19 +77,17 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		threadListPane.setOnLoadThreadList(e -> refreshAfterThreadListLoad());
 		threadListPane.setOnUpdatePattern(e -> refreshAfterPatternUpdate());
 		threadListPane.setOnUpdateThread(e -> refreshAfterThreadUpdate());
-		splitPane.getItems().add(threadListPane);
+		splitPane.getPanes().add(threadListPane);
 
 		threadPane = new ThreadPane<S, T, H, M, C>(mailService, undoService, settings);
 		threadPane.setFocusTraversable(false);
 		threadPane.setOnUpdateThread(e -> refreshAfterThreadUpdate());
-		splitPane.getItems().add(threadPane);
+		splitPane.getPanes().add(threadPane);
 
-		splitPane.setDividerPositions(.2, .5);
+		splitPane.setDividerPositions(200, 500);
 		splitPane.setOnKeyPressed(e -> toggleViewMode(e));
 
-		SplitPane.setResizableWithParent(sectionListPane, false);
-		SplitPane.setResizableWithParent(threadListPane, false);
-		SplitPane.setResizableWithParent(threadPane, true);
+		splitPane.setResizableWithParent(sectionListPane);
 	}
 
 	private void toggleViewMode(final KeyEvent e) {
@@ -102,15 +99,15 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 			return;
 		}
 
-		final int nbVisible = splitPane.getItems().size();
+		final int nbVisible = splitPane.getPanes().size();
 		Mode mode;
 		if (right && nbVisible == 2) {
 			mode = Mode.FULL;
-		} else if (left && nbVisible == 2) {
-			mode = Mode.MICRO;
 		} else if (right && nbVisible == 1
 				|| left && nbVisible == 3) {
 			mode = Mode.MINI;
+		} else if (left && nbVisible == 2) {
+			mode = Mode.MICRO;
 		} else {
 			return;
 		}
@@ -119,46 +116,30 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	}
 
 	private void setMode(Mode mode) {
-		final double[] positions = getDivPositions();
 		final double width = getWindow().getWidth();
 		double newWidth = 0;
 		switch(mode) {
 		case MICRO:
-			newWidth = width - sectionListPane.getWidth() - 1;
-			splitPane.getItems().remove(0);
+			newWidth = width - sectionListPane.getWidth() - FixedSplitPane.getDividerWidth();
+			getWindow().setWidth(newWidth);
+			splitPane.getPanes().remove(0);
 			break;
 		case MINI:
-			if (splitPane.getItems().size() == 3) {
-				newWidth = width - threadPane.getWidth() - 1;
-				splitPane.getItems().remove(2);
+			if (splitPane.getPanes().size() == 3) {
+				newWidth = width - threadPane.getWidth() - FixedSplitPane.getDividerWidth();
+				getWindow().setWidth(newWidth);
+				splitPane.getPanes().remove(2);
 			} else {
-				newWidth = width + sectionListPane.getWidth() + 1;
-				splitPane.getItems().add(0, sectionListPane);
+				newWidth = width + sectionListPane.getWidth() + FixedSplitPane.getDividerWidth();
+				getWindow().setWidth(newWidth);
+				splitPane.getPanes().add(0, sectionListPane);
 			}
 			break;
 		case FULL:
-			newWidth = width + threadPane.getWidth() + 1;
-			splitPane.getItems().add(threadPane);
+			newWidth = width + threadPane.getWidth() + FixedSplitPane.getDividerWidth();
+			getWindow().setWidth(newWidth);
+			splitPane.getPanes().add(threadPane);
 			break;
-		}
-		getWindow().setWidth(newWidth);
-		setDivPositions(positions);
-	}
-
-	private double[] getDivPositions() {
-		return new double[] {
-				sectionListPane.getWidth() + 1.5
-				, sectionListPane.getWidth() + threadListPane.getWidth() + 3
-		};
-	}
-
-	private void setDivPositions(double[] positions) {
-		final double width = getWindow().getWidth();
-		switch(splitPane.getItems().size()) {
-		case 3:
-			splitPane.setDividerPosition(1, positions[1] / width);
-		case 2:
-			splitPane.setDividerPosition(0, positions[0] / width);
 		}
 	}
 
@@ -264,7 +245,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		}
 		LOGGER.debug("refreshAfterThreadSelected");
 
-		final boolean isMini = !splitPane.getItems().contains(threadPane);
+		final boolean isMini = !splitPane.getPanes().contains(threadPane);
 		if (isMini) {
 			return;
 		}
