@@ -13,9 +13,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.SplitPane;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.stage.Window;
 import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
@@ -40,6 +38,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	public enum Mode { FULL, MINI, MICRO }
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailBrowser.class);
+	private static final int DIVIDER_WIDTH = 3;
 
 	private final MailService<S, T, H, M, C> mailService;
 	private final NotificationService notificationService;
@@ -48,14 +47,14 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	private final SectionListPane<S, T> sectionListPane;
 	private final ThreadListPane<S, T, H, M, C> threadListPane;
 	private final ThreadPane<S, T, H, M, C> threadPane;
-	
+
 	public MailBrowser(final MailService<S, T, H, M, C> mailService
 			, final NotificationService notificationService
 			, final Settings settings) throws MailException {
 		super(new SplitPane(), Color.TRANSPARENT);
 		this.mailService = mailService;
 		this.notificationService = notificationService;
-		
+
 		final UndoService undoService = new UndoService();
 
 		StyleHelper.addCommonCss(this);
@@ -63,8 +62,6 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 
 		splitPane = (SplitPane) getRoot();
 		splitPane.getStyleClass().add("background");
-		splitPane.setDividerPositions(.2, .5);
-		splitPane.setOnKeyPressed(e -> toggleViewMode(e));
 
 		sectionListPane = new SectionListPane<S, T>(mailService, undoService, settings.showExcludeBox().get());
 		sectionListPane.setFocusTraversable(false);
@@ -77,6 +74,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		splitPane.getItems().add(sectionListPane);
 
 		threadListPane = new ThreadListPane<S, T, H, M, C>(mailService, undoService, settings);
+		threadListPane.setMaxWidth(SplitPane.USE_PREF_SIZE);
 		threadListPane.prefHeightProperty().bind(splitPane.heightProperty());
 		threadListPane.setOnSelectThread(e -> refreshAfterThreadSelected());
 		threadListPane.setOnLoadThreadList(e -> refreshAfterThreadListLoad());
@@ -87,41 +85,34 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		threadPane = new ThreadPane<S, T, H, M, C>(mailService, undoService, settings);
 		threadPane.setFocusTraversable(false);
 		threadPane.setOnUpdateThread(e -> refreshAfterThreadUpdate());
-		threadPane.managedProperty().bind(threadPane.visibleProperty());
 		splitPane.getItems().add(threadPane);
 
-		setResizablePane(threadPane);
-	}
+		splitPane.setDividerPositions(.2, .5);
+		splitPane.setOnKeyPressed(e -> toggleViewMode(e));
 
-	private void setResizablePane(Pane pane) {
-		splitPane.getItems().forEach(n -> SplitPane.setResizableWithParent(n, n == pane));
+		SplitPane.setResizableWithParent(sectionListPane, false);
+		SplitPane.setResizableWithParent(threadListPane, false);
+		SplitPane.setResizableWithParent(threadPane, true);
 	}
 
 	private void toggleViewMode(final KeyEvent e) {
-		final KeyCode code = e.getCode();
-		final boolean left = code == KeyCode.LEFT;
-		final boolean right = code == KeyCode.RIGHT;
+		final boolean left = e.getCode() == KeyCode.LEFT;
+		final boolean right = e.getCode() == KeyCode.RIGHT;
 		if (left || right) {
 			e.consume();
 		} else {
 			return;
 		}
 
+		final int nbVisible = splitPane.getItems().size();
 		Mode mode;
-		if (left
-				&& splitPane.getItems().contains(sectionListPane)
-				&& !splitPane.getItems().contains(threadPane)) {
-			mode = Mode.MICRO;
-		} else if (left
-				&& splitPane.getItems().contains(sectionListPane)
-				&& splitPane.getItems().contains(threadPane)
-				|| right
-				&& !splitPane.getItems().contains(sectionListPane)
-				&& !splitPane.getItems().contains(threadPane)) {
-			mode = Mode.MINI;
-		} else if (right
-				&& !splitPane.getItems().contains(threadPane)) {
+		if (right && nbVisible == 2) {
 			mode = Mode.FULL;
+		} else if (left && nbVisible == 2) {
+			mode = Mode.MICRO;
+		} else if (right && nbVisible == 1
+				|| left && nbVisible == 3) {
+			mode = Mode.MINI;
 		} else {
 			return;
 		}
@@ -130,59 +121,51 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	}
 
 	private void setMode(Mode mode) {
-		final Window window = getWindow();
-		final double width = window.getWidth();
+		final double[] positions = getDivPositions();
+		final double width = getWindow().getWidth();
+		double newWidth = 0;
 		switch(mode) {
 		case MICRO:
+			newWidth = width - sectionListPane.getWidth() - DIVIDER_WIDTH;
 			splitPane.getItems().remove(sectionListPane);
-			window.setWidth(width - sectionListPane.getWidth());
-			setResizablePane(threadListPane);
 			break;
 		case MINI:
 			if (splitPane.getItems().contains(threadPane)) {
-				double div0 = getDivInPixels(0);
-				window.setWidth(width - threadPane.getWidth() - 1);
-				splitPane.getItems().setAll(sectionListPane, threadListPane);
-				setResizablePane(threadListPane);
-				splitPane.setDividerPositions(getDivInPercent(div0));
+				newWidth = width - threadPane.getWidth();
+				splitPane.getItems().remove(threadPane);
 			} else {
-				window.setWidth(width + sectionListPane.getWidth());
-				splitPane.getItems().setAll(sectionListPane, threadListPane);
-				setResizablePane(threadListPane);
+				newWidth = width + sectionListPane.getWidth() + DIVIDER_WIDTH;
+				splitPane.getItems().add(0, sectionListPane);
 			}
 			break;
 		case FULL:
-			double div0 = getDivInPixels(0);
-			double div1 = getDivInPixels(1);			
-			window.setWidth(width + threadPane.getWidth());
-			splitPane.getItems().setAll(sectionListPane, threadListPane, threadPane);
-			setResizablePane(threadPane);
-			splitPane.setDividerPositions(getDivInPercent(div0), getDivInPercent(div1));
+			newWidth = width + threadPane.getWidth() + DIVIDER_WIDTH;
+			splitPane.getItems().add(threadPane);
 			break;
 		}
+		getWindow().setWidth(newWidth);
+		setDivPositions(positions);
 	}
-	
-	private double getDivInPercent(double width) {
-		System.out.println(width + " / " + getWindow().getWidth() + " = " + width / getWindow().getWidth());
-		return width / getWindow().getWidth();
+
+	private double[] getDivPositions() {
+		return new double[] {
+				sectionListPane.getWidth() + 1.5
+				, sectionListPane.getWidth() + threadListPane.getWidth() + 3
+		};
 	}
-	
-	private double getDivInPixels(int divIndex) {
-		switch(divIndex) {
-		case 0:
-			System.out.println("div0 = " + sectionListPane.getWidth() + " width = " + getWindow().getWidth());
-			return sectionListPane.getWidth();
-		case 1: 
-			System.out.println("div1 = " + (sectionListPane.getWidth() + threadListPane.getWidth() - 1) + " width = " + getWindow().getWidth());
-			return sectionListPane.getWidth() + threadListPane.getWidth() - 1;
-		default:
-			return -1;
+
+	private void setDivPositions(double[] positions) {
+		final double width = getWindow().getWidth();
+		switch(splitPane.getItems().size()) {
+		case 3:
+			splitPane.setDividerPosition(1, positions[1] / width);
+		case 2:
+			splitPane.setDividerPosition(0, positions[0] / width);
 		}
 	}
 
 	public void setOnSignout(final EventHandler<ActionEvent> handler) {
 		threadPane.setOnSignout(handler);
-
 	}
 
 	public void initData() {
@@ -211,7 +194,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	}
 
 	//TODO controller
-	
+
 	private final boolean refreshAfterTagSelected = true;
 	private final boolean refreshAfterThreadSelected = true;
 	private final boolean refreshAfterMoreResultsSelected = true;
