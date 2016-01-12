@@ -1,5 +1,10 @@
 package net.anfoya.javafx.scene.layout;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
@@ -13,7 +18,7 @@ import javafx.scene.layout.Priority;
 public class FixedSplitPane extends HBox {
 	private final ObservableList<Pane> panes;
 
-	private final Pane resizable;
+	private Pane resizable;
 	private int moveDivIndex;
 	private double dividerWidth;
 
@@ -35,6 +40,8 @@ public class FixedSplitPane extends HBox {
 				getChildren().add(createDivider());
 			}
 			getChildren().add(p);
+			p.managedProperty().unbind();
+			p.managedProperty().bind(p.visibleProperty());
 		});
 		panes.forEach(p -> p.requestLayout());
 	}
@@ -47,6 +54,7 @@ public class FixedSplitPane extends HBox {
 		label.setOnMousePressed(e -> prepareMoveDiv(e));
 		label.setOnMouseDragged(e -> moveDiv(e));
 		label.setOnMouseReleased(e -> stopMoveDiv(e));
+		label.managedProperty().bind(label.visibleProperty());
 
 		return label;
 	}
@@ -85,6 +93,23 @@ public class FixedSplitPane extends HBox {
 		return panes;
 	}
 
+	public void setVisiblePanes(Pane... panes) {
+		final List<Pane> hidden = new ArrayList<Pane>(getPanes());
+		Arrays.stream(panes).forEach(p -> {
+			p.setVisible(true);
+			hidden.remove(p);
+		});
+		hidden.forEach(p -> p.setVisible(false));
+		if (resizable != null && !resizable.isVisible()) {
+			resizable = null;
+		}
+		setDividerPositions(getDividerPositions());
+	}
+
+	public List<Pane> getVisiblePanes() {
+		return getPanes().parallelStream().filter(p -> p.isVisible()).collect(Collectors.toList());
+	}
+
 	public void setDividerPositions(double... positions) {
 		if (positions.length < getPanes().size() - 1) {
 			final double[] partial = positions;
@@ -97,7 +122,12 @@ public class FixedSplitPane extends HBox {
 		final double[] widths = new double[positions.length+1];
 		double accumulator = 0;
 		for(int i=0; i<positions.length; i++) {
-			widths[i] = positions[i] - accumulator;
+			final Pane pane = getPanes().get(i);
+			if (pane.isVisible()) {
+				widths[i] = positions[i] - accumulator;
+			} else {
+				widths[i] = 0;
+			}
 			accumulator += widths[i];
 		}
 		widths[positions.length] = getWidth() == 0? 0: getWidth() - accumulator;
@@ -133,15 +163,23 @@ public class FixedSplitPane extends HBox {
 	}
 
 	private Pane getResizableWithParent() {
-		return resizable != null? resizable: getPanes().get(getPanes().size() - 1);
+		Pane resizable = this.resizable;
+		if (resizable == null) {
+			resizable = getPanes().get(getPanes().size() - 1);
+			resizable.setMinWidth(Pane.USE_COMPUTED_SIZE);
+			resizable.setMaxWidth(Double.MAX_VALUE);
+			resizable.requestLayout();
+		}
+		return resizable;
 	}
 
 	public void setResizableWithParent(Pane pane) {
-		getChildren().forEach(p -> HBox.setHgrow(p, p == pane? Priority.ALWAYS: null));
-		if (pane != null) {
-			pane.setMinWidth(Pane.USE_COMPUTED_SIZE);
-			pane.setMaxWidth(Double.MAX_VALUE);
-			pane.requestLayout();
+		resizable = pane;
+		getChildren().forEach(p -> HBox.setHgrow(p, p == resizable? Priority.ALWAYS: null));
+		if (resizable != null) {
+			resizable.setMinWidth(Pane.USE_COMPUTED_SIZE);
+			resizable.setMaxWidth(Double.MAX_VALUE);
+			resizable.requestLayout();
 		}
 	}
 
@@ -149,6 +187,14 @@ public class FixedSplitPane extends HBox {
 		if (dividerWidth == 0 && getPanes().size() > 1) {
 			dividerWidth = ((Label)getChildren().get(1)).getWidth();
 		}
-		return 3;
+		return dividerWidth;
+	}
+
+	public double computeSize() {
+		return getChildren()
+				.parallelStream()
+				.filter(n -> n.isVisible())
+				.mapToDouble(n -> n instanceof Label? getDividerWidth(): ((Pane) n).getWidth())
+				.sum();
 	}
 }

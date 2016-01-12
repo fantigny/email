@@ -85,7 +85,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		threadPane.setOnUpdateThread(e -> refreshAfterThreadUpdate());
 		splitPane.getPanes().add(threadPane);
 
-		splitPane.setDividerPositions(200, 500);
+		splitPane.setDividerPositions(200, 550);
 		splitPane.setOnKeyPressed(e -> toggleViewMode(e));
 
 		splitPane.setResizableWithParent(threadPane);
@@ -100,46 +100,19 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 			return;
 		}
 
-		final int nbVisible = splitPane.getPanes().size();
-		Mode mode;
+		final int nbVisible = splitPane.getVisiblePanes().size();
 		if (right && nbVisible == 2) {
-			mode = Mode.FULL;
+			splitPane.setVisiblePanes(sectionListPane, threadListPane, threadPane);
 		} else if (right && nbVisible == 1
 				|| left && nbVisible == 3) {
-			mode = Mode.MINI;
+			splitPane.setVisiblePanes(sectionListPane, threadListPane);
 		} else if (left && nbVisible == 2) {
-			mode = Mode.MICRO;
+			splitPane.setVisiblePanes(threadListPane);
 		} else {
 			return;
 		}
-
-		Platform.runLater(() -> setMode(mode));
-	}
-
-	private void setMode(Mode mode) {
-		final double width = getWindow().getWidth();
-		double newWidth = 0;
-		switch(mode) {
-		case MICRO:
-			newWidth = width - sectionListPane.getWidth() - splitPane.getDividerWidth();
-			splitPane.getPanes().remove(sectionListPane);
-			break;
-		case MINI:
-			if (splitPane.getPanes().size() == 3) {
-				newWidth = width - threadPane.getWidth() - splitPane.getDividerWidth();
-				splitPane.getPanes().remove(threadPane);
-			} else {
-				newWidth = width + sectionListPane.getWidth() + splitPane.getDividerWidth();
-				splitPane.getPanes().add(0, sectionListPane);
-			}
-			break;
-		case FULL:
-			newWidth = width + threadPane.getWidth() + splitPane.getDividerWidth();
-			splitPane.getPanes().add(threadPane);
-			break;
-		}
-		getWindow().setWidth(newWidth);
-		splitPane.setResizableWithParent(mode == Mode.FULL? threadPane: threadListPane);
+		getWindow().setWidth(splitPane.computeSize());
+		splitPane.setResizableWithParent(splitPane.getVisiblePanes().size() == 3? threadPane: threadListPane);
 	}
 
 	public void setOnSignout(final EventHandler<ActionEvent> handler) {
