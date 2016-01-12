@@ -18,13 +18,10 @@
 	-fx-padding: 4 5 4 5;
 }
 
-.split-pane *.split-pane-divider {
-    -fx-min-width: 1;
-    -fx-pref-width: 1;
+.fixed-split-pane *.split-pane-divider {
+    -fx-min-width: 2;
+    -fx-pref-width: 2;
     -fx-background-color: lightgray;
-    -fx-padding: 0;
-    -fx-border-width: 0;
-    -fx-background-insets: 0;
 }
 
 .text-field {

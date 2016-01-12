@@ -17,6 +17,7 @@ import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.javafx.notification.NotificationService;
+import net.anfoya.javafx.scene.layout.FixedSplitPane;
 import net.anfoya.mail.browser.javafx.css.StyleHelper;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
@@ -87,7 +88,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		splitPane.setDividerPositions(200, 500);
 		splitPane.setOnKeyPressed(e -> toggleViewMode(e));
 
-		splitPane.setResizableWithParent(sectionListPane);
+		splitPane.setResizableWithParent(threadPane);
 	}
 
 	private void toggleViewMode(final KeyEvent e) {
@@ -120,27 +121,25 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		double newWidth = 0;
 		switch(mode) {
 		case MICRO:
-			newWidth = width - sectionListPane.getWidth() - FixedSplitPane.getDividerWidth();
-			getWindow().setWidth(newWidth);
-			splitPane.getPanes().remove(0);
+			newWidth = width - sectionListPane.getWidth() - splitPane.getDividerWidth();
+			splitPane.getPanes().remove(sectionListPane);
 			break;
 		case MINI:
 			if (splitPane.getPanes().size() == 3) {
-				newWidth = width - threadPane.getWidth() - FixedSplitPane.getDividerWidth();
-				getWindow().setWidth(newWidth);
-				splitPane.getPanes().remove(2);
+				newWidth = width - threadPane.getWidth() - splitPane.getDividerWidth();
+				splitPane.getPanes().remove(threadPane);
 			} else {
-				newWidth = width + sectionListPane.getWidth() + FixedSplitPane.getDividerWidth();
-				getWindow().setWidth(newWidth);
+				newWidth = width + sectionListPane.getWidth() + splitPane.getDividerWidth();
 				splitPane.getPanes().add(0, sectionListPane);
 			}
 			break;
 		case FULL:
-			newWidth = width + threadPane.getWidth() + FixedSplitPane.getDividerWidth();
-			getWindow().setWidth(newWidth);
+			newWidth = width + threadPane.getWidth() + splitPane.getDividerWidth();
 			splitPane.getPanes().add(threadPane);
 			break;
 		}
+		getWindow().setWidth(newWidth);
+		splitPane.setResizableWithParent(mode == Mode.FULL? threadPane: threadListPane);
 	}
 
 	public void setOnSignout(final EventHandler<ActionEvent> handler) {
