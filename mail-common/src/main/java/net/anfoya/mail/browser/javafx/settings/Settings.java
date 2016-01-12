@@ -108,10 +108,8 @@ public class Settings implements Serializable {
 			fromList(new SerializedFile<List<Object>>(FILENAME).load());
 		} catch (final FileNotFoundException e) {
 			LOGGER.warn("no settings found {}", FILENAME);
-			return;
 		} catch (final Exception e) {
 			LOGGER.error("load settings {}", FILENAME, e);
-			return;
 		}
 
 		if (globalSettings.get()) {
