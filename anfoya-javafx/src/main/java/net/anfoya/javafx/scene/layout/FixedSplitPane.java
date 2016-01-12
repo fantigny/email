@@ -152,7 +152,7 @@ public class FixedSplitPane extends HBox {
 		setDividerPositions(positions);
 	}
 
-	private double[] getDividerPositions() {
+	public double[] getDividerPositions() {
 		double accumulator = 0;
 		final double[] positions = new double[panes.size() - 1];
 		for(int i=0; i<positions.length; i++) {

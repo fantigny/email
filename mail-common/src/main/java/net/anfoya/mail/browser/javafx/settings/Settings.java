@@ -9,6 +9,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -17,9 +18,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.LongProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import net.anfoya.java.io.SerializedFile;
@@ -45,6 +50,8 @@ public class Settings implements Serializable {
 
 	private final MailService<?, ?, ?, ?, ?> mailService;
 
+	private final LongProperty date;
+
 	private final BooleanProperty showToolbar;
 	private final BooleanProperty showExcludeBox;
 	private final BooleanProperty archiveOnDrop;
@@ -55,6 +62,14 @@ public class Settings implements Serializable {
 	private final BooleanProperty confirmOnSignout;
 	private final BooleanProperty mute;
 	private final BooleanProperty globalSettings;
+
+	private final DoubleProperty firstDivider;
+	private final DoubleProperty secondDivider;
+	private final DoubleProperty windowWidth;
+	private final DoubleProperty windowHeight;
+	private final StringProperty browserMode;
+	private final DoubleProperty windowX;
+	private final DoubleProperty windowY;
 
 	public Settings(MailService<?, ?, ?, ?, ?> mailService) {
 		this.mailService = mailService;
@@ -69,6 +84,14 @@ public class Settings implements Serializable {
 		confirmOnSignout = new SimpleBooleanProperty(true);
 		mute = new SimpleBooleanProperty(false);
 		globalSettings = new SimpleBooleanProperty(true);
+		firstDivider = new SimpleDoubleProperty(200);
+		secondDivider = new SimpleDoubleProperty(600);
+		windowWidth = new SimpleDoubleProperty(1400);
+		windowHeight = new SimpleDoubleProperty(800);
+		browserMode = new SimpleStringProperty("FULL");
+		windowX = new SimpleDoubleProperty(-1);
+		windowY = new SimpleDoubleProperty(-1);
+		date = new SimpleLongProperty();
 	}
 
 	public List<?> toList() {
@@ -83,23 +106,40 @@ public class Settings implements Serializable {
 				, confirmOnQuit.get()
 				, confirmOnSignout.get()
 				, mute.get()
-				, globalSettings.get());
+				, globalSettings.get()
+				, firstDivider.get()
+				, secondDivider.get()
+				, windowWidth.get()
+				, windowHeight.get()
+				, browserMode.get()
+				, windowX.get()
+				, windowY.get()
+				, date.get()
+				);
 
 		return list;
 	}
 
 	public void fromList(List<?> list) {
 		final Iterator<?> i = list.iterator();
-		if (i.hasNext()) { showToolbar		.set((Boolean) i.next()); }
-		if (i.hasNext()) { showExcludeBox	.set((Boolean) i.next()); }
-		if (i.hasNext()) { archiveOnDrop	.set((Boolean) i.next()); }
-		if (i.hasNext()) { popupLifetime	.set((Integer) i.next()); }
-		if (i.hasNext()) { htmlSignature	.set((String)  i.next()); }
-		if (i.hasNext()) { replyAllDblClick	.set((Boolean) i.next()); }
-		if (i.hasNext()) { confirmOnQuit	.set((Boolean) i.next()); }
-		if (i.hasNext()) { confirmOnSignout	.set((Boolean) i.next()); }
-		if (i.hasNext()) { mute				.set((Boolean) i.next()); }
-		if (i.hasNext()) { globalSettings	.set((Boolean) i.next()); }
+		if (i.hasNext()) { showToolbar		.set((Boolean)	i.next()); }
+		if (i.hasNext()) { showExcludeBox	.set((Boolean)	i.next()); }
+		if (i.hasNext()) { archiveOnDrop	.set((Boolean)	i.next()); }
+		if (i.hasNext()) { popupLifetime	.set((Integer)	i.next()); }
+		if (i.hasNext()) { htmlSignature	.set((String)	i.next()); }
+		if (i.hasNext()) { replyAllDblClick	.set((Boolean)	i.next()); }
+		if (i.hasNext()) { confirmOnQuit	.set((Boolean)	i.next()); }
+		if (i.hasNext()) { confirmOnSignout	.set((Boolean)	i.next()); }
+		if (i.hasNext()) { mute				.set((Boolean)	i.next()); }
+		if (i.hasNext()) { globalSettings	.set((Boolean)	i.next()); }
+		if (i.hasNext()) { firstDivider		.set((Double) 	i.next()); }
+		if (i.hasNext()) { secondDivider	.set((Double) 	i.next()); }
+		if (i.hasNext()) { windowWidth		.set((Double) 	i.next()); }
+		if (i.hasNext()) { windowHeight		.set((Double) 	i.next()); }
+		if (i.hasNext()) { browserMode		.set((String) 	i.next()); }
+		if (i.hasNext()) { windowX			.set((Double) 	i.next()); }
+		if (i.hasNext()) { windowY			.set((Double) 	i.next()); }
+		if (i.hasNext()) { date				.set((Long) 	i.next()); }
 	}
 
 
@@ -122,7 +162,12 @@ public class Settings implements Serializable {
 					return;
 				}
 				try (ByteArrayInputStream bis = new ByteArrayInputStream(bytes)) {
-					fromList((List<?>) new ObjectInputStream(bis).readObject());
+					final List<?> list = (List<?>) new ObjectInputStream(bis).readObject();
+					final Settings temp = new Settings(mailService);
+					temp.fromList(list);
+					if (temp.date.greaterThan(date).get()) {
+						fromList(list);
+					}
 				} catch (final Exception e) {
 					LOGGER.error("read global settings", e);
 				}
@@ -131,6 +176,8 @@ public class Settings implements Serializable {
 	}
 
 	public void save() {
+		date.set(Calendar.getInstance().getTimeInMillis());
+
 		try {
 			new SerializedFile<List<?>>(FILENAME).save(toList());
 		} catch (final IOException e) {
@@ -193,5 +240,33 @@ public class Settings implements Serializable {
 
 	public BooleanProperty globalSettings() {
 		return globalSettings;
+	}
+
+	public DoubleProperty firstDivider() {
+		return firstDivider;
+	}
+
+	public DoubleProperty secondDivider() {
+		return secondDivider;
+	}
+
+	public DoubleProperty windowWidth() {
+		return windowWidth;
+	}
+
+	public DoubleProperty windowHeight() {
+		return windowHeight;
+	}
+
+	public StringProperty browserMode() {
+		return browserMode;
+	}
+
+	public DoubleProperty windowX() {
+		return windowX;
+	}
+
+	public DoubleProperty windowY() {
+		return windowY;
 	}
 }

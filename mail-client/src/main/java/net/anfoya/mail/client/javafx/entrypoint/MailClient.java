@@ -40,9 +40,6 @@ import net.anfoya.mail.service.Message;
 public class MailClient extends Application {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailClient.class);
 
-	private static final int DEFAULT_WIDTH = 1400;
-	private static final int DEFAULT_HEIGHT = 800;
-
 	private Settings settings;
 	private NotificationService notificationService;
 	private GmailService gmail;
@@ -164,11 +161,18 @@ public class MailClient extends Application {
 		}
 		mailBrowser.setOnSignout(e -> signout());
 
-		stage.titleProperty().unbind();
 		stage.setScene(mailBrowser);
 		initSize(stage);
 		stage.show();
 		mailBrowser.initData();
+		stage.setOnHiding(e -> {
+			mailBrowser.saveSettings();
+			settings.windowWidth().set(stage.getWidth());
+			settings.windowHeight().set(stage.getHeight());
+			settings.windowX().set(stage.getX());
+			settings.windowY().set(stage.getY());
+			settings.save();
+		});
 
 		initTitle(stage);
 	}
@@ -193,9 +197,14 @@ public class MailClient extends Application {
 	private void initSize(final Stage stage) {
 		final Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
 
-		LOGGER.info("init size to {}x{}", DEFAULT_WIDTH, DEFAULT_HEIGHT);
-		stage.setWidth(DEFAULT_WIDTH);
-		stage.setHeight(DEFAULT_HEIGHT);
+		LOGGER.info("init size to {}x{}", settings.windowWidth().get(), settings.windowHeight().get());
+		stage.setWidth(settings.windowWidth().get());
+		stage.setHeight(settings.windowHeight().get());
+
+		if (settings.windowX().isNotEqualTo(-1).get()) {
+			stage.setX(settings.windowX().get());
+			stage.setY(settings.windowY().get());
+		}
 
 		if (stage.getWidth() > bounds.getWidth()
 				|| stage.getHeight() > bounds.getHeight()) {

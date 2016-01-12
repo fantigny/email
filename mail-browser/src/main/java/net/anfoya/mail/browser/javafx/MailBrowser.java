@@ -41,6 +41,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 
 	private final MailService<S, T, H, M, C> mailService;
 	private final NotificationService notificationService;
+	private final Settings settings;
 
 	private final FixedSplitPane splitPane;
 	private final SectionListPane<S, T> sectionListPane;
@@ -53,6 +54,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		super(new FixedSplitPane(), Color.TRANSPARENT);
 		this.mailService = mailService;
 		this.notificationService = notificationService;
+		this.settings = settings;
 
 		final UndoService undoService = new UndoService();
 
@@ -85,34 +87,28 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		threadPane.setOnUpdateThread(e -> refreshAfterThreadUpdate());
 		splitPane.getPanes().add(threadPane);
 
-		splitPane.setDividerPositions(200, 550);
+		splitPane.setDividerPositions(settings.firstDivider().get(), settings.secondDivider().get());
 		splitPane.setOnKeyPressed(e -> toggleViewMode(e));
 
-		splitPane.setResizableWithParent(threadPane);
+		setMode(Mode.valueOf(settings.browserMode().get()));
 	}
 
-	private void toggleViewMode(final KeyEvent e) {
-		final boolean left = e.getCode() == KeyCode.LEFT;
-		final boolean right = e.getCode() == KeyCode.RIGHT;
-		if (left || right) {
-			e.consume();
-		} else {
-			return;
-		}
-
-		final int nbVisible = splitPane.getVisiblePanes().size();
-		if (right && nbVisible == 2) {
+	public void setMode(Mode mode) {
+		switch(mode) {
+		case FULL:
 			splitPane.setVisiblePanes(sectionListPane, threadListPane, threadPane);
-		} else if (right && nbVisible == 1
-				|| left && nbVisible == 3) {
+			break;
+		case MINI:
 			splitPane.setVisiblePanes(sectionListPane, threadListPane);
-		} else if (left && nbVisible == 2) {
+			break;
+		case MICRO:
 			splitPane.setVisiblePanes(threadListPane);
-		} else {
-			return;
+			break;
 		}
-		getWindow().setWidth(splitPane.computeSize());
 		splitPane.setResizableWithParent(splitPane.getVisiblePanes().size() == 3? threadPane: threadListPane);
+		if (getWindow() != null) {
+			getWindow().setWidth(splitPane.computeSize());
+		}
 	}
 
 	public void setOnSignout(final EventHandler<ActionEvent> handler) {
@@ -144,7 +140,38 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		});
 	}
 
+	private void toggleViewMode(final KeyEvent e) {
+		final boolean left = e.getCode() == KeyCode.LEFT;
+		final boolean right = e.getCode() == KeyCode.RIGHT;
+		if (left || right) {
+			e.consume();
+		} else {
+			return;
+		}
+
+		final int nbVisible = splitPane.getVisiblePanes().size();
+		final Mode mode;
+		if (right && nbVisible == 2) {
+			mode = Mode.FULL;
+		} else if (right && nbVisible == 1
+				|| left && nbVisible == 3) {
+			mode = Mode.MINI;
+		} else if (left && nbVisible == 2) {
+			mode = Mode.MICRO;
+		} else {
+			return;
+		}
+		setMode(mode);
+		settings.browserMode().set(mode.toString());
+	}
+
+	//
+	//
+	//
 	//TODO controller
+	//
+	//
+	//
 
 	private final boolean refreshAfterTagSelected = true;
 	private final boolean refreshAfterThreadSelected = true;
@@ -287,5 +314,11 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 
 		sectionListPane.refreshAsync(() ->
 			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags()));
+	}
+
+	public void saveSettings() {
+		final double[] positions = splitPane.getDividerPositions();
+		settings.firstDivider().set(positions[0]);
+		settings.secondDivider().set(positions[1]);
 	}
 }
