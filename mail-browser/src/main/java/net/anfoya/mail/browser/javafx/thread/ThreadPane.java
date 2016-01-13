@@ -21,16 +21,18 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ScrollEvent;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import net.anfoya.java.undo.UndoService;
+import net.anfoya.java.util.VoidCallback;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.mail.browser.javafx.BrowserToolBar;
 import net.anfoya.mail.browser.javafx.message.MessagePane;
 import net.anfoya.mail.browser.javafx.settings.Settings;
+import net.anfoya.mail.browser.javafx.threadlist.ThreadToolBar;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
@@ -41,7 +43,7 @@ import net.anfoya.mail.service.Thread;
 import net.anfoya.tag.javafx.scene.section.SelectedTagsPane;
 import net.anfoya.tag.model.SpecialTag;
 
-public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends BorderPane {
+public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends VBox {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadPane.class);
 
     private static final String IMG_PATH = "/net/anfoya/mail/img/";
@@ -55,7 +57,9 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	private final UndoService undoService;
 	private final Settings settings;
 
-	private final BrowserToolBar<S, T, M, C> toolBar;
+	private final BrowserToolBar<S, T, M, C> browserToolBar;
+	private final ThreadToolBar threadToolBar;
+
 	private final HBox iconBox;
 	private final TextField subjectField;
 	private final SelectedTagsPane<T> tagsPane;
@@ -87,6 +91,10 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 
 		unread = mailService.getSpecialTag(SpecialTag.UNREAD);
 
+		threadToolBar = new ThreadToolBar();
+		threadToolBar.setFocusTraversable(false);
+		threadToolBar.setPadding(new Insets(0));
+
 		iconBox = new HBox(5);
 		iconBox.setAlignment(Pos.CENTER_LEFT);
 		iconBox.setPadding(new Insets(0,0,0, 5));
@@ -97,11 +105,11 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		subjectField.prefWidthProperty().bind(widthProperty());
 		subjectField.setEditable(false);
 
-		toolBar = new BrowserToolBar<S, T, M, C>(mailService, undoService, settings);
-		toolBar.setVisibles(false, true, true);
+		browserToolBar = new BrowserToolBar<S, T, M, C>(mailService, undoService, settings);
+		browserToolBar.setVisibles(false, true, true);
 
-		final HBox subjectBox = new HBox(iconBox, subjectField, toolBar);
-		setTop(subjectBox);
+		final HBox subjectBox = new HBox(iconBox, subjectField, browserToolBar);
+		getChildren().add(subjectBox);
 
 		scrollPane = new ScrollPane();
 		scrollPane.setFocusTraversable(false);
@@ -130,11 +138,12 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 
 		final StackPane stackPane = new StackPane(scrollPane);
 		stackPane.setAlignment(Pos.BOTTOM_CENTER);
-		setCenter(stackPane);
+		getChildren().add(stackPane);
+		VBox.setVgrow(stackPane, Priority.ALWAYS);
 
 		tagsPane = new SelectedTagsPane<T>();
 		tagsPane.setRemoveTagCallBack(t -> remove(threads, t, true));
-		setBottom(tagsPane);
+		getChildren().add(tagsPane);
 	}
 
 	public void setOnUpdateThread(final EventHandler<ActionEvent> handler) {
@@ -142,13 +151,16 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	}
 
 	public void setOnSignout(final EventHandler<ActionEvent> handler) {
-		toolBar.setOnSignout(handler);
+		browserToolBar.setOnSignout(handler);
 	}
 
 	public void refresh(final Set<H> threads, final boolean markRead) {
 		this.threads = threads;
 		this.markRead = markRead;
+		refresh();
+	}
 
+	public void refresh() {
 		refreshThread();
 		refreshIcons();
 		refreshSubject();
@@ -322,5 +334,46 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		});
 		ThreadPool.getDefault().submit(PoolPriority.MAX, desc, task);
 		return null;
+	}
+
+	public void setDetached(boolean detached) {
+		browserToolBar.setVisibles(false, !detached, !detached);
+		if (detached && !(getChildren().get(0) instanceof ThreadToolBar)) {
+			getChildren().add(0, threadToolBar);
+		} else if (!detached && getChildren().get(0) instanceof ThreadToolBar) {
+			getChildren().remove(0);
+		}
+	}
+
+	public boolean isDetached() {
+		return getChildren().get(1) instanceof ThreadToolBar;
+	}
+
+	public void setOnReply(VoidCallback<Set<H>> callback) {
+		threadToolBar.setOnReply(e -> callback.call(threads));
+	}
+
+	public void setOnReplyAll(VoidCallback<Set<H>> callback) {
+		threadToolBar.setOnReplyAll(e -> callback.call(threads));
+	}
+
+	public void setOnForward(VoidCallback<Set<H>> callback) {
+		threadToolBar.setOnForward(e -> callback.call(threads));
+	}
+
+	public void setOnToggleFlag(VoidCallback<Set<H>> callback) {
+		threadToolBar.setOnToggleFlag(e -> callback.call(threads));
+	}
+
+	public void setOnArchive(VoidCallback<Set<H>> callback) {
+		threadToolBar.setOnArchive(e -> callback.call(threads));
+	}
+
+	public void setOnTrash(VoidCallback<Set<H>> callback) {
+		threadToolBar.setOnTrash(e -> callback.call(threads));
+	}
+
+	public void setOnToggleSpam(VoidCallback<Set<H>> callback) {
+		threadToolBar.setOnSpam(e -> callback.call(threads));
 	}
 }

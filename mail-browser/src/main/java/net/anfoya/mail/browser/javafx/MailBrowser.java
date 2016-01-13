@@ -77,7 +77,6 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		threadListPane = new ThreadListPane<S, T, H, M, C>(mailService, undoService, settings);
 		threadListPane.prefHeightProperty().bind(splitPane.heightProperty());
 		threadListPane.setOnSelectThread(e -> refreshAfterThreadSelected());
-		threadListPane.setOnLoadThreadList(e -> refreshAfterThreadListLoad());
 		threadListPane.setOnUpdatePattern(e -> refreshAfterPatternUpdate());
 		threadListPane.setOnUpdateThread(e -> refreshAfterThreadUpdate());
 		splitPane.getPanes().add(threadListPane);
@@ -89,6 +88,12 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 
 		splitPane.setDividerPositions(settings.firstDivider().get(), settings.secondDivider().get());
 		splitPane.setOnKeyPressed(e -> toggleViewMode(e));
+
+		final Controller<S, T, H, M, C> controller = new Controller<S, T, H, M, C>(mailService, undoService, settings);
+		controller.setSectionListPane(sectionListPane);
+		controller.addThreadPane(threadPane);
+		controller.setThreadListPane(threadListPane);
+		controller.init();
 
 		setMode(Mode.valueOf(settings.browserMode().get()));
 	}
@@ -178,8 +183,6 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	private final boolean refreshAfterTagSelected = true;
 	private final boolean refreshAfterThreadSelected = true;
 	private final boolean refreshAfterMoreResultsSelected = true;
-
-	private final boolean refreshAfterThreadListLoad = true;
 
 	private final boolean refreshAfterTagUpdate = true;
 	private final boolean refreshAfterSectionUpdate = true;
@@ -271,22 +274,6 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		// update thread list with next page token
 		final GmailMoreThreads more = (GmailMoreThreads) threadListPane.getSelectedThreads().iterator().next();
 		threadListPane.refreshWithPage(more.getPage());
-	}
-
-	private void refreshAfterThreadListLoad() {
-		if (!refreshAfterThreadListLoad) {
-			return;
-		}
-		LOGGER.debug("refreshAfterThreadListLoad");
-
-		final boolean markRead = !sectionListPane.getIncludedOrSelectedTags().contains(mailService.getSpecialTag(SpecialTag.UNREAD));
-		threadPane.refresh(threadListPane.getSelectedThreads(), markRead);
-//		final String pattern = threadListPane.getNamePattern();
-//		if (pattern.isEmpty()) {
-			sectionListPane.updateItemCount(threadListPane.getThreadsTags(), threadListPane.getNamePattern(), true);
-//		} else {
-//			sectionListPane.refreshWithPattern(pattern);
-//		}
 	}
 
 	private void refreshAfterTagSelected() {

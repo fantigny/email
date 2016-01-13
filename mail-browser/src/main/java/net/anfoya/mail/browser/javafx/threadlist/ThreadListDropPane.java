@@ -6,7 +6,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
-import javafx.util.Callback;
+import net.anfoya.java.util.VoidCallback;
 import net.anfoya.javafx.scene.dnd.DropArea;
 import net.anfoya.mail.service.MailException;
 
@@ -45,7 +45,7 @@ public class ThreadListDropPane extends GridPane {
 		setMaxHeight(65 * row);
 	}
 
-	public void setOnReply(Callback<Boolean, Void> callback) {
+	public void setOnReply(VoidCallback<Boolean> callback) {
 		replyArea.setDropHandler(e -> callback.call(false));
 		replyAllArea.setDropHandler(e -> callback.call(true));
 	}

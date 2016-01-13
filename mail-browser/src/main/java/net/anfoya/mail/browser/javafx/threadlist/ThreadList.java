@@ -24,30 +24,20 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
-import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
-import net.anfoya.mail.browser.javafx.message.MailReader;
-import net.anfoya.mail.browser.javafx.settings.Settings;
-import net.anfoya.mail.composer.javafx.MailComposer;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
 import net.anfoya.mail.model.SimpleThread.SortOrder;
-import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
-import net.anfoya.mail.service.Message;
-import net.anfoya.mail.service.Section;
 import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
 import net.anfoya.tag.model.SpecialTag;
 
-public class ThreadList<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends ListView<H> {
+public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadList.class);
 
-	private final MailService<S, T, H, M, C> mailService;
-	private final UndoService undoService;
-	private final Settings settings;
+	private final MailService<?, T, H, ?, ?> mailService;
 
 	private Set<T> includes;
 	private Set<T> excludes;
@@ -69,14 +59,10 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 	private final T sent;
 	private final T draft;
 
-	public ThreadList(final MailService<S, T, H, M, C> mailService
-			, UndoService undoService
-			, final Settings settings) {
+	public ThreadList(final MailService<?, T, H, ?, ?> mailService) {
         getStyleClass().add("thread-list");
         setPlaceholder(new Label("empty"));
 		this.mailService = mailService;
-		this.undoService = undoService;
-		this.settings = settings;
 
 		includes = new LinkedHashSet<T>();
 		excludes = new LinkedHashSet<T>();
@@ -90,7 +76,6 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 		draft = mailService.getSpecialTag(SpecialTag.DRAFT);
 
 		setOnKeyPressed(e -> handleKey(e));
-		setOnMousePressed(e -> handleMouse(e));
 
 		getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 		getSelectionModel().selectedIndexProperty().addListener((ov, o, n) -> checkForSelection(o.intValue(), n.intValue()));
@@ -102,33 +87,6 @@ public class ThreadList<S extends Section, T extends Tag, H extends Thread, M ex
 		if (e.getCode() == KeyCode.BACK_SPACE
 				|| e.getCode() == KeyCode.DELETE) {
 			archive();
-		}
-	}
-
-	private void handleMouse(MouseEvent e) {
-		if (e.getClickCount() == 2) {
-			e.consume();
-		} else {
-			return;
-		}
-
-		final Set<H> threads = getSelectedThreads();
-		if (threads.isEmpty()) {
-			return;
-		}
-		final boolean isDraft = includes.contains(draft);
-		for(final H t: threads) {
-			if (isDraft) {
-				new MailComposer<M, C>(mailService, updateHandler, settings)
-					.editOrReply(t.getLastMessageId(), settings.replyAllDblClick().get());
-			} else {
-				new MailReader<S, T, H, M, C>(mailService
-						, undoService
-						, settings
-						, threads.iterator().next()
-						, updateHandler).show();
-			}
-
 		}
 	}
 

@@ -10,7 +10,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 
-public class ThreadListToolBar extends ToolBar {
+public class ThreadToolBar extends ToolBar {
 
 	private final Button replyButton;
 	private final Button replyAllButton;
@@ -20,7 +20,7 @@ public class ThreadListToolBar extends ToolBar {
 	private final Button trashButton;
 	private final Button spamButton;
 
-	public ThreadListToolBar() {
+	public ThreadToolBar() {
 		setMinHeight(27);
 		setMaxHeight(27);
 
