@@ -8,9 +8,6 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javafx.animation.Interpolator;
-import javafx.animation.RotateTransition;
-import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
@@ -19,10 +16,8 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ScrollEvent;
@@ -30,13 +25,12 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.util.Duration;
 import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
+import net.anfoya.mail.browser.javafx.BrowserToolBar;
 import net.anfoya.mail.browser.javafx.message.MessagePane;
 import net.anfoya.mail.browser.javafx.settings.Settings;
-import net.anfoya.mail.browser.javafx.settings.SettingsDialog;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
@@ -51,9 +45,6 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadPane.class);
 
     private static final String IMG_PATH = "/net/anfoya/mail/img/";
-    private static final String SETTINGS_PNG = ThreadPane.class.getResource(IMG_PATH + "settings.png").toExternalForm();
-    private static final String SIGNOUT_PNG = ThreadPane.class.getResource(IMG_PATH + "signout.png").toExternalForm();
-
     private static final String FLAG_PNG = ThreadPane.class.getResource(IMG_PATH + "mini_flag.png").toExternalForm();
     private static final String ATTACH_PNG = ThreadPane.class.getResource(IMG_PATH + "mini_attach.png").toExternalForm();
 
@@ -64,6 +55,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	private final UndoService undoService;
 	private final Settings settings;
 
+	private final BrowserToolBar<S, T, M, C> toolBar;
 	private final HBox iconBox;
 	private final TextField subjectField;
 	private final SelectedTagsPane<T> tagsPane;
@@ -80,9 +72,6 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	private final T unread;
 
 	private EventHandler<ActionEvent> updateHandler;
-	private EventHandler<ActionEvent> signoutHandler;
-
-	private SettingsDialog<S, T> settingsDialog;
 
 	private boolean markRead;
 
@@ -108,43 +97,10 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		subjectField.prefWidthProperty().bind(widthProperty());
 		subjectField.setEditable(false);
 
-		final Button settingsButton = new Button();
-		settingsButton.getStyleClass().add("flat-button");
-		settingsButton.setFocusTraversable(false);
-		settingsButton.setGraphic(new ImageView(new Image(SETTINGS_PNG)));
-		settingsButton.setTooltip(new Tooltip("settings"));
-		settingsButton.setOnAction(e -> showSettings(settings));
+		toolBar = new BrowserToolBar<S, T, M, C>(mailService, undoService, settings);
+		toolBar.setVisibles(false, true, true);
 
-		final Node graphics = settingsButton.getGraphic();
-
-		final RotateTransition rotateTransition = new RotateTransition(Duration.seconds(1), graphics);
-		rotateTransition.setByAngle(360);
-		rotateTransition.setCycleCount(Timeline.INDEFINITE);
-		rotateTransition.setInterpolator(Interpolator.EASE_IN);
-
-		final RotateTransition stopRotateTransition = new RotateTransition(Duration.INDEFINITE, graphics);
-		rotateTransition.setInterpolator(Interpolator.EASE_OUT);
-
-		ThreadPool.getDefault().setOnChange(PoolPriority.MAX, map -> {
-			if (map.isEmpty()) {
-				rotateTransition.stop();
-				stopRotateTransition.setByAngle(360d - graphics.getRotate() % 360d);
-				stopRotateTransition.setDuration(Duration.seconds(.5 * stopRotateTransition.getByAngle() / 360d));
-				stopRotateTransition.play();
-			} else {
-				stopRotateTransition.stop();
-				rotateTransition.play();
-			}
-		});
-
-		final Button signoutButton = new Button();
-		signoutButton.getStyleClass().add("flat-button");
-		signoutButton.setFocusTraversable(false);
-		signoutButton.setGraphic(new ImageView(new Image(SIGNOUT_PNG)));
-		signoutButton.setTooltip(new Tooltip("sign out"));
-		signoutButton.setOnAction(e -> signoutHandler.handle(null));
-
-		final HBox subjectBox = new HBox(iconBox, subjectField, settingsButton, signoutButton);
+		final HBox subjectBox = new HBox(iconBox, subjectField, toolBar);
 		setTop(subjectBox);
 
 		scrollPane = new ScrollPane();
@@ -181,22 +137,12 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		setBottom(tagsPane);
 	}
 
-	private void showSettings(final Settings settings) {
-		if (settingsDialog == null
-				|| !settingsDialog.isShowing()) {
-			settingsDialog = new SettingsDialog<S, T>(mailService, undoService, settings);
-			settingsDialog.show();
-		}
-		settingsDialog.toFront();
-		settingsDialog.requestFocus();
-	}
-
 	public void setOnUpdateThread(final EventHandler<ActionEvent> handler) {
 		this.updateHandler = handler;
 	}
 
 	public void setOnSignout(final EventHandler<ActionEvent> handler) {
-		signoutHandler = handler;
+		toolBar.setOnSignout(handler);
 	}
 
 	public void refresh(final Set<H> threads, final boolean markRead) {

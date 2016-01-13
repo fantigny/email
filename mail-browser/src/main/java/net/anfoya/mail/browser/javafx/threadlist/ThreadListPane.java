@@ -16,14 +16,11 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
@@ -42,6 +39,8 @@ import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.javafx.scene.animation.DelayTimeline;
 import net.anfoya.javafx.scene.control.ResetTextField;
 import net.anfoya.javafx.scene.dnd.DndHelper;
+import net.anfoya.mail.browser.javafx.BrowserToolBar;
+import net.anfoya.mail.browser.javafx.MailBrowser.Mode;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.composer.javafx.MailComposer;
 import net.anfoya.mail.model.SimpleThread.SortOrder;
@@ -67,14 +66,15 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	private final ThreadList<S, T, H, M, C> threadList;
 	private final ResetTextField patternField;
 
+	private final BrowserToolBar<S, T, M, C> toolBar;
+	private final ThreadListDropPane threadListDropPane;
+
 	private final T inbox;
 	private final T spam;
 	private final T trash;
 	private final T flagged;
 
 	private DelayTimeline patternDelay;
-
-	private final ThreadListDropPane threadListDropPane;
 
 	private EventHandler<ActionEvent> updateHandler;
 	private S currentSection;
@@ -140,23 +140,13 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		centerPane.getChildren().add(new UndoPane(undoService));
 		centerPane.getChildren().add(new DisconnectedPane(mailService));
 
-		final Button newButton = new Button();
-		newButton.getStyleClass().add("flat-button");
-		newButton.setFocusTraversable(false);
-		newButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/img/new.png"))));
-		newButton.setTooltip(new Tooltip("new"));
-		newButton.setOnAction(event -> {
-			try {
-				new MailComposer<M, C>(mailService, updateHandler, settings).newMessage("");
-			} catch (final Exception e) {
-				LOGGER.error("load new message composer", e);
-			}
-		});
-
 		final VBox topBox = new VBox();
 		setTop(topBox);
 
-		final HBox firstLineBox = new HBox(patternField, newButton);
+		toolBar = new BrowserToolBar<S, T, M, C>(mailService, undoService, settings);
+		toolBar.setVisibles(true, false, false);
+
+		final HBox firstLineBox = new HBox(patternField, toolBar);
 		firstLineBox.setAlignment(Pos.CENTER_LEFT);
 		HBox.setHgrow(patternField, Priority.ALWAYS);
 		topBox.getChildren().add(firstLineBox);
@@ -471,9 +461,18 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	public void setOnUpdateThread(final EventHandler<ActionEvent> handler) {
 		updateHandler = handler;
 		threadList.setOnUpdate(handler);
+		toolBar.setOnNewThread(handler);
 	}
 
 	public void setCurrentSection(final S section) {
 		currentSection = section;
+	}
+
+	public void setMode(Mode mode) {
+		if (mode == Mode.FULL) {
+			toolBar.setVisibles(true, false, false);
+		} else {
+			toolBar.setVisibles(true, true, true);
+		}
 	}
 }

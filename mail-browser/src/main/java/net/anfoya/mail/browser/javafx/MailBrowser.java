@@ -109,6 +109,8 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		if (getWindow() != null) {
 			getWindow().setWidth(splitPane.computeSize());
 		}
+
+		threadListPane.setMode(mode);
 	}
 
 	public void setOnSignout(final EventHandler<ActionEvent> handler) {
