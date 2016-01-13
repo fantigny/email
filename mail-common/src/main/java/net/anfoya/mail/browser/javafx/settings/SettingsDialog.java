@@ -76,7 +76,7 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 			, final Settings settings) {
 		initStyle(StageStyle.UNIFIED);
 		setTitle("FisherMail - profile");
-		setOnCloseRequest(e -> settings.save());
+		setOnCloseRequest(e -> settings.saveLater());
 
 		this.mailService = mailService;
 		this.undoService = undoService;

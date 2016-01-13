@@ -171,7 +171,7 @@ public class MailClient extends Application {
 			settings.windowHeight().set(stage.getHeight());
 			settings.windowX().set(stage.getX());
 			settings.windowY().set(stage.getY());
-			settings.save();
+			settings.saveNow();
 		});
 
 		initTitle(stage);

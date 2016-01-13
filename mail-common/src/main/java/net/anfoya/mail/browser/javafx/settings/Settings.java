@@ -175,7 +175,7 @@ public class Settings implements Serializable {
 		}
 	}
 
-	public void save() {
+	public void saveNow() {
 		date.set(Calendar.getInstance().getTimeInMillis());
 
 		try {
@@ -185,20 +185,22 @@ public class Settings implements Serializable {
 		}
 
 		if (globalSettings.get()) {
-			ThreadPool.getDefault().submit(PoolPriority.MIN, "save global settings", () -> {
-				try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-						ObjectOutputStream oos = new ObjectOutputStream(bos)) {
-					oos.writeObject(toList());
-					mailService.persistBytes(PERSISTENT_ID, bos.toByteArray());
-				} catch (final Exception e) {
-					LOGGER.error("saving global settings", e);
-				}
-			});
+			try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+					ObjectOutputStream oos = new ObjectOutputStream(bos)) {
+				oos.writeObject(toList());
+				mailService.persistBytes(PERSISTENT_ID, bos.toByteArray());
+			} catch (final Exception e) {
+				LOGGER.error("saving global settings", e);
+			}
 		}
 	}
 
+	public void saveLater() {
+		ThreadPool.getDefault().submit(PoolPriority.MIN, "save global settings", () -> saveNow());
+	}
+
 	public void reset() {
-		new Settings(mailService).save();
+		new Settings(mailService).saveNow();
 		load();
 	}
 
