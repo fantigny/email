@@ -65,6 +65,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		splitPane.getStyleClass().add("background");
 
 		sectionListPane = new SectionListPane<S, T>(mailService, undoService, settings.showExcludeBox().get());
+		sectionListPane.setPrefWidth(settings.sectionListPaneWidth().get());
 		sectionListPane.setFocusTraversable(false);
 		sectionListPane.setSectionDisableWhenZero(false);
 		sectionListPane.setLazyCount(true);
@@ -75,6 +76,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		splitPane.getPanes().add(sectionListPane);
 
 		threadListPane = new ThreadListPane<S, T, H, M, C>(mailService, undoService, settings);
+		threadListPane.setPrefWidth(settings.threadListPaneWidth().get());
 		threadListPane.prefHeightProperty().bind(splitPane.heightProperty());
 		threadListPane.setOnSelectThread(e -> refreshAfterThreadSelected());
 		threadListPane.setOnUpdatePattern(e -> refreshAfterPatternUpdate());
@@ -82,11 +84,11 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		splitPane.getPanes().add(threadListPane);
 
 		threadPane = new ThreadPane<S, T, H, M, C>(mailService, undoService, settings);
+		threadPane.setPrefWidth(settings.threadPaneWidth().get());
 		threadPane.setFocusTraversable(false);
 		threadPane.setOnUpdateThread(e -> refreshAfterThreadUpdate());
 		splitPane.getPanes().add(threadPane);
 
-		splitPane.setDividerPositions(settings.firstDivider().get(), settings.secondDivider().get());
 		splitPane.setOnKeyPressed(e -> toggleViewMode(e));
 
 		final Controller<S, T, H, M, C> controller = new Controller<S, T, H, M, C>(mailService, undoService, settings);
@@ -306,8 +308,8 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	}
 
 	public void saveSettings() {
-		final double[] positions = splitPane.getDividerPositions();
-		settings.firstDivider().set(positions[0]);
-		settings.secondDivider().set(positions[1]);
+		settings.sectionListPaneWidth().set(sectionListPane.getWidth());
+		settings.threadListPaneWidth().set(threadListPane.getWidth());
+		settings.threadPaneWidth().set(threadPane.getWidth());
 	}
 }

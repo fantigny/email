@@ -52,6 +52,10 @@ public class FixedSplitPane extends HBox {
 			if (index.getAndIncrement() > 0) {
 				getChildren().add(new Divider(index.get()-2));
 			}
+			if (p != resizable) {
+				p.setMinWidth(p.getPrefWidth());
+				p.setMaxWidth(p.getPrefWidth());
+			}
 			p.managedProperty().bind(p.visibleProperty());
 			getChildren().add(p);
 		});
@@ -62,12 +66,46 @@ public class FixedSplitPane extends HBox {
 			return;
 		}
 		final int index = ((Divider)event.getSource()).getIndex();
-		final double[] positions = getDividerPositions();
-		final double minPos = 50 + (index == 0? 0: positions[index-1]);
-		final double maxPos = (index == positions.length-1? getScene().getWindow().getWidth(): positions[index+1]) - 50;
-		final double pos = Math.min(maxPos, Math.max(minPos, positions[index] + event.getX()));
-		setDividerPosition(index, pos);
+		Pane before = null;
+		for(int i = index; i>=0; i--) {
+			if (panes.get(i).isVisible()) {
+				before = panes.get(i);
+				break;
+			}
+		}
+		if (before == null) {
+			return;
+		}
+		Pane after = null;
+		for(int i = index+1; i<panes.size(); i++) {
+			if (panes.get(i).isVisible()) {
+				after = panes.get(i);
+				break;
+			}
+		}
+		if (after == null) {
+			return;
+		}
+
+		double minWidth = 50;
+		double maxWidth = before.getWidth() + after.getWidth() - minWidth;
+		
+		double widthBefore = Math.min(maxWidth, Math.max(minWidth, before.getWidth() + event.getX()));
+		double widthAfter = Math.min(maxWidth, Math.max(minWidth, after.getWidth() - event.getX()));
+		
+		setPaneWidth(before, widthBefore);
+		setPaneWidth(after, widthAfter);
+		
 		event.consume();
+	}
+	
+	private void setPaneWidth(Pane pane, double width) {
+		if (pane == resizable) {
+			pane.setPrefWidth(width);
+		} else {
+			pane.setMinWidth(width);
+			pane.setMaxWidth(width);
+		}
 	}
 
 	public ObservableList<Pane> getPanes() {
@@ -81,80 +119,22 @@ public class FixedSplitPane extends HBox {
 			hidden.remove(p);
 		});
 		hidden.forEach(p -> p.setVisible(false));
-		if (resizable != null && !resizable.isVisible()) {
-			resizable = null;
-		}
-		setDividerPositions(getDividerPositions());
+		getPanes().forEach(p -> setPaneWidth(p, p.getPrefWidth()));
 	}
 
 	public List<Pane> getVisiblePanes() {
 		return getPanes().parallelStream().filter(p -> p.isVisible()).collect(Collectors.toList());
 	}
 
-	public void setDividerPositions(double... positions) {
-		if (positions.length < getPanes().size() - 1) {
-			final double[] partial = positions;
-			positions = getDividerPositions();
-			for(int i=0; i<=partial.length ; i++) {
-				positions[i] = partial[i];
-			}
-		}
-
-		final double[] widths = new double[positions.length+1];
-		double accumulator = 0;
-		for(int i=0; i<positions.length; i++) {
-			final Pane pane = getPanes().get(i);
-			if (pane.isVisible()) {
-				widths[i] = positions[i] - accumulator;
-			} else {
-				widths[i] = 0;
-			}
-			accumulator += widths[i];
-		}
-		widths[positions.length] = getWidth() == 0? 0: getWidth() - accumulator;
-
-		final Pane resizable = getResizableWithParent();
-		for(int i=0; i<widths.length ; i++) {
-			final double width = widths[i];
-			if (width != 0) {
-				final Pane pane = getPanes().get(i);
-				pane.setPrefWidth(width);
-				if (pane != resizable) {
-					pane.setMinWidth(width);
-					pane.setMaxWidth(width);
-				}
-			}
-		}
-	}
-
-	public void setDividerPosition(int divIndex, double position) {
-		final double[] positions = getDividerPositions();
-		positions[divIndex] = position;
-		setDividerPositions(positions);
-	}
-
-	public double[] getDividerPositions() {
-		double accumulator = 0;
-		final double[] positions = new double[panes.size() - 1];
-		for(int i=0; i<positions.length; i++) {
-			positions[i] = accumulator + panes.get(i).getWidth();
-			accumulator += positions[i];
-		}
-		return positions;
-	}
-
-	private Pane getResizableWithParent() {
-		Pane resizable = this.resizable;
-		if (resizable == null) {
-			resizable = getPanes().get(getPanes().size() - 1);
-			resizable.setMinWidth(Pane.USE_COMPUTED_SIZE);
-			resizable.setMaxWidth(Double.MAX_VALUE);
-			resizable.requestLayout();
-		}
-		return resizable;
-	}
-
 	public void setResizableWithParent(Pane pane) {
+		if (resizable == pane) {
+			return;
+		}
+		
+		if (resizable != null) {
+			resizable.setMinWidth(resizable.getWidth());
+			resizable.setMaxWidth(resizable.getWidth());
+		}
 		resizable = pane;
 		getChildren().forEach(p -> HBox.setHgrow(p, p == resizable? Priority.ALWAYS: null));
 		if (resizable != null) {
