@@ -3,6 +3,7 @@ package net.anfoya.javafx.scene.layout;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import javafx.collections.FXCollections;
@@ -17,15 +18,21 @@ import javafx.scene.layout.Region;
 
 public class FixedSplitPane extends HBox {
 	private class Divider extends Region {
-		public Divider() {
+		private final int index;
+		public Divider(int index) {
+			this.index = index;
 			getStyleClass().add("split-pane-divider");
 			setCursor(Cursor.H_RESIZE);
+			prefHeightProperty().bind(FixedSplitPane.this.heightProperty());
+			setOnMouseDragged(e -> moveDiv(e));
+		}
+		public int getIndex() {
+			return index;
 		}
 	}
 	private final ObservableList<Pane> panes;
 
 	private Pane resizable;
-	private int moveDivIndex;
 	private double dividerWidth;
 
 	public FixedSplitPane() {
@@ -36,61 +43,31 @@ public class FixedSplitPane extends HBox {
 
 		dividerWidth = 0;
 		resizable = null;
-		moveDivIndex = -1;
 	}
 
 	private void updateChildren() {
 		getChildren().clear();
+		AtomicInteger index = new AtomicInteger(0);
 		panes.forEach(p -> {
-			if (!getChildren().isEmpty()) {
-				getChildren().add(createDivider());
+			if (index.getAndIncrement() > 0) {
+				getChildren().add(new Divider(index.get()-2));
 			}
-			getChildren().add(p);
-			p.managedProperty().unbind();
 			p.managedProperty().bind(p.visibleProperty());
+			getChildren().add(p);
 		});
-		panes.forEach(p -> p.requestLayout());
 	}
 
-	private Divider createDivider() {
-		final Divider label = new Divider();
-		label.prefHeightProperty().bind(heightProperty());
-		label.setOnMousePressed(e -> prepareMoveDiv(e));
-		label.setOnMouseDragged(e -> moveDiv(e));
-		label.setOnMouseReleased(e -> stopMoveDiv(e));
-		label.managedProperty().bind(label.visibleProperty());
-
-		return label;
-	}
-
-	private void stopMoveDiv(MouseEvent e) {
-		moveDivIndex = -1;
-		e.consume();
-	}
-
-	private void prepareMoveDiv(MouseEvent e) {
-		if (!e.isPrimaryButtonDown()) {
+	private void moveDiv(MouseEvent event) {
+		if (!event.isPrimaryButtonDown()) {
 			return;
 		}
-		moveDivIndex = -1;
-		for(int i=0; i<getChildren().size(); i++) {
-			if (getChildren().get(i) == e.getSource()) {
-				moveDivIndex = i / 2;
-				break;
-			}
-		}
-		e.consume();
-	}
-
-	private void moveDiv(MouseEvent e) {
-		if (moveDivIndex != -1) {
-			final double[] positions = getDividerPositions();
-			final double minPos = 50 + (moveDivIndex == 0? 0: positions[moveDivIndex-1]);
-			final double maxPos = (moveDivIndex == positions.length-1? getScene().getWindow().getWidth(): positions[moveDivIndex+1]) - 50;
-			final double pos = Math.min(maxPos, Math.max(minPos, positions[moveDivIndex] + e.getX()));
-			setDividerPosition(moveDivIndex, pos);
-		}
-		e.consume();
+		final int index = ((Divider)event.getSource()).getIndex();
+		final double[] positions = getDividerPositions();
+		final double minPos = 50 + (index == 0? 0: positions[index-1]);
+		final double maxPos = (index == positions.length-1? getScene().getWindow().getWidth(): positions[index+1]) - 50;
+		final double pos = Math.min(maxPos, Math.max(minPos, positions[index] + event.getX()));
+		setDividerPosition(index, pos);
+		event.consume();
 	}
 
 	public ObservableList<Pane> getPanes() {
