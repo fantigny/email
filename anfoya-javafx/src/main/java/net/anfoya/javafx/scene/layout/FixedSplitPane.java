@@ -9,13 +9,19 @@ import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.scene.Cursor;
-import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 
 public class FixedSplitPane extends HBox {
+	private class Divider extends Region {
+		public Divider() {
+			getStyleClass().add("split-pane-divider");
+			setCursor(Cursor.H_RESIZE);
+		}
+	}
 	private final ObservableList<Pane> panes;
 
 	private Pane resizable;
@@ -46,11 +52,9 @@ public class FixedSplitPane extends HBox {
 		panes.forEach(p -> p.requestLayout());
 	}
 
-	private Label createDivider() {
-		final Label label = new Label();
-		label.getStyleClass().add("split-pane-divider");
+	private Divider createDivider() {
+		final Divider label = new Divider();
 		label.prefHeightProperty().bind(heightProperty());
-		label.setCursor(Cursor.H_RESIZE);
 		label.setOnMousePressed(e -> prepareMoveDiv(e));
 		label.setOnMouseDragged(e -> moveDiv(e));
 		label.setOnMouseReleased(e -> stopMoveDiv(e));
@@ -185,7 +189,7 @@ public class FixedSplitPane extends HBox {
 
 	public double getDividerWidth() {
 		if (dividerWidth == 0 && getPanes().size() > 1) {
-			dividerWidth = ((Label)getChildren().get(1)).getWidth();
+			dividerWidth = ((Divider)getChildren().get(1)).getWidth();
 		}
 		return dividerWidth;
 	}
@@ -194,7 +198,7 @@ public class FixedSplitPane extends HBox {
 		return getChildren()
 				.parallelStream()
 				.filter(n -> n.isVisible())
-				.mapToDouble(n -> n instanceof Label? getDividerWidth(): ((Pane) n).getWidth())
+				.mapToDouble(n -> n instanceof Divider? getDividerWidth(): ((Pane) n).getWidth())
 				.sum();
 	}
 }
