@@ -13,6 +13,7 @@ import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
+import javafx.stage.Stage;
 import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
@@ -97,10 +98,16 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		controller.setThreadListPane(threadListPane);
 		controller.init();
 
-		setMode(Mode.valueOf(settings.browserMode().get()));
+		windowProperty().addListener((ov, o, n) -> {
+			if (n != null) {
+				setMode(Mode.valueOf(settings.browserMode().get()));
+			}
+		});
 	}
 
 	public void setMode(Mode mode) {
+		threadListPane.setMode(mode);
+
 		switch(mode) {
 		case FULL:
 			splitPane.setVisiblePanes(sectionListPane, threadListPane, threadPane);
@@ -114,10 +121,9 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		}
 		splitPane.setResizableWithParent(splitPane.getVisiblePanes().size() == 3? threadPane: threadListPane);
 		if (getWindow() != null) {
-			getWindow().setWidth(splitPane.computeSize());
+			((Stage)getWindow()).setWidth(splitPane.computePrefWidth());
+			((Stage)getWindow()).setMinWidth(splitPane.computeMinWidth());
 		}
-
-		threadListPane.setMode(mode);
 	}
 
 	public void setOnSignout(final EventHandler<ActionEvent> handler) {
