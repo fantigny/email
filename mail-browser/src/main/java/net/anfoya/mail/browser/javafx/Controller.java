@@ -19,6 +19,7 @@ import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
 import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
 import net.anfoya.mail.composer.javafx.MailComposer;
+import net.anfoya.mail.gmail.model.GmailMoreThreads;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.Message;
@@ -41,10 +42,10 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 	private final T spam;
 	private final T unread;
 
+	private MailBrowser<S, T, H, M, C> mailBrowser;
 	private SectionListPane<S, T> sectionListPane;
 	private ThreadListPane<S, T, H, M, C> threadListPane;
 	private final List<ThreadPane<S, T, H, M, C>> threadPanes;
-
 
 	public Controller(MailService<S, T, H, M, C> mailService, UndoService undoService, Settings settings) {
 		this.mailService = mailService;
@@ -61,6 +62,28 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 	}
 
 	public void init() {
+		sectionListPane.setOnUpdateSection(e -> refreshAfterSectionUpdate());
+		sectionListPane.setOnSelectSection(e -> refreshAfterSectionSelect());
+		sectionListPane.setOnUpdateTag(e -> refreshAfterTagUpdate());
+		sectionListPane.setOnSelectTag(e -> refreshAfterTagSelected());
+
+		threadListPane.setOnArchive(threads -> archive(threads));
+		threadListPane.setOnReply(threads -> reply(false, threads));
+		threadListPane.setOnReplyAll(threads -> reply(true, threads));
+		threadListPane.setOnForward(threads -> forward(threads));
+		threadListPane.setOnToggleFlag(threads -> toggleFlag(threads));
+		threadListPane.setOnArchive(threads -> archive(threads));
+		threadListPane.setOnTrash(threads -> trash(threads));
+		threadListPane.setOnToggleSpam(threads -> toggleSpam(threads));
+
+		threadListPane.setOnAddReader(threadPane -> threadPanes.add(threadPane));
+		threadListPane.setOnRemoveReader(threadPane -> threadPanes.remove(threadPane));
+
+		threadListPane.setOnLoadThreadList(e -> refreshAfterThreadListLoad());
+		threadListPane.setOnSelectThread(e -> refreshAfterThreadSelected());
+		threadListPane.setOnUpdatePattern(e -> refreshAfterPatternUpdate());
+		threadListPane.setOnUpdateThread(e -> refreshAfterThreadUpdate());
+
 		threadPanes
 			.parallelStream()
 			.forEach(p -> {
@@ -73,18 +96,6 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 				p.setOnTrash(threads -> trash(threads));
 				p.setOnToggleSpam(threads -> toggleSpam(threads));
 			});
-
-		threadListPane.setOnArchive(threads -> archive(threads));
-		threadListPane.setOnReply(threads -> reply(false, threads));
-		threadListPane.setOnReplyAll(threads -> reply(true, threads));
-		threadListPane.setOnForward(threads -> forward(threads));
-		threadListPane.setOnToggleFlag(threads -> toggleFlag(threads));
-		threadListPane.setOnArchive(threads -> archive(threads));
-		threadListPane.setOnTrash(threads -> trash(threads));
-		threadListPane.setOnToggleSpam(threads -> toggleSpam(threads));
-
-		threadListPane.setOnAddReader(threadPane -> threadPanes.add(threadPane));
-		threadListPane.setOnLoadThreadList(e -> refreshAfterThreadListLoad());
 	}
 
 	public void addThreadPane(ThreadPane<S, T, H, M, C> threadPane) {
@@ -327,6 +338,92 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 //		} else {
 //			sectionListPane.refreshWithPattern(pattern);
 //		}
+	}
+
+	private void refreshAfterSectionUpdate() {
+		if (!refreshAfterSectionUpdate) {
+			return;
+		}
+		LOGGER.debug("refreshAfterSectionUpdate");
+
+		sectionListPane.refreshAsync(() ->
+			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags()));
+	}
+
+	private void refreshAfterSectionSelect() {
+		if (!refreshAfterSectionSelect) {
+			return;
+		}
+		LOGGER.debug("refreshAfterSectionSelect");
+
+		threadListPane.setCurrentSection(sectionListPane.getSelectedSection());
+	}
+
+	private void refreshAfterTagUpdate() {
+		if (!refreshAfterTagUpdate) {
+			return;
+		}
+		LOGGER.debug("refreshAfterTagUpdate");
+
+		sectionListPane.refreshAsync(() ->
+			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags()));
+	}
+
+	private void refreshAfterTagSelected() {
+		if (!refreshAfterTagSelected) {
+			return;
+		}
+		LOGGER.debug("refreshAfterTagSelected");
+
+		threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
+	}
+
+	private void refreshAfterThreadSelected() {
+		if (!refreshAfterThreadSelected) {
+			return;
+		}
+		LOGGER.debug("refreshAfterThreadSelected");
+
+		if (!mailBrowser.isFull()) {
+			return;
+		}
+
+		final Set<H> threads = threadListPane.getSelectedThreads();
+		if (threads.size() == 1 && threads.iterator().next() instanceof GmailMoreThreads) {
+			refreshAfterMoreThreadsSelected();
+			return;
+		}
+
+		// update thread details when (a) thread(s) is/are selected
+		final boolean markRead = !sectionListPane.getIncludedOrSelectedTags().contains(mailService.getSpecialTag(SpecialTag.UNREAD));
+		threadPanes
+			.parallelStream()
+			.forEach(p -> p.refresh(threadListPane.getSelectedThreads(), markRead));
+	}
+
+	private void refreshAfterMoreThreadsSelected() {
+		if (!refreshAfterMoreResultsSelected) {
+			return;
+		}
+		LOGGER.debug("refreshAfterMoreResultsSelected");
+
+		// update thread list with next page token
+		final GmailMoreThreads more = (GmailMoreThreads) threadListPane.getSelectedThreads().iterator().next();
+		threadListPane.refreshWithPage(more.getPage());
+	}
+
+	private void refreshAfterPatternUpdate() {
+		if (!refreshAfterPatternUpdate) {
+			return;
+		}
+		LOGGER.debug("refreshAfterPatternUpdate");
+
+		sectionListPane.refreshAsync(() ->
+			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags()));
+	}
+
+	public void setMailBrowser(MailBrowser<S, T, H, M, C> mailBrowser) {
+		this.mailBrowser = mailBrowser;
 	}
 
 }

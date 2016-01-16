@@ -89,8 +89,10 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	private VoidCallback<Set<H>> trash;
 	private VoidCallback<Set<H>> toggleSpam;
 
-	private VoidCallback<ThreadPane<S, T, H, M, C>> onAddReader;
+	private VoidCallback<ThreadPane<S, T, H, M, C>> addReader;
+	private VoidCallback<ThreadPane<S, T, H, M, C>> removeReader;
 
+	//TODO *** start here ***
 	private EventHandler<ActionEvent> updateHandler;
 
 	public ThreadListPane(final MailService<S, T, H, M, C> mailService
@@ -261,8 +263,10 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 				pane.setOnTrash(tSet -> trash.call(tSet));
 				pane.setOnToggleSpam(tSet -> toggleSpam.call(tSet));
 
-				onAddReader.call(pane);
-				new MailReader(pane).show();
+				addReader.call(pane);
+				final MailReader mailReader = new MailReader(pane);
+				mailReader.show();
+				mailReader.setOnHidden(ev -> removeReader.call(pane));
 				pane.refresh(threads, true);
 			}
 		}
@@ -446,6 +450,10 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	}
 
 	public void setOnAddReader(VoidCallback<ThreadPane<S, T, H, M, C>> callback) {
-		onAddReader = callback;
+		addReader = callback;
+	}
+
+	public void setOnRemoveReader(VoidCallback<ThreadPane<S, T, H, M, C>> callback) {
+		removeReader = callback;
 	}
 }

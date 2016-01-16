@@ -22,7 +22,6 @@ import net.anfoya.mail.browser.javafx.css.StyleHelper;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
 import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
-import net.anfoya.mail.gmail.model.GmailMoreThreads;
 import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
@@ -68,17 +67,10 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		sectionListPane.setFocusTraversable(false);
 		sectionListPane.setSectionDisableWhenZero(false);
 		sectionListPane.setLazyCount(true);
-		sectionListPane.setOnSelectTag(e -> refreshAfterTagSelected());
-		sectionListPane.setOnSelectSection(e -> refreshAfterSectionSelect());
-		sectionListPane.setOnUpdateSection(e -> refreshAfterSectionUpdate());
-		sectionListPane.setOnUpdateTag(e -> refreshAfterTagUpdate());
 		splitPane.getPanes().add(sectionListPane);
 
 		threadListPane = new ThreadListPane<S, T, H, M, C>(mailService, undoService, settings);
 		threadListPane.prefHeightProperty().bind(splitPane.heightProperty());
-		threadListPane.setOnSelectThread(e -> refreshAfterThreadSelected());
-		threadListPane.setOnUpdatePattern(e -> refreshAfterPatternUpdate());
-		threadListPane.setOnUpdateThread(e -> refreshAfterThreadUpdate());
 		splitPane.getPanes().add(threadListPane);
 
 		threadPane = new ThreadPane<S, T, H, M, C>(mailService, undoService, settings);
@@ -90,6 +82,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		splitPane.setOnKeyPressed(e -> toggleViewMode(e));
 
 		final Controller<S, T, H, M, C> controller = new Controller<S, T, H, M, C>(mailService, undoService, settings);
+		controller.setMailBrowser(this);
 		controller.setSectionListPane(sectionListPane);
 		controller.addThreadPane(threadPane);
 		controller.setThreadListPane(threadListPane);
@@ -130,7 +123,6 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 
 		mailService.addOnUpdateMessage(() -> Platform.runLater(() -> refreshAfterUpdateMessage()));
 		mailService.addOnUpdateTagOrSection(() -> Platform.runLater(() -> refreshAfterUpdateTagOrSection()));
-
 	}
 
 	private void refreshUnreadCount() {
@@ -180,15 +172,8 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	//
 	//
 
-	private final boolean refreshAfterTagSelected = true;
-	private final boolean refreshAfterThreadSelected = true;
-	private final boolean refreshAfterMoreResultsSelected = true;
-
-	private final boolean refreshAfterTagUpdate = true;
 	private final boolean refreshAfterSectionUpdate = true;
-	private final boolean refreshAfterSectionSelect = true;
 	private final boolean refreshAfterThreadUpdate = true;
-	private final boolean refreshAfterPatternUpdate = true;
 	private final boolean refreshAfterUpdateMessage = true;
 	private final boolean refreshAfterUpdateTagOrSection = true;
 
@@ -224,77 +209,6 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags()));
 	}
 
-	private void refreshAfterSectionSelect() {
-		if (!refreshAfterSectionSelect) {
-			return;
-		}
-		LOGGER.debug("refreshAfterSectionSelect");
-
-		threadListPane.setCurrentSection(sectionListPane.getSelectedSection());
-	}
-
-	private void refreshAfterTagUpdate() {
-		if (!refreshAfterTagUpdate) {
-			return;
-		}
-		LOGGER.debug("refreshAfterTagUpdate");
-
-		sectionListPane.refreshAsync(() ->
-			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags()));
-	}
-
-	private void refreshAfterThreadSelected() {
-		if (!refreshAfterThreadSelected) {
-			return;
-		}
-		LOGGER.debug("refreshAfterThreadSelected");
-
-		final boolean isMini = !splitPane.getPanes().contains(threadPane);
-		if (isMini) {
-			return;
-		}
-
-		final Set<H> threads = threadListPane.getSelectedThreads();
-		if (threads.size() == 1 && threads.iterator().next() instanceof GmailMoreThreads) {
-			refreshAfterMoreThreadsSelected();
-			return;
-		}
-
-		// update thread details when (a) thread(s) is/are selected
-		final boolean markRead = !sectionListPane.getIncludedOrSelectedTags().contains(mailService.getSpecialTag(SpecialTag.UNREAD));
-		threadPane.refresh(threadListPane.getSelectedThreads(), markRead);
-	}
-
-	private void refreshAfterMoreThreadsSelected() {
-		if (!refreshAfterMoreResultsSelected) {
-			return;
-		}
-		LOGGER.debug("refreshAfterMoreResultsSelected");
-
-		// update thread list with next page token
-		final GmailMoreThreads more = (GmailMoreThreads) threadListPane.getSelectedThreads().iterator().next();
-		threadListPane.refreshWithPage(more.getPage());
-	}
-
-	private void refreshAfterTagSelected() {
-		if (!refreshAfterTagSelected) {
-			return;
-		}
-		LOGGER.debug("refreshAfterTagSelected");
-
-		threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags());
-	}
-
-	private void refreshAfterPatternUpdate() {
-		if (!refreshAfterPatternUpdate) {
-			return;
-		}
-		LOGGER.debug("refreshAfterPatternUpdate");
-
-		sectionListPane.refreshAsync(() ->
-			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags()));
-	}
-
 	private void refreshAfterThreadUpdate() {
 		if (!refreshAfterThreadUpdate) {
 			return;
@@ -309,5 +223,9 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		final double[] positions = splitPane.getDividerPositions();
 		settings.firstDivider().set(positions[0]);
 		settings.secondDivider().set(positions[1]);
+	}
+
+	public boolean isFull() {
+		return splitPane.getVisiblePanes().size() == 3;
 	}
 }

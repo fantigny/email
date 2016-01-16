@@ -74,6 +74,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	private final ObservableList<Node> messagePanes;
 
 	private final T unread;
+	private final T sent;
 
 	private EventHandler<ActionEvent> updateHandler;
 
@@ -90,6 +91,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		this.settings = settings;
 
 		unread = mailService.getSpecialTag(SpecialTag.UNREAD);
+		sent = mailService.getSpecialTag(SpecialTag.SENT);
 
 		threadToolBar = new ThreadToolBar();
 		threadToolBar.setFocusTraversable(false);
@@ -195,14 +197,16 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		}
 
 		final String desc = "show threads' tags";
-		final String sentId = mailService.getSpecialTag(SpecialTag.SENT).getId();
+		final String sentId = sent.getId();
+		final String unreadId = unread.getId();
 		tagsTask = new Task<Set<T>>() {
 			@Override
 			protected Set<T> call() throws Exception {
 				final Set<T> tags = new LinkedHashSet<T>();
 				for(final H t: threads) {
 					for(final String id: t.getTagIds()) {
-						if (!id.equals(sentId)) {
+						if (!id.equals(sentId)
+								&& !id.equals(unreadId)) {
 							try {
 								tags.add(mailService.getTag(id));
 							} catch (final MailException e) {
