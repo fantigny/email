@@ -63,8 +63,9 @@ public class Settings implements Serializable {
 	private final BooleanProperty mute;
 	private final BooleanProperty globalSettings;
 
-	private final DoubleProperty firstDivider;
-	private final DoubleProperty secondDivider;
+	private final DoubleProperty threadPaneWidth;
+	private final DoubleProperty sectionListPaneWidth;
+	private final DoubleProperty threadListPaneWidth;
 	private final DoubleProperty windowWidth;
 	private final DoubleProperty windowHeight;
 	private final StringProperty browserMode;
@@ -84,8 +85,9 @@ public class Settings implements Serializable {
 		confirmOnSignout = new SimpleBooleanProperty(true);
 		mute = new SimpleBooleanProperty(false);
 		globalSettings = new SimpleBooleanProperty(true);
-		firstDivider = new SimpleDoubleProperty(200);
-		secondDivider = new SimpleDoubleProperty(600);
+		threadPaneWidth = new SimpleDoubleProperty(200);
+		sectionListPaneWidth = new SimpleDoubleProperty(300);
+		threadListPaneWidth = new SimpleDoubleProperty(500);
 		windowWidth = new SimpleDoubleProperty(1400);
 		windowHeight = new SimpleDoubleProperty(800);
 		browserMode = new SimpleStringProperty("FULL");
@@ -107,14 +109,15 @@ public class Settings implements Serializable {
 				, confirmOnSignout.get()
 				, mute.get()
 				, globalSettings.get()
-				, firstDivider.get()
-				, secondDivider.get()
+				, threadPaneWidth.get()
+				, sectionListPaneWidth.get()
 				, windowWidth.get()
 				, windowHeight.get()
 				, browserMode.get()
 				, windowX.get()
 				, windowY.get()
 				, date.get()
+				, threadListPaneWidth.get()
 				);
 
 		return list;
@@ -122,24 +125,25 @@ public class Settings implements Serializable {
 
 	public void fromList(List<?> list) {
 		final Iterator<?> i = list.iterator();
-		if (i.hasNext()) { showToolbar		.set((Boolean)	i.next()); }
-		if (i.hasNext()) { showExcludeBox	.set((Boolean)	i.next()); }
-		if (i.hasNext()) { archiveOnDrop	.set((Boolean)	i.next()); }
-		if (i.hasNext()) { popupLifetime	.set((Integer)	i.next()); }
-		if (i.hasNext()) { htmlSignature	.set((String)	i.next()); }
-		if (i.hasNext()) { replyAllDblClick	.set((Boolean)	i.next()); }
-		if (i.hasNext()) { confirmOnQuit	.set((Boolean)	i.next()); }
-		if (i.hasNext()) { confirmOnSignout	.set((Boolean)	i.next()); }
-		if (i.hasNext()) { mute				.set((Boolean)	i.next()); }
-		if (i.hasNext()) { globalSettings	.set((Boolean)	i.next()); }
-		if (i.hasNext()) { firstDivider		.set((Double) 	i.next()); }
-		if (i.hasNext()) { secondDivider	.set((Double) 	i.next()); }
-		if (i.hasNext()) { windowWidth		.set((Double) 	i.next()); }
-		if (i.hasNext()) { windowHeight		.set((Double) 	i.next()); }
-		if (i.hasNext()) { browserMode		.set((String) 	i.next()); }
-		if (i.hasNext()) { windowX			.set((Double) 	i.next()); }
-		if (i.hasNext()) { windowY			.set((Double) 	i.next()); }
-		if (i.hasNext()) { date				.set((Long) 	i.next()); }
+		if (i.hasNext()) { showToolbar			.set((Boolean)	i.next()); }
+		if (i.hasNext()) { showExcludeBox		.set((Boolean)	i.next()); }
+		if (i.hasNext()) { archiveOnDrop		.set((Boolean)	i.next()); }
+		if (i.hasNext()) { popupLifetime		.set((Integer)	i.next()); }
+		if (i.hasNext()) { htmlSignature		.set((String)	i.next()); }
+		if (i.hasNext()) { replyAllDblClick		.set((Boolean)	i.next()); }
+		if (i.hasNext()) { confirmOnQuit		.set((Boolean)	i.next()); }
+		if (i.hasNext()) { confirmOnSignout		.set((Boolean)	i.next()); }
+		if (i.hasNext()) { mute					.set((Boolean)	i.next()); }
+		if (i.hasNext()) { globalSettings		.set((Boolean)	i.next()); }
+		if (i.hasNext()) { threadPaneWidth		.set((Double) 	i.next()); }
+		if (i.hasNext()) { sectionListPaneWidth	.set((Double) 	i.next()); }
+		if (i.hasNext()) { windowWidth			.set((Double) 	i.next()); }
+		if (i.hasNext()) { windowHeight			.set((Double) 	i.next()); }
+		if (i.hasNext()) { browserMode			.set((String) 	i.next()); }
+		if (i.hasNext()) { windowX				.set((Double) 	i.next()); }
+		if (i.hasNext()) { windowY				.set((Double) 	i.next()); }
+		if (i.hasNext()) { date					.set((Long) 	i.next()); }
+		if (i.hasNext()) { threadListPaneWidth	.set((Double) 	i.next()); }
 	}
 
 
@@ -244,12 +248,12 @@ public class Settings implements Serializable {
 		return globalSettings;
 	}
 
-	public DoubleProperty firstDivider() {
-		return firstDivider;
+	public DoubleProperty threadPaneWidth() {
+		return threadPaneWidth;
 	}
 
-	public DoubleProperty secondDivider() {
-		return secondDivider;
+	public DoubleProperty sectionListPaneWidth() {
+		return sectionListPaneWidth;
 	}
 
 	public DoubleProperty windowWidth() {
@@ -270,5 +274,9 @@ public class Settings implements Serializable {
 
 	public DoubleProperty windowY() {
 		return windowY;
+	}
+
+	public DoubleProperty threadListPaneWidth() {
+		return threadListPaneWidth;
 	}
 }

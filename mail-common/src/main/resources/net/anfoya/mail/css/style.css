@@ -19,8 +19,8 @@
 }
 
 .fixed-split-pane *.split-pane-divider {
-    -fx-min-width: 2;
-    -fx-pref-width: 2;
+    -fx-min-width: 5;
+    -fx-max-width: 5;
     -fx-background-color: lightgray;
 }
 

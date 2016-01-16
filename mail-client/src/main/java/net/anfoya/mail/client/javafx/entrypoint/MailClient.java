@@ -167,10 +167,10 @@ public class MailClient extends Application {
 		mailBrowser.initData();
 		stage.setOnHiding(e -> {
 			mailBrowser.saveSettings();
-			settings.windowWidth().set(stage.getWidth());
-			settings.windowHeight().set(stage.getHeight());
 			settings.windowX().set(stage.getX());
 			settings.windowY().set(stage.getY());
+			settings.windowWidth().set(stage.getWidth());
+			settings.windowHeight().set(stage.getHeight());
 			settings.saveNow();
 		});
 

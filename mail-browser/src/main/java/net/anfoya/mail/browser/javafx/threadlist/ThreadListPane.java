@@ -423,11 +423,10 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 
 	public void setOnUpdatePattern(final EventHandler<ActionEvent> handler) {
 		patternField.textProperty().addListener((ov, oldVal, newVal) -> {
-			if (patternDelay != null) {
-				patternDelay.stop();
+			if (patternDelay == null) {
+				patternDelay = new DelayTimeline(Duration.millis(500), e -> handler.handle(null));
 			}
-			patternDelay = new DelayTimeline(Duration.millis(500), e -> handler.handle(null));
-			patternDelay.play();
+			patternDelay.playFromStart();
 		});
 	}
 
