@@ -18,8 +18,8 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import net.anfoya.java.undo.UndoService;
-import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.javafx.scene.dnd.DndPaneTranslationHelper;
 import net.anfoya.javafx.scene.dnd.DropArea;
 import net.anfoya.tag.javafx.scene.section.SectionDropPane;
@@ -167,7 +167,7 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 		};
 		task.setOnSucceeded(event -> {
 			undoService.set(
-					() -> { tagService.rename(tag, tag.getName()); return null; }
+					() -> tagService.rename(tag, tag.getName())
 					, "rename " + tag.getName());
 			updateHandler.handle(null);
 		});
@@ -215,7 +215,7 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 		};
 		task.setOnSucceeded(e -> {
 			undoService.set(
-					() -> { tagService.show(tag); return null; }
+					() -> tagService.show(tag)
 					, description);
 			updateHandler.handle(null);
 		});

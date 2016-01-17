@@ -331,7 +331,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		task.setOnSucceeded(e -> {
 			if (undo) {
 				undoService.set(
-						() -> { mailService.addTagForThreads(tag, threads); return null; }
+						() -> mailService.addTagForThreads(tag, threads)
 						, desc);
 			}
 			updateHandler.handle(null);

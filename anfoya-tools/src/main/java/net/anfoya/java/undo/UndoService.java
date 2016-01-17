@@ -1,18 +1,17 @@
 package net.anfoya.java.undo;
 
-import java.util.concurrent.Callable;
-
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import net.anfoya.java.util.VoidCallable;
 
 public class UndoService {
-	private final ReadOnlyObjectWrapper<Callable<Object>> callableProperty;
+	private final ReadOnlyObjectWrapper<VoidCallable> callableProperty;
 	private final ReadOnlyBooleanWrapper canUndoProperty;
 	private String description;
 
 	public UndoService() {
-		callableProperty = new ReadOnlyObjectWrapper<Callable<Object>>();
+		callableProperty = new ReadOnlyObjectWrapper<VoidCallable>();
 		description = "";
 
 		canUndoProperty = new ReadOnlyBooleanWrapper(false);
@@ -28,7 +27,7 @@ public class UndoService {
 		description = null;
 	}
 
-	public void set(Callable<Object> undoCall, String description) {
+	public void set(VoidCallable undoCall, String description) {
 		clear();
 
 		this.description = description;
@@ -37,7 +36,7 @@ public class UndoService {
 
 	public synchronized void undo() throws UndoException {
 		if (canUndoProperty.get()) {
-			final Callable<Object> callable = callableProperty.get();
+			final VoidCallable callable = callableProperty.get();
 			clear();
 			try {
 				callable.call();

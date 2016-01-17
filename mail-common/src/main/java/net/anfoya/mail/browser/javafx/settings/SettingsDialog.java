@@ -345,7 +345,7 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 				return null;
 			}
 		};
-		task.setOnSucceeded(e -> undoService.set(() -> { mailService.hide(section); return null; }, "show"));
+		task.setOnSucceeded(e -> undoService.set(() -> mailService.hide(section), "show"));
 		task.setOnFailed(ev -> LOGGER.error("show {}", section.getName(), ev.getSource().getException()));
 		ThreadPool.getDefault().submit(PoolPriority.MAX, "show " + section.getName(), task);
 
@@ -361,7 +361,7 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 				return null;
 			}
 		};
-		task.setOnSucceeded(e -> undoService.set(() -> { mailService.hide(tag); return null; }, "show"));
+		task.setOnSucceeded(e -> undoService.set(() -> mailService.hide(tag), "show"));
 		task.setOnFailed(e -> LOGGER.error("show {}", tag.getName(), e.getSource().getException()));
 		ThreadPool.getDefault().submit(PoolPriority.MAX, "show " + tag.getName(), task);
 

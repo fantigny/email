@@ -15,8 +15,8 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import net.anfoya.java.undo.UndoService;
-import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.javafx.scene.dnd.DropArea;
 import net.anfoya.tag.service.Section;
 import net.anfoya.tag.service.Tag;
@@ -137,7 +137,7 @@ public class SectionDropPane<S extends Section> extends GridPane {
 		};
 		task.setOnSucceeded(event -> {
 			undoService.set(
-					() -> { tagService.show(section); return null; }
+					() -> tagService.show(section)
 					, description);
 			updateHandler.handle(null);
 		});

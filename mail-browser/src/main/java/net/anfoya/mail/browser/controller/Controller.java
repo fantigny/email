@@ -1,10 +1,9 @@
-package net.anfoya.mail.browser.javafx;
+package net.anfoya.mail.browser.controller;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,8 +12,10 @@ import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.media.AudioClip;
 import net.anfoya.java.undo.UndoService;
+import net.anfoya.java.util.VoidCallable;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
+import net.anfoya.mail.browser.javafx.MailBrowser;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
 import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
@@ -119,10 +120,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 			}
 		};
 		task.setOnSucceeded(e -> {
-			undoService.set(() -> {
-				mailService.addTagForThreads(inbox, threads);
-				return null;
-			}, description);
+			undoService.set(() -> mailService.addTagForThreads(inbox, threads), description);
 			refreshAfterThreadUpdate();
 		});
 		task.setOnFailed(e -> LOGGER.error(description, e.getSource().getException()));
@@ -176,7 +174,6 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 				if (hasInbox) {
 					mailService.addTagForThreads(inbox, threads);
 				}
-				return null;
 			}, description);
 			refreshAfterThreadUpdate();
 		});
@@ -213,7 +210,6 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 				addTagForThreads(spam, threads, "spam", () -> {
 					removeTagForThreads(spam, threads, "spam", null);
 					addTagForThreads(inbox, threads, "spam", null);
-					return null;
 				});
 			}
 		} catch (final Exception e) {
@@ -221,7 +217,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		}
 	}
 
-	private Void addTagForThreads(final T tag, final Set<H> threads, final String desc, final Callable<Object> undo) {
+	private void addTagForThreads(final T tag, final Set<H> threads, final String desc, final VoidCallable undo) {
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
@@ -238,10 +234,9 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 			refreshAfterThreadUpdate();
 		});
 		ThreadPool.getDefault().submit(PoolPriority.MAX, desc, task);
-		return null;
 	}
 
-	private Void removeTagForThreads(final T tag, final Set<H> threads, final String desc, final Callable<Object> undo) {
+	private void removeTagForThreads(final T tag, final Set<H> threads, final String desc, final VoidCallable undo) {
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
@@ -255,7 +250,6 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 			refreshAfterThreadUpdate();
 		});
 		ThreadPool.getDefault().submit(PoolPriority.MAX, desc, task);
-		return null;
 	}
 
 	private void createTagForThreads(final String name, final Set<H> threads) {
@@ -284,7 +278,6 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 				if (settings.archiveOnDrop().get() && hasInbox) {
 					mailService.addTagForThreads(inbox, threads);
 				}
-				return null;
 			}, desc);
 			refreshAfterThreadUpdate();
 		});

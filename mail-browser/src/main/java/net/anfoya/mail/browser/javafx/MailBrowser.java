@@ -19,6 +19,7 @@ import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.javafx.notification.NotificationService;
 import net.anfoya.javafx.scene.layout.FixedSplitPane;
+import net.anfoya.mail.browser.controller.Controller;
 import net.anfoya.mail.browser.javafx.css.StyleHelper;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;

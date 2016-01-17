@@ -3,7 +3,6 @@ package net.anfoya.mail.browser.javafx.threadlist;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +33,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import net.anfoya.java.undo.UndoService;
+import net.anfoya.java.util.VoidCallable;
 import net.anfoya.java.util.VoidCallback;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
@@ -300,7 +300,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		this.toggleSpam = callback;
 	}
 
-	private Void addTagForThreads(final T tag, final Set<H> threads, final String desc, final Callable<Object> undo) {
+	private Void addTagForThreads(final T tag, final Set<H> threads, final String desc, final VoidCallable undo) {
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
@@ -320,7 +320,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		return null;
 	}
 
-	private Void removeTagForThreads(final T tag, final Set<H> threads, final String desc, final Callable<Object> undo) {
+	private Void removeTagForThreads(final T tag, final Set<H> threads, final String desc, final VoidCallable undo) {
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
@@ -362,7 +362,6 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 				if (settings.archiveOnDrop().get() && hasInbox) {
 					mailService.addTagForThreads(inbox, threads);
 				}
-				return null;
 			}, desc);
 			updateHandler.handle(null);
 		});
