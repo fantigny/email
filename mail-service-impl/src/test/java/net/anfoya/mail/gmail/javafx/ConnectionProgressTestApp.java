@@ -19,7 +19,7 @@ public class ConnectionProgressTestApp extends Application {
 	public void start(final Stage primaryStage) throws Exception {
 		final ConnectionProgress cp = new ConnectionProgress();
 		cp.setValue(-1, "test undeterminate for 5s...");
-		new Timer(true).schedule(new TimerTask() {
+		new Timer("progress test", true).schedule(new TimerTask() {
 			@Override
 			public void run() {
 				if (++i > 100) i = 0;

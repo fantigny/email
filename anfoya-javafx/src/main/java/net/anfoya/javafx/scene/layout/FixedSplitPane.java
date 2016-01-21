@@ -53,14 +53,14 @@ public class FixedSplitPane extends HBox {
 		panes.addListener((Change<? extends Pane> c) -> updateChildren());
 
 		paneWidths = new HashMap<Pane, Double>();
-		
+
 		dividerWidth = 0;
 		resizable = null;
 	}
 
 	private void updateChildren() {
 		getChildren().clear();
-		AtomicInteger index = new AtomicInteger(0);
+		final AtomicInteger index = new AtomicInteger(0);
 		panes.forEach(p -> {
 			if (index.get() > 0) {
 				getChildren().add(new Divider(index.get()-1));
@@ -79,31 +79,33 @@ public class FixedSplitPane extends HBox {
 		}
 
 		final int index = ((Divider)event.getSource()).getIndex();
-		Pane before = getPreviousVisible(index);
-		if (!before.isVisible()) {
+		final Pane previous = getPreviousVisible(index);
+		if (previous == null) {
 			return;
 		}
-		Pane after = getNextVisible(index+1);
-		if (!after.isVisible()) {
+		final Pane next = getNextVisible(index+1);
+		if (next == null) {
 			return;
 		}
 
-		double maxWidth = before.getWidth() + after.getWidth() - PANE_MIN_WIDTH;
-		paneWidths.put(before, Math.min(maxWidth, Math.max(PANE_MIN_WIDTH, before.getWidth() + event.getX())));
-		paneWidths.put(after, Math.min(maxWidth, Math.max(PANE_MIN_WIDTH, after.getWidth() - event.getX())));
+		final double maxWidth = previous.getWidth() + next.getWidth() - PANE_MIN_WIDTH;
+		paneWidths.put(previous, Math.min(maxWidth, Math.max(PANE_MIN_WIDTH, previous.getWidth() + event.getX())));
+		paneWidths.put(next, Math.min(maxWidth, Math.max(PANE_MIN_WIDTH, next.getWidth() - event.getX())));
 		refreshWidths();
-		
+
 		event.consume();
 	}
 
 	private Pane getPreviousVisible(int index) {
-		for(; index>0 && !panes.get(index).isVisible(); index--);
-		return panes.get(index);
+		Pane previous;
+		for(previous=panes.get(index); index>0 && !panes.get(index).isVisible(); previous=panes.get(--index));
+		return previous != null && previous.isVisible()? previous: null;
 	}
-	
+
 	private Pane getNextVisible(int index) {
-		for(; index<panes.size()-1 && !panes.get(index).isVisible(); index++);
-		return panes.get(index);
+		Pane next;
+		for(next=panes.get(index); index<panes.size()-1 && !panes.get(index).isVisible(); next=panes.get(++index));
+		return next != null && next.isVisible()? next: null;
 	}
 
 	private void setPaneWidth(Pane pane, double width) {
@@ -119,26 +121,31 @@ public class FixedSplitPane extends HBox {
 	}
 
 	private void refreshWidths() {
+		if (resizable != null
+				&& resizable.isVisible()
+				&& panes.contains(resizable)) {
+			paneWidths.put(resizable, resizable.getWidth());
+		}
 		panes.forEach(pane -> setPaneWidth(pane, paneWidths.get(pane)));
 	}
 
 	public double computePrefWidth() {
 		double prefWidth = getDividerWidth() * (getChildren().size() - getPanes().size());
-		for(Pane p: panes) {
+		for(final Pane p: panes) {
 			if (p.isVisible()) {
 				prefWidth += paneWidths.get(p);
 			}
 		}
 
 		LOGGER.debug("prefWidth {}", prefWidth);
-		
+
 		return prefWidth;
 	}
-	
+
 	public double computeMinWidth() {
 		double minWidth = getDividerWidth() * (getChildren().size() - getPanes().size());
 		Pane lastVisiblePane = null;
-		for(Pane p: panes) {
+		for(final Pane p: panes) {
 			if (p.isVisible()) {
 				minWidth += paneWidths.get(p);
 				lastVisiblePane = p;
@@ -148,7 +155,7 @@ public class FixedSplitPane extends HBox {
 		minWidth -= paneWidths.get(lastVisiblePane);
 
 		LOGGER.debug("prefWidth {}", minWidth);
-		
+
 		return minWidth;
 	}
 
@@ -173,7 +180,7 @@ public class FixedSplitPane extends HBox {
 		if (resizable == pane) {
 			return;
 		}
-		
+
 		if (resizable != null) {
 			resizable.setMinWidth(resizable.getWidth());
 			resizable.setMaxWidth(resizable.getWidth());
