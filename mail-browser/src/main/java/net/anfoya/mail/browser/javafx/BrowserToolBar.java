@@ -43,7 +43,7 @@ public class BrowserToolBar<S extends Section, T extends Tag, M extends Message,
 	private final MailService<S, T, ?, M, C> mailService;
 
 	private final UndoService undoService;
-	private EventHandler<ActionEvent> newThreadHandler;
+	private Runnable messageUpdateCallback;
 
 	private final Button newButton;
 
@@ -67,7 +67,9 @@ public class BrowserToolBar<S extends Section, T extends Tag, M extends Message,
 		newButton.setTooltip(new Tooltip("new"));
 		newButton.setOnAction(event -> {
 			try {
-				new MailComposer<M, C>(mailService, newThreadHandler, settings).newMessage("");
+				final MailComposer<M, C> composer = new MailComposer<M, C>(mailService, settings);
+				composer.setOnMessageUpdate(messageUpdateCallback);
+				composer.newMessage("");
 			} catch (final Exception e) {
 				LOGGER.error("load new message composer", e);
 			}
@@ -140,7 +142,7 @@ public class BrowserToolBar<S extends Section, T extends Tag, M extends Message,
 		settingsDialog.requestFocus();
 	}
 
-	public void setOnNewThread(EventHandler<ActionEvent> handler) {
-		newThreadHandler = handler;
+	public void setOnMessageUpdate(Runnable callback) {
+		messageUpdateCallback = callback;
 	}
 }

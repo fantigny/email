@@ -11,8 +11,6 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -93,7 +91,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	private VoidCallback<ThreadPane<S, T, H, M, C>> removeReader;
 
 	//TODO *** start here ***
-	private EventHandler<ActionEvent> updateHandler;
+	private Runnable updateCallback;
 
 	public ThreadListPane(final MailService<S, T, H, M, C> mailService
 			, final UndoService undoService
@@ -248,12 +246,13 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		}
 		for(final H t: threads) {
 			if (isDraft) {
-				new MailComposer<M, C>(mailService, updateHandler, settings)
-					.editOrReply(t.getLastMessageId(), settings.replyAllDblClick().get());
+				final MailComposer<M, C> composer = new MailComposer<M, C>(mailService, settings);
+				composer.setOnMessageUpdate(updateCallback);
+				composer.editOrReply(t.getLastMessageId(), settings.replyAllDblClick().get());
 			} else {
 				final ThreadPane<S, T, H, M, C> pane = new ThreadPane<S, T, H, M, C>(mailService, undoService, settings);
 				pane.setDetached(true);
-				pane.setOnUpdateThread(updateHandler);
+				pane.setOnUpdate(updateCallback);
 				pane.setOnArchive(tSet -> archive.call(tSet));
 				pane.setOnReply(tSet -> reply.call(tSet));
 				pane.setOnReplyAll(tSet -> replyAll.call(tSet));
@@ -314,7 +313,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		task.setOnFailed(e -> LOGGER.error(desc, e.getSource().getException()));
 		task.setOnSucceeded(e -> {
 			undoService.set(undo, desc);
-			updateHandler.handle(null);
+			updateCallback.run();
 		});
 		ThreadPool.getDefault().submit(PoolPriority.MAX, desc, task);
 		return null;
@@ -331,7 +330,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		task.setOnFailed(e -> LOGGER.error(desc, e.getSource().getException()));
 		task.setOnSucceeded(e -> {
 			undoService.set(undo, desc);
-			updateHandler.handle(null);
+			updateCallback.run();
 		});
 		ThreadPool.getDefault().submit(PoolPriority.MAX, desc, task);
 		return null;
@@ -363,7 +362,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 					mailService.addTagForThreads(inbox, threads);
 				}
 			}, desc);
-			updateHandler.handle(null);
+			updateCallback.run();
 		});
 		task.setOnFailed(e -> LOGGER.error(desc, e.getSource().getException()));
 		ThreadPool.getDefault().submit(PoolPriority.MAX, desc, task);
@@ -398,12 +397,12 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		return threadList.getItems();
 	}
 
-	public void setOnSelectThread(final EventHandler<ActionEvent> handler) {
-		threadList.setOnSelectThreads(handler);
+	public void setOnSelect(final Runnable callback) {
+		threadList.setOnSelect(callback);
 	}
 
-	public void setOnLoadThreadList(final EventHandler<ActionEvent> handler) {
-		threadList.setOnLoad(handler);
+	public void setOnLoad(final Runnable callback) {
+		threadList.setOnLoad(callback);
 	}
 
 	public Set<T> getThreadsTags() {
@@ -420,19 +419,19 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		return tags;
 	}
 
-	public void setOnUpdatePattern(final EventHandler<ActionEvent> handler) {
-		patternField.textProperty().addListener((ov, oldVal, newVal) -> {
+	public void setOnUpdatePattern(final Runnable callback) {
+		patternField.textProperty().addListener((ov, o, n) -> {
 			if (patternDelay == null) {
-				patternDelay = new DelayTimeline(Duration.millis(500), e -> handler.handle(null));
+				patternDelay = new DelayTimeline(Duration.millis(500), e -> callback.run());
 			}
 			patternDelay.playFromStart();
 		});
 	}
 
-	public void setOnUpdateThread(final EventHandler<ActionEvent> handler) {
-		updateHandler = handler;
-		threadList.setOnUpdate(handler);
-		toolBar.setOnNewThread(handler);
+	public void setOnUpdate(final Runnable callback) {
+		updateCallback = callback;
+		threadList.setOnUpdate(callback);
+		toolBar.setOnMessageUpdate(callback);
 	}
 
 	public void setCurrentSection(final S section) {

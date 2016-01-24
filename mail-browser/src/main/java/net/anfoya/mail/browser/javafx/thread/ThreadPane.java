@@ -76,7 +76,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	private final T unread;
 	private final T sent;
 
-	private EventHandler<ActionEvent> updateHandler;
+	private Runnable updateCallback;
 
 	private boolean markRead;
 
@@ -148,8 +148,8 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		getChildren().add(tagsPane);
 	}
 
-	public void setOnUpdateThread(final EventHandler<ActionEvent> handler) {
-		this.updateHandler = handler;
+	public void setOnUpdate(final Runnable callback) {
+		this.updateCallback = callback;
 	}
 
 	public void setOnSignout(final EventHandler<ActionEvent> handler) {
@@ -274,7 +274,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		final MessagePane<M, C> messagePane = new MessagePane<M, C>(id, mailService, settings);
 		messagePane.focusTraversableProperty().bind(focusTraversableProperty());
 		messagePane.setScrollHandler(webScrollHandler);
-		messagePane.setUpdateHandler(updateHandler);
+		messagePane.setUpdateHandler(updateCallback);
 		messagePane.setExpanded(false);
 		messagePane.onContainAttachment(e -> showIcon(ATTACH_ICON));
 		messagePane.load();
@@ -334,7 +334,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 						() -> mailService.addTagForThreads(tag, threads)
 						, desc);
 			}
-			updateHandler.handle(null);
+			updateCallback.run();
 		});
 		ThreadPool.getDefault().submit(PoolPriority.MAX, desc, task);
 		return null;

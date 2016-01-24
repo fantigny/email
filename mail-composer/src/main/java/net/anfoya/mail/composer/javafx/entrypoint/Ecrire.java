@@ -24,14 +24,8 @@ public class Ecrire extends Application {
 		final Settings settings = new Settings(mailService);
 		settings.load();
 
-		new MailComposer<GmailMessage, GmailContact>(mailService, e -> messageUpdated(), settings)
-			.newMessage("frederic.antigny+ecrire@gmail.com");
+		new MailComposer<GmailMessage, GmailContact>(mailService, settings).newMessage("frederic.antigny+ecrire@gmail.com");
 
 		Thread.sleep(2000);
-	}
-
-	private Object messageUpdated() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 }

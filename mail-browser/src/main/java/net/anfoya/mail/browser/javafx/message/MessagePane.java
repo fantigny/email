@@ -43,8 +43,8 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.scene.web.WebView;
 import javafx.util.Duration;
-import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.javafx.scene.web.WebViewFitContent;
 import net.anfoya.mail.browser.javafx.attachment.AttachmentLoader;
 import net.anfoya.mail.browser.javafx.settings.Settings;
@@ -88,7 +88,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	private M message;
 	private Task<String> loadTask;
 
-	private EventHandler<ActionEvent> updateHandler;
+	private Runnable updateCallback;
 	private volatile boolean mouseOver;
 
 	private Timeline showSnippetTimeline;
@@ -213,7 +213,9 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 			});
 			UrlHelper.open(url, recipient -> {
 				try {
-					new MailComposer<M, C>(mailService, updateHandler, settings).newMessage(recipient);
+					final MailComposer<M, C> composer = new MailComposer<M, C>(mailService, settings);
+					composer.setOnMessageUpdate(updateCallback);
+					composer.newMessage(recipient);
 				} catch (final MailException e) {
 					LOGGER.error("create new mail to {}", recipient, e);
 				}
@@ -303,8 +305,8 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		return collapsible;
 	}
 
-	public void setUpdateHandler(final EventHandler<ActionEvent> handler) {
-		this.updateHandler = handler;
+	public void setUpdateHandler(final Runnable callback) {
+		this.updateCallback = callback;
 	}
 
 	private Node buildRecipientLabel(final Address address) {

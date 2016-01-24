@@ -1,12 +1,5 @@
 package net.anfoya.mail.browser.javafx;
 
-import java.util.Collections;
-import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
@@ -15,8 +8,6 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import net.anfoya.java.undo.UndoService;
-import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.javafx.notification.NotificationService;
 import net.anfoya.javafx.scene.layout.FixedSplitPane;
 import net.anfoya.mail.browser.controller.Controller;
@@ -38,10 +29,9 @@ import net.anfoya.tag.model.SpecialTag;
 public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends Scene {
 	public enum Mode { FULL, MINI, MICRO }
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(MailBrowser.class);
+//	private static final Logger LOGGER = LoggerFactory.getLogger(MailBrowser.class);
 
 	private final MailService<S, T, H, M, C> mailService;
-	private final NotificationService notificationService;
 	private final Settings settings;
 
 	private final FixedSplitPane splitPane;
@@ -54,7 +44,6 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 			, final Settings settings) throws MailException {
 		super(new FixedSplitPane(), Color.TRANSPARENT);
 		this.mailService = mailService;
-		this.notificationService = notificationService;
 		this.settings = settings;
 
 		final UndoService undoService = new UndoService();
@@ -80,12 +69,15 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		threadPane = new ThreadPane<S, T, H, M, C>(mailService, undoService, settings);
 		threadPane.setPrefWidth(settings.threadPaneWidth().get());
 		threadPane.setFocusTraversable(false);
-		threadPane.setOnUpdateThread(e -> refreshAfterThreadUpdate());
 		splitPane.getPanes().add(threadPane);
 
 		splitPane.setOnKeyPressed(e -> toggleViewMode(e));
 
-		final Controller<S, T, H, M, C> controller = new Controller<S, T, H, M, C>(mailService, undoService, settings);
+		final Controller<S, T, H, M, C> controller = new Controller<S, T, H, M, C>(
+				mailService
+				, notificationService
+				, undoService
+				, settings);
 		controller.setMailBrowser(this);
 		controller.setSectionListPane(sectionListPane);
 		controller.addThreadPane(threadPane);
@@ -127,25 +119,6 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	public void initData() {
 //		sectionListPane.init("Bank", "HK HSBC");
 		sectionListPane.init(GmailSection.SYSTEM.getName(), mailService.getSpecialTag(SpecialTag.INBOX).getName());
-
-		refreshUnreadCount();
-
-		mailService.addOnUpdateMessage(() -> Platform.runLater(() -> refreshAfterUpdateMessage()));
-		mailService.addOnUpdateTagOrSection(() -> Platform.runLater(() -> refreshAfterUpdateTagOrSection()));
-	}
-
-	private void refreshUnreadCount() {
-		final String desc = "count unread messages";
-		final Set<T> includes = Collections.singleton(mailService.getSpecialTag(SpecialTag.UNREAD));
-		ThreadPool.getDefault().submit(PoolPriority.MIN, desc, () -> {
-			int count = 0;
-			try {
-				count = mailService.findThreads(includes, Collections.emptySet(), "", 200).size();
-			} catch (final MailException e) {
-				LOGGER.error(desc, e);
-			}
-			notificationService.setIconBadge("" + (count > 0? count: ""));
-		});
 	}
 
 	private void toggleViewMode(final KeyEvent e) {
@@ -171,61 +144,6 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		}
 		setMode(mode);
 		settings.browserMode().set(mode.toString());
-	}
-
-	//
-	//
-	//
-	//TODO controller
-	//
-	//
-	//
-
-	private final boolean refreshAfterSectionUpdate = true;
-	private final boolean refreshAfterThreadUpdate = true;
-	private final boolean refreshAfterUpdateMessage = true;
-	private final boolean refreshAfterUpdateTagOrSection = true;
-
-	private void refreshAfterUpdateMessage() {
-		if (!refreshAfterUpdateMessage) {
-			return;
-		}
-		LOGGER.debug("refreshAfterUpdateMessage");
-		LOGGER.info("message update detected");
-
-		refreshUnreadCount();
-		sectionListPane.refreshAsync(() ->
-			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags()));
-	}
-
-	private void refreshAfterUpdateTagOrSection() {
-		if (!refreshAfterUpdateTagOrSection) {
-			return;
-		}
-		LOGGER.debug("refreshAfterUpdateTagOrSection");
-		LOGGER.info("label update detected");
-
-		refreshAfterSectionUpdate();
-	}
-
-	private void refreshAfterSectionUpdate() {
-		if (!refreshAfterSectionUpdate) {
-			return;
-		}
-		LOGGER.debug("refreshAfterSectionUpdate");
-
-		sectionListPane.refreshAsync(() ->
-			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags()));
-	}
-
-	private void refreshAfterThreadUpdate() {
-		if (!refreshAfterThreadUpdate) {
-			return;
-		}
-		LOGGER.debug("refreshAfterThreadUpdate");
-
-		sectionListPane.refreshAsync(() ->
-			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags()));
 	}
 
 	public void saveSettings() {

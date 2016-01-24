@@ -28,8 +28,6 @@ import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.concurrent.Task;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -44,8 +42,8 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.mail.browser.javafx.css.StyleHelper;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.mime.MessageHelper;
@@ -53,18 +51,15 @@ import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.Message;
-import net.anfoya.mail.service.Section;
-import net.anfoya.mail.service.Tag;
-import net.anfoya.mail.service.Thread;
 
 public class MailComposer<M extends Message, C extends Contact> extends Stage {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailComposer.class);
 	private static final int AUTO_SAVE_DELAY = 60; // seconds
+	private static final Runnable DEFAULT_UPDATE_CALLBACK = () -> {};
 
-	private final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService;
+	private final MailService<?, ?, ?, M, C> mailService;
 	private final Settings settings;
 
-	private final EventHandler<ActionEvent> updateHandler;
 	private final MessageHelper helper;
 	private final String myAddress;
 
@@ -86,10 +81,9 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 	private final Button saveButton;
 
 	private M draft;
+	private Runnable updateHandler;
 
-	public MailComposer(final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService
-			, final EventHandler<ActionEvent> updateHandler
-			, final Settings settings) {
+	public MailComposer(final MailService<?, ?, ?, M, C> mailService, final Settings settings) {
 		super(StageStyle.UNIFIED);
 		setTitle("FisherMail");
 
@@ -106,7 +100,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		setScene(scene);
 
 		this.mailService = mailService;
-		this.updateHandler = updateHandler;
+		this.updateHandler = DEFAULT_UPDATE_CALLBACK;
 		this.settings = settings;
 
 		// load contacts from server
@@ -150,7 +144,9 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		editor.editedProperty().addListener((ov, o, n) -> editedProperty.set(editedProperty.get() || n));
 		editor.setOnMailtoCallback(p -> {
 			try {
-				new MailComposer<M, C>(mailService, updateHandler, settings).newMessage(p);
+				final MailComposer<M, C> composer = new MailComposer<M, C>(mailService, settings);
+				composer.setOnMessageUpdate(updateHandler);
+				composer.newMessage(p);
 			} catch (final MailException e) {
 				LOGGER.error("create new mail to {}", p, e);
 			}
@@ -183,6 +179,14 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 				stopAutosave();
 			}
 		});
+	}
+
+	public void setOnMessageUpdate(Runnable callback) {
+		if (updateHandler == null) {
+			updateHandler = DEFAULT_UPDATE_CALLBACK;
+		} else {
+			updateHandler = callback;
+		}
 	}
 
 	@Override
@@ -309,7 +313,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 
 	private void initComposer(final boolean quote, final boolean signature) {
 		final MimeMessage message = draft.getMimeMessage();
-		updateHandler.handle(null);
+		updateHandler.run();
 
 		try {
 			for(final String a: MessageHelper.getMailAddresses(message.getRecipients(MimeMessage.RecipientType.TO))) {
@@ -508,7 +512,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 			}
 		};
 		task.setOnFailed(e -> LOGGER.error("send message", e.getSource().getException()));
-		task.setOnSucceeded(e -> updateHandler.handle(null));
+		task.setOnSucceeded(e -> updateHandler.run());
 		ThreadPool.getDefault().submit(PoolPriority.MAX, "send message", task);
 
 		close();
@@ -524,7 +528,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 			}
 		};
 		task.setOnFailed(e -> LOGGER.error("delete draft {}", draft, e.getSource().getException()));
-		task.setOnSucceeded(e -> updateHandler.handle(null));
+		task.setOnSucceeded(e -> updateHandler.run());
 		ThreadPool.getDefault().submit(PoolPriority.MAX, "delete draft", task);
 
 		close();

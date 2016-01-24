@@ -1,6 +1,7 @@
 package net.anfoya.mail.browser.controller;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -15,6 +16,7 @@ import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.VoidCallable;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
+import net.anfoya.javafx.notification.NotificationService;
 import net.anfoya.mail.browser.javafx.MailBrowser;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
@@ -22,6 +24,7 @@ import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
 import net.anfoya.mail.composer.javafx.MailComposer;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
 import net.anfoya.mail.service.Contact;
+import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.Message;
 import net.anfoya.mail.service.Section;
@@ -34,6 +37,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 	private static final Logger LOGGER = LoggerFactory.getLogger(Controller.class);
 
 	private final MailService<S, T, H, M, C> mailService;
+	private final NotificationService notificationService;
 	private final UndoService undoService;
 	private final Settings settings;
 
@@ -48,8 +52,12 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 	private ThreadListPane<S, T, H, M, C> threadListPane;
 	private final List<ThreadPane<S, T, H, M, C>> threadPanes;
 
-	public Controller(MailService<S, T, H, M, C> mailService, UndoService undoService, Settings settings) {
+	public Controller(MailService<S, T, H, M, C> mailService
+			, NotificationService notificationService
+			, UndoService undoService
+			, Settings settings) {
 		this.mailService = mailService;
+		this.notificationService = notificationService;
 		this.undoService = undoService;
 		this.settings = settings;
 
@@ -63,6 +71,9 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 	}
 
 	public void init() {
+		mailService.addOnUpdateMessage(() -> Platform.runLater(() -> refreshAfterUpdateMessage()));
+		mailService.addOnUpdateTagOrSection(() -> Platform.runLater(() -> refreshAfterUpdateTagOrSection()));
+
 		sectionListPane.setOnUpdateSection(e -> refreshAfterSectionUpdate());
 		sectionListPane.setOnSelectSection(e -> refreshAfterSectionSelect());
 		sectionListPane.setOnUpdateTag(e -> refreshAfterTagUpdate());
@@ -80,10 +91,10 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		threadListPane.setOnAddReader(threadPane -> threadPanes.add(threadPane));
 		threadListPane.setOnRemoveReader(threadPane -> threadPanes.remove(threadPane));
 
-		threadListPane.setOnLoadThreadList(e -> refreshAfterThreadListLoad());
-		threadListPane.setOnSelectThread(e -> refreshAfterThreadSelected());
-		threadListPane.setOnUpdatePattern(e -> refreshAfterPatternUpdate());
-		threadListPane.setOnUpdateThread(e -> refreshAfterThreadUpdate());
+		threadListPane.setOnLoad(() -> refreshAfterThreadListLoad());
+		threadListPane.setOnSelect(() -> refreshAfterThreadSelected());
+		threadListPane.setOnUpdate(() -> refreshAfterThreadUpdate());
+		threadListPane.setOnUpdatePattern(() -> refreshAfterPatternUpdate());
 
 		threadPanes
 			.parallelStream()
@@ -96,6 +107,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 				p.setOnArchive(threads -> archive(threads));
 				p.setOnTrash(threads -> trash(threads));
 				p.setOnToggleSpam(threads -> toggleSpam(threads));
+				p.setOnUpdate(() -> refreshAfterThreadUpdate());
 			});
 	}
 
@@ -127,27 +139,26 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		ThreadPool.getDefault().submit(PoolPriority.MAX, description, task);
 	}
 
-	private Void reply(final boolean all, Set<H> threads) {
+	private void reply(final boolean all, Set<H> threads) {
 		try {
 			for (final H t : threads) {
 				final M message = mailService.getMessage(t.getLastMessageId());
-				//TODO improve controller
-				new MailComposer<M, C>(mailService, e -> refreshAfterThreadUpdate(), settings)
-					.reply(message, all);
+				final MailComposer<M, C> composer = new MailComposer<M, C>(mailService, settings);
+				composer.setOnMessageUpdate(() -> refreshAfterThreadUpdate());
+				composer.reply(message, all);
 			}
 		} catch (final Exception e) {
 			LOGGER.error("load reply{} composer", all ? " all" : "", e);
 		}
-		return null;
 	}
 
 	private void forward(Set<H> threads) {
 		try {
 			for (final H t : threads) {
 				final M message = mailService.getMessage(t.getLastMessageId());
-				//TODO improve controller
-				new MailComposer<M, C>(mailService, e -> refreshAfterThreadUpdate(), settings)
-					.forward(message);
+				final MailComposer<M, C> composer = new MailComposer<M, C>(mailService, settings);
+				composer.setOnMessageUpdate(() -> refreshAfterThreadUpdate());
+				composer.forward(message);
 			}
 		} catch (final Exception e) {
 			LOGGER.error("load forward composer", e);
@@ -252,38 +263,38 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		ThreadPool.getDefault().submit(PoolPriority.MAX, desc, task);
 	}
 
-	private void createTagForThreads(final String name, final Set<H> threads) {
-		final Iterator<H> iterator = threads.iterator();
-		final boolean hasInbox = iterator.hasNext() && iterator.next().getTagIds().contains(inbox.getId());
-		final String desc = "add " + name;
-		final S currentSection = sectionListPane.getSelectedSection();
-
-		final Task<T> task = new Task<T>() {
-			@Override
-			protected T call() throws Exception {
-				final T tag = mailService.addTag(name);
-				if (currentSection  != null && !currentSection.isSystem()) {
-					mailService.moveToSection(tag, currentSection);
-				}
-				mailService.addTagForThreads(tag, threads);
-				if (settings.archiveOnDrop().get() && hasInbox) {
-					mailService.archive(threads);
-				}
-				return tag;
-			}
-		};
-		task.setOnSucceeded(e -> {
-			undoService.set(() -> {
-				mailService.remove(task.getValue());
-				if (settings.archiveOnDrop().get() && hasInbox) {
-					mailService.addTagForThreads(inbox, threads);
-				}
-			}, desc);
-			refreshAfterThreadUpdate();
-		});
-		task.setOnFailed(e -> LOGGER.error(desc, e.getSource().getException()));
-		ThreadPool.getDefault().submit(PoolPriority.MAX, desc, task);
-	}
+//	private void createTagForThreads(final String name, final Set<H> threads) {
+//		final Iterator<H> iterator = threads.iterator();
+//		final boolean hasInbox = iterator.hasNext() && iterator.next().getTagIds().contains(inbox.getId());
+//		final String desc = "add " + name;
+//		final S currentSection = sectionListPane.getSelectedSection();
+//
+//		final Task<T> task = new Task<T>() {
+//			@Override
+//			protected T call() throws Exception {
+//				final T tag = mailService.addTag(name);
+//				if (currentSection  != null && !currentSection.isSystem()) {
+//					mailService.moveToSection(tag, currentSection);
+//				}
+//				mailService.addTagForThreads(tag, threads);
+//				if (settings.archiveOnDrop().get() && hasInbox) {
+//					mailService.archive(threads);
+//				}
+//				return tag;
+//			}
+//		};
+//		task.setOnSucceeded(e -> {
+//			undoService.set(() -> {
+//				mailService.remove(task.getValue());
+//				if (settings.archiveOnDrop().get() && hasInbox) {
+//					mailService.addTagForThreads(inbox, threads);
+//				}
+//			}, desc);
+//			refreshAfterThreadUpdate();
+//		});
+//		task.setOnFailed(e -> LOGGER.error(desc, e.getSource().getException()));
+//		ThreadPool.getDefault().submit(PoolPriority.MAX, desc, task);
+//	}
 
 
 	private final boolean refreshAfterTagSelected = true;
@@ -331,16 +342,6 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 //		} else {
 //			sectionListPane.refreshWithPattern(pattern);
 //		}
-	}
-
-	private void refreshAfterSectionUpdate() {
-		if (!refreshAfterSectionUpdate) {
-			return;
-		}
-		LOGGER.debug("refreshAfterSectionUpdate");
-
-		sectionListPane.refreshAsync(() ->
-			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags()));
 	}
 
 	private void refreshAfterSectionSelect() {
@@ -419,4 +420,48 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		this.mailBrowser = mailBrowser;
 	}
 
+	private void refreshAfterUpdateMessage() {
+		if (!refreshAfterUpdateMessage) {
+			return;
+		}
+		LOGGER.debug("refreshAfterUpdateMessage");
+		LOGGER.info("message update detected");
+
+		refreshUnreadCount();
+		sectionListPane.refreshAsync(() ->
+			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags()));
+	}
+
+	private void refreshUnreadCount() {
+		final String desc = "count unread messages";
+		final Set<T> includes = Collections.singleton(mailService.getSpecialTag(SpecialTag.UNREAD));
+		ThreadPool.getDefault().submit(PoolPriority.MIN, desc, () -> {
+			int count = 0;
+			try {
+				count = mailService.findThreads(includes, Collections.emptySet(), "", 200).size();
+			} catch (final MailException e) {
+				LOGGER.error(desc, e);
+			}
+			notificationService.setIconBadge("" + (count > 0? count: ""));
+		});
+	}
+
+	private void refreshAfterUpdateTagOrSection() {
+		if (!refreshAfterUpdateTagOrSection) {
+			return;
+		}
+		LOGGER.debug("refreshAfterUpdateTagOrSection");
+		LOGGER.info("label update detected");
+
+		refreshAfterSectionUpdate();
+	}
+	private void refreshAfterSectionUpdate() {
+		if (!refreshAfterSectionUpdate) {
+			return;
+		}
+		LOGGER.debug("refreshAfterSectionUpdate");
+
+		sectionListPane.refreshAsync(() ->
+			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags()));
+	}
 }

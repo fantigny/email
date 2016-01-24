@@ -139,7 +139,6 @@ public class ConnectionService {
 	}
 
 	public void reconnect() {
-		//TODO reconnect
 	}
 
 	public Gmail getGmailService() throws GMailException {

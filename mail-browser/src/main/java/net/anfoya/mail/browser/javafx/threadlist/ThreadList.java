@@ -17,8 +17,6 @@ import javafx.application.Platform;
 import javafx.collections.ListChangeListener.Change;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
@@ -51,8 +49,8 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 	private boolean refreshing;
 	private boolean resetSelection;
 
-	private EventHandler<ActionEvent> loadHandler;
-	private EventHandler<ActionEvent> updateHandler;
+	private Runnable loadCallback;
+	private Runnable updateCallback;
 
 	private boolean firstLoad = true;
 
@@ -90,12 +88,12 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 		}
 	}
 
-	public void setOnLoad(final EventHandler<ActionEvent> handler) {
-		this.loadHandler = handler;
+	public void setOnLoad(final Runnable callback) {
+		this.loadCallback = callback;
 	}
 
-	public void setOnUpdate(final EventHandler<ActionEvent> handler) {
-		updateHandler = handler;
+	public void setOnUpdate(final Runnable callback) {
+		updateCallback = callback;
 	}
 
 	public void setOrder(final SortOrder order) {
@@ -147,10 +145,10 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 		return Collections.unmodifiableSet(selectedSet);
 	}
 
-	public void setOnSelectThreads(final EventHandler<ActionEvent> handler) {
-		getSelectionModel().selectedItemProperty().addListener((ov, newVal, oldVal) -> {
+	public void setOnSelect(final Runnable callback) {
+		getSelectionModel().selectedItemProperty().addListener((ov, n, o) -> {
 			if (!refreshing) {
-				handler.handle(null);
+				callback.run();
 			}
 		});
 	}
@@ -206,7 +204,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 			}
 		}
 
-		loadHandler.handle(null);
+		loadCallback.run();
 	}
 
 	private void restoreSelection(final List<H> oldList, final int oldSelectedIndex, final Set<H> oldSelectedList) {
@@ -300,7 +298,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 				return null;
 			}
 		};
-		task.setOnSucceeded(e -> updateHandler.handle(null));
+		task.setOnSucceeded(e -> updateCallback.run());
 		task.setOnFailed(e -> LOGGER.error("archive threads {}", threads));
 		ThreadPool.getDefault().submit(PoolPriority.MAX, "archive threads", task);
 	}
