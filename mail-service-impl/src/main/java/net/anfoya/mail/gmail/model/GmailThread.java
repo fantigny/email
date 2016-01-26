@@ -96,8 +96,14 @@ public class GmailThread extends SimpleThread {
 		final Set<String> headers = new LinkedHashSet<String>();
 		if (thread.getMessages() != null
 				&& !thread.getMessages().isEmpty()) {
-			final Message last = thread.getMessages().get(thread.getMessages().size() - 1);
-			if (last.getPayload() != null
+			Message last = null;
+			for(final Message m: thread.getMessages()) {
+				if (!m.getLabelIds().contains(GmailTag.SENT.getId())) {
+					last = m;
+				}
+			}
+			if (last != null
+					&& last.getPayload() != null
 					&& last.getPayload().getHeaders() != null) {
 				for(final MessagePartHeader h: last.getPayload().getHeaders()) {
 					if (key.equalsIgnoreCase(h.getName()) && !h.getValue().isEmpty()) {

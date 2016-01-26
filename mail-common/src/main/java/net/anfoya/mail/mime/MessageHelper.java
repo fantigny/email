@@ -97,10 +97,9 @@ public class MessageHelper {
 	public static String quote(Date date, String sender, final String content) {
 		return new StringBuilder()
 				.append("<br><br>")
-				.append("<blockheader class='gmail_quote' style='color:darkred'>")
+				.append("<blockheader class='gmail_quote' style='font-size:13; font-weight:bold;'>")
 				.append(new SimpleDateFormat("'On' d MMM yyyy 'at' hh:mm").format(date))
-				.append(", ").append(sender).append(" wrote:")
-				.append("<br>")
+				.append(", ").append(sender).append(" wrote:<br><br>")
 				.append("</blockheader>")
 				.append("<blockquote class='gmail_quote' style='margin:0 0 0 .8ex; border-left:1px #ccc solid; padd-left:1ex'>")
 				.append(content)
