@@ -61,9 +61,15 @@ public class UndoPane extends GridPane {
 		});
 
 		setOnMouseEntered(e -> {
-			timeline.stop();
-			setOpacity(1);
+			if (service.canUndoProperty().get()) {
+				timeline.stop();
+				setOpacity(1);
+			}
 		});
-		setOnMouseExited(e -> timeline.playFrom(Duration.seconds(5)));
+		setOnMouseExited(e -> {
+			if (service.canUndoProperty().get()) {
+				timeline.playFrom(Duration.seconds(5));
+			}
+		});
 	}
 }
