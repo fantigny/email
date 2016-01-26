@@ -9,8 +9,8 @@ import org.slf4j.LoggerFactory;
 
 import javafx.scene.Scene;
 
-public class StyleHelper {
-	private static final Logger LOGGER = LoggerFactory.getLogger(StyleHelper.class);
+public class CssHelper {
+	private static final Logger LOGGER = LoggerFactory.getLogger(CssHelper.class);
 
 	private static final String CSS_EXT_PATH = "./css/";
 
@@ -36,7 +36,7 @@ public class StyleHelper {
 			}
 			path = file.toURI().toString();
 		} catch (final IOException e) {
-			path = StyleHelper.class.getClass().getResource(internalPath).toExternalForm();
+			path = CssHelper.class.getClass().getResource(internalPath).toExternalForm();
 		}
 		LOGGER.info("add css {}", path);
 		scene.getStylesheets().add(path);

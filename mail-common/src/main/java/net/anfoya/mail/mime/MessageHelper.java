@@ -6,8 +6,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -65,6 +67,8 @@ public class MessageHelper {
 	}
 
 	public static String getName(final InternetAddress address) {
+		//TODO create method: public static String getSender() { ... }
+
 		final String name;
 		if (address.getPersonal() != null) {
 			name = address.getPersonal();
@@ -88,15 +92,6 @@ public class MessageHelper {
 		}
 
 		return names;
-	}
-
-	public static String quote(final String html) {
-		return new StringBuffer()
-				.append("<br><br>")
-				.append("<blockquote class='gmail_quote' style='margin:0 0 0 .8ex;border-left:1px #ccc solid;padd-left:1ex'>")
-				.append(html)
-				.append("</blockquote>")
-				.toString();
 	}
 
 	public static String addSignature(final String html, final String signature) {
@@ -294,5 +289,19 @@ public class MessageHelper {
 		}
 		reply.setRecipients(type, to.toArray(new Address[0]));
 		reply.saveChanges();
+	}
+
+	public static String quote(Date date, String sender, final String content) {
+		return new StringBuilder()
+				.append("<br><br>")
+				.append("<blockheader class='gmail_quote' style='color:darkred'>")
+				.append(new SimpleDateFormat("'On' d MMM yyyy 'at' hh:mm").format(date))
+				.append(", ").append(sender).append(" wrote:")
+				.append("<br>")
+				.append("</blockheader>")
+				.append("<blockquote class='gmail_quote' style='margin:0 0 0 .8ex; border-left:1px #ccc solid; padd-left:1ex'>")
+				.append(content)
+				.append("</blockquote>")
+				.toString();
 	}
 }

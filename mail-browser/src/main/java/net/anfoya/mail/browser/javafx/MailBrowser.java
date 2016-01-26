@@ -11,7 +11,7 @@ import net.anfoya.java.undo.UndoService;
 import net.anfoya.javafx.notification.NotificationService;
 import net.anfoya.javafx.scene.layout.FixedSplitPane;
 import net.anfoya.mail.browser.controller.Controller;
-import net.anfoya.mail.browser.javafx.css.StyleHelper;
+import net.anfoya.mail.browser.javafx.css.CssHelper;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
 import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
@@ -48,8 +48,8 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 
 		final UndoService undoService = new UndoService();
 
-		StyleHelper.addCommonCss(this);
-		StyleHelper.addCss(this, "/net/anfoya/javafx/scene/control/excludebox.css");
+		CssHelper.addCommonCss(this);
+		CssHelper.addCss(this, "/net/anfoya/javafx/scene/control/excludebox.css");
 
 		splitPane = (FixedSplitPane) getRoot();
 		splitPane.getStyleClass().add("background");

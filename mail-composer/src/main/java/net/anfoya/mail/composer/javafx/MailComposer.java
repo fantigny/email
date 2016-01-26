@@ -44,7 +44,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
-import net.anfoya.mail.browser.javafx.css.StyleHelper;
+import net.anfoya.mail.browser.javafx.css.CssHelper;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.mime.MessageHelper;
 import net.anfoya.mail.service.Contact;
@@ -81,6 +81,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 	private final Button saveButton;
 
 	private M draft;
+	private M source;
 	private Runnable updateHandler;
 
 	public MailComposer(final MailService<?, ?, ?, M, C> mailService, final Settings settings) {
@@ -95,8 +96,8 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		getIcons().add(icon);
 
 		final Scene scene = new Scene(new BorderPane(), 800, 600, Color.TRANSPARENT);
-		StyleHelper.addCommonCss(scene);
-		StyleHelper.addCss(scene, "/net/anfoya/javafx/scene/control/combo_noarrow.css");
+		CssHelper.addCommonCss(scene);
+		CssHelper.addCss(scene, "/net/anfoya/javafx/scene/control/combo_noarrow.css");
 		setScene(scene);
 
 		this.mailService = mailService;
@@ -275,15 +276,16 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		}
 	}
 
-	public void reply(final M message, final boolean all) {
+	public void reply(final M source, final boolean all) {
+		this.source = source;
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
-				final MimeMessage reply = (MimeMessage) message.getMimeMessage().reply(all);
-				reply.setContent(message.getMimeMessage().getContent(), message.getMimeMessage().getContentType());
+				final MimeMessage reply = (MimeMessage) source.getMimeMessage().reply(all);
+				reply.setContent(source.getMimeMessage().getContent(), source.getMimeMessage().getContentType());
 				reply.saveChanges();
 				helper.removeMyselfFromRecipient(myAddress, reply);
-				draft = mailService.createDraft(message);
+				draft = mailService.createDraft(source);
 				draft.setMimeDraft(reply);
 				return null;
 			}
@@ -293,15 +295,16 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		ThreadPool.getDefault().submit(PoolPriority.MAX, "create  reply draft", task);
 	}
 
-	public void forward(final M message) {
+	public void forward(final M source) {
+		this.source = source;
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
 				final MimeMessage forward = new MimeMessage(Session.getDefaultInstance(new Properties()));
-				forward.setSubject("Fwd: " + message.getMimeMessage().getSubject());
-				forward.setContent(message.getMimeMessage().getContent(), message.getMimeMessage().getContentType());
+				forward.setSubject("Fwd: " + source.getMimeMessage().getSubject());
+				forward.setContent(source.getMimeMessage().getContent(), source.getMimeMessage().getContentType());
 				forward.saveChanges();
-				draft = mailService.createDraft(message);
+				draft = mailService.createDraft(source);
 				draft.setMimeDraft(forward);
 				return null;
 			}
@@ -361,8 +364,17 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 			html = "";
 			LOGGER.error("get html content", e);
 		}
-		if (!html.isEmpty() && quote) {
-			html = MessageHelper.quote(html);
+		if (quote && !html.isEmpty()) {
+			try {
+				final MimeMessage srcMess = source.getMimeMessage();
+				String sender = "[empty]";
+				if (srcMess.getFrom() != null && srcMess.getFrom().length > 0) {
+					sender = MessageHelper.getName((InternetAddress) srcMess.getFrom()[0]);
+				}
+				html = MessageHelper.quote(srcMess.getSentDate(), sender, html);
+			} catch (final MessagingException e) {
+				LOGGER.error("quote older content", e);
+			}
 		}
 		if (signature) {
 			html = MessageHelper.addSignature(html, settings.htmlSignature().get());

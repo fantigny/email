@@ -45,7 +45,7 @@ import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.javafx.scene.control.RemoveLabel;
-import net.anfoya.mail.browser.javafx.css.StyleHelper;
+import net.anfoya.mail.browser.javafx.css.CssHelper;
 import net.anfoya.mail.browser.javafx.util.UrlHelper;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailService;
@@ -88,7 +88,7 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		tabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
 
 		final Scene scene = new Scene(tabPane, 600, 400);
-		StyleHelper.addCommonCss(scene);
+		CssHelper.addCommonCss(scene);
 
 		setScene(scene);
 	}
