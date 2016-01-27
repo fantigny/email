@@ -114,7 +114,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 
 			int count = 0;
 			final StackPane stackPane = new StackPane();
-			final ThreadListCell<H> cell = new ThreadListCell<H>(false);
+			final ThreadListCell<H> cell = new ThreadListCell<H>();
 			for (final H t : getSelectedThreads()) {
 				final Pane grid = cell.buildGridPane(t);
 				grid.getStyleClass().add("thread-list-cell-dnd");

@@ -18,8 +18,6 @@ class ThreadListCell<H extends Thread> extends ListCell<H> {
     private static final Image FLAG = new Image(ThreadListCell.class.getResourceAsStream("/net/anfoya/mail/img/mini_flag.png"));
 //    private static final Image UNREAD = new Image(ThreadListCell.class.getResourceAsStream("/net/anfoya/mail/img/mini_unread.png"));
 
-    final boolean showRecipient;
-
     private static final Color ALMOST_BLACK = Color.web("#444444");
 
     private final Label sender;
@@ -32,10 +30,9 @@ class ThreadListCell<H extends Thread> extends ListCell<H> {
 	private final HBox subjectBox;
     private final GridPane grid;
 
-	public ThreadListCell(boolean showRecipient) {
+	public ThreadListCell() {
 		super();
         setPadding(new Insets(0));
-        this.showRecipient = showRecipient;
 
 		sender = new Label();
 		sender.getStyleClass().add("sender");
@@ -85,11 +82,7 @@ class ThreadListCell<H extends Thread> extends ListCell<H> {
         } else {
         	final int nbMess = thread.getMessageIds().size();
 
-        	if (showRecipient) {
-        		sender.setText(thread.getRecipients().stream().reduce("", (p, n) -> p.isEmpty()?n: p + ", " + n));
-        	} else {
-        		sender.setText(thread.getSender());
-        	}
+    		sender.setText(thread.getSender());
         	nbMessages.setText(nbMess > 1? "(x" + nbMess + ")": "");
             nbMessages.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
         	subject.setText(thread.getSubject());

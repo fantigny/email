@@ -30,7 +30,6 @@ import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
-import net.anfoya.tag.model.SpecialTag;
 
 public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadList.class);
@@ -54,9 +53,6 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 
 	private boolean firstLoad = true;
 
-	private final T sent;
-	private final T draft;
-
 	public ThreadList(final MailService<?, T, H, ?, ?> mailService) {
         getStyleClass().add("thread-list");
         setPlaceholder(new Label("empty"));
@@ -70,8 +66,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 		refreshing = false;
 		resetSelection = true;
 
-		sent = mailService.getSpecialTag(SpecialTag.SENT);
-		draft = mailService.getSpecialTag(SpecialTag.DRAFT);
+		setCellFactory(param -> new ThreadListCell<H>());
 
 		setOnKeyPressed(e -> handleKey(e));
 
@@ -191,7 +186,6 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 		// display
 		refreshing = true;
 		resetSelection = true;
-		setCellFactory(param -> new ThreadListCell<H>(includes.contains(sent) || includes.contains(draft)));
 		getItems().setAll(sortedThreads);
 		restoreSelection(oldThreads, oldSelectedIndex, oldSelectedThreads);
 		refreshing = false;

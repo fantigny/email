@@ -102,6 +102,9 @@ public class GmailThread extends SimpleThread {
 					last = m;
 				}
 			}
+			if (last == null) {
+				last = thread.getMessages().get(thread.getMessages().size()-1);
+			}
 			if (last != null
 					&& last.getPayload() != null
 					&& last.getPayload().getHeaders() != null) {

@@ -115,7 +115,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		messageView.getEngine().setCreatePopupHandler(handler -> messageView.getEngine());
 		messageView.getEngine().locationProperty().addListener((ov, o, n) -> handleExtLink(messageView.getWebView(), n));
 
-		recipientFlow = new TextFlow(new Text("load..."));
+		recipientFlow = new TextFlow(new Text("loading..."));
 		dateText = new Text();
 
 		iconBox = new HBox();
@@ -329,7 +329,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 					recipientFlow.getChildren().add(buildRecipientLabel(a));
 				}
 			}
-		} catch (final MessagingException e) {
+		} catch (final Exception e) {
 			LOGGER.error("get title data", e);
 		}
 
