@@ -76,7 +76,7 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 		lazyCountTask = null;
 
 		setOnDragDetected(e -> {
-			if (section != null) {
+			if (section != null && !section.isSystem()) {
 		        final ClipboardContent content = new ClipboardContent();
 		        content.put(Section.SECTION_DATA_FORMAT, section);
 
@@ -250,6 +250,9 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 		}
 
 		titleNode.getStyleClass().add("section-pane-title");
+		if (sectionItem.getTag().isSystem()) {
+			titleNode.getStyleClass().add("system");
+		}
 		setGraphic(titleNode);
 	}
 

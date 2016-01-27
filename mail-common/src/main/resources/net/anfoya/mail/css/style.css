@@ -110,6 +110,9 @@
 }
 .section-pane-title {
 }
+.system {
+    -fx-text-fill: darkblue important;
+}
 .section-pane > .title {
     -fx-border-width: 0;
     -fx-background-insets: 0;

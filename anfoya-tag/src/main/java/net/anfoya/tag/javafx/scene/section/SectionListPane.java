@@ -114,7 +114,10 @@ public class SectionListPane<S extends Section, T extends Tag> extends VBox {
 		centerPane.setOnDragEntered(e -> {
 			if (e.getDragboard().hasContent(Section.SECTION_DATA_FORMAT)
 					&& !centerPane.getChildren().contains(sectionDropPane)) {
-				centerPane.getChildren().add(sectionDropPane);
+				final Section section = (Section) e.getDragboard().getContent(Section.SECTION_DATA_FORMAT);
+				if (!section.isSystem()) {
+					centerPane.getChildren().add(sectionDropPane);
+				}
 			} else if (e.getDragboard().hasContent(Tag.TAG_DATA_FORMAT)
 					&& !centerPane.getChildren().contains(tagDropPane)) {
 				final Tag tag = (Tag) e.getDragboard().getContent(Tag.TAG_DATA_FORMAT);
