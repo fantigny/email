@@ -73,6 +73,11 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 	public void init() {
 		mailService.addOnUpdateMessage(() -> Platform.runLater(() -> refreshAfterUpdateMessage()));
 		mailService.addOnUpdateTagOrSection(() -> Platform.runLater(() -> refreshAfterUpdateTagOrSection()));
+		mailService.disconnectedProperty().addListener((ov, o, n) -> {
+			if (!o && n) {
+				refreshAfterTagSelected();
+			}
+		});
 
 		sectionListPane.setOnUpdateSection(e -> refreshAfterSectionUpdate());
 		sectionListPane.setOnSelectSection(e -> refreshAfterSectionSelect());

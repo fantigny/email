@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.api.services.gmail.model.Message;
-import com.google.api.services.gmail.model.MessagePartHeader;
 import com.google.api.services.gmail.model.Thread;
 
 import net.anfoya.mail.model.SimpleThread;
@@ -34,12 +33,20 @@ public class GmailThread extends SimpleThread {
 	}
 
 	private static String findSender(final Thread thread) {
+		if (thread.getMessages() != null
+				&& thread.getMessages().size() == 1
+				&& thread.getMessages().get(0).getLabelIds().contains(GmailTag.SENT.getId())) {
+			return findRecipients(thread)
+					.stream()
+					.reduce("", (s, r) -> s.length() == 0? r: ", " + r);
+		}
 		return cleanAddress(findHeader(thread, "From"));
 	}
 
 	private static String cleanAddress(String address) {
-		if (address.contains(" <")) {
-			address = address.substring(0, address.indexOf(" <"));
+		final int index = address.indexOf(" <");
+		if (index != -1) {
+			address = address.substring(0, index);
 		}
 		return address.replaceAll("\"|'", "");
 	}
@@ -98,19 +105,15 @@ public class GmailThread extends SimpleThread {
 		if (thread.getMessages() != null
 				&& !thread.getMessages().isEmpty()) {
 			Message last = thread.getMessages().get(thread.getMessages().size()-1);
-			for(final Message m: thread.getMessages()) {
-				if (!m.getLabelIds().contains(GmailTag.SENT.getId())) {
-					last = m;
-				}
+			if (last.getLabelIds().contains(GmailTag.SENT.getId())) {
+				last = thread.getMessages().get(0);
 			}
-			if (last != null
-					&& last.getPayload() != null
-					&& last.getPayload().getHeaders() != null) {
-				for(final MessagePartHeader h: last.getPayload().getHeaders()) {
-					if (key.equalsIgnoreCase(h.getName()) && !h.getValue().isEmpty()) {
+			if (last.getPayload() != null && last.getPayload().getHeaders() != null) {
+				last.getPayload().getHeaders().forEach(h -> {
+					if (!h.getValue().isEmpty() && h.getName().equalsIgnoreCase(key)) {
 						headers.add(h.getValue());
 					}
-				}
+				});
 			}
 		}
 
