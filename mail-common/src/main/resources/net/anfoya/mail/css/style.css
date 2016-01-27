@@ -10,6 +10,10 @@
     -fx-background-color: #FDFDFD;
 }
 
+.system {
+    -fx-text-fill: darkblue;
+}
+
 .tooltip {
 	-fx-background-radius: 3;
 	-fx-background-color: black;     
@@ -109,9 +113,6 @@
     -fx-background-color: transparent;
 }
 .section-pane-title {
-}
-.system {
-    -fx-text-fill: darkblue important;
 }
 .section-pane > .title {
     -fx-border-width: 0;

@@ -5,7 +5,6 @@ import javafx.scene.image.Image;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
-import javafx.scene.paint.Color;
 import net.anfoya.javafx.scene.control.IncExcListCell;
 import net.anfoya.javafx.scene.dnd.DndHelper;
 import net.anfoya.tag.javafx.scene.dnd.ExtItemDropPane;
@@ -55,8 +54,10 @@ class TagListCell<T extends Tag> extends IncExcListCell<TagListItem<T>> {
 	@Override
 	public void updateItem(TagListItem<T> item, boolean empty) {
 		super.updateItem(item, empty);
-		if (!empty && item != null) {
-			setTextFill(item.getTag().isSystem()? Color.DARKBLUE: Color.BLACK);
+		if (!empty && item != null && item.getTag().isSystem()) {
+			Platform.runLater(() -> getStyleClass().add("system"));
+		} else {
+			Platform.runLater(() -> getStyleClass().remove("system"));
 		}
 	}
 }
