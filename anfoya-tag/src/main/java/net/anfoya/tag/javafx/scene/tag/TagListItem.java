@@ -36,9 +36,11 @@ public class TagListItem<T extends Tag> extends IncExcListItem {
 
 	private void setText() {
 		String text = getTag().getName();
-		final int count = countProperty().get();
-		if (count != 0) {
-			text += String.format(COUNT_STRING, count, count < 1000? "": "+");
+		final long count = countProperty().get();
+		if (count < 0) {
+			text += String.format(COUNT_STRING, -count, "+");
+		} else if (count > 0) {
+			text += String.format(COUNT_STRING, count, "");
 		}
 		textProperty().set(text);
 	}

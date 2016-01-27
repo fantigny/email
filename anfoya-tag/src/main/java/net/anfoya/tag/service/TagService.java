@@ -7,7 +7,7 @@ import net.anfoya.tag.model.SpecialTag;
 public interface TagService<S extends Section, T extends Tag> {
 
 	public Set<S> getSections() throws TagException;
-	public int getCountForSection(S section, Set<T> includes, Set<T> excludes, String itemPattern) throws TagException;
+	public long getCountForSection(S section, Set<T> includes, Set<T> excludes, String itemPattern) throws TagException;
 
 	public S addSection(String name) throws TagException;
 	public void remove(S Section) throws TagException;
@@ -19,7 +19,7 @@ public interface TagService<S extends Section, T extends Tag> {
 	public T getTag(String id) throws TagException;
 	public Set<T> getTags(S section) throws TagException;
 	public Set<T> getTags(String pattern) throws TagException;
-	public int getCountForTags(Set<T> includes, Set<T> excludes, String pattern) throws TagException;
+	public long getCountForTags(Set<T> includes, Set<T> excludes, String pattern) throws TagException;
 
 	public Set<T> getHiddenTags() throws TagException;
 	public T getSpecialTag(SpecialTag specialTag) throws TagException;

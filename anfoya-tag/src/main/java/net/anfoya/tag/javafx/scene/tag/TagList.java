@@ -19,8 +19,8 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
-import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.tag.service.Section;
 import net.anfoya.tag.service.Tag;
 import net.anfoya.tag.service.TagException;
@@ -41,7 +41,7 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 	private boolean refreshing;
 
 	private int countTaskId;
-	private final Set<Task<Integer>> updateCountTasks;
+	private final Set<Task<Long>> updateCountTasks;
 
 	private int thisTagTaskId;
 	private Task<Boolean> thisTagTask;
@@ -56,7 +56,7 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 		this.section = section;
 
 		nameTags = new HashMap<String, TagListItem<T>>();
-		updateCountTasks = new HashSet<Task<Integer>>();
+		updateCountTasks = new HashSet<Task<Long>>();
 
 		getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
 		setCellFactory(list -> new TagListCell<T>(showExcludeBox));
@@ -201,7 +201,7 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 	public synchronized void updateCount(final int queryCount, final Set<T> availableTags, final Set<T> includes, final Set<T> excludes, final String itemPattern) {
 		LOGGER.debug("update count {} {} {}", availableTags, includes, excludes);
 		final long taskId = ++countTaskId;
-		for(final Task<Integer> t: updateCountTasks) {
+		for(final Task<Long> t: updateCountTasks) {
 			if (t.isRunning()) {
 				t.cancel();
 			}
@@ -227,10 +227,10 @@ public class TagList<S extends Section, T extends Tag> extends ListView<TagListI
 	}
 
 	@SuppressWarnings("serial")
-	private Task<Integer> updateCountAsync(final TagListItem<T> item, final Set<T> includes, final Set<T> excludes, final String itemPattern, final long taskId) {
-		final Task<Integer> task = new Task<Integer>() {
+	private Task<Long> updateCountAsync(final TagListItem<T> item, final Set<T> includes, final Set<T> excludes, final String itemPattern, final long taskId) {
+		final Task<Long> task = new Task<Long>() {
 			@Override
-			public Integer call() throws SQLException, TagException, InterruptedException {
+			public Long call() throws SQLException, TagException, InterruptedException {
 				final T tag = item.getTag();
 				final int excludeFactor = excludes.contains(tag)? -1: 1;
 				final Set<T> fakeIncludes = new LinkedHashSet<T>(includes) {{ add(tag); }};

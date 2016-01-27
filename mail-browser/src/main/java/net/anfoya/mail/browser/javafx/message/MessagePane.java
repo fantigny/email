@@ -5,6 +5,7 @@ import java.net.URISyntaxException;
 import java.util.Date;
 import java.util.Set;
 
+//TODO remove MimeMessage dependency
 import javax.mail.Address;
 import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;

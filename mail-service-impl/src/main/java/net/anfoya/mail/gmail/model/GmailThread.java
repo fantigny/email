@@ -1,6 +1,7 @@
 package net.anfoya.mail.gmail.model;
 
 import java.text.ParseException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -74,14 +75,14 @@ public class GmailThread extends SimpleThread {
 	}
 
 	private static Set<String> getTagIds(final Thread thread) {
-		final Set<String> tagIds = new LinkedHashSet<String>();
-		if (thread.getMessages() != null) {
-			for(final Message m: thread.getMessages()) {
-				tagIds.addAll(m.getLabelIds());
-			}
+		if (thread.getMessages() == null) {
+			return Collections.emptySet();
 		}
 
-		return tagIds;
+		return thread.getMessages()
+				.parallelStream()
+				.flatMap(m -> m.getLabelIds().stream())
+				.collect(Collectors.toSet());
 	}
 
 	private static String findHeader(final Thread thread, final String key) {
@@ -96,14 +97,11 @@ public class GmailThread extends SimpleThread {
 		final Set<String> headers = new LinkedHashSet<String>();
 		if (thread.getMessages() != null
 				&& !thread.getMessages().isEmpty()) {
-			Message last = null;
+			Message last = thread.getMessages().get(thread.getMessages().size()-1);
 			for(final Message m: thread.getMessages()) {
 				if (!m.getLabelIds().contains(GmailTag.SENT.getId())) {
 					last = m;
 				}
-			}
-			if (last == null) {
-				last = thread.getMessages().get(thread.getMessages().size()-1);
 			}
 			if (last != null
 					&& last.getPayload() != null

@@ -30,7 +30,8 @@ import net.anfoya.mail.gmail.model.GmailThread;
 public class ThreadService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadService.class);
 	private static final String FILE_PREFIX = System.getProperty("java.io.tmpdir") + File.separatorChar + "fsm-cache-id-threads-";
-	private static final Long MAX_LIST_RESULTS = Long.valueOf(100);
+	private static final Long MAX_THREAD_FETCH = Long.valueOf(100);
+	private static final Long MAX_THREAD_COUNT = Long.valueOf(1000);
 
 	private final Gmail gmail;
 	private final String user;
@@ -98,7 +99,7 @@ public class ThreadService {
 			threadResponse = gmail.users().threads().list(user)
 					.setFields("nextPageToken,threads(historyId,id)")
 					.setQ(query.toString())
-					.setMaxResults(MAX_LIST_RESULTS)
+					.setMaxResults(MAX_THREAD_FETCH)
 					.execute();
 			int page = 0;
 			while (threadResponse.getThreads() != null) {
@@ -122,7 +123,7 @@ public class ThreadService {
 							.setFields("nextPageToken,threads(historyId,id)")
 							.setQ(query.toString())
 							.setPageToken(threadResponse.getNextPageToken())
-							.setMaxResults(MAX_LIST_RESULTS)
+							.setMaxResults(MAX_THREAD_FETCH)
 							.execute();
 				} else {
 					break;
@@ -145,20 +146,18 @@ public class ThreadService {
 		return thread;
 	}
 
-	public int count(final String query) throws ThreadException {
-		final Long COUNT_MAX = Long.valueOf(1000);
+	public long count(final String query) throws ThreadException {
 		if (query.isEmpty()) {
 			throw new ThreadException("empty query forbidden");
 		}
 		final long start = System.currentTimeMillis();
 		try {
-			int count = 0;
+			long count = 0;
 			ListThreadsResponse response = gmail.users().threads().list(user)
-					.setFields("nextPageToken,threads(id)")
-					.setMaxResults(COUNT_MAX)
+					.setFields("nextPageToken,threads/id")
 					.setQ(query.toString())
 					.execute();
-			while(response.getThreads() != null && count < COUNT_MAX) {
+			while(response.getThreads() != null && count < MAX_THREAD_COUNT) {
 				count += response.getThreads().size();
 				if (response.getNextPageToken() != null) {
 					final String pageToken = response.getNextPageToken();
@@ -170,6 +169,9 @@ public class ThreadService {
 				} else {
 					break;
 				}
+			}
+			if (count >= MAX_THREAD_COUNT) {
+				count = -MAX_THREAD_COUNT.longValue();
 			}
 			return count;
 		} catch (final IOException e) {

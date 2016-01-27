@@ -49,7 +49,7 @@ public interface MailService<
 	public byte[] readBytes(String id) throws MailException;
 
 	@Override public Set<S> getSections() throws MailException;
-	@Override public int getCountForSection(S section, Set<T> includes, Set<T> excludes, String itemPattern) throws MailException;
+	@Override public long getCountForSection(S section, Set<T> includes, Set<T> excludes, String itemPattern) throws MailException;
 
 	@Override public S addSection(String name) throws MailException;
 	@Override public void remove(S Section) throws MailException;
@@ -61,7 +61,7 @@ public interface MailService<
 	@Override public T getTag(String id) throws MailException;
 	@Override public Set<T> getTags(S section) throws MailException;
 	@Override public Set<T> getTags(String pattern) throws MailException;
-	@Override public int getCountForTags(Set<T> includes, Set<T> excludes, String pattern) throws MailException;
+	@Override public long getCountForTags(Set<T> includes, Set<T> excludes, String pattern) throws MailException;
 
 	@Override public Set<T> getHiddenTags() throws MailException;
 	@Override public T getSpecialTag(SpecialTag specialTag);

@@ -19,8 +19,8 @@ import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.util.Duration;
-import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.java.util.concurrent.ThreadPool;
+import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.javafx.scene.control.IncExcBox;
 import net.anfoya.javafx.scene.dnd.DndHelper;
 import net.anfoya.tag.javafx.scene.dnd.ExtItemDropPane;
@@ -172,9 +172,9 @@ public class SectionPane<S extends Section, T extends Tag> extends TitledPane {
 	public synchronized void updateCountAsync(final int queryCount, final Set<T> tags, final Set<T> includes, final Set<T> excludes, final String itemPattern, final String tagPattern) {
 		if (!isTag) {
 			final long taskId = ++sectionTaskId;
-			final Task<Integer> sectionTask = new Task<Integer>() {
+			final Task<Long> sectionTask = new Task<Long>() {
 				@Override
-				protected Integer call() throws TagException {
+				protected Long call() throws TagException {
 					return tagService.getCountForSection(tagList.getSection(), includes, excludes, itemPattern);
 				}
 			};
