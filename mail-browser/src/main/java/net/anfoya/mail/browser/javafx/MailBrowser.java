@@ -38,6 +38,8 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	private final SectionListPane<S, T> sectionListPane;
 	private final ThreadListPane<S, T, H, M, C> threadListPane;
 	private final ThreadPane<S, T, H, M, C> threadPane;
+	private Runnable modeChangeCallback;
+	private Mode mode;
 
 	public MailBrowser(final MailService<S, T, H, M, C> mailService
 			, final NotificationService notificationService
@@ -91,7 +93,16 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		});
 	}
 
+	public void setOnModeChange(Runnable callback) {
+		modeChangeCallback = callback;
+	}
+
+	public Mode getMode() {
+		return mode;
+	}
+
 	public void setMode(Mode mode) {
+		this.mode = mode;
 		threadListPane.setMode(mode);
 
 		switch(mode) {
@@ -110,6 +121,8 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 			((Stage)getWindow()).setWidth(splitPane.computePrefWidth());
 			((Stage)getWindow()).setMinWidth(splitPane.computeMinWidth());
 		}
+
+		modeChangeCallback.run();
 	}
 
 	public void setOnSignout(final EventHandler<ActionEvent> handler) {

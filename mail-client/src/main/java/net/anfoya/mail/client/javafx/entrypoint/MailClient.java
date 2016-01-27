@@ -22,6 +22,7 @@ import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.javafx.notification.NotificationService;
 import net.anfoya.mail.browser.javafx.MailBrowser;
+import net.anfoya.mail.browser.javafx.MailBrowser.Mode;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.settings.VersionHelper;
 import net.anfoya.mail.browser.javafx.util.UrlHelper;
@@ -160,6 +161,7 @@ public class MailClient extends Application {
 			return;
 		}
 		mailBrowser.setOnSignout(e -> signout());
+		mailBrowser.setOnModeChange(() -> refreshTitle(stage, mailBrowser));
 
 		stage.setScene(mailBrowser);
 		initSize(stage);
@@ -174,22 +176,26 @@ public class MailClient extends Application {
 			settings.saveNow();
 		});
 
-		initTitle(stage);
+//		refreshTitle(stage);
 	}
 
-	private void initTitle(final Stage stage) {
+	private void refreshTitle(final Stage stage, MailBrowser<?, ?, ?, ?, ?> browser) {
 		final Task<String> titleTask = new Task<String>() {
 			@Override
 			protected String call() throws Exception {
+				String prefix = "";
+				if (browser.getMode() == Mode.FULL) {
+					prefix = "FisherMail - ";
+				}
 				final Contact contact = gmail.getContact();
-				if (contact.getFullname().isEmpty()) {
-					return contact.getEmail();
+				if (contact.getFullname().isEmpty() || browser.getMode() != Mode.FULL) {
+					return prefix + contact.getEmail();
 				} else {
-					return contact.getFullname() + " (" + contact.getEmail() + ")";
+					return prefix + contact.getFullname() + " (" + contact.getEmail() + ")";
 				}
 			}
 		};
-		titleTask.setOnSucceeded(e -> stage.setTitle("FisherMail - " + e.getSource().getValue()));
+		titleTask.setOnSucceeded(e -> stage.setTitle((String)e.getSource().getValue()));
 		titleTask.setOnFailed(e -> LOGGER.error("load user's name", e.getSource().getException()));
 		ThreadPool.getDefault().submit(PoolPriority.MIN, "load user's name", titleTask);
 	}
