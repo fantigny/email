@@ -5,6 +5,7 @@ import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import net.anfoya.java.undo.UndoService;
@@ -105,21 +106,30 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		this.mode = mode;
 		threadListPane.setMode(mode);
 
+		Pane resizable;
+		Pane[] visiblePanes;
 		switch(mode) {
-		case FULL:
-			splitPane.setVisiblePanes(sectionListPane, threadListPane, threadPane);
+		case MICRO:
+			visiblePanes = new Pane[] { threadListPane };
+			resizable = threadListPane;
 			break;
 		case MINI:
-			splitPane.setVisiblePanes(sectionListPane, threadListPane);
+			visiblePanes = new Pane[] { sectionListPane, threadListPane };
+			resizable = threadListPane;
 			break;
-		case MICRO:
-			splitPane.setVisiblePanes(threadListPane);
+		case FULL: default:
+			visiblePanes = new Pane[] { sectionListPane, threadListPane, threadPane };
+			resizable = threadPane;
 			break;
 		}
-		splitPane.setResizableWithParent(splitPane.getVisiblePanes().size() == 3? threadPane: threadListPane);
+
+		splitPane.setVisiblePanes(visiblePanes);
+		splitPane.setResizableWithParent(resizable);
+
 		if (getWindow() != null) {
-			((Stage)getWindow()).setWidth(splitPane.computePrefWidth());
-			((Stage)getWindow()).setMinWidth(splitPane.computeMinWidth());
+			final Stage stage = (Stage) getWindow();
+			stage.setWidth(splitPane.computePrefWidth());
+			stage.setMinWidth(splitPane.computeMinWidth());
 		}
 
 		modeChangeCallback.run();

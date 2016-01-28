@@ -51,6 +51,7 @@ public abstract class SimpleThread implements Thread {
 	public SimpleThread(final String id
 			, final String subject
 			, final Set<String> messageIds
+			, final String lastMessageId
 			, final Set<String> tagIds
 			, final String sender
 			, final Set<String> recipients
@@ -63,11 +64,6 @@ public abstract class SimpleThread implements Thread {
 		this.sender = sender;
 		this.recipients = recipients;
 		this.date = date;
-
-		String lastMessageId = null;
-		for(final String messageId: messageIds) {
-			lastMessageId = messageId;
-		}
 		this.lastMessageId = lastMessageId;
 	}
 

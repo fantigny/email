@@ -12,6 +12,7 @@ public class GmailMoreThreads extends GmailThread {
 		super(PAGE_TOKEN_ID
 				, ""
 				, Collections.emptySet()
+				, ""
 				, Collections.emptySet()
 				, "more results..."
 				, new HashSet<String>()

@@ -4,6 +4,7 @@ import java.text.ParseException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -26,10 +27,7 @@ public class GmailThread extends SimpleThread {
 	}
 
 	private static Set<String> findRecipients(Thread thread) {
-		return findHeaders(thread, "To")
-				.parallelStream()
-				.map(s -> cleanAddress(s))
-				.collect(Collectors.toSet());
+		return findHeaders(thread, "To").parallelStream().map(s -> cleanAddress(s)).collect(Collectors.toSet());
 	}
 
 	private static String findSender(final Thread thread) {
@@ -38,7 +36,7 @@ public class GmailThread extends SimpleThread {
 				&& thread.getMessages().get(0).getLabelIds().contains(GmailTag.SENT.getId())) {
 			return findRecipients(thread)
 					.stream()
-					.reduce("", (s, r) -> s.length() == 0? r: ", " + r);
+					.reduce("", (s, r) -> s.length() == 0 ? r : ", " + r);
 		}
 		return cleanAddress(findHeader(thread, "From"));
 	}
@@ -58,7 +56,7 @@ public class GmailThread extends SimpleThread {
 			received = findHeader(thread, "Date");
 		}
 		try {
-			received = received.substring(received.lastIndexOf(";")+1, received.length()).trim();
+			received = received.substring(received.lastIndexOf(";") + 1, received.length()).trim();
 			date = new MailDateFormat().parse(received);
 		} catch (final ParseException e) {
 			LOGGER.error("parse received date: {}", received, e);
@@ -73,7 +71,7 @@ public class GmailThread extends SimpleThread {
 	private static Set<String> getMessageIds(final Thread thread) {
 		final Set<String> messageIds = new LinkedHashSet<String>();
 		if (thread.getMessages() != null) {
-			for(final Message m: thread.getMessages()) {
+			for (final Message m : thread.getMessages()) {
 				messageIds.add(m.getId());
 			}
 		}
@@ -81,15 +79,28 @@ public class GmailThread extends SimpleThread {
 		return messageIds;
 	}
 
+	private static Message getLastMessage(Thread thread) {
+		final List<Message> messages = thread.getMessages();
+		if (messages == null || messages.isEmpty()) {
+			return null;
+		}
+
+		Message last = null;
+		for(int i=messages.size()-1; i>=0; i--) {
+			last = messages.get(i);
+			if (!last.getLabelIds().contains(GmailTag.SENT.getId())) {
+				break;
+			}
+		}
+		return last;
+	}
+
 	private static Set<String> getTagIds(final Thread thread) {
 		if (thread.getMessages() == null) {
 			return Collections.emptySet();
 		}
 
-		return thread.getMessages()
-				.parallelStream()
-				.flatMap(m -> m.getLabelIds().stream())
-				.collect(Collectors.toSet());
+		return thread.getMessages().parallelStream().flatMap(m -> m.getLabelIds().stream()).collect(Collectors.toSet());
 	}
 
 	private static String findHeader(final Thread thread, final String key) {
@@ -102,12 +113,8 @@ public class GmailThread extends SimpleThread {
 
 	private static Set<String> findHeaders(final Thread thread, final String key) {
 		final Set<String> headers = new LinkedHashSet<String>();
-		if (thread.getMessages() != null
-				&& !thread.getMessages().isEmpty()) {
-			Message last = thread.getMessages().get(thread.getMessages().size()-1);
-			if (last.getLabelIds().contains(GmailTag.SENT.getId())) {
-				last = thread.getMessages().get(0);
-			}
+		if (thread.getMessages() != null && !thread.getMessages().isEmpty()) {
+			final Message last = getLastMessage(thread);
 			if (last.getPayload() != null && last.getPayload().getHeaders() != null) {
 				last.getPayload().getHeaders().forEach(h -> {
 					if (!h.getValue().isEmpty() && h.getName().equalsIgnoreCase(key)) {
@@ -121,20 +128,19 @@ public class GmailThread extends SimpleThread {
 	}
 
 	public GmailThread(final Thread thread) {
-		this(
-			thread.getId()
-			, findSubject(thread)
-			, getMessageIds(thread)
-			, getTagIds(thread)
-			, findSender(thread)
-			, findRecipients(thread)
-			, findReceivedDate(thread));
+		this(thread.getId()
+				, findSubject(thread)
+				, getMessageIds(thread)
+				, getLastMessage(thread).getId()
+				, getTagIds(thread)
+				, findSender(thread)
+				, findRecipients(thread)
+				, findReceivedDate(thread));
 	}
 
-	public GmailThread(final String id, final String subject
-			, final Set<String> messageIds, final Set<String> tagIds
-			, final String sender, final Set<String> recipients, final Date received) {
-		super(id, subject, messageIds, tagIds, sender, recipients, received);
+	public GmailThread(final String id, final String subject, final Set<String> messageIds, final String lastMessageId, final Set<String> tagIds,
+			final String sender, final Set<String> recipients, final Date received) {
+		super(id, subject, messageIds, lastMessageId, tagIds, sender, recipients, received);
 	}
 
 	@Override
