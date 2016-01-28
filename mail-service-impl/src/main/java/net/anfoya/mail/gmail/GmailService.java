@@ -114,7 +114,16 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 		historyService = new HistoryService(gmail, USER);
 		historyService.addOnUpdateLabel(() -> labelService.clearCache());
+	}
+
+	@Override
+	public void start() {
 		historyService.start(PULL_PERIOD);
+	}
+
+	@Override
+	public void stop() {
+		historyService.stop();
 	}
 
 	@Override

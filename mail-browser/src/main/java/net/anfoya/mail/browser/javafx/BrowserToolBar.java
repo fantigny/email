@@ -92,7 +92,7 @@ public class BrowserToolBar<S extends Section, T extends Tag, M extends Message,
 		final RotateTransition stopRotateTransition = new RotateTransition(Duration.INDEFINITE, graphics);
 		rotateTransition.setInterpolator(Interpolator.EASE_OUT);
 
-		ThreadPool.getDefault().setOnChange(PoolPriority.MAX, map -> {
+		ThreadPool.getDefault().addOnChange(PoolPriority.MAX, map -> {
 			if (map.isEmpty()) {
 				rotateTransition.stop();
 				stopRotateTransition.setByAngle(360d - graphics.getRotate() % 360d);

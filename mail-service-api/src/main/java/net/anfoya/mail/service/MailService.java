@@ -20,6 +20,9 @@ public interface MailService<
 	public void disconnect();
 	public ReadOnlyBooleanProperty disconnectedProperty();
 
+	public void start();
+	public void stop();
+
 	public void clearCache();
 
 	public void addOnUpdateMessage(final Runnable callback);

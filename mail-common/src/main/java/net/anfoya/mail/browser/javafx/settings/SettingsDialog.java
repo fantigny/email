@@ -1,6 +1,5 @@
 package net.anfoya.mail.browser.javafx.settings;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -101,18 +100,15 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 	private Tab buildTaskTab() {
 		final ListView<String> taskList = new ListView<String>();
 		taskList.setPlaceholder(new Label("idle"));
-		ThreadPool.getDefault().setOnChange(PoolPriority.MIN, map -> Platform.runLater(() -> taskList.getItems().setAll(getTasks(PoolPriority.MIN, map))));
-		ThreadPool.getDefault().setOnChange(PoolPriority.MAX, map -> Platform.runLater(() -> taskList.getItems().setAll(getTasks(PoolPriority.MAX, map))));
+		for(final PoolPriority p: PoolPriority.values()) {
+			ThreadPool.getDefault().addOnChange(p, map -> Platform.runLater(() -> taskList.getItems().setAll(getTasks(p, map))));
+		}
 		return new Tab("tasks", taskList);
 	}
 
-	private Collection<String> getTasks(PoolPriority priority, Map<Future<?>, String> map) {
+	private Set<String> getTasks(PoolPriority priority, Map<Future<?>, String> map) {
 		idTasks.put(priority, map.values());
-
-		final Collection<String> tasks = new ArrayList<>();
-		idTasks.values().forEach(c -> tasks.addAll(c));
-
-		return tasks;
+		return (Set<String>) idTasks.values().stream().reduce(new LinkedHashSet<String>(), (a, c) -> a.addAll(c)? a: a);
 	}
 
 	private Tab buildHelpTab() {

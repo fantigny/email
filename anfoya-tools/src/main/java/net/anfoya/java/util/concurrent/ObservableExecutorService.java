@@ -35,20 +35,20 @@ public final class ObservableExecutorService {
 			new TimerTask() { @Override public void run() { cleanupFutures(); } }
 			, CLEANUP_PERIOD_MS, CLEANUP_PERIOD_MS);
 
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-			if (!service.isShutdown()) {
-				service.shutdown();
-				LOGGER.info("shutdown {}", service);
-			} else if (!service.isTerminated()) {
-				service.shutdownNow();
-				LOGGER.info("shutdown now {}", service);
-			}
-		}));
+//		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+//			if (!service.isShutdown()) {
+//				service.shutdown();
+//				LOGGER.info("shutdown {}", service);
+//			} else if (!service.isTerminated()) {
+//				service.shutdownNow();
+//				LOGGER.info("shutdown now {}", service);
+//			}
+//		}));
 
 		LOGGER.info("created thread pool {}", name);
 	}
 
-	public void setOnChange(final VoidCallback<Map<Future<?>, String>> callback) {
+	public void addOnChange(final VoidCallback<Map<Future<?>, String>> callback) {
 		changeCallbacks.add(callback);
 		callback.call(futureDescriptions);
 	}
@@ -79,5 +79,9 @@ public final class ObservableExecutorService {
 		if (cleaned) {
 			changeCallbacks.forEach(c -> c.call(futureDescriptions));
 		}
+	}
+
+	public boolean isRunning() {
+		return !futureDescriptions.isEmpty();
 	}
 }

@@ -168,6 +168,7 @@ public class MailClient extends Application {
 		stage.show();
 		mailBrowser.initData();
 		stage.setOnHiding(e -> ThreadPool.getDefault().mustRun("settings", () -> {
+			gmail.stop();
 			mailBrowser.saveSettings();
 			settings.windowX().set(stage.getX());
 			settings.windowY().set(stage.getY());
@@ -176,7 +177,7 @@ public class MailClient extends Application {
 			settings.saveNow();
 		}));
 
-//		refreshTitle(stage);
+		gmail.start();
 	}
 
 	private void refreshTitle(final Stage stage, MailBrowser<?, ?, ?, ?, ?> browser) {
