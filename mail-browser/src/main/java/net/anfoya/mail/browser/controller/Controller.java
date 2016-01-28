@@ -20,6 +20,7 @@ import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.javafx.notification.NotificationService;
 import net.anfoya.mail.browser.javafx.MailBrowser;
+import net.anfoya.mail.browser.javafx.MailBrowser.Mode;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
 import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
@@ -114,6 +115,8 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 				p.setOnToggleSpam(threads -> toggleSpam(threads));
 				p.setOnUpdate(() -> refreshAfterThreadUpdate());
 			});
+
+		mailBrowser.addOnModeChange(() -> refreshAfterModeChange());
 	}
 
 	public void addThreadPane(ThreadPane<S, T, H, M, C> threadPane) {
@@ -393,7 +396,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		}
 		LOGGER.debug("refreshAfterThreadSelected");
 
-		if (!mailBrowser.isFull()) {
+		if (mailBrowser.modeProperty().get() != Mode.FULL) {
 			return;
 		}
 
@@ -478,5 +481,12 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 
 		sectionListPane.refreshAsync(() ->
 			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags()));
+	}
+
+
+	private void refreshAfterModeChange() {
+		if (mailBrowser.modeProperty().get() == Mode.FULL) {
+			refreshAfterThreadSelected();
+		}
 	}
 }

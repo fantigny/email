@@ -1,5 +1,7 @@
 package net.anfoya.mail.browser.javafx;
 
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
@@ -39,8 +41,8 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	private final SectionListPane<S, T> sectionListPane;
 	private final ThreadListPane<S, T, H, M, C> threadListPane;
 	private final ThreadPane<S, T, H, M, C> threadPane;
-	private Runnable modeChangeCallback;
-	private Mode mode;
+
+	private final ReadOnlyObjectWrapper<Mode> modeProperty;
 
 	public MailBrowser(final MailService<S, T, H, M, C> mailService
 			, final NotificationService notificationService
@@ -48,6 +50,8 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		super(new FixedSplitPane(), Color.TRANSPARENT);
 		this.mailService = mailService;
 		this.settings = settings;
+
+		modeProperty = new ReadOnlyObjectWrapper<Mode>();
 
 		final UndoService undoService = new UndoService();
 
@@ -94,16 +98,16 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		});
 	}
 
-	public void setOnModeChange(Runnable callback) {
-		modeChangeCallback = callback;
+	public void addOnModeChange(Runnable callback) {
+		modeProperty.addListener((ov, o, n) -> callback.run());
 	}
 
-	public Mode getMode() {
-		return mode;
+	public ReadOnlyObjectProperty<Mode> modeProperty() {
+		return modeProperty.getReadOnlyProperty();
 	}
 
 	public void setMode(Mode mode) {
-		this.mode = mode;
+		modeProperty.set(mode);
 		threadListPane.setMode(mode);
 
 		Pane resizable;
@@ -131,8 +135,6 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 			stage.setWidth(splitPane.computePrefWidth());
 			stage.setMinWidth(splitPane.computeMinWidth());
 		}
-
-		modeChangeCallback.run();
 	}
 
 	public void setOnSignout(final EventHandler<ActionEvent> handler) {
@@ -173,9 +175,5 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		settings.sectionListPaneWidth().set(sectionListPane.getWidth());
 		settings.threadListPaneWidth().set(threadListPane.getWidth());
 		settings.threadPaneWidth().set(threadPane.getWidth());
-	}
-
-	public boolean isFull() {
-		return splitPane.getVisiblePanes().size() == 3;
 	}
 }

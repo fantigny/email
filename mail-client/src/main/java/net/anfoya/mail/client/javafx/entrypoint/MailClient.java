@@ -161,7 +161,7 @@ public class MailClient extends Application {
 			return;
 		}
 		mailBrowser.setOnSignout(e -> signout());
-		mailBrowser.setOnModeChange(() -> refreshTitle(stage, mailBrowser));
+		mailBrowser.addOnModeChange(() -> refreshTitle(stage, mailBrowser));
 
 		stage.setScene(mailBrowser);
 		initSize(stage);
@@ -183,12 +183,13 @@ public class MailClient extends Application {
 		final Task<String> titleTask = new Task<String>() {
 			@Override
 			protected String call() throws Exception {
+				final Mode mode = browser.modeProperty().get();
 				String prefix = "";
-				if (browser.getMode() == Mode.FULL) {
+				if (mode == Mode.FULL) {
 					prefix = "FisherMail - ";
 				}
 				final Contact contact = gmail.getContact();
-				if (contact.getFullname().isEmpty() || browser.getMode() != Mode.FULL) {
+				if (contact.getFullname().isEmpty() || mode != Mode.FULL) {
 					return prefix + contact.getEmail();
 				} else {
 					return prefix + contact.getFullname() + " (" + contact.getEmail() + ")";
