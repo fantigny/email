@@ -167,14 +167,14 @@ public class MailClient extends Application {
 		initSize(stage);
 		stage.show();
 		mailBrowser.initData();
-		stage.setOnHiding(e -> {
+		stage.setOnHiding(e -> ThreadPool.getDefault().mustRun("settings", () -> {
 			mailBrowser.saveSettings();
 			settings.windowX().set(stage.getX());
 			settings.windowY().set(stage.getY());
 			settings.windowWidth().set(stage.getWidth());
 			settings.windowHeight().set(stage.getHeight());
 			settings.saveNow();
-		});
+		}));
 
 //		refreshTitle(stage);
 	}

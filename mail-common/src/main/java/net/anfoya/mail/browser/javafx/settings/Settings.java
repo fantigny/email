@@ -184,6 +184,7 @@ public class Settings implements Serializable {
 
 		try {
 			new SerializedFile<List<?>>(FILENAME).save(toList());
+			LOGGER.info("settings saved (localy)");
 		} catch (final IOException e) {
 			LOGGER.error("save settings {}", FILENAME, e);
 		}
@@ -193,6 +194,7 @@ public class Settings implements Serializable {
 					ObjectOutputStream oos = new ObjectOutputStream(bos)) {
 				oos.writeObject(toList());
 				mailService.persistBytes(PERSISTENT_ID, bos.toByteArray());
+				LOGGER.info("settings saved (roaming)");
 			} catch (final Exception e) {
 				LOGGER.error("saving global settings", e);
 			}

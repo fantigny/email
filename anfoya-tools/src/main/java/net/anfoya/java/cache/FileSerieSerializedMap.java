@@ -53,12 +53,7 @@ public class FileSerieSerializedMap<K extends Serializable, V extends Serializab
 
 		saving = false;
 
-		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-			@Override
-			public void run() {
-				save();
-			}
-		}));
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> save()));
 	}
 
 	private synchronized void save() {

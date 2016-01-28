@@ -27,8 +27,8 @@ public class ThreadPool {
 	public static ThreadPool getDefault() {
 		if (THREAD_POOL == null) {
 			THREAD_POOL = new ThreadPool(ObservableExecutors.newCachedThreadPool("min", Thread.MIN_PRIORITY)
-					,  ObservableExecutors.newCachedThreadPool("reg", Thread.NORM_PRIORITY)
-					,  ObservableExecutors.newCachedThreadPool("max", Thread.MAX_PRIORITY));
+					, ObservableExecutors.newCachedThreadPool("reg", Thread.NORM_PRIORITY)
+					, ObservableExecutors.newCachedThreadPool("max", Thread.MAX_PRIORITY));
 		}
 
 		return THREAD_POOL;
@@ -50,5 +50,11 @@ public class ThreadPool {
 
 	public void setOnChange(final PoolPriority priority, final VoidCallback<Map<Future<?>, String>> callback) {
 		priorityPools.get(priority).setOnChange(callback);
+	}
+
+	public void mustRun(final String description, final Runnable runnable) {
+		final Thread thread = new Thread(runnable, description);
+		thread.setDaemon(false);
+		thread.start();
 	}
 }
