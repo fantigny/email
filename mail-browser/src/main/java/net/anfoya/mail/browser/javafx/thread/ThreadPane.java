@@ -350,7 +350,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	}
 
 	public boolean isDetached() {
-		return getChildren().get(1) instanceof ThreadToolBar;
+		return getChildren().get(0) instanceof ThreadToolBar;
 	}
 
 	public void setOnReply(VoidCallback<Set<H>> callback) {
@@ -379,5 +379,9 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 
 	public void setOnToggleSpam(VoidCallback<Set<H>> callback) {
 		threadToolBar.setOnSpam(e -> callback.call(threads));
+	}
+
+	public H getThread() {
+		return thread;
 	}
 }

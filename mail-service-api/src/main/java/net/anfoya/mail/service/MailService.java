@@ -27,6 +27,7 @@ public interface MailService<
 
 	public Set<S> getHiddenSections() throws MailException;
 
+	public H getThread(String id) throws MailException;
 	public Set<H> findThreads(Set<T> includes, Set<T> excludes, String pattern, int pageMax) throws MailException;
 	public void addTagForThreads(T tag, Set<H> threads) throws MailException;
 	public void removeTagForThreads(T tag, Set<H> thread) throws MailException;

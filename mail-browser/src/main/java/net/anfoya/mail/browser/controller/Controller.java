@@ -2,6 +2,7 @@ package net.anfoya.mail.browser.controller;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -11,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import javafx.application.Platform;
 import javafx.concurrent.Task;
+import javafx.scene.layout.Pane;
 import javafx.scene.media.AudioClip;
 import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.VoidCallable;
@@ -89,7 +91,6 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		threadListPane.setOnReplyAll(threads -> reply(true, threads));
 		threadListPane.setOnForward(threads -> forward(threads));
 		threadListPane.setOnToggleFlag(threads -> toggleFlag(threads));
-		threadListPane.setOnArchive(threads -> archive(threads));
 		threadListPane.setOnTrash(threads -> trash(threads));
 		threadListPane.setOnToggleSpam(threads -> toggleSpam(threads));
 
@@ -109,7 +110,6 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 				p.setOnReplyAll(threads -> reply(true, threads));
 				p.setOnForward(threads -> forward(threads));
 				p.setOnToggleFlag(threads -> toggleFlag(threads));
-				p.setOnArchive(threads -> archive(threads));
 				p.setOnTrash(threads -> trash(threads));
 				p.setOnToggleSpam(threads -> toggleSpam(threads));
 				p.setOnUpdate(() -> refreshAfterThreadUpdate());
@@ -334,12 +334,22 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		LOGGER.debug("refreshAfterThreadListLoad");
 
 		final boolean markRead = !sectionListPane.getIncludedOrSelectedTags().contains(unread);
-		threadPanes.parallelStream().forEach(p -> {
-			if (p.isDetached()) {
-				Platform.runLater(() -> p.refresh());
-			} else {
-				Platform.runLater(() -> p.refresh(threadListPane.getSelectedThreads(), markRead));
-			}
+		threadPanes
+			.parallelStream()
+			.filter(Pane::isVisible)
+			.forEach(p -> {
+				final Set<H> threads = new HashSet<H>();
+				if (p.isDetached()) {
+					try {
+						final H thread = mailService.getThread(p.getThread().getId());
+						threads.add(thread);
+					} catch (final Exception e) {
+						LOGGER.error("refresh thread", e);
+					}
+				} else {
+					threads.addAll(threadListPane.getSelectedThreads());
+				}
+				Platform.runLater(() -> p.refresh(threads, markRead));
 		});
 //		final String pattern = threadListPane.getNamePattern();
 //		if (pattern.isEmpty()) {
@@ -397,7 +407,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		final boolean markRead = !sectionListPane.getIncludedOrSelectedTags().contains(mailService.getSpecialTag(SpecialTag.UNREAD));
 		threadPanes
 			.parallelStream()
-			.forEach(p -> p.refresh(threadListPane.getSelectedThreads(), markRead));
+			.forEach(p -> Platform.runLater(() -> p.refresh(threadListPane.getSelectedThreads(), markRead)));
 	}
 
 	private void refreshAfterMoreThreadsSelected() {

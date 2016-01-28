@@ -143,6 +143,16 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	@Override
+	public GmailThread getThread(String id) throws GMailException {
+		try {
+			final Thread thread = threadService.get(Collections.singleton(id), true, null).iterator().next();
+			return new GmailThread(thread);
+		} catch (final ThreadException e) {
+			throw new GMailException("get thread " + id, e);
+		}
+	}
+
+	@Override
 	public Set<GmailThread> findThreads(final Set<GmailTag> includes, final Set<GmailTag> excludes, final String pattern, final int pageMax) throws GMailException {
 		try {
 			final Set<GmailThread> threads = new LinkedHashSet<GmailThread>();
@@ -737,7 +747,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public void trash(final Set<GmailThread> threads) throws GMailException {
 		try {
-			final Set<String> ids = threads.stream().map(GmailThread::getId).collect(Collectors.toSet());
+			final Set<String> ids = threads.parallelStream().map(GmailThread::getId).collect(Collectors.toSet());
 			threadService.trash(ids);
 		} catch (final ThreadException e) {
 			throw new GMailException("trash threads " + threads, e);
