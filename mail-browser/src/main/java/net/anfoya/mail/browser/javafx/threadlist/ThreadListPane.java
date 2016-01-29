@@ -8,15 +8,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javafx.beans.property.BooleanProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
-import javafx.scene.control.RadioButton;
-import javafx.scene.control.Toggle;
-import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.Image;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
@@ -24,6 +20,7 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
@@ -44,7 +41,7 @@ import net.anfoya.mail.browser.javafx.message.MailReader;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
 import net.anfoya.mail.composer.javafx.MailComposer;
-import net.anfoya.mail.model.SimpleThread.SortOrder;
+import net.anfoya.mail.model.SimpleThread.SortField;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
@@ -213,24 +210,22 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 			}
 		});
 
-		final ToggleGroup toggleGroup = new ToggleGroup();
+		final Label sortLabel = new Label(SortField.DATE.toString().toLowerCase());
+		sortLabel.setOnMouseClicked(e -> {
+			final SortField field;
+			if (sortLabel.getText().equalsIgnoreCase(SortField.DATE.toString())) {
+				field = SortField.SENDER;
+			} else {
+				field = SortField.DATE;
+			}
+			sortLabel.setText(field.toString().toLowerCase());
+			threadList.sortBy(field);
+		});
 
-		final RadioButton nameSortButton = new RadioButton("sender");
-		nameSortButton.setFocusTraversable(false);
-		nameSortButton.setToggleGroup(toggleGroup);
-
-		final RadioButton dateSortButton = new RadioButton("date");
-		dateSortButton.setFocusTraversable(false);
-		dateSortButton.setToggleGroup(toggleGroup);
-
-		toggleGroup.selectedToggleProperty().addListener((ChangeListener<Toggle>) (ov, oldVal, newVal) -> threadList
-				.setOrder(nameSortButton.isSelected() ? SortOrder.SENDER : SortOrder.DATE));
-		dateSortButton.setSelected(true);
-
-		final HBox sortBox = new HBox(5, new Label("by"), dateSortButton, nameSortButton);
-		sortBox.setAlignment(Pos.CENTER);
-		setBottom(sortBox);
-		setMargin(sortBox, new Insets(5));
+		final FlowPane sortPane = new FlowPane(new Label("sorted by "), sortLabel);
+		sortPane.setAlignment(Pos.CENTER);
+		setBottom(sortPane);
+		setMargin(sortPane, new Insets(5));
 	}
 
 	private void threadListClicked(MouseEvent e) {

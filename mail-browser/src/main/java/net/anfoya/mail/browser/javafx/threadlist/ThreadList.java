@@ -25,7 +25,7 @@ import javafx.scene.input.KeyEvent;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
-import net.anfoya.mail.model.SimpleThread.SortOrder;
+import net.anfoya.mail.model.SimpleThread.SortField;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.Tag;
@@ -38,7 +38,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 
 	private Set<T> includes;
 	private Set<T> excludes;
-	private SortOrder sortOrder;
+	private SortField sortOrder;
 	private String pattern;
 	private int page;
 
@@ -60,7 +60,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 
 		includes = new LinkedHashSet<T>();
 		excludes = new LinkedHashSet<T>();
-		sortOrder = SortOrder.DATE;
+		sortOrder = SortField.DATE;
 		pattern = "";
 
 		refreshing = false;
@@ -91,7 +91,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 		updateCallback = callback;
 	}
 
-	public void setOrder(final SortOrder order) {
+	public void sortBy(final SortField order) {
 		sortOrder = order;
 		load();
 	}

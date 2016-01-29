@@ -8,7 +8,7 @@ import net.anfoya.mail.service.Thread;
 
 @SuppressWarnings("serial")
 public abstract class SimpleThread implements Thread {
-	public enum SortOrder {
+	public enum SortField {
 		DATE((t1, t2) -> {
 			if (t1.getDate() == null || PAGE_TOKEN_ID.equals(t2.getId())) {
 				return -1;
@@ -29,7 +29,7 @@ public abstract class SimpleThread implements Thread {
 		});
 
 		private Comparator<Thread> comparator;
-		private SortOrder(final Comparator<Thread> comparator) {
+		private SortField(final Comparator<Thread> comparator) {
 			this.comparator = comparator;
 		}
 
