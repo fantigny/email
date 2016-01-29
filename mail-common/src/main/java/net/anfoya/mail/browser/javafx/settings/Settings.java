@@ -72,6 +72,9 @@ public class Settings implements Serializable {
 	private final DoubleProperty windowX;
 	private final DoubleProperty windowY;
 
+	private final StringProperty sectionName;
+	private final StringProperty tagName;
+
 	public Settings(MailService<?, ?, ?, ?, ?> mailService) {
 		this.mailService = mailService;
 
@@ -94,6 +97,8 @@ public class Settings implements Serializable {
 		windowX = new SimpleDoubleProperty(-1);
 		windowY = new SimpleDoubleProperty(-1);
 		date = new SimpleLongProperty();
+		sectionName = new SimpleStringProperty("");
+		tagName = new SimpleStringProperty("");
 	}
 
 	public List<?> toList() {
@@ -118,6 +123,8 @@ public class Settings implements Serializable {
 				, windowY.get()
 				, date.get()
 				, threadListPaneWidth.get()
+				, sectionName.get()
+				, tagName.get()
 				);
 
 		return list;
@@ -144,6 +151,8 @@ public class Settings implements Serializable {
 		if (i.hasNext()) { windowY				.set((Double) 	i.next()); }
 		if (i.hasNext()) { date					.set((Long) 	i.next()); }
 		if (i.hasNext()) { threadListPaneWidth	.set((Double) 	i.next()); }
+		if (i.hasNext()) { sectionName			.set((String) 	i.next()); }
+		if (i.hasNext()) { tagName				.set((String) 	i.next()); }
 	}
 
 
@@ -280,5 +289,13 @@ public class Settings implements Serializable {
 
 	public DoubleProperty threadListPaneWidth() {
 		return threadListPaneWidth;
+	}
+
+	public StringProperty sectionName() {
+		return sectionName;
+	}
+
+	public StringProperty tagName() {
+		return tagName;
 	}
 }

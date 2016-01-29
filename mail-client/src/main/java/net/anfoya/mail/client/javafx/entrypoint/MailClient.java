@@ -166,8 +166,7 @@ public class MailClient extends Application {
 		stage.setScene(mailBrowser);
 		initSize(stage);
 		stage.show();
-		mailBrowser.initData();
-		stage.setOnHiding(e -> ThreadPool.getDefault().mustRun("settings", () -> {
+		stage.setOnHiding(e -> ThreadPool.getDefault().mustRun("save global settings", () -> {
 			gmail.stop();
 			mailBrowser.saveSettings();
 			settings.windowX().set(stage.getX());

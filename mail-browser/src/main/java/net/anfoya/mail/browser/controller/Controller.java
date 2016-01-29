@@ -26,6 +26,7 @@ import net.anfoya.mail.browser.javafx.thread.ThreadPane;
 import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
 import net.anfoya.mail.composer.javafx.MailComposer;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
+import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
@@ -78,7 +79,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		mailService.addOnUpdateTagOrSection(() -> Platform.runLater(() -> refreshAfterUpdateTagOrSection()));
 		mailService.disconnectedProperty().addListener((ov, o, n) -> {
 			if (!o && n) {
-				refreshAfterTagSelected();
+				Platform.runLater(() -> refreshAfterTagSelected());
 			}
 		});
 
@@ -117,6 +118,14 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 			});
 
 		mailBrowser.addOnModeChange(() -> refreshAfterModeChange());
+
+		String section = settings.sectionName().get();
+		String tag = settings.tagName().get();
+		if (section.isEmpty() || tag.isEmpty()) {
+			section = GmailSection.SYSTEM.getName();
+			tag = mailService.getSpecialTag(SpecialTag.INBOX).getName();
+		}
+		sectionListPane.init(section, tag);
 	}
 
 	public void addThreadPane(ThreadPane<S, T, H, M, C> threadPane) {

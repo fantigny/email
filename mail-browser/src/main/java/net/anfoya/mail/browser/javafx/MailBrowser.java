@@ -1,5 +1,7 @@
 package net.anfoya.mail.browser.javafx;
 
+import java.util.Set;
+
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.event.ActionEvent;
@@ -18,7 +20,6 @@ import net.anfoya.mail.browser.javafx.css.CssHelper;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
 import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
-import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
@@ -27,14 +28,12 @@ import net.anfoya.mail.service.Section;
 import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
 import net.anfoya.tag.javafx.scene.section.SectionListPane;
-import net.anfoya.tag.model.SpecialTag;
 
 public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends Scene {
 	public enum Mode { FULL, MINI, MICRO }
 
 //	private static final Logger LOGGER = LoggerFactory.getLogger(MailBrowser.class);
 
-	private final MailService<S, T, H, M, C> mailService;
 	private final Settings settings;
 
 	private final FixedSplitPane splitPane;
@@ -48,7 +47,6 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 			, final NotificationService notificationService
 			, final Settings settings) throws MailException {
 		super(new FixedSplitPane(), Color.TRANSPARENT);
-		this.mailService = mailService;
 		this.settings = settings;
 
 		modeProperty = new ReadOnlyObjectWrapper<Mode>();
@@ -141,11 +139,6 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		threadPane.setOnSignout(handler);
 	}
 
-	public void initData() {
-//		sectionListPane.init("Bank", "HK HSBC");
-		sectionListPane.init(GmailSection.SYSTEM.getName(), mailService.getSpecialTag(SpecialTag.INBOX).getName());
-	}
-
 	private void toggleViewMode(final KeyEvent e) {
 		final boolean left = e.getCode() == KeyCode.LEFT;
 		final boolean right = e.getCode() == KeyCode.RIGHT;
@@ -175,5 +168,14 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		settings.sectionListPaneWidth().set(sectionListPane.getWidth());
 		settings.threadListPaneWidth().set(threadListPane.getWidth());
 		settings.threadPaneWidth().set(threadPane.getWidth());
+
+		final Set<T> tags = sectionListPane.getIncludedOrSelectedTags();
+		if (tags.size() == 1) {
+			settings.sectionName().set(sectionListPane.getSelectedSection().getName());
+			settings.tagName().set(tags.iterator().next().getName());
+		} else {
+			settings.sectionName().set("");
+			settings.tagName().set("");
+		}
 	}
 }
