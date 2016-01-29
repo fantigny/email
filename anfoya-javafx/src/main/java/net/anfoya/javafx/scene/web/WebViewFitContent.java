@@ -23,21 +23,16 @@ public final class WebViewFitContent extends Region {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebViewFitContent.class);
 	private static final int MAX_RENDERING_PIXELS = 8192;
 
-	private final WebView delegate;
+	private final WebView view;
+	private final WebEngine engine;
 
 	public WebViewFitContent() {
-		delegate = new WebView();
-		delegate.focusTraversableProperty().bind(focusTraversableProperty());
-
-		widthProperty().addListener((ov, o, n) -> {
-			LOGGER.debug("widthProperty() change");
-			delegate.setPrefWidth(Math.min(MAX_RENDERING_PIXELS, n.intValue()));
-			adjustHeight();
-		});
-		delegate.getChildrenUnmodifiable().addListener(new ListChangeListener<Node>() {
+		view = new WebView();
+		view.focusTraversableProperty().bind(focusTraversableProperty());
+		view.getChildrenUnmodifiable().addListener(new ListChangeListener<Node>() {
 			@Override
 			public void onChanged(final Change<? extends Node> change) {
-				final Set<Node> scrolls = delegate.lookupAll(".scroll-bar");
+				final Set<Node> scrolls = view.lookupAll(".scroll-bar");
 				for (final Node node : scrolls) {
 					final ScrollBar scrollBar = (ScrollBar) node;
 					if (scrollBar.isVisible() && scrollBar.getOrientation() == Orientation.VERTICAL) {
@@ -48,23 +43,31 @@ public final class WebViewFitContent extends Region {
 				}
 			}
 		});
+		getChildren().add(view);
 
-		getChildren().add(delegate);
+		engine = view.getEngine();
+
+		widthProperty().addListener((ov, o, n) -> {
+			LOGGER.debug("widthProperty() change");
+			view.setPrefWidth(Math.min(MAX_RENDERING_PIXELS, n.intValue()));
+			adjustHeight();
+		});
+
 	}
 
 	@Override
 	protected void layoutChildren() {
 		final double w = getWidth();
 		final double h = getHeight();
-		layoutInArea(delegate, 0, 0, w, h, 0, HPos.CENTER, VPos.CENTER);
+		layoutInArea(view, 0, 0, w, h, 0, HPos.CENTER, VPos.CENTER);
 	}
 
 	private void adjustHeight() {
 		try {
 			final int height = getVscrollMax();
 			if (height != 0) {
-				delegate.setPrefHeight(height);
-				delegate.getPrefHeight();
+				view.setPrefHeight(height);
+				view.getPrefHeight();
 
 				LOGGER.debug("{}", height);
 			}
@@ -74,30 +77,41 @@ public final class WebViewFitContent extends Region {
 	}
 
 	public void setContextMenuEnabled(final boolean enable) {
-		delegate.setContextMenuEnabled(enable);
+		view.setContextMenuEnabled(enable);
 	}
 
 	public void setScrollHandler(final EventHandler<ScrollEvent> handler) {
 		final EventDispatcher eventDispatcher = getEventDispatcher();
-		setEventDispatcher((event, tail) -> {
-	    	if (event.getEventType() == ScrollEvent.SCROLL) {
-	    		handler.handle((ScrollEvent) event);
-	    		return null;
+		setEventDispatcher((e, tail) -> {
+	    	if (e.getEventType() == ScrollEvent.SCROLL) {
+	    		final ScrollEvent event = (ScrollEvent) e;
+	    		if (event.getDeltaY() != 0) {
+		    		handler.handle(event);
+		    		e = new ScrollEvent(
+		    				event.getSource(), event.getTarget(), event.getEventType()
+		    				, event.getX(), event.getY(), event.getScreenX(), event.getSceneY()
+		    				, event.isShiftDown(), event.isControlDown(), event.isAltDown(), event.isMetaDown()
+		    				, event.isDirect(), event.isInertia()
+		    				, event.getDeltaX(), 0, event.getTotalDeltaX(), 0
+		    				, event.getTextDeltaXUnits(), event.getTextDeltaX(), event.getTextDeltaYUnits(), 0
+		    				, event.getTouchCount(), event.getPickResult());
+	    		}
 	    	}
-			return eventDispatcher.dispatchEvent(event, tail);
+			return eventDispatcher.dispatchEvent(e, tail);
 		});
 	}
 
 	public int getVscrollMax() {
-		final Object o = delegate.getEngine().executeScript("document.body.scrollHeight - document.body.scrollTop");
-		return Math.min(MAX_RENDERING_PIXELS, (int) o);
+		return Math.min(
+				MAX_RENDERING_PIXELS
+				, (int) engine.executeScript("document.body.scrollHeight - document.body.scrollTop"));
 	}
 
 	public WebEngine getEngine() {
-		return delegate.getEngine();
+		return view.getEngine();
 	}
 
 	public WebView getWebView() {
-		return delegate;
+		return view;
 	}
 }
