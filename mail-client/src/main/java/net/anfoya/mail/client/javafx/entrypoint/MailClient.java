@@ -184,15 +184,13 @@ public class MailClient extends Application {
 			@Override
 			protected String call() throws Exception {
 				final Mode mode = browser.modeProperty().get();
-				String prefix = "";
-				if (mode == Mode.FULL) {
-					prefix = "FisherMail - ";
-				}
 				final Contact contact = gmail.getContact();
 				if (contact.getFullname().isEmpty() || mode != Mode.FULL) {
-					return prefix + contact.getEmail();
+//					return "abc.xyz@gmail.com";
+					return contact.getEmail();
 				} else {
-					return prefix + contact.getFullname() + " (" + contact.getEmail() + ")";
+//					return "FisherMail - Fred A. (abc.xyz@gmail.com)";
+					return "FisherMail - " + contact.getFullname() + " (" + contact.getEmail() + ")";
 				}
 			}
 		};

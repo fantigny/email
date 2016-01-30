@@ -34,7 +34,7 @@ import net.anfoya.mail.service.MailService;
 
 @SuppressWarnings("serial")
 public class Settings implements Serializable {
-	public static final String DOWNLOAD_URL = "https://fishermail.wordpress.com/download/";
+	public static final String DOWNLOAD_URL = "http://fishermail.anfoya.net/?page_id=12";
 
 	public static final String VERSION_TXT_RESOURCE = "/version.txt";
 	public static final String VERSION_TXT_URL = "https://www.dropbox.com/s/tpknt8yxfhnlwhm/version.txt?dl=1";

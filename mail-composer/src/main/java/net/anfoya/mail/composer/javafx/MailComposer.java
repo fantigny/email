@@ -216,6 +216,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 				setTitle(getTitle() + " - " + contact.getEmail());
 			} else {
 				setTitle(getTitle() + " - " + contact.getFullname() + " (" + contact.getEmail() + ")");
+//				setTitle("FisherMail - Fred A. (abc.xyz@gmail.com)");
 			}
 		});
 		contactTask.setOnFailed(e -> LOGGER.error("load contacts", e.getSource().getException()));
