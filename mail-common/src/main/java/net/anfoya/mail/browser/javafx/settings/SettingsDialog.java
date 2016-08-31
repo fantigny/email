@@ -237,6 +237,7 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		final SwitchButton roamingSettingsButton = new SwitchButton();
 		roamingSettingsButton.setSwitchOn(settings.globalSettings().get());
 		roamingSettingsButton.switchOnProperty().addListener((ov, o, n) -> settings.globalSettings().set(n));
+		roamingSettingsButton.setDisable(true);
 
 		final SwitchButton confirmOnQuitButton = new SwitchButton();
 		confirmOnQuitButton.setSwitchOn(settings.confirmOnQuit().get());

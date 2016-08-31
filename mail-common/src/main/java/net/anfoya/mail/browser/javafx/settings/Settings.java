@@ -87,7 +87,7 @@ public class Settings implements Serializable {
 		confirmOnQuit = new SimpleBooleanProperty(true);
 		confirmOnSignout = new SimpleBooleanProperty(true);
 		mute = new SimpleBooleanProperty(false);
-		globalSettings = new SimpleBooleanProperty(true);
+		globalSettings = new SimpleBooleanProperty(false);
 		threadPaneWidth = new SimpleDoubleProperty(200);
 		sectionListPaneWidth = new SimpleDoubleProperty(300);
 		threadListPaneWidth = new SimpleDoubleProperty(500);
