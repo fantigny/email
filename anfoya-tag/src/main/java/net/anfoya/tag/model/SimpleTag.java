@@ -15,7 +15,7 @@ public class SimpleTag implements Tag, Comparable<SimpleTag> {
 	public SimpleTag() {
 		this("n/d", "n/d", "n/d", false);
 	}
-	public SimpleTag(final String id, final String name, String path, final boolean system) {
+	public SimpleTag(final String id, final String name, final String path, final boolean system) {
 		this.id = id;
 		this.name = name;
 		this.path = path;
