@@ -32,6 +32,7 @@ import com.google.gdata.data.extensions.Email;
 import com.sun.mail.util.BASE64DecoderStream;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import javafx.util.Callback;
 import javafx.util.Duration;
 import net.anfoya.mail.gmail.model.GmailContact;
@@ -148,7 +149,11 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 	@Override
 	public ReadOnlyBooleanProperty disconnectedProperty() {
-		return historyService.disconnected();
+		try {
+			return historyService.disconnected();
+		} catch (Exception e) {
+			return new ReadOnlyBooleanWrapper(true);
+		}
 	}
 
 	@Override
