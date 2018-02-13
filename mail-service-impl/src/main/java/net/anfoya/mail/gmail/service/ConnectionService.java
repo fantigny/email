@@ -1,5 +1,6 @@
 package net.anfoya.mail.gmail.service;
 
+import java.awt.GraphicsEnvironment;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -23,7 +24,6 @@ import com.google.api.services.gmail.Gmail;
 import com.google.gdata.client.contacts.ContactsService;
 
 import javafx.application.Platform;
-import net.anfoya.javafx.application.PlatformHelper;
 import net.anfoya.mail.gmail.GMailException;
 import net.anfoya.mail.gmail.GmailService;
 import net.anfoya.mail.gmail.javafx.ConnectionProgress;
@@ -31,7 +31,7 @@ import net.anfoya.mail.gmail.javafx.GmailLogin;
 
 public class ConnectionService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GmailService.class);
-	private static final boolean HL = PlatformHelper.isHeadless();
+	private static final boolean HL = GraphicsEnvironment.isHeadless();
 
 	private static final String CLIENT_SECRET_PATH = "client_secret.json";
     private static final String REFRESH_TOKEN_SUFFIX = "%s-refresh-token";

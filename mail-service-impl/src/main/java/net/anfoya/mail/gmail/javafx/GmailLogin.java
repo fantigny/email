@@ -1,5 +1,6 @@
 package net.anfoya.mail.gmail.javafx;
 
+import java.awt.GraphicsEnvironment;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -26,12 +27,12 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import javafx.application.Platform;
 import javafx.concurrent.Worker.State;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.image.Image;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import net.anfoya.javafx.application.PlatformHelper;
 import net.anfoya.mail.gmail.GMailException;
 
 public class GmailLogin {
@@ -69,7 +70,7 @@ public class GmailLogin {
 				.build();
 
 		final String authCode;
-		if (PlatformHelper.isHeadless()) {
+		if (GraphicsEnvironment.isHeadless()) {
 			System.out.println("Please open the following URL in your browser then type the authorization code:\n" + url);
 			// Read code entered by user.
 			final BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -96,7 +97,7 @@ public class GmailLogin {
 		final Runnable loginRequest = () -> {
 			final WebView webView = new WebView();
 			final Stage stage = new Stage(StageStyle.UNIFIED);
-			stage.setTitle("load...");
+			stage.setTitle(" loading...");
 			stage.getIcons().add(new Image(getClass().getResourceAsStream("googlemail-64.png")));
 			stage.setScene(new Scene(webView, 450, 650));
 
@@ -105,10 +106,14 @@ public class GmailLogin {
 				if (n == State.SUCCEEDED) {
 					final String title = getTitle(webEngine);
 					stage.setTitle(title);
-					if (title.length() > LOGIN_SUCESS_PREFIX.length() && title.startsWith(LOGIN_SUCESS_PREFIX)) {
+					if (title.startsWith(LOGIN_SUCESS_PREFIX)) {
 						sb.append(title.substring(LOGIN_SUCESS_PREFIX.length()));
 						stage.close();
 					}
+				} else {
+					Alert alert = new Alert(Alert.AlertType.ERROR);
+					alert.setContentText("" + n);
+					alert.showAndWait();
 				}
 			});
 			webEngine.load(url);
@@ -127,6 +132,7 @@ public class GmailLogin {
 		} catch (final InterruptedException e) {
 			LOGGER.error("wait for credentials", e);
 		}
+		
 		return sb.toString();
 	}
 
