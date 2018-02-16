@@ -29,6 +29,7 @@ import javafx.concurrent.Worker.State;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
@@ -112,7 +113,9 @@ public class GmailLogin {
 						stage.close();
 					}
 				} else if (n == State.FAILED) {
-					new Alert(Alert.AlertType.ERROR, n.toString(), ButtonType.OK).show();
+					Throwable exception = webEngine.getLoadWorker().getException();
+					final String msg = exception == null? n.toString(): exception.toString();
+					Platform.runLater(() -> new Alert(AlertType.ERROR, msg, ButtonType.OK).showAndWait());
 				}
 			});
 			webEngine.load(url);
@@ -131,7 +134,7 @@ public class GmailLogin {
 		} catch (final InterruptedException e) {
 			LOGGER.error("wait for credentials", e);
 		}
-
+		
 		return sb.toString();
 	}
 

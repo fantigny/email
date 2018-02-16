@@ -6,10 +6,7 @@
 	<artifactId>mail-client</artifactId>
 	<packaging>jar</packaging>
 	<version>1.0.160129-alpha</version>
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
-
+	
 	<build>
 		<plugins>
 			<plugin>
@@ -53,7 +50,6 @@
 		     </resource>
 		</resources>
 	</build>
-
 	<dependencies>
 		<dependency>
 			<groupId>net.anfoya</groupId>

@@ -5,9 +5,6 @@
 	<artifactId>mail-client-distrib</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
 
 	<modules>
 		<module>../anfoya-tools</module>
@@ -99,9 +96,9 @@
 				</executions>
 				<dependencies>
 					<dependency>
-						<groupId>com.oracle</groupId>
+						<groupId>com.oracle.appbundler</groupId>
 						<artifactId>appbundler</artifactId>
-						<version>1.0ea</version>
+						<version>1.0</version>
 					</dependency>
 				</dependencies>
 			</plugin>
