@@ -68,6 +68,7 @@ public class VersionHelper {
 				BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
 			reader.lines().forEach(l -> latestVersion = l);
 		} catch (final IOException e) {
+			latestVersion = myVersion;
 			LOGGER.error("error read version from {}", VERSION_TXT_URL, e);
 		}
 		isLatestProperty.set(myVersion.equals(latestVersion));
