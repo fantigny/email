@@ -37,7 +37,8 @@ public class Settings implements Serializable {
 	public static final String DOWNLOAD_URL = "http://fishermail.anfoya.net/?page_id=12";
 
 	public static final String VERSION_TXT_RESOURCE = "/version.txt";
-	public static final String VERSION_TXT_URL = "https://www.dropbox.com/s/tpknt8yxfhnlwhm/version.txt?dl=1";
+//	public static final String VERSION_TXT_URL = "https://www.dropbox.com/s/tpknt8yxfhnlwhm/version.txt?dl=1";
+	public static final String VERSION_TXT_URL = "http://google.com";
 
 	private static final String SND_PATH = "/net/anfoya/mail/snd/";
 	public static final String MP3_NEW_MAIL = Settings.class.getClass().getResource(SND_PATH + "new_mail.mp3").toExternalForm();
@@ -74,6 +75,14 @@ public class Settings implements Serializable {
 
 	private final StringProperty sectionName;
 	private final StringProperty tagName;
+	
+	private final BooleanProperty proxyEnabled;
+	private final BooleanProperty proxyBasicAuth;
+	private final StringProperty proxyHost;
+	private final IntegerProperty proxyPort;
+	private final StringProperty proxyUser;
+	private final StringProperty proxyPasswd;
+	
 
 	public Settings(MailService<?, ?, ?, ?, ?> mailService) {
 		this.mailService = mailService;
@@ -99,6 +108,13 @@ public class Settings implements Serializable {
 		date = new SimpleLongProperty();
 		sectionName = new SimpleStringProperty("");
 		tagName = new SimpleStringProperty("");
+		
+		proxyEnabled = new SimpleBooleanProperty(false);
+		proxyBasicAuth = new SimpleBooleanProperty(false);
+		proxyHost = new SimpleStringProperty();
+		proxyPort = new SimpleIntegerProperty();
+		proxyUser = new SimpleStringProperty();
+		proxyPasswd = new SimpleStringProperty();
 	}
 
 	public List<?> toList() {
@@ -125,6 +141,12 @@ public class Settings implements Serializable {
 				, threadListPaneWidth.get()
 				, sectionName.get()
 				, tagName.get()
+				, proxyEnabled.get()
+				, proxyHost.get()
+				, proxyPort.get()
+				, proxyUser.get()
+				, proxyPasswd.get()
+				, proxyBasicAuth.get()
 				);
 
 		return list;
@@ -153,9 +175,14 @@ public class Settings implements Serializable {
 		if (i.hasNext()) { threadListPaneWidth	.set((Double) 	i.next()); }
 		if (i.hasNext()) { sectionName			.set((String) 	i.next()); }
 		if (i.hasNext()) { tagName				.set((String) 	i.next()); }
+		if (i.hasNext()) { proxyEnabled			.set((Boolean) 	i.next()); }
+		if (i.hasNext()) { proxyHost			.set((String) 	i.next()); }
+		if (i.hasNext()) { proxyPort			.set((Integer) 	i.next()); }
+		if (i.hasNext()) { proxyUser			.set((String) 	i.next()); }
+		if (i.hasNext()) { proxyPasswd			.set((String) 	i.next()); }
+		if (i.hasNext()) { proxyBasicAuth		.set((Boolean) 	i.next()); }
 	}
-
-
+	
 	public void load() {
 		try {
 			fromList(new SerializedFile<List<Object>>(FILENAME).load());
@@ -297,5 +324,29 @@ public class Settings implements Serializable {
 
 	public StringProperty tagName() {
 		return tagName;
+	}
+
+	public BooleanProperty proxyEnabled() {
+		return proxyEnabled;
+	}
+
+	public StringProperty proxyHost() {
+		return proxyHost;
+	}
+
+	public IntegerProperty proxyPort() {
+		return proxyPort;
+	}
+
+	public StringProperty proxyUser() {
+		return proxyUser;
+	}
+
+	public StringProperty proxyPasswd() {
+		return proxyPasswd;
+	}
+
+	public BooleanProperty proxyBasicAuth() {
+		return proxyBasicAuth;
 	}
 }

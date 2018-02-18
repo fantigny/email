@@ -1,5 +1,7 @@
 package net.anfoya.mail.client.javafx.entrypoint;
 
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -51,10 +53,11 @@ public class MailClient extends Application {
 	}
 
 	@Override
-	public void init() throws Exception {
+	public void init() throws Exception {		
 		initThreadPool();
-		initGmail();
 		initSettings();
+		initProxy();
+		initGmail();
 	}
 
 	@Override
@@ -134,15 +137,16 @@ public class MailClient extends Application {
 	}
 
 	private void checkVersion() {
-		final VersionHelper checker = new VersionHelper();
-		checker.isLastestProperty().addListener((ov, o, n) -> {
+		final VersionHelper version = new VersionHelper();
+		version.isLastest().addListener((ov, o, n) -> {
 			if (!n) {
 				notificationService.notifySuccess(
-					"FisherMail - " + checker.getLatestVersion()
+					"FisherMail - " + version.getLatestVersion()
 					, "click here to download"
 					, () -> UrlHelper.open(Settings.DOWNLOAD_URL));
 			}
 		});
+		version.start();
 	}
 
 	private void showBrowser() {
@@ -186,10 +190,8 @@ public class MailClient extends Application {
 				final Mode mode = browser.modeProperty().get();
 				final Contact contact = gmail.getContact();
 				if (contact.getFullname().isEmpty() || mode != Mode.FULL) {
-//					return "abc.xyz@gmail.com";
 					return contact.getEmail();
 				} else {
-//					return "FisherMail - Fred A. (abc.xyz@gmail.com)";
 					return "FisherMail - " + contact.getFullname() + " (" + contact.getEmail() + ")";
 				}
 			}
@@ -263,5 +265,24 @@ public class MailClient extends Application {
 
 			return null;
 		});
+	}
+	
+	private void initProxy() {
+		if (settings.proxyEnabled().getValue()) {
+			System.setProperty("http.proxyHost", settings.proxyHost().get());
+			System.setProperty("http.proxyPort", settings.proxyPort().get() + "");
+			System.setProperty("https.proxyHost", settings.proxyHost().get());
+			System.setProperty("https.proxyPort", settings.proxyPort().get() + "");
+			if (settings.proxyBasicAuth().get()) {
+				System.setProperty("jdk.http.auth.tunneling.disabledSchemes","");
+			}
+			Authenticator.setDefault(new Authenticator() {
+				protected PasswordAuthentication getPasswordAuthentication() {
+					return getRequestorType() == RequestorType.PROXY && getRequestingHost().equals(settings.proxyHost().get()) && getRequestingPort() == settings.proxyPort().get()
+							? new PasswordAuthentication(settings.proxyUser().get(), settings.proxyPasswd().get().toCharArray())
+							: null;
+			    }
+			});
+		}
 	}
 }

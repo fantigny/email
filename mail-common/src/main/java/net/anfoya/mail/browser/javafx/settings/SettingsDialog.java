@@ -22,6 +22,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -83,7 +84,7 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 
 		idTasks = new ConcurrentHashMap<PoolPriority, Collection<String>>();
 
-		tabPane = new TabPane(buildSettingsTab(), buildAboutTab(), buildHelpTab(), buildTaskTab());
+		tabPane = new TabPane(buildSettingsTab(), buildProxyTab(), buildAboutTab(), buildHelpTab(), buildTaskTab());
 		tabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
 
 		final Scene scene = new Scene(tabPane, 600, 400);
@@ -150,11 +151,12 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		GridPane.setVgrow(textPane, javafx.scene.layout.Priority.ALWAYS);
 		gridPane.add(textPane, 1, 0);
 
-		checker.isLastestProperty().addListener((ov, o, n) -> {
+		checker.isLastest().addListener((ov, o, n) -> {
 			if (!n) {
 				Platform.runLater(() -> addVersionMessage(gridPane, checker.getLatestVersion()));
 			}
 		});
+		checker.start();
 
 		return new Tab("about", gridPane);
 	}
@@ -225,7 +227,7 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		final Button refreshButton = new Button("boom!");
 		refreshButton.setOnAction(e -> {
 			mailService.clearCache();
-			refreshHidden();
+			refreshHiddenLabel();
 		});
 
 		final Button resetButton = new Button("clear");
@@ -250,6 +252,55 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		final SwitchButton muteButton = new SwitchButton();
 		muteButton.setSwitchOn(settings.mute().get());
 		muteButton.switchOnProperty().addListener((ov, o, n) -> settings.mute().set(n));
+
+		final SwitchButton proxyButton = new SwitchButton();
+		proxyButton.setSwitchOn(settings.proxyEnabled().get());
+		proxyButton.switchOnProperty().addListener((ov, o, n) -> settings.proxyEnabled().set(n));
+
+		final TextField proxyHost = new TextField(settings.proxyHost().get());
+		proxyHost.setPrefColumnCount(3);
+		proxyHost.textProperty().addListener((ov, o, n) -> {
+			try {
+				settings.proxyHost().set(n);
+			} catch (final Exception e) {
+				((StringProperty)ov).setValue(o);
+			}
+		});
+
+		final TextField proxyPort = new TextField("" + settings.proxyPort().get());
+		proxyPort.setPrefColumnCount(3);
+		proxyPort.textProperty().addListener((ov, o, n) -> {
+			try {
+				final int port = Integer.parseInt(n);
+				settings.proxyPort().set(port);
+			} catch (final Exception e) {
+				((StringProperty)ov).setValue(o);
+			}
+		});
+
+		final TextField proxyUser = new TextField(settings.proxyUser().get());
+		proxyUser.setPrefColumnCount(3);
+		proxyUser.textProperty().addListener((ov, o, n) -> {
+			try {
+				settings.proxyUser().set(n);
+			} catch (final Exception e) {
+				((StringProperty)ov).setValue(o);
+			}
+		});
+
+		final TextField proxyPasswd = new TextField(settings.proxyPasswd().get());
+		proxyPasswd.setPrefColumnCount(3);
+		proxyPasswd.textProperty().addListener((ov, o, n) -> {
+			try {
+				settings.proxyPasswd().set(n);
+			} catch (final Exception e) {
+				((StringProperty)ov).setValue(o);
+			}
+		});
+
+		final SwitchButton proxyBasicAuth = new SwitchButton();
+		proxyBasicAuth.setSwitchOn(settings.proxyBasicAuth().get());
+		proxyBasicAuth.switchOnProperty().addListener((ov, o, n) -> settings.proxyBasicAuth().set(n));
 
 		final GridPane gridPane = new GridPane();
 		gridPane.setPadding(new Insets(5));
@@ -300,13 +351,13 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		gridPane.add(resetButton												, 1, i);
 		i++;
 
-		refreshHidden();
-		mailService.addOnUpdateTagOrSection(() -> refreshHidden());
+		refreshHiddenLabel();
+		mailService.addOnUpdateTagOrSection(() -> refreshHiddenLabel());
 
 		return new Tab("settings", new ScrollPane(gridPane));
 	}
 
-	private Void refreshHidden() {
+	private Void refreshHiddenLabel() {
 		try {
 			final Set<Label> labels = new LinkedHashSet<>();
 			for(final S s: mailService.getHiddenSections()) {
@@ -331,6 +382,93 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		}
 
 		return null;
+	}
+
+	private Tab buildProxyTab() {
+		final SwitchButton proxyButton = new SwitchButton();
+		proxyButton.setSwitchOn(settings.proxyEnabled().get());
+		proxyButton.switchOnProperty().addListener((ov, o, n) -> settings.proxyEnabled().set(n));
+
+		final TextField proxyHost = new TextField(settings.proxyHost().get());
+		proxyHost.setPrefColumnCount(10);
+		proxyHost.editableProperty().bind(settings.proxyEnabled());
+		proxyHost.textProperty().addListener((ov, o, n) -> {
+			try {
+				settings.proxyHost().set(n);
+			} catch (final Exception e) {
+				((StringProperty)ov).setValue(o);
+			}
+		});
+
+		final TextField proxyPort = new TextField("" + settings.proxyPort().get());
+		proxyPort.editableProperty().bind(settings.proxyEnabled());
+		proxyPort.setPrefColumnCount(10);
+		proxyPort.textProperty().addListener((ov, o, n) -> {
+			try {
+				final int port = Integer.parseInt(n);
+				settings.proxyPort().set(port);
+			} catch (final Exception e) {
+				((StringProperty)ov).setValue(o);
+			}
+		});
+
+		final TextField proxyUser = new TextField(settings.proxyUser().get());
+		proxyUser.editableProperty().bind(settings.proxyEnabled());
+		proxyUser.setPrefColumnCount(10);
+		proxyUser.textProperty().addListener((ov, o, n) -> {
+			try {
+				settings.proxyUser().set(n);
+			} catch (final Exception e) {
+				((StringProperty)ov).setValue(o);
+			}
+		});
+
+		final PasswordField proxyPasswd = new PasswordField();
+		proxyPasswd.setText(settings.proxyPasswd().get());
+		proxyPasswd.editableProperty().bind(settings.proxyEnabled());
+		proxyPasswd.setPrefColumnCount(10);
+		proxyPasswd.textProperty().addListener((ov, o, n) -> {
+			try {
+				settings.proxyPasswd().set(n);
+			} catch (final Exception e) {
+				((StringProperty)ov).setValue(o);
+			}
+		});
+
+		final SwitchButton proxyBasicAuth = new SwitchButton();
+		proxyBasicAuth.enabledProperty().bind(settings.proxyEnabled());
+		proxyBasicAuth.setSwitchOn(settings.proxyBasicAuth().get());
+		proxyBasicAuth.switchOnProperty().addListener((ov, o, n) -> settings.proxyBasicAuth().set(n));
+
+		final GridPane gridPane = new GridPane();
+		gridPane.setPadding(new Insets(5));
+		gridPane.setVgap(5);
+		gridPane.setHgap(10);
+
+		int i = 0;
+		gridPane.add(new Label("enable")										, 0, i);
+		gridPane.add(proxyButton												, 1, i);
+		i++;
+		gridPane.add(new Label("host")											, 0, i);
+		gridPane.add(proxyHost													, 1, i);
+		i++;
+		gridPane.add(new Label("port")											, 0, i);
+		gridPane.add(proxyPort													, 1, i);
+		i++;
+		gridPane.add(new Label("user")											, 0, i);
+		gridPane.add(proxyUser													, 1, i);
+		i++;
+		gridPane.add(new Label("pasword")										, 0, i);
+		gridPane.add(proxyPasswd												, 1, i);
+		i++;
+		gridPane.add(new Label("basic authentication")							, 0, i);
+		gridPane.add(proxyBasicAuth												, 1, i);
+		i++;
+
+		refreshHiddenLabel();
+		mailService.addOnUpdateTagOrSection(() -> refreshHiddenLabel());
+
+		return new Tab("proxy", new ScrollPane(gridPane));
 	}
 
 	private Void show(final S section, final Label label) {
