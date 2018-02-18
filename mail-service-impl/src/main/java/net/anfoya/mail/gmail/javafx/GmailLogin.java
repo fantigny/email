@@ -57,6 +57,9 @@ public class GmailLogin {
 
 		httpTransport = new NetHttpTransport();
 		jsonFactory = new JacksonFactory();
+		
+		// workaround Google login issue -- https://stackoverflow.com/questions/44905264/cannot-sign-in-to-google-in-javafx-webview
+		System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
 	}
 
 	public TokenResponse getTokenResponseCredentials() throws GMailException, IOException, InterruptedException {
@@ -65,7 +68,7 @@ public class GmailLogin {
 				.setAccessType("offline")
 				.setApprovalPrompt("auto")
 				.build();
-		// Allow user to authorize via URL and retrieve authorization code
+		// Allow user to authorise via URL and retrieve authorisation code
 		final String url = flow
 				.newAuthorizationUrl()
 				.setRedirectUri(GoogleOAuthConstants.OOB_REDIRECT_URI)
