@@ -1,6 +1,8 @@
 package net.anfoya.mail.browser.javafx.settings;
 
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Button;
@@ -8,22 +10,33 @@ import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 
 public class SwitchButton extends Label {
-	private final SimpleBooleanProperty switchedOn;
+	private final BooleanProperty enabled;
+	private final BooleanProperty switchedOn;
 
 	public SwitchButton() {
-		switchedOn = new SimpleBooleanProperty(true);
-		switchedOn.addListener((ov, o, n) -> {
+		ChangeListener<Boolean> switchListener = (ov, o, n) -> {
 			if (n) {
 				setText(" on");
-				setStyle("-fx-background-color: green;-fx-text-fill:white;");
+				setStyle("-fx-background-color: green; -fx-text-fill: white;");
 				setContentDisplay(ContentDisplay.RIGHT);
 			} else {
 				setText("off ");
-				setStyle("-fx-background-color: grey;-fx-text-fill:black;");
+				setStyle("-fx-background-color: grey; -fx-text-fill: black;");
 				setContentDisplay(ContentDisplay.LEFT);
 			}
-		});
-		switchedOn.set(false);
+		};
+		switchedOn = new SimpleBooleanProperty(true);
+		
+		enabled = new SimpleBooleanProperty(true);
+		enabled.addListener((ov, o, n) -> {
+			if (n) {
+				switchListener.changed(switchedOn, !switchedOn.get(), switchedOn.get());
+				switchedOn.addListener(switchListener);
+			} else {
+				setStyle("-fx-background-color: darkgrey; -fx-text-fill: grey;");
+				switchedOn.removeListener(switchListener);
+			}
+		});		
 
 		final Button switchBtn = new Button();
 		switchBtn.setPrefWidth(40);
@@ -34,10 +47,18 @@ public class SwitchButton extends Label {
 			}
 		});
 
+		// initialise graphic state
+		switchedOn.addListener(switchListener);
+		switchedOn.set(false);
+		
 		setGraphic(switchBtn);
 	}
+	
+	public BooleanProperty enabledProperty() {
+		return enabled;
+	}
 
-	public SimpleBooleanProperty switchOnProperty() {
+	public BooleanProperty switchOnProperty() {
 		return switchedOn;
 	}
 
