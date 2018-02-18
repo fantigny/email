@@ -68,6 +68,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends VBox {
 
 	public SectionListPane(final TagService<S, T> tagService, UndoService undoService, final boolean withExcludeBox) {
 		setPrefWidth(100);
+		itemPattern = "";
 
 		this.tagService = tagService;
 		this.showExcludeBox = withExcludeBox;
