@@ -21,15 +21,19 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.LongProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleLongProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import net.anfoya.java.io.SerializedFile;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
+import net.anfoya.mail.browser.controller.Intention;
+import net.anfoya.mail.browser.controller.Target;
 import net.anfoya.mail.service.MailService;
 
 @SuppressWarnings("serial")
@@ -82,6 +86,9 @@ public class Settings implements Serializable {
 	private final IntegerProperty proxyPort;
 	private final StringProperty proxyUser;
 	private final StringProperty proxyPasswd;
+
+	private final ObjectProperty<Intention> intention;
+	private final ObjectProperty<Target> target;
 	
 
 	public Settings(MailService<?, ?, ?, ?, ?> mailService) {
@@ -115,6 +122,9 @@ public class Settings implements Serializable {
 		proxyPort = new SimpleIntegerProperty();
 		proxyUser = new SimpleStringProperty();
 		proxyPasswd = new SimpleStringProperty();
+		
+		intention = new SimpleObjectProperty<Intention>(Intention.read);
+		target = new SimpleObjectProperty<Target>(Target.thread);
 	}
 
 	public List<?> toList() {
@@ -147,6 +157,8 @@ public class Settings implements Serializable {
 				, proxyUser.get()
 				, proxyPasswd.get()
 				, proxyBasicAuth.get()
+				, intention.get()
+				, target.get()
 				);
 
 		return list;
@@ -181,6 +193,8 @@ public class Settings implements Serializable {
 		if (i.hasNext()) { proxyUser			.set((String) 	i.next()); }
 		if (i.hasNext()) { proxyPasswd			.set((String) 	i.next()); }
 		if (i.hasNext()) { proxyBasicAuth		.set((Boolean) 	i.next()); }
+		if (i.hasNext()) { intention			.set((Intention)i.next()); }
+		if (i.hasNext()) { target				.set((Target) 	i.next()); }
 	}
 	
 	public void load() {
@@ -348,5 +362,13 @@ public class Settings implements Serializable {
 
 	public BooleanProperty proxyBasicAuth() {
 		return proxyBasicAuth;
+	}
+
+	public ObjectProperty<Intention> intention() {
+		return intention;
+	}
+
+	public ObjectProperty<Target> target() {
+		return target;
 	}
 }
