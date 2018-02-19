@@ -31,13 +31,12 @@ import javax.mail.internet.MimeUtility;
 import javax.swing.Icon;
 import javax.swing.JFileChooser;
 
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.sun.mail.util.BASE64DecoderStream;
-
-import sun.misc.BASE64Encoder;
-import sun.misc.IOUtils;
 
 public class MessageHelper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessageHelper.class);
@@ -261,7 +260,7 @@ public class MessageHelper {
 			final String iconFileName = String.format(SYS_ICON, file.getName().substring(file.getName().lastIndexOf(".") + 1));
 			if (getClass().getResource(iconFileName) != null) {
 				final InputStream in = getClass().getResourceAsStream(iconFileName);
-				imgBytes = IOUtils.readFully(in, in.available(), true);
+				imgBytes = IOUtils.toByteArray(in);
 			} else {
 				final Icon icon = new JFileChooser().getIcon(file);
 				final BufferedImage bi = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TRANSLUCENT);
@@ -271,7 +270,7 @@ public class MessageHelper {
 				imgBytes = bos.toByteArray();
 			}
 
-			return new BASE64Encoder().encode(imgBytes);
+			return new Base64().encodeAsString(imgBytes);
 		} catch (final IOException e) {
 			LOGGER.error("read system icon for {}", file.getName(), e);
 			return "";
