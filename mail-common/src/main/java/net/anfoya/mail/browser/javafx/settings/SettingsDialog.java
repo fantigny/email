@@ -45,6 +45,7 @@ import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.javafx.scene.control.RemoveLabel;
+import net.anfoya.javafx.scene.control.SwitchButton;
 import net.anfoya.mail.browser.javafx.css.CssHelper;
 import net.anfoya.mail.browser.javafx.util.UrlHelper;
 import net.anfoya.mail.service.Contact;

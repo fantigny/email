@@ -1,4 +1,4 @@
-package net.anfoya.mail.browser.javafx.settings;
+package net.anfoya.javafx.scene.control;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
