@@ -41,8 +41,8 @@ public class Settings implements Serializable {
 	public static final String VERSION_TXT_URL = "http://google.com";
 
 	private static final String SND_PATH = "/net/anfoya/mail/snd/";
-	public static final String MP3_NEW_MAIL = Settings.class.getClass().getResource(SND_PATH + "new_mail.mp3").toExternalForm();
-	public static final String MP3_TRASH = Settings.class.getClass().getResource(SND_PATH + "trash.mp3").toExternalForm();
+	public static final String MP3_NEW_MAIL = Settings.class.getResource(SND_PATH + "new_mail.mp3").toExternalForm();
+	public static final String MP3_TRASH = Settings.class.getResource(SND_PATH + "trash.mp3").toExternalForm();
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Settings.class);
 	private static final String FILENAME = System.getProperty("java.io.tmpdir") + File.separatorChar + "fsm-settings";

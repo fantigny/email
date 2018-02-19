@@ -36,7 +36,7 @@ public class CssHelper {
 			}
 			path = file.toURI().toString();
 		} catch (final IOException e) {
-			path = CssHelper.class.getClass().getResource(internalPath).toExternalForm();
+			path = CssHelper.class.getResource(internalPath).toExternalForm();
 		}
 		LOGGER.info("add css {}", path);
 		scene.getStylesheets().add(path);
