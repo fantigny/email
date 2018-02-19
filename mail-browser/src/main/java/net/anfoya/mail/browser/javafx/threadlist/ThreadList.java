@@ -213,7 +213,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 			final int[] indices = new int[oldSelectedList.size()];
 			Arrays.fill(indices, -1);
 			if (oldSelectedList.size() == 1 && oldSelectedList.iterator().next() instanceof GmailMoreThreads) {
-				// user wants to see more threads, select first of the "next threads"
+				// user opted to see more threads, select first of the added set
 				indices[0] = oldSelectedIndex;
 				scrollTo(indices[0]);
 			} else {
@@ -228,7 +228,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 				}
 			}
 			if (indices[0] != -1) {
-				getSelectionModel().selectIndices(indices[0], indices);
+				getSelectionModel().selectIndices(indices[0], Arrays.copyOfRange(indices, Math.min(indices.length-1, 1), Math.max(indices.length-1, 0)));
 			}
 		}
 		if (getSelectionModel().isEmpty() && oldSelectedIndex != -1) {
