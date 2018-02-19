@@ -313,24 +313,27 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 //		ThreadPool.getDefault().submit(PoolPriority.MAX, desc, task);
 //	}
 
+	private boolean refreshUnreadCount = true;
 
-	private final boolean refreshAfterTagSelected = true;
-	private final boolean refreshAfterThreadSelected = true;
-	private final boolean refreshAfterMoreResultsSelected = true;
+	private boolean refreshAfterTagSelected = true;
+	private boolean refreshAfterThreadSelected = true;
+	private boolean refreshAfterMoreResultsSelected = true;
 
-	private final boolean refreshAfterThreadListLoad = true;
+	private boolean refreshAfterThreadListLoad = true;
 
-	private final boolean refreshAfterTagUpdate = true;
-	private final boolean refreshAfterSectionUpdate = true;
-	private final boolean refreshAfterSectionSelect = true;
-	private final boolean refreshAfterThreadUpdate = true;
-	private final boolean refreshAfterPatternUpdate = true;
-	private final boolean refreshAfterUpdateMessage = true;
-	private final boolean refreshAfterUpdateTagOrSection = true;
+	private boolean refreshAfterTagUpdate = true;
+	private boolean refreshAfterSectionUpdate = true;
+	private boolean refreshAfterSectionSelect = true;
+	private boolean refreshAfterThreadUpdate = true;
+	private boolean refreshAfterPatternUpdate = true;
+	private boolean refreshAfterUpdateMessage = true;
+	private boolean refreshAfterUpdateTagOrSection = true;
+	private boolean refreshAfterModeChange = true;
 
 
 	private void refreshAfterThreadUpdate() {
 		if (!refreshAfterThreadUpdate) {
+			LOGGER.warn("refreshAfterThreadUpdate");
 			return;
 		}
 		LOGGER.debug("refreshAfterThreadUpdate");
@@ -341,6 +344,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 
 	private void refreshAfterThreadListLoad() {
 		if (!refreshAfterThreadListLoad) {
+			LOGGER.warn("refreshAfterThreadListLoad");
 			return;
 		}
 		LOGGER.debug("refreshAfterThreadListLoad");
@@ -373,6 +377,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 
 	private void refreshAfterSectionSelect() {
 		if (!refreshAfterSectionSelect) {
+			LOGGER.warn("refreshAfterSectionSelect");
 			return;
 		}
 		LOGGER.debug("refreshAfterSectionSelect");
@@ -382,6 +387,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 
 	private void refreshAfterTagUpdate() {
 		if (!refreshAfterTagUpdate) {
+			LOGGER.warn("refreshAfterTagUpdate");
 			return;
 		}
 		LOGGER.debug("refreshAfterTagUpdate");
@@ -392,6 +398,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 
 	private void refreshAfterTagSelected() {
 		if (!refreshAfterTagSelected) {
+			LOGGER.warn("refreshAfterTagSelected");
 			return;
 		}
 		LOGGER.debug("refreshAfterTagSelected");
@@ -401,6 +408,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 
 	private void refreshAfterThreadSelected() {
 		if (!refreshAfterThreadSelected) {
+			LOGGER.warn("refreshAfterThreadSelected");
 			return;
 		}
 		LOGGER.debug("refreshAfterThreadSelected");
@@ -424,6 +432,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 
 	private void refreshAfterMoreThreadsSelected() {
 		if (!refreshAfterMoreResultsSelected) {
+			LOGGER.warn("refreshAfterMoreResultsSelected");
 			return;
 		}
 		LOGGER.debug("refreshAfterMoreResultsSelected");
@@ -435,6 +444,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 
 	private void refreshAfterPatternUpdate() {
 		if (!refreshAfterPatternUpdate) {
+			LOGGER.warn("refreshAfterPatternUpdate");
 			return;
 		}
 		LOGGER.debug("refreshAfterPatternUpdate");
@@ -449,6 +459,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 
 	private void refreshAfterUpdateMessage() {
 		if (!refreshAfterUpdateMessage) {
+			LOGGER.warn("refreshAfterUpdateMessage");
 			return;
 		}
 		LOGGER.debug("refreshAfterUpdateMessage");
@@ -460,6 +471,12 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 	}
 
 	private void refreshUnreadCount() {
+		if (!refreshUnreadCount) {
+			LOGGER.warn("refreshUnreadCount");
+			return;
+		}
+		LOGGER.debug("refreshUnreadCount");
+
 		final String desc = "count unread messages";
 		final Set<T> includes = Collections.singleton(mailService.getSpecialTag(SpecialTag.UNREAD));
 		ThreadPool.getDefault().submit(PoolPriority.MIN, desc, () -> {
@@ -475,6 +492,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 
 	private void refreshAfterUpdateTagOrSection() {
 		if (!refreshAfterUpdateTagOrSection) {
+			LOGGER.warn("refreshAfterUpdateTagOrSection");
 			return;
 		}
 		LOGGER.debug("refreshAfterUpdateTagOrSection");
@@ -484,6 +502,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 	}
 	private void refreshAfterSectionUpdate() {
 		if (!refreshAfterSectionUpdate) {
+			LOGGER.warn("refreshAfterSectionUpdate");
 			return;
 		}
 		LOGGER.debug("refreshAfterSectionUpdate");
@@ -494,6 +513,12 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 
 
 	private void refreshAfterModeChange() {
+		if (!refreshAfterModeChange) {
+			LOGGER.warn("refreshAfterModeChange");
+			return;
+		}
+		LOGGER.debug("refreshAfterModeChange");
+
 		if (mailBrowser.modeProperty().get() == Mode.FULL) {
 			refreshAfterThreadSelected();
 		}
