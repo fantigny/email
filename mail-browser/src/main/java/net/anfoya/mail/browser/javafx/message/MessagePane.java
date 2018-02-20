@@ -54,6 +54,7 @@ import net.anfoya.mail.browser.javafx.util.UrlHelper;
 import net.anfoya.mail.composer.javafx.MailComposer;
 import net.anfoya.mail.mime.DateHelper;
 import net.anfoya.mail.mime.MessageHelper;
+import net.anfoya.mail.mime.MessageReader;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
@@ -76,7 +77,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	private final BooleanProperty expanded;
 	private final BooleanProperty collapsible;
 
-	private final MessageHelper helper;
+	private final MessageReader reader;
 
 	private final HBox iconBox;
 	private final TextFlow recipientFlow;
@@ -108,7 +109,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 
 		expanded = new SimpleBooleanProperty();
 		collapsible = new SimpleBooleanProperty();
-		helper = new MessageHelper();
+		reader = new MessageReader();
 
 		messageView = new WebViewFitContent();
 		messageView.focusTraversableProperty().bind(focusTraversableProperty());
@@ -263,7 +264,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 			@Override
 			protected String call() throws MailException, MessagingException, IOException, URISyntaxException {
 				message = mailService.getMessage(messageId);
-			    return helper.toHtml(message.getMimeMessage());
+			    return reader.toHtml(message.getMimeMessage());
 			}
 		};
 		loadTask.setOnSucceeded(e -> {
@@ -355,7 +356,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		snippetView.getEngine().setUserStyleSheetLocation(DEFAULT_CSS);
 
 		attachmentPane.getChildren().clear();
-		final Set<String> attachNames = helper.getAttachmentNames();
+		final Set<String> attachNames = reader.getAttachmentNames();
 		if (!attachNames.isEmpty()) {
 			for(final String name: attachNames) {
 				final HBox attachment = new HBox(3, new ImageView(ATTACHMENT), new Label(name));
@@ -380,6 +381,6 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	}
 
 	public boolean hasAttachment() {
-		return !helper.getAttachmentNames().isEmpty();
+		return !reader.getAttachmentNames().isEmpty();
 	}
 }
