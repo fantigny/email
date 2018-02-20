@@ -47,6 +47,7 @@ import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.mail.browser.javafx.css.CssHelper;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.mime.MessageHelper;
+import net.anfoya.mail.mime.MessageReader;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
@@ -60,7 +61,6 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 	private final MailService<?, ?, ?, M, C> mailService;
 	private final Settings settings;
 
-	private final MessageHelper helper;
 	private final String myAddress;
 
 	private final BorderPane mainPane;
@@ -108,7 +108,6 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		addressContacts = new ConcurrentHashMap<String, C>();
 		initContacts();
 
-		helper = new MessageHelper();
 		mainPane = (BorderPane) getScene().getRoot();
 		mainPane.setPadding(new Insets(3));
 
@@ -285,7 +284,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 				final MimeMessage reply = (MimeMessage) source.getMimeMessage().reply(all);
 				reply.setContent(source.getMimeMessage().getContent(), source.getMimeMessage().getContentType());
 				reply.saveChanges();
-				helper.removeMyselfFromRecipient(myAddress, reply);
+				MessageHelper.removeMyselfFromRecipient(myAddress, reply);
 				draft = mailService.createDraft(source);
 				draft.setMimeDraft(reply);
 				return null;
@@ -360,7 +359,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 
 		String html;
 		try {
-			html = helper.toHtml(message);
+			html = new MessageReader().toHtml(message);
 		} catch (IOException | MessagingException e) {
 			html = "";
 			LOGGER.error("get html content", e);

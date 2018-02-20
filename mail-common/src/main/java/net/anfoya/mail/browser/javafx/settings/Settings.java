@@ -83,7 +83,6 @@ public class Settings implements Serializable {
 	private final StringProperty proxyUser;
 	private final StringProperty proxyPasswd;
 	
-
 	public Settings(MailService<?, ?, ?, ?, ?> mailService) {
 		this.mailService = mailService;
 
