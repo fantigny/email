@@ -30,12 +30,15 @@ import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
+import net.anfoya.tag.model.SpecialTag;
 
 public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadList.class);
 
 	private final MailService<?, T, H, ?, ?> mailService;
 
+	private final T unread;
+	
 	private Set<T> includes;
 	private Set<T> excludes;
 	private SortField sortOrder;
@@ -45,7 +48,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 	private long loadTaskId;
 	private Task<Set<H>> loadTask;
 
-	private boolean refreshing;
+	private Object refreshing;
 	private boolean resetSelection;
 
 	private Runnable loadCallback;
@@ -53,17 +56,21 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 
 	private boolean firstLoad = true;
 
+	private boolean keepMissingThreads;
+
 	public ThreadList(final MailService<?, T, H, ?, ?> mailService) {
         getStyleClass().add("thread-list");
         setPlaceholder(new Label("empty"));
 		this.mailService = mailService;
+
+		unread = mailService.getSpecialTag(SpecialTag.UNREAD);
 
 		includes = new LinkedHashSet<T>();
 		excludes = new LinkedHashSet<T>();
 		sortOrder = SortField.DATE;
 		pattern = "";
 
-		refreshing = false;
+		refreshing = new Object();
 		resetSelection = true;
 
 		setCellFactory(param -> new ThreadListCell<H>());
@@ -105,11 +112,15 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 		if (!includes.equals(this.includes)
 				|| !excludes.equals(this.excludes)
 				|| !pattern.equals(this.pattern)) {
-			this.page = 1;
+			page = 1;
+			keepMissingThreads = false;
+		} else {
+			keepMissingThreads = includes.contains(unread); 
 		}
 		this.includes = includes;
 		this.excludes = excludes;
 		this.pattern = pattern;
+		
 		load();
 	}
 
@@ -142,7 +153,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 
 	public void setOnSelect(final Runnable callback) {
 		getSelectionModel().selectedItemProperty().addListener((ov, n, o) -> {
-			if (!refreshing) {
+			synchronized(refreshing) {
 				callback.run();
 			}
 		});
@@ -163,10 +174,9 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 		};
 		loadTask.setOnFailed(e -> LOGGER.error("load thread list", e.getSource().getException()));
 		loadTask.setOnSucceeded(e -> {
-			if (taskId != loadTaskId) {
-				return;
+			if (taskId == loadTaskId) {
+				refresh(loadTask.getValue());
 			}
-			refresh(loadTask.getValue());
 		});
 		ThreadPool.getDefault().submit(PoolPriority.MAX, "load thread list", loadTask);
 	}
@@ -179,16 +189,25 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 
 		// get list
 		final List<H> sortedThreads = new ArrayList<H>(threads);
+		if (!firstLoad && keepMissingThreads) {
+			oldThreads
+				.parallelStream()
+				.filter(t -> !threads.contains(t))
+				.forEach(t -> {
+					t.getTagIds().remove(unread.getId());
+					sortedThreads.add(t);
+				});
+		}
 
 		// sort
 		Collections.sort(sortedThreads, sortOrder.getComparator());
 
 		// display
-		refreshing = true;
-		resetSelection = true;
-		getItems().setAll(sortedThreads);
-		restoreSelection(oldThreads, oldSelectedIndex, oldSelectedThreads);
-		refreshing = false;
+		synchronized(refreshing) {
+			resetSelection = true;
+			getItems().setAll(sortedThreads);
+			restoreSelection(oldThreads, oldSelectedIndex, oldSelectedThreads);
+		}
 
 		if (firstLoad) {
 			firstLoad  = false;
@@ -229,9 +248,12 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 			}
 			if (indices[0] != -1) {
 				getSelectionModel().selectIndices(indices[0], Arrays.copyOfRange(indices, Math.min(indices.length-1, 1), Math.max(indices.length-1, 0)));
+			} else {
+				getSelectionModel().clearSelection();
 			}
 		}
-		if (getSelectionModel().isEmpty() && oldSelectedIndex != -1) {
+		
+		if (keepMissingThreads && getSelectionModel().isEmpty() && oldSelectedIndex != -1) {
 			// select the closest to previous selection
 			int before = -1, after = -1, index = 0;
 			for(final H t: getItems()) {
@@ -251,7 +273,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 				getSelectionModel().select(before);
 			}
 		}
-		if (getSelectionModel().isEmpty()) {
+		if (!keepMissingThreads && getSelectionModel().isEmpty()) {
 			// select the first unread
 			for(final H t: getItems()) {
 				if (!t.isUnread() && !(t instanceof GmailMoreThreads)) { //TODO: put MoreThreads in the API

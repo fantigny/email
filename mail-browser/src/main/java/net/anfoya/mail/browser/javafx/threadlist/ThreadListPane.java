@@ -66,15 +66,15 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 
 	private final BrowserToolBar<S, T, M, C> toolBar;
 	private final ThreadListDropPane threadListDropPane;
-
+	
 	private final T inbox;
 	private final T draft;
+
+	private boolean isDraftList;
 
 	private DelayTimeline patternDelay;
 
 	private S currentSection;
-
-	private boolean isDraft;
 
 	private VoidCallback<Set<H>> archive;
 	private VoidCallback<Set<H>> reply;
@@ -240,7 +240,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 			return;
 		}
 		for(final H t: threads) {
-			if (isDraft) {
+			if (isDraftList) {
 				final MailComposer<M, C> composer = new MailComposer<M, C>(mailService, settings);
 				composer.setOnMessageUpdate(updateCallback);
 				composer.editOrReply(t.getLastMessageId(), settings.replyAllDblClick().get());
@@ -261,7 +261,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 				final MailReader mailReader = new MailReader(pane);
 				mailReader.show();
 				mailReader.setOnHidden(ev -> removeReader.call(pane));
-				pane.refresh(threads, true);
+				pane.refresh(threads);
 			}
 		}
 	}
@@ -368,7 +368,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	}
 
 	public void refreshWithTags(final Set<T> includes, final Set<T> excludes) {
-		isDraft = includes.contains(draft);
+		isDraftList = includes.contains(draft);
 		threadList.load(includes, excludes, patternField.getText());
 	}
 

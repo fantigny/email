@@ -74,11 +74,10 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	private final ObservableList<Node> messagePanes;
 
 	private final T unread;
-	private final T sent;
+	private final String unreadTagId;
+	private final String sentTagId;
 
 	private Runnable updateCallback;
-
-	private boolean markRead;
 
 	private Task<Set<T>> tagsTask;
 
@@ -91,7 +90,8 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		this.settings = settings;
 
 		unread = mailService.getSpecialTag(SpecialTag.UNREAD);
-		sent = mailService.getSpecialTag(SpecialTag.SENT);
+		unreadTagId = unread.getId();
+		sentTagId = mailService.getSpecialTag(SpecialTag.SENT).getId();
 
 		threadToolBar = new ThreadToolBar();
 		threadToolBar.setFocusTraversable(false);
@@ -156,9 +156,8 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		browserToolBar.setOnSignout(handler);
 	}
 
-	public void refresh(final Set<H> threads, final boolean markRead) {
+	public void refresh(final Set<H> threads) {
 		this.threads = threads;
-		this.markRead = markRead;
 		refresh();
 	}
 
@@ -197,16 +196,14 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		}
 
 		final String desc = "show threads' tags";
-		final String sentId = sent.getId();
-		final String unreadId = unread.getId();
 		tagsTask = new Task<Set<T>>() {
 			@Override
 			protected Set<T> call() throws Exception {
 				final Set<T> tags = new LinkedHashSet<T>();
 				for(final H t: threads) {
 					for(final String id: t.getTagIds()) {
-						if (!id.equals(sentId)
-								&& !id.equals(unreadId)) {
+						if (!id.equals(sentTagId)
+								&& !id.equals(unreadTagId)) {
 							try {
 								tags.add(mailService.getTag(id));
 							} catch (final MailException e) {
@@ -240,7 +237,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 			subjectField.setText(count + thread.getSubject());
 			break;
 		default:
-			subjectField.setText("multiple mails selected");
+			subjectField.setText("multiple threads selected");
 			break;
 		}
 	}
@@ -313,7 +310,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 			}
 		}
 
-		if (markRead && thread.isUnread()) {
+		if (thread.isUnread()) {
 			remove(threads, unread, false);
 		}
 	}
