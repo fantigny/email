@@ -49,7 +49,6 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 	private final T trash;
 	private final T flagged;
 	private final T spam;
-	private final T unread;
 
 	private MailBrowser<S, T, H, M, C> mailBrowser;
 	private SectionListPane<S, T> sectionListPane;
@@ -71,7 +70,6 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		trash = mailService.getSpecialTag(SpecialTag.TRASH);
 		flagged = mailService.getSpecialTag(SpecialTag.FLAGGED);
 		spam = mailService.getSpecialTag(SpecialTag.SPAM);
-		unread = mailService.getSpecialTag(SpecialTag.UNREAD);
 	}
 
 	public void init() {
@@ -349,7 +347,6 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		}
 		LOGGER.debug("refreshAfterThreadListLoad");
 
-		final boolean markRead = !sectionListPane.getIncludedOrSelectedTags().contains(unread);
 		threadPanes
 			.parallelStream()
 			.filter(Pane::isVisible)
@@ -365,7 +362,6 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 				} else {
 					threads.addAll(threadListPane.getSelectedThreads());
 				}
-				Platform.runLater(() -> p.refresh(threads, markRead));
 		});
 //		final String pattern = threadListPane.getNamePattern();
 //		if (pattern.isEmpty()) {
@@ -420,14 +416,12 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		final Set<H> threads = threadListPane.getSelectedThreads();
 		if (threads.size() == 1 && threads.iterator().next() instanceof GmailMoreThreads) {
 			refreshAfterMoreThreadsSelected();
-			return;
+		} else {
+			// update thread details when threads are selected
+			threadPanes
+				.parallelStream()
+				.forEach(p -> Platform.runLater(() -> p.refresh(threads)));
 		}
-
-		// update thread details when (a) thread(s) is/are selected
-		final boolean markRead = !sectionListPane.getIncludedOrSelectedTags().contains(mailService.getSpecialTag(SpecialTag.UNREAD));
-		threadPanes
-			.parallelStream()
-			.forEach(p -> Platform.runLater(() -> p.refresh(threadListPane.getSelectedThreads(), markRead)));
 	}
 
 	private void refreshAfterMoreThreadsSelected() {
