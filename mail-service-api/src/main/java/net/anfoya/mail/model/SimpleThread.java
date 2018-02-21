@@ -118,14 +118,8 @@ public abstract class SimpleThread implements Thread {
 	}
 
     @Override
-	public boolean equals(final Object other) {
-        if (other == null) {
-			return false;
-		}
-        if (!(other instanceof SimpleThread)) {
-			return false;
-		}
-        return ((SimpleThread) other).id.equals(id);
+	public boolean equals(final Object that) {
+    	return this == that || that instanceof SimpleThread && id.equals(((SimpleThread) that).id);
     }
 
 }
