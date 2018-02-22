@@ -193,7 +193,6 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		if (tagsTask != null && tagsTask.isRunning()) {
 			tagsTask.cancel();
 		}
-		final String desc = "show threads' tags";
 		tagsTask = new Task<Set<T>>() {
 			@Override
 			protected Set<T> call() throws Exception {
@@ -204,7 +203,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 						.filter(id -> !id.equals(sentTagId))
 						.forEach(id -> {
 							try { tags.add(mailService.getTag(id)); }
-							catch (final MailException e) {}
+							catch (final MailException e) { LOGGER.error("load tag id {}", id); }
 						});
 				return tags;
 			}
@@ -215,7 +214,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 				tagsPane.refresh(tagsTask.getValue());
 			}
 		});
-		ThreadPool.getDefault().submit(PoolPriority.MIN, desc, tagsTask);
+		ThreadPool.getDefault().submit(PoolPriority.MIN, "show threads' tags", tagsTask);
 	}
 
 	private void refreshIcons() {
