@@ -1,9 +1,10 @@
 package net.anfoya.mail.browser.javafx.thread;
 
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,11 +75,11 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	private final ObservableList<Node> messagePanes;
 
 	private final T unread;
-	private final String unreadTagId;
 	private final String sentTagId;
 
 	private Runnable updateCallback;
 
+	private final AtomicLong refreshTaskId;
 	private Task<Set<T>> tagsTask;
 
 	public ThreadPane(final MailService<S, T, H, M, C> mailService
@@ -89,8 +90,9 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		this.undoService = undoService;
 		this.settings = settings;
 
+		refreshTaskId = new AtomicLong();
+
 		unread = mailService.getSpecialTag(SpecialTag.UNREAD);
-		unreadTagId = unread.getId();
 		sentTagId = mailService.getSpecialTag(SpecialTag.SENT).getId();
 
 		threadToolBar = new ThreadToolBar();
@@ -107,7 +109,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		subjectField.prefWidthProperty().bind(widthProperty());
 		subjectField.setEditable(false);
 
-		browserToolBar = new BrowserToolBar<S, T, M, C>(mailService, undoService, settings);
+		browserToolBar = new BrowserToolBar<>(mailService, undoService, settings);
 		browserToolBar.setVisibles(false, true, true);
 
 		final HBox subjectBox = new HBox(iconBox, subjectField, browserToolBar);
@@ -143,7 +145,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		getChildren().add(stackPane);
 		VBox.setVgrow(stackPane, Priority.ALWAYS);
 
-		tagsPane = new SelectedTagsPane<T>();
+		tagsPane = new SelectedTagsPane<>();
 		tagsPane.setRemoveTagCallBack(t -> remove(threads, t, true));
 		getChildren().add(tagsPane);
 	}
@@ -187,36 +189,32 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	private synchronized void refreshTags() {
 		Platform.runLater(() -> tagsPane.clear());
 
-		if (threads == null || threads.size() == 0) {
-			return;
-		}
-
-		if (tagsTask != null) {
+		final long taskId = refreshTaskId.incrementAndGet();
+		if (tagsTask != null && tagsTask.isRunning()) {
 			tagsTask.cancel();
 		}
-
 		final String desc = "show threads' tags";
 		tagsTask = new Task<Set<T>>() {
 			@Override
 			protected Set<T> call() throws Exception {
-				final Set<T> tags = new LinkedHashSet<T>();
-				for(final H t: threads) {
-					for(final String id: t.getTagIds()) {
-						if (!id.equals(sentTagId)
-								&& !id.equals(unreadTagId)) {
-							try {
-								tags.add(mailService.getTag(id));
-							} catch (final MailException e) {
-								LOGGER.error("get tag {}", id, e);
-							}
-						}
-					}
-				}
+				final Set<T> tags = new HashSet<>();
+				threads
+						.parallelStream()
+						.flatMap(t -> t.getTagIds().parallelStream())
+						.filter(id -> !id.equals(sentTagId))
+						.forEach(id -> {
+							try { tags.add(mailService.getTag(id)); }
+							catch (final MailException e) {}
+						});
 				return tags;
 			}
 		};
-		tagsTask.setOnFailed(e -> LOGGER.error(desc, e.getSource().getException()));
-		tagsTask.setOnSucceeded(e -> tagsPane.refresh(tagsTask.getValue()));
+		tagsTask.setOnFailed(e -> LOGGER.error("load tag list", e.getSource().getException()));
+		tagsTask.setOnSucceeded(e -> {
+			if (taskId == refreshTaskId.get()) {
+				tagsPane.refresh(tagsTask.getValue());
+			}
+		});
 		ThreadPool.getDefault().submit(PoolPriority.MIN, desc, tagsTask);
 	}
 
@@ -253,7 +251,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		}
 
 		int index = 0;
-		for(final Iterator<String> i=new LinkedList<String>(thread.getMessageIds()).descendingIterator(); i.hasNext();) {
+		for(final Iterator<String> i=new LinkedList<>(thread.getMessageIds()).descendingIterator(); i.hasNext();) {
 			final String id = i.next();
 			@SuppressWarnings("unchecked")
 			final MessagePane<M, C> messagePane = index >= messagePanes.size()? null: (MessagePane<M, C>) messagePanes.get(index);
@@ -268,7 +266,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	}
 
 	private MessagePane<M, C> createMessagePane(final String id) {
-		final MessagePane<M, C> messagePane = new MessagePane<M, C>(id, mailService, settings);
+		final MessagePane<M, C> messagePane = new MessagePane<>(id, mailService, settings);
 		messagePane.focusTraversableProperty().bind(focusTraversableProperty());
 		messagePane.setScrollHandler(webScrollHandler);
 		messagePane.setUpdateHandler(updateCallback);
