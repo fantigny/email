@@ -410,6 +410,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		LOGGER.debug("refreshAfterThreadSelected");
 
 		if (mailBrowser.modeProperty().get() != Mode.FULL) {
+			// thread is only displayed in full mode
 			return;
 		}
 
@@ -417,7 +418,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		if (threads.size() == 1 && threads.iterator().next() instanceof GmailMoreThreads) {
 			refreshAfterMoreThreadsSelected();
 		} else {
-			// update thread details when threads are selected
+			// update thread when thread selection change
 			threadPanes
 				.parallelStream()
 				.forEach(p -> Platform.runLater(() -> p.refresh(threads)));

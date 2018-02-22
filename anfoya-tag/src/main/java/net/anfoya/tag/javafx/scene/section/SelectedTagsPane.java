@@ -23,6 +23,11 @@ public class SelectedTagsPane<T extends Tag> extends FlowPane {
 	}
 
 	public void refresh(final Set<T> tags) {
+		if (tags == null) {
+			// todo remove
+			return;
+		}
+		
 		final Set<Label> labels = new LinkedHashSet<Label>();
 		final Set<T> sortedTags = new TreeSet<T>(tags);
 		for(final T tag: sortedTags) {

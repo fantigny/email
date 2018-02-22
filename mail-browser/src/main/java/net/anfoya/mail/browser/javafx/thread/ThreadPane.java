@@ -74,7 +74,6 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	private final ObservableList<Node> messagePanes;
 
 	private final T unread;
-	private final String unreadTagId;
 	private final String sentTagId;
 
 	private Runnable updateCallback;
@@ -90,7 +89,6 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		this.settings = settings;
 
 		unread = mailService.getSpecialTag(SpecialTag.UNREAD);
-		unreadTagId = unread.getId();
 		sentTagId = mailService.getSpecialTag(SpecialTag.SENT).getId();
 
 		threadToolBar = new ThreadToolBar();
@@ -202,8 +200,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 				final Set<T> tags = new LinkedHashSet<T>();
 				for(final H t: threads) {
 					for(final String id: t.getTagIds()) {
-						if (!id.equals(sentTagId)
-								&& !id.equals(unreadTagId)) {
+						if (!id.equals(sentTagId)) {
 							try {
 								tags.add(mailService.getTag(id));
 							} catch (final MailException e) {
@@ -216,7 +213,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 			}
 		};
 		tagsTask.setOnFailed(e -> LOGGER.error(desc, e.getSource().getException()));
-		tagsTask.setOnSucceeded(e -> tagsPane.refresh(tagsTask.getValue()));
+		tagsTask.setOnSucceeded(e -> tagsPane.refresh(((Set<T>)e.getSource().getValue())));
 		ThreadPool.getDefault().submit(PoolPriority.MIN, desc, tagsTask);
 	}
 
