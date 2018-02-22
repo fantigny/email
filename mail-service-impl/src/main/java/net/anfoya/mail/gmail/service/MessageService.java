@@ -37,7 +37,7 @@ public class MessageService {
 		this.gmail = gmail;
 		this.user = user;
 
-		idMessages = new FileSerieSerializedMap<String, CacheData<Message>>(FILE_PREFIX + user, 50);
+		idMessages = new FileSerieSerializedMap<>(FILE_PREFIX + user, 50);
 	}
 
 	public Message getMessage(final String id) throws MessageException {
@@ -57,7 +57,7 @@ public class MessageService {
 							.get(user, id)
 							.setFormat("raw")
 							.execute();
-				idMessages.put(id, new CacheData<Message>(message));
+				idMessages.put(id, new CacheData<>(message));
 			} catch (final IOException e) {
 				throw new MessageException("get message " + id, e);
 			}
@@ -112,7 +112,12 @@ public class MessageService {
 		    message.setRaw(Base64.getUrlEncoder().encodeToString(baos.toByteArray()));
 		    final Draft draft = new Draft();
 		    draft.setMessage(message);
-		    final String id = gmail.users().drafts().create(user, draft).execute().getId();
+		    final String id = gmail
+		    		.users()
+		    		.drafts()
+		    		.create(user, draft)
+		    		.execute()
+		    		.getId();
 		    draft.setId(id);
 		    return draft;
 		} catch (IOException | MessagingException e) {
@@ -131,7 +136,12 @@ public class MessageService {
 	public Draft getDraftForMessage(final String id) throws MessageException {
 		try {
 			Draft draft = null;
-			for(final Draft d: gmail.users().drafts().list(user).execute().getDrafts()) {
+			for(final Draft d: gmail
+					.users()
+					.drafts()
+					.list(user)
+					.execute()
+					.getDrafts()) {
 				if (d.getMessage() != null && d.getMessage().getId().equals(id)) {
 					draft = getDraft(d.getId());
 					break;
@@ -182,7 +192,7 @@ public class MessageService {
 	}
 
 	public Set<Message> find(String subject) throws MessageException {
-		final Set<Message> messages = new LinkedHashSet<Message>();
+		final Set<Message> messages = new LinkedHashSet<>();
 		try {
 			final ListMessagesResponse response = gmail
 					.users()

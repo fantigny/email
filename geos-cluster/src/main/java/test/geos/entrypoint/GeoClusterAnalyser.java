@@ -68,7 +68,7 @@ public class GeoClusterAnalyser {
 	public Cluster getBiggestCluster() {
 		final List<Cluster> clusters = getClusters();
 		final long maxSize = clusters
-				.parallelStream()
+				.stream()
 				.mapToLong(Cluster::getSize)
 				.max()
 				.orElse(0);
@@ -78,13 +78,13 @@ public class GeoClusterAnalyser {
 			biggest = null;
 		} else {
 			final long minSum = clusters
-					.parallelStream()
+					.stream()
 					.filter(c -> c.getSize() == maxSize)
 					.mapToLong(Cluster::getSum)
 					.min()
 					.orElse(0);
 			biggest = clusters
-					.parallelStream()
+					.stream()
 					.filter(c -> c.getSum() == minSum)
 					.collect(Collectors.toList())
 					.get(0);
