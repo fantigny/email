@@ -171,7 +171,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	}
 
 	private void refreshThread() {
-		if (threads.size() != 1) {
+		if (threads.size() != 1 || threads.iterator().next() == null) {
 			thread = null;
 			messagePanes.clear();
 			return;

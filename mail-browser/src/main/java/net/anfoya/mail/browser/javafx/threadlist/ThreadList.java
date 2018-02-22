@@ -241,7 +241,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 		// try to select the same item(s) as before
 		getSelectionModel().selectIndices(-1, getItems()
 				.parallelStream()
-				.filter(t -> selectedThreadIds.contains(t.getId()))
+				.filter(t -> selectedThreadIds.contains(t.getId()) && (!t.isUnread() || isUnreadList))
 				.mapToInt(t -> getItems().indexOf(t))
 				.toArray());
 
