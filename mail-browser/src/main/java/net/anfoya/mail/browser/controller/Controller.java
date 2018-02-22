@@ -101,7 +101,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		threadListPane.setOnUpdatePattern(() -> refreshAfterPatternUpdate());
 
 		threadPanes
-			.parallelStream()
+			.stream()
 			.forEach(p -> {
 				p.setOnArchive(threads -> archive(threads));
 				p.setOnReply(threads -> reply(false, threads));
@@ -398,7 +398,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		} else {
 			// update thread when thread selection change
 			threadPanes
-				.parallelStream()
+				.stream()
 				.forEach(p -> Platform.runLater(() -> p.refresh(threads)));
 		}
 	}

@@ -27,7 +27,10 @@ public class GmailThread extends SimpleThread {
 	}
 
 	private static Set<String> findRecipients(Thread thread) {
-		return findHeaders(thread, "To").parallelStream().map(s -> cleanAddress(s)).collect(Collectors.toSet());
+		return findHeaders(thread, "To")
+				.stream()
+				.map(s -> cleanAddress(s))
+				.collect(Collectors.toSet());
 	}
 
 	private static String findSender(final Thread thread) {
@@ -102,8 +105,8 @@ public class GmailThread extends SimpleThread {
 
 		return thread
 				.getMessages()
-				.parallelStream()
-				.flatMap(m -> m.getLabelIds().parallelStream())
+				.stream()
+				.flatMap(m -> m.getLabelIds().stream())
 				.collect(Collectors.toSet());
 	}
 
