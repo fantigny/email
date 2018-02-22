@@ -2,7 +2,6 @@ package net.anfoya.mail.browser.controller;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -12,7 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import javafx.application.Platform;
 import javafx.concurrent.Task;
-import javafx.scene.layout.Pane;
 import javafx.scene.media.AudioClip;
 import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.VoidCallable;
@@ -64,7 +62,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		this.undoService = undoService;
 		this.settings = settings;
 
-		threadPanes = new ArrayList<ThreadPane<S, T, H, M, C>>();
+		threadPanes = new ArrayList<>();
 
 		inbox = mailService.getSpecialTag(SpecialTag.INBOX);
 		trash = mailService.getSpecialTag(SpecialTag.TRASH);
@@ -158,7 +156,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		try {
 			for (final H t : threads) {
 				final M message = mailService.getMessage(t.getLastMessageId());
-				final MailComposer<M, C> composer = new MailComposer<M, C>(mailService, settings);
+				final MailComposer<M, C> composer = new MailComposer<>(mailService, settings);
 				composer.setOnMessageUpdate(() -> refreshAfterThreadUpdate());
 				composer.reply(message, all);
 			}
@@ -171,7 +169,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		try {
 			for (final H t : threads) {
 				final M message = mailService.getMessage(t.getLastMessageId());
-				final MailComposer<M, C> composer = new MailComposer<M, C>(mailService, settings);
+				final MailComposer<M, C> composer = new MailComposer<>(mailService, settings);
 				composer.setOnMessageUpdate(() -> refreshAfterThreadUpdate());
 				composer.forward(message);
 			}
@@ -311,22 +309,22 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 //		ThreadPool.getDefault().submit(PoolPriority.MAX, desc, task);
 //	}
 
-	private boolean refreshUnreadCount = true;
+	private final boolean refreshUnreadCount = true;
 
-	private boolean refreshAfterTagSelected = true;
-	private boolean refreshAfterThreadSelected = true;
-	private boolean refreshAfterMoreResultsSelected = true;
+	private final boolean refreshAfterTagSelected = true;
+	private final boolean refreshAfterThreadSelected = true;
+	private final boolean refreshAfterMoreResultsSelected = true;
 
-	private boolean refreshAfterThreadListLoad = true;
+	private final boolean refreshAfterThreadListLoad = true;
 
-	private boolean refreshAfterTagUpdate = true;
-	private boolean refreshAfterSectionUpdate = true;
-	private boolean refreshAfterSectionSelect = true;
-	private boolean refreshAfterThreadUpdate = true;
-	private boolean refreshAfterPatternUpdate = true;
-	private boolean refreshAfterUpdateMessage = true;
-	private boolean refreshAfterUpdateTagOrSection = true;
-	private boolean refreshAfterModeChange = true;
+	private final boolean refreshAfterTagUpdate = true;
+	private final boolean refreshAfterSectionUpdate = true;
+	private final boolean refreshAfterSectionSelect = true;
+	private final boolean refreshAfterThreadUpdate = true;
+	private final boolean refreshAfterPatternUpdate = true;
+	private final boolean refreshAfterUpdateMessage = true;
+	private final boolean refreshAfterUpdateTagOrSection = true;
+	private final boolean refreshAfterModeChange = true;
 
 
 	private void refreshAfterThreadUpdate() {
@@ -347,28 +345,8 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		}
 		LOGGER.debug("refreshAfterThreadListLoad");
 
-		threadPanes
-			.parallelStream()
-			.filter(Pane::isVisible)
-			.forEach(p -> {
-				final Set<H> threads = new HashSet<H>();
-				if (p.isDetached()) {
-					try {
-						final H thread = mailService.getThread(p.getThread().getId());
-						threads.add(thread);
-					} catch (final Exception e) {
-						LOGGER.error("refresh thread", e);
-					}
-				} else {
-					threads.addAll(threadListPane.getSelectedThreads());
-				}
-		});
-//		final String pattern = threadListPane.getNamePattern();
-//		if (pattern.isEmpty()) {
-			sectionListPane.updateItemCount(threadListPane.getThreadsTags(), threadListPane.getNamePattern(), true);
-//		} else {
-//			sectionListPane.refreshWithPattern(pattern);
-//		}
+		//TODO review if necessary, maybe not worth fixing few inconsistencies in item counts
+		sectionListPane.updateItemCount(threadListPane.getThreadsTags(), threadListPane.getNamePattern(), true);
 	}
 
 	private void refreshAfterSectionSelect() {
