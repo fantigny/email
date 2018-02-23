@@ -264,7 +264,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	}
 
 	private MessagePane<M, C> createMessagePane(final String id) {
-		final MessagePane<M, C> messagePane = new MessagePane<M, C>(id, mailService);
+		final MessagePane<M, C> messagePane = new MessagePane<>(id, mailService);
 		messagePane.focusTraversableProperty().bind(focusTraversableProperty());
 		messagePane.setScrollHandler(webScrollHandler);
 		messagePane.setOnOpenUrl(openUrlCallback);

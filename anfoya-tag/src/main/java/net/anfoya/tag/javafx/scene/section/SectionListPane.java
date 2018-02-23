@@ -7,6 +7,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +56,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends VBox {
 	private String itemPattern;
 
 	private Task<Void> refreshTask;
-	private int refreshTaskId;
+	private final AtomicLong refreshTaskId;
 
 	private DelayTimeline patternDelay;
 	private final SectionDropPane<S> sectionDropPane;
@@ -69,6 +70,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends VBox {
 	public SectionListPane(final TagService<S, T> tagService, UndoService undoService, final boolean withExcludeBox) {
 		setPrefWidth(100);
 		itemPattern = "";
+		refreshTaskId = new AtomicLong();
 
 		this.tagService = tagService;
 		this.showExcludeBox = withExcludeBox;
@@ -103,13 +105,13 @@ public class SectionListPane<S extends Section, T extends Tag> extends VBox {
 		final StackPane centerPane = new StackPane(sectionAcc);
 		centerPane.setAlignment(Pos.BOTTOM_CENTER);
 
-		final ExtItemDropPane<T> extItemDropPane = new ExtItemDropPane<T>();
+		final ExtItemDropPane<T> extItemDropPane = new ExtItemDropPane<>();
 		extItemDropPane.prefWidthProperty().bind(centerPane.widthProperty());
 
-		sectionDropPane = new SectionDropPane<S>(tagService, undoService);
+		sectionDropPane = new SectionDropPane<>(tagService, undoService);
 		sectionDropPane.prefWidthProperty().bind(centerPane.widthProperty());
 
-		tagDropPane = new TagDropPane<S, T>(tagService, undoService);
+		tagDropPane = new TagDropPane<>(tagService, undoService);
 		tagDropPane.prefWidthProperty().bind(centerPane.widthProperty());
 
 		centerPane.setOnDragEntered(e -> {
@@ -142,7 +144,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends VBox {
 		});
 		getChildren().add(centerPane);
 
-		selectedTagsPane = new SelectedTagsPane<T>();
+		selectedTagsPane = new SelectedTagsPane<>();
 		selectedTagsPane.setRemoveTagCallBack(tag -> clear(tag.getName()));
 		getChildren().add(selectedTagsPane);
 
@@ -220,7 +222,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends VBox {
 	}
 
 	public Set<T> getAllTags() {
-		final Set<T> tags = new LinkedHashSet<T>();
+		final Set<T> tags = new LinkedHashSet<>();
 		for(final TitledPane titledPane: sectionAcc.getPanes()) {
 			@SuppressWarnings("unchecked")
 			final TagList<S, T> tagList = (TagList<S, T>) titledPane.getContent();
@@ -231,7 +233,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends VBox {
 	}
 
 	public Set<T> getAllSelectedTags() {
-		final Set<T> tags = new LinkedHashSet<T>();
+		final Set<T> tags = new LinkedHashSet<>();
 		tags.addAll(getIncludedTags());
 		tags.addAll(getExcludedTags());
 		return tags;
@@ -242,7 +244,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends VBox {
 		if (isCheckMode()) {
 			included = getIncludedTags();
 		} else {
-			included = new HashSet<T>();
+			included = new HashSet<>();
 			final T tag = getSelectedTag();
 			if (tag != null) {
 				included.add(tag);
@@ -253,7 +255,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends VBox {
 
 	private void refreshSections() {
 		// delete sections
-		final Set<Section> existingSections = new LinkedHashSet<Section>();
+		final Set<Section> existingSections = new LinkedHashSet<>();
 		for(final Iterator<TitledPane> i = sectionAcc.getPanes().iterator(); i.hasNext();) {
 			@SuppressWarnings("unchecked")
 			final TagList<S, T> tagList = (TagList<S, T>) i.next().getContent();
@@ -268,7 +270,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends VBox {
 		int index = 0;
 		for(final S section: sections) {
 			if (!existingSections.contains(section)) {
-				final SectionPane<S, T> sectionPane = new SectionPane<S, T>(section, tagService, showExcludeBox);
+				final SectionPane<S, T> sectionPane = new SectionPane<>(section, tagService, showExcludeBox);
 				sectionPane.focusTraversableProperty().bind(focusTraversableProperty());
 				sectionPane.setDisableWhenZero(sectionDisableWhenZero);
 				sectionPane.setLazyCount(lazyCount);
@@ -292,13 +294,14 @@ public class SectionListPane<S extends Section, T extends Tag> extends VBox {
 	}
 
 	public synchronized void refreshAsync(final Runnable callback) {
-		final long taskId = ++refreshTaskId;
+		final long taskId = refreshTaskId.incrementAndGet();
 		if (refreshTask != null && refreshTask.isRunning()) {
 			refreshTask.cancel();
 		}
 
 		if (!patternField.getText().isEmpty()) {
 			refreshWithPattern();
+			return;
 		}
 
 		refreshTask = new Task<Void>() {
@@ -309,26 +312,18 @@ public class SectionListPane<S extends Section, T extends Tag> extends VBox {
 			}
 		};
 		refreshTask.setOnSucceeded(e -> {
-			if (taskId != refreshTaskId) {
-				return;
-			}
-
-			refreshSections();
-			refreshTags();
-			selectedTagsPane.refresh(getAllSelectedTags());
-			if (callback != null) {
-				callback.run();
+			if (taskId == refreshTaskId.get()) {
+				refreshSections();
+				refreshTags();
+				selectedTagsPane.refresh(getAllSelectedTags());
+				if (callback != null) {
+					callback.run();
+				}
 			}
 		});
 		refreshTask.setOnFailed(e -> LOGGER.error("get sections", e.getSource().getException()));
 		ThreadPool.getDefault().submit(PoolPriority.MAX, "get sections", refreshTask);
 	}
-
-	//TODO: not working
-//	public void refreshWithPattern(String itemPattern) {
-//		this.itemPattern = itemPattern;
-//		refreshWithPattern();
-//	}
 
 	private synchronized void refreshWithPatternAsync() {
 		if (patternDelay != null) {
@@ -344,19 +339,12 @@ public class SectionListPane<S extends Section, T extends Tag> extends VBox {
 	}
 
 	private synchronized void refreshWithPattern() {
-		++refreshTaskId;
-		if (refreshTask != null && refreshTask.isRunning()) {
-			refreshTask.cancel();
-		}
-
 		final SearchPane<S, T> searchPane;
 		if (sectionAcc.getPanes().size() == 1 && sectionAcc.getPanes().get(0) instanceof SearchPane) {
-			@SuppressWarnings("unchecked")
-			final
-			SearchPane<S, T> sp = (SearchPane<S, T>) sectionAcc.getPanes().get(0);
+			@SuppressWarnings("unchecked") final SearchPane<S, T> sp = (SearchPane<S, T>) sectionAcc.getPanes().get(0);
 			searchPane = sp;
 		} else {
-			searchPane = new SearchPane<S, T>(tagService, showExcludeBox);
+			searchPane = new SearchPane<>(tagService, showExcludeBox);
 			searchPane.setOnSelectTag(selectTagHandler);
 			searchPane.setOnUpdateSection(updateSectionHandler);
 
@@ -366,7 +354,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends VBox {
 	}
 
 	private Set<T> getIncludedTags() {
-		final Set<T> tags = new LinkedHashSet<T>();
+		final Set<T> tags = new LinkedHashSet<>();
 		for(final TitledPane titledPane: sectionAcc.getPanes()) {
 			@SuppressWarnings("unchecked")
 			final TagList<S, T> tagList = (TagList<S, T>) titledPane.getContent();
@@ -377,7 +365,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends VBox {
 	}
 
 	public Set<T> getExcludedTags() {
-		final Set<T> tags = new LinkedHashSet<T>();
+		final Set<T> tags = new LinkedHashSet<>();
 		for(final TitledPane titledPane: sectionAcc.getPanes()) {
 			@SuppressWarnings("unchecked")
 			final TagList<S, T> tagList = (TagList<S, T>) titledPane.getContent();

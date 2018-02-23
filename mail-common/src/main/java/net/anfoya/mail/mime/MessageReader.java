@@ -40,15 +40,15 @@ public class MessageReader {
 	private final Set<String> attachmentNames;
 
 	public MessageReader() {
-		cidUris = new HashMap<String, String>();
-		attachmentNames = new LinkedHashSet<String>();
+		cidUris = new HashMap<>();
+		attachmentNames = new LinkedHashSet<>();
 	}
 
 	public String toHtml(final MimeMessage message) throws IOException, MessagingException {
 		cidUris.clear();
 		String html = toHtml(message, false).toString();
 		html = replaceCids(html, cidUris);
-		LOGGER.debug("{}", html);
+		//LOGGER.debug("{}", html);
 		return html;
 	}
 
