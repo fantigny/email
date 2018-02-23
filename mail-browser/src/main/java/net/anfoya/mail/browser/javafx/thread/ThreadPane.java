@@ -55,7 +55,6 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 
 	private final MailService<S, T, H, M, C> mailService;
 	private final UndoService undoService;
-	private final Settings settings;
 
 	private final BrowserToolBar<S, T, M, C> browserToolBar;
 	private final ThreadToolBar threadToolBar;
@@ -77,9 +76,9 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	private final String unreadTagId;
 	private final String sentTagId;
 
-	private Runnable updateCallback;
-
 	private Task<Set<T>> tagsTask;
+
+	private VoidCallback<String> openUrlCallback;
 
 	public ThreadPane(final MailService<S, T, H, M, C> mailService
 			, final UndoService undoService
@@ -87,7 +86,6 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		getStyleClass().add("thread");
 		this.mailService = mailService;
 		this.undoService = undoService;
-		this.settings = settings;
 
 		unread = mailService.getSpecialTag(SpecialTag.UNREAD);
 		unreadTagId = unread.getId();
@@ -146,10 +144,6 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		tagsPane = new SelectedTagsPane<T>();
 		tagsPane.setRemoveTagCallBack(t -> remove(threads, t, true));
 		getChildren().add(tagsPane);
-	}
-
-	public void setOnUpdate(final Runnable callback) {
-		this.updateCallback = callback;
 	}
 
 	public void setOnSignout(final EventHandler<ActionEvent> handler) {
@@ -243,6 +237,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	}
 
 	private void refreshCurrentThread() {
+		// removed messages
 		final Set<String> messageIds = thread.getMessageIds();
 		for (final Iterator<Node> i = messagePanes.iterator(); i.hasNext();) {
 			@SuppressWarnings("unchecked")
@@ -252,6 +247,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 			}
 		}
 
+		// added messages
 		int index = 0;
 		for(final Iterator<String> i=new LinkedList<String>(thread.getMessageIds()).descendingIterator(); i.hasNext();) {
 			final String id = i.next();
@@ -268,10 +264,10 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	}
 
 	private MessagePane<M, C> createMessagePane(final String id) {
-		final MessagePane<M, C> messagePane = new MessagePane<M, C>(id, mailService, settings);
+		final MessagePane<M, C> messagePane = new MessagePane<M, C>(id, mailService);
 		messagePane.focusTraversableProperty().bind(focusTraversableProperty());
 		messagePane.setScrollHandler(webScrollHandler);
-		messagePane.setUpdateHandler(updateCallback);
+		messagePane.setOnOpenUrl(openUrlCallback);
 		messagePane.setExpanded(false);
 		messagePane.onContainAttachment(e -> showIcon(ATTACH_ICON));
 		messagePane.load();
@@ -331,7 +327,6 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 						() -> mailService.addTagForThreads(tag, threads)
 						, desc);
 			}
-			updateCallback.run();
 		});
 		ThreadPool.getDefault().submit(PoolPriority.MAX, desc, task);
 		return null;
@@ -377,7 +372,10 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	public void setOnToggleSpam(VoidCallback<Set<H>> callback) {
 		threadToolBar.setOnSpam(e -> callback.call(threads));
 	}
-
+	public void setOnOpenUrl(VoidCallback<String> callback) {
+		openUrlCallback = callback;
+	}
+	
 	public H getThread() {
 		return thread;
 	}
