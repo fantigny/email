@@ -1,10 +1,10 @@
 package net.anfoya.mail.browser.javafx.thread;
 
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -171,7 +171,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	}
 
 	private void refreshThread() {
-		if (threads.size() != 1) {
+		if (threads.size() != 1 || threads.iterator().next() == null) { //TODO remove null check
 			thread = null;
 			messagePanes.clear();
 			return;
@@ -196,16 +196,16 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		tagsTask = new Task<Set<T>>() {
 			@Override
 			protected Set<T> call() throws Exception {
-				final Set<T> tags = new HashSet<>();
-				threads
-						.parallelStream()
-						.flatMap(t -> t.getTagIds().parallelStream())
+				return threads
+						.stream()
+						.flatMap(t -> t.getTagIds().stream())
 						.filter(id -> !id.equals(sentTagId))
-						.forEach(id -> {
-							try { tags.add(mailService.getTag(id)); }
-							catch (final MailException e) { LOGGER.error("load tag id {}", id); }
-						});
-				return tags;
+						.<T>map(id -> {
+							try { return mailService.getTag(id); }
+							catch (final MailException e) { LOGGER.error("loading tag id {}", id); return null; }
+						})
+						.filter(t -> t != null)
+						.collect(Collectors.toSet());
 			}
 		};
 		tagsTask.setOnFailed(e -> LOGGER.error("load tag list", e.getSource().getException()));
