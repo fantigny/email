@@ -1,8 +1,5 @@
 package net.anfoya.mail.browser.javafx;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javafx.animation.Interpolator;
 import javafx.animation.RotateTransition;
 import javafx.animation.Timeline;
@@ -22,7 +19,6 @@ import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.settings.SettingsDialog;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
-import net.anfoya.mail.composer.javafx.MailComposer;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.Message;
@@ -30,7 +26,6 @@ import net.anfoya.mail.service.Section;
 import net.anfoya.mail.service.Tag;
 
 public class BrowserToolBar<S extends Section, T extends Tag, M extends Message, C extends Contact> extends ToolBar {
-	private static final Logger LOGGER = LoggerFactory.getLogger(BrowserToolBar.class);
 	private static final Separator SEPARATOR = new Separator();
 
     private static final String IMG_PATH = "/net/anfoya/mail/img/";
@@ -43,7 +38,7 @@ public class BrowserToolBar<S extends Section, T extends Tag, M extends Message,
 	private final MailService<S, T, ?, M, C> mailService;
 
 	private final UndoService undoService;
-	private Runnable messageUpdateCallback;
+	private Runnable createNewCallback;
 
 	private final Button newButton;
 
@@ -65,15 +60,7 @@ public class BrowserToolBar<S extends Section, T extends Tag, M extends Message,
 		newButton.setFocusTraversable(false);
 		newButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/img/new.png"))));
 		newButton.setTooltip(new Tooltip("new"));
-		newButton.setOnAction(event -> {
-			try {
-				final MailComposer<M, C> composer = new MailComposer<M, C>(mailService, settings);
-				composer.setOnMessageUpdate(messageUpdateCallback);
-				composer.newMessage("");
-			} catch (final Exception e) {
-				LOGGER.error("load new message composer", e);
-			}
-		});
+		newButton.setOnAction(e -> createNewCallback.run());
 
 		settingsButton = new Button();
 		settingsButton.getStyleClass().add("flat-button");
@@ -142,7 +129,7 @@ public class BrowserToolBar<S extends Section, T extends Tag, M extends Message,
 		settingsDialog.requestFocus();
 	}
 
-	public void setOnMessageUpdate(Runnable callback) {
-		messageUpdateCallback = callback;
+	public void setOnCreateNew(Runnable callback) {
+		createNewCallback = callback;
 	}
 }

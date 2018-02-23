@@ -56,7 +56,6 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 
 	private final MailService<S, T, H, M, C> mailService;
 	private final UndoService undoService;
-	private final Settings settings;
 
 	private final BrowserToolBar<S, T, M, C> browserToolBar;
 	private final ThreadToolBar threadToolBar;
@@ -82,13 +81,14 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	private final AtomicLong refreshTaskId;
 	private Task<Set<T>> tagsTask;
 
+	private VoidCallback<String> openUrlCallback;
+
 	public ThreadPane(final MailService<S, T, H, M, C> mailService
 			, final UndoService undoService
 			, final Settings settings) {
 		getStyleClass().add("thread");
 		this.mailService = mailService;
 		this.undoService = undoService;
-		this.settings = settings;
 
 		refreshTaskId = new AtomicLong();
 
@@ -266,10 +266,10 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	}
 
 	private MessagePane<M, C> createMessagePane(final String id) {
-		final MessagePane<M, C> messagePane = new MessagePane<>(id, mailService, settings);
+		final MessagePane<M, C> messagePane = new MessagePane<M, C>(id, mailService);
 		messagePane.focusTraversableProperty().bind(focusTraversableProperty());
 		messagePane.setScrollHandler(webScrollHandler);
-		messagePane.setUpdateHandler(updateCallback);
+		messagePane.setOnOpenUrl(openUrlCallback);
 		messagePane.setExpanded(false);
 		messagePane.onContainAttachment(e -> showIcon(ATTACH_ICON));
 		messagePane.load();
@@ -378,5 +378,9 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 
 	public H getThread() {
 		return thread;
+	}
+
+	public void setOnOpenUrl(VoidCallback<String> callback) {
+		openUrlCallback = callback;
 	}
 }
