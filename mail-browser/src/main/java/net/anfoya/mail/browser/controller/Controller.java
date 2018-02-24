@@ -18,6 +18,7 @@ import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.javafx.notification.NotificationService;
 import net.anfoya.mail.browser.javafx.MailBrowser;
+import net.anfoya.mail.browser.javafx.MailBrowser.Mode;
 import net.anfoya.mail.browser.javafx.message.MailReader;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
@@ -75,7 +76,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 
 	public void init() {
 		mailService.addOnUpdateMessage(() -> Platform.runLater(() -> refreshAfterUpdateMessage()));
-		mailService.addOnUpdateTagOrSection(() -> Platform.runLater(() -> refreshAfterUpdateTagOrSection()));
+//		mailService.addOnUpdateTagOrSection(() -> Platform.runLater(() -> refreshTags()));
 		mailService.disconnectedProperty().addListener((ov, o, n) -> {
 			if (!o && n) {
 				Platform.runLater(() -> refreshAfterTagSelected());
@@ -115,7 +116,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 				p.setOnOpenUrl(url -> openUrl(url));
 			});
 
-		mailBrowser.addOnModeChange(() -> refreshAfterModeChange());
+		mailBrowser.addOnModeChange(() -> view(threadListPane.getSelectedThreads()));
 
 		String section = settings.sectionName().get();
 		String tag = settings.tagName().get();
@@ -291,14 +292,24 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 	}
 
 	private void view(Set<H> threads) {
+		if (mailBrowser.modeProperty().get() != Mode.FULL) {
+			return;
+		}
+
 		if (threads.size() == 1 && threads.iterator().next() instanceof GmailMoreThreads) {
 			refreshAfterMoreThreadsSelected();
 		} else {
 			// update thread details when threads are selected
 			threadPanes
-				.parallelStream()
-				.forEach(p -> Platform.runLater(() -> p.refresh(threads)));
+				.stream()
+				.filter(p -> !p.isDetached())
+				.findAny()
+				.ifPresent(p -> Platform.runLater(() -> p.refresh(threads)));
 		}
+	}
+
+	private void refreshTags() {
+		threadPanes.forEach(p -> p.refresh());
 	}
 
 	private void toggleFlag(Set<H> threads) {
@@ -384,8 +395,6 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 	private final boolean refreshAfterThreadUpdate = true;
 	private final boolean refreshAfterPatternUpdate = true;
 	private final boolean refreshAfterUpdateMessage = true;
-	private final boolean refreshAfterUpdateTagOrSection = true;
-	private final boolean refreshAfterModeChange = true;
 
 
 	private void refreshAfterThreadUpdate() {
@@ -476,6 +485,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		LOGGER.debug("refreshAfterUpdateMessage");
 		LOGGER.info("message update detected");
 
+		refreshTags();
 		refreshUnreadCount();
 		sectionListPane.refreshAsync(() ->
 			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags()));
@@ -501,16 +511,6 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		});
 	}
 
-	private void refreshAfterUpdateTagOrSection() {
-		if (!refreshAfterUpdateTagOrSection) {
-			LOGGER.warn("refreshAfterUpdateTagOrSection");
-			return;
-		}
-		LOGGER.debug("refreshAfterUpdateTagOrSection");
-		LOGGER.info("label update detected");
-
-		refreshAfterSectionUpdate();
-	}
 	private void refreshAfterSectionUpdate() {
 		if (!refreshAfterSectionUpdate) {
 			LOGGER.warn("refreshAfterSectionUpdate");
@@ -519,15 +519,8 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		LOGGER.debug("refreshAfterSectionUpdate");
 
 		sectionListPane.refreshAsync(() ->
-			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags()));
-	}
-
-
-	private void refreshAfterModeChange() {
-		if (!refreshAfterModeChange) {
-			LOGGER.warn("refreshAfterModeChange");
-			return;
-		}
-		LOGGER.debug("refreshAfterModeChange");
+			threadListPane.refreshWithTags(
+					sectionListPane.getIncludedOrSelectedTags()
+					, sectionListPane.getExcludedTags()));
 	}
 }
