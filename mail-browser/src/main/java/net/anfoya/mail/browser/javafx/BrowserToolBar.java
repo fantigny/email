@@ -3,8 +3,6 @@ package net.anfoya.mail.browser.javafx;
 import javafx.animation.Interpolator;
 import javafx.animation.RotateTransition;
 import javafx.animation.Timeline;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Separator;
@@ -32,7 +30,7 @@ public class BrowserToolBar<S extends Section, T extends Tag, M extends Message,
     private static final String SETTINGS_PNG = ThreadPane.class.getResource(IMG_PATH + "settings.png").toExternalForm();
     private static final String SIGNOUT_PNG = ThreadPane.class.getResource(IMG_PATH + "signout.png").toExternalForm();
 
-	private EventHandler<ActionEvent> signoutHandler;
+	private Runnable signoutCallback;
 	private SettingsDialog<S, T> settingsDialog;
 
 	private final MailService<S, T, ?, M, C> mailService;
@@ -96,7 +94,7 @@ public class BrowserToolBar<S extends Section, T extends Tag, M extends Message,
 		signoutButton.setFocusTraversable(false);
 		signoutButton.setGraphic(new ImageView(new Image(SIGNOUT_PNG)));
 		signoutButton.setTooltip(new Tooltip("sign out"));
-		signoutButton.setOnAction(e -> signoutHandler.handle(null));
+		signoutButton.setOnAction(e -> signoutCallback.run());
 	}
 
 
@@ -115,14 +113,14 @@ public class BrowserToolBar<S extends Section, T extends Tag, M extends Message,
 		}
 	}
 
-	public void setOnSignout(final EventHandler<ActionEvent> handler) {
-		signoutHandler = handler;
+	public void setOnSignout(Runnable callback) {
+		signoutCallback = callback;
 	}
 
 	private void showSettings(final Settings settings) {
 		if (settingsDialog == null
 				|| !settingsDialog.isShowing()) {
-			settingsDialog = new SettingsDialog<S, T>(mailService, undoService, settings);
+			settingsDialog = new SettingsDialog<>(mailService, undoService, settings);
 			settingsDialog.show();
 		}
 		settingsDialog.toFront();

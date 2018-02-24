@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
-import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -149,16 +148,15 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		getChildren().add(tagsPane);
 	}
 
-	public void setOnSignout(final EventHandler<ActionEvent> handler) {
-		browserToolBar.setOnSignout(handler);
+	public void setOnSignout(Runnable callback) {
+		browserToolBar.setOnSignout(callback);
+	}
+
+	public void refresh() {
 	}
 
 	public void refresh(final Set<H> threads) {
 		this.threads = threads;
-		refresh();
-	}
-
-	public void refresh() {
 		refreshThread();
 		refreshIcons();
 		refreshSubject();
@@ -187,7 +185,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	private synchronized void refreshTags() {
 		final long taskId = tagsTaskId.incrementAndGet();
 		tagsPane.clear();
-		
+
 		if (threads == null || threads.size() == 0) {
 			return;
 		}
