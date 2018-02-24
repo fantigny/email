@@ -50,7 +50,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 	private int page;
 
 	private Runnable loadCallback;
-	private Runnable updateCallback;
+	private Runnable archiveCallback;
 
 	private boolean firstLoad;
 
@@ -89,7 +89,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 	private void handleKey(KeyEvent e) {
 		if (e.getCode() == KeyCode.BACK_SPACE
 				|| e.getCode() == KeyCode.DELETE) {
-			archive();
+			archiveCallback.run();
 		}
 	}
 
@@ -97,8 +97,8 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 		this.loadCallback = callback;
 	}
 
-	public void setOnUpdate(final Runnable callback) {
-		updateCallback = callback;
+	public void setOnArchive(final Runnable callback) {
+		archiveCallback = callback;
 	}
 
 	public void sortBy(final SortField order) {
@@ -261,19 +261,5 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 	private void selectFirstOfAddedSet() {
 		getSelectionModel().selectIndices(selectedIndex.get());
 		scrollTo(selectedIndex.get());
-	}
-
-	private void archive() {
-		final Set<H> threads = getSelectedThreads();
-		final Task<Void> task = new Task<Void>() {
-			@Override
-			protected Void call() throws Exception {
-				mailService.archive(threads);
-				return null;
-			}
-		};
-		task.setOnSucceeded(e -> updateCallback.run());
-		task.setOnFailed(e -> LOGGER.error("archive threads {}", threads));
-		ThreadPool.getDefault().submit(PoolPriority.MAX, "archive threads", task);
 	}
 }

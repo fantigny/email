@@ -37,10 +37,7 @@ import net.anfoya.javafx.scene.control.ResetTextField;
 import net.anfoya.javafx.scene.dnd.DndHelper;
 import net.anfoya.mail.browser.javafx.BrowserToolBar;
 import net.anfoya.mail.browser.javafx.MailBrowser.Mode;
-import net.anfoya.mail.browser.javafx.message.MailReader;
 import net.anfoya.mail.browser.javafx.settings.Settings;
-import net.anfoya.mail.browser.javafx.thread.ThreadPane;
-import net.anfoya.mail.composer.javafx.MailComposer;
 import net.anfoya.mail.model.SimpleThread.SortField;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
@@ -68,9 +65,6 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	private final ThreadListDropPane threadListDropPane;
 	
 	private final T inbox;
-	private final T draft;
-
-	private boolean isDraftList;
 
 	private DelayTimeline patternDelay;
 
@@ -84,11 +78,10 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	private VoidCallback<Set<H>> trash;
 	private VoidCallback<Set<H>> toggleSpam;
 
-	private VoidCallback<ThreadPane<S, T, H, M, C>> addReader;
-	private VoidCallback<ThreadPane<S, T, H, M, C>> removeReader;
-
-	//TODO *** start here ***
-	private Runnable updateCallback;
+	private VoidCallback<Set<H>> selectCallback;
+	private VoidCallback<Set<H>> openCallback;
+	
+	private VoidCallback<T> tagUpdateCallback;
 
 	public ThreadListPane(final MailService<S, T, H, M, C> mailService
 			, final UndoService undoService
@@ -98,12 +91,12 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		this.settings = settings;
 
 		inbox = mailService.getSpecialTag(SpecialTag.INBOX);
-		draft = mailService.getSpecialTag(SpecialTag.DRAFT);
 
 		patternField = new ResetTextField();
 		patternField.setPromptText("thread search");
 
 		threadList = new ThreadList<T, H>(mailService);
+		threadList.setOnMouseClicked(e -> threadListClicked(e));
 		threadList.setOnDragDetected(e -> {
 			final ClipboardContent content = new ClipboardContent();
 			content.put(ExtItemDropPane.ADD_TAG_DATA_FORMAT, "");
@@ -141,7 +134,6 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 			}
 			e.consume();
 		});
-		threadList.setOnMouseClicked(e -> threadListClicked(e));
 
 		final StackPane centerPane = new StackPane(threadList);
 		centerPane.setAlignment(Pos.BOTTOM_CENTER);
@@ -229,40 +221,17 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	}
 
 	private void threadListClicked(MouseEvent e) {
-		if (e.getClickCount() == 2) {
-			e.consume();
-		} else {
-			return;
-		}
-
 		final Set<H> threads = getSelectedThreads();
 		if (threads.isEmpty()) {
 			return;
 		}
-		for(final H t: threads) {
-			if (isDraftList) {
-				final MailComposer<M, C> composer = new MailComposer<M, C>(mailService, settings);
-				composer.setOnMessageUpdate(updateCallback);
-				composer.editOrReply(t.getLastMessageId(), settings.replyAllDblClick().get());
-			} else {
-				final ThreadPane<S, T, H, M, C> pane = new ThreadPane<S, T, H, M, C>(mailService, undoService, settings);
-				pane.setDetached(true);
-				pane.setOnUpdate(updateCallback);
-				pane.setOnArchive(tSet -> archive.call(tSet));
-				pane.setOnReply(tSet -> reply.call(tSet));
-				pane.setOnReplyAll(tSet -> replyAll.call(tSet));
-				pane.setOnForward(tSet -> forward.call(tSet));
-				pane.setOnToggleFlag(tSet -> toggleFlag.call(tSet));
-				pane.setOnArchive(tSet -> archive.call(tSet));
-				pane.setOnTrash(tSet -> trash.call(tSet));
-				pane.setOnToggleSpam(tSet -> toggleSpam.call(tSet));
 
-				addReader.call(pane);
-				final MailReader mailReader = new MailReader(pane);
-				mailReader.show();
-				mailReader.setOnHidden(ev -> removeReader.call(pane));
-				pane.refresh(threads);
-			}
+		e.consume();
+		
+		if (e.getClickCount() == 1) {
+			selectCallback.call(threads);
+		} else if (e.getClickCount() == 1) {
+			openCallback.call(threads);
 		}
 	}
 
@@ -308,7 +277,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		task.setOnFailed(e -> LOGGER.error(desc, e.getSource().getException()));
 		task.setOnSucceeded(e -> {
 			undoService.set(undo, desc);
-			updateCallback.run();
+			tagUpdateCallback.call(tag);
 		});
 		ThreadPool.getDefault().submit(PoolPriority.MAX, desc, task);
 		return null;
@@ -325,7 +294,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		task.setOnFailed(e -> LOGGER.error(desc, e.getSource().getException()));
 		task.setOnSucceeded(e -> {
 			undoService.set(undo, desc);
-			updateCallback.run();
+			tagUpdateCallback.call(tag);
 		});
 		ThreadPool.getDefault().submit(PoolPriority.MAX, desc, task);
 		return null;
@@ -351,13 +320,14 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 			}
 		};
 		task.setOnSucceeded(e -> {
+			final T tag = task.getValue();
 			undoService.set(() -> {
-				mailService.remove(task.getValue());
-				if (settings.archiveOnDrop().get() && hasInbox) {
+				mailService.remove(tag);
+				if (hasInbox && settings.archiveOnDrop().get()) {
 					mailService.addTagForThreads(inbox, threads);
 				}
 			}, desc);
-			updateCallback.run();
+			tagUpdateCallback.call(tag);
 		});
 		task.setOnFailed(e -> LOGGER.error(desc, e.getSource().getException()));
 		ThreadPool.getDefault().submit(PoolPriority.MAX, desc, task);
@@ -368,7 +338,6 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	}
 
 	public void refreshWithTags(final Set<T> includes, final Set<T> excludes) {
-		isDraftList = includes.contains(draft);
 		threadList.load(includes, excludes, patternField.getText());
 	}
 
@@ -392,7 +361,15 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		return threadList.getItems();
 	}
 
-	public void setOnSelect(final Runnable callback) {
+	public void setOnView(final VoidCallback<Set<H>> callback) {
+		this.selectCallback = callback;
+	}
+
+	public void setOnOpen(final VoidCallback<Set<H>> callback) {
+		this.openCallback = callback;
+	}
+
+	public void setOnOpen(final Runnable callback) {
 		threadList.setOnSelect(callback);
 	}
 
@@ -423,10 +400,8 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		});
 	}
 
-	public void setOnUpdate(final Runnable callback) {
-		updateCallback = callback;
-		threadList.setOnUpdate(callback);
-		toolBar.setOnMessageUpdate(callback);
+	public void setOnTagUpdate(final VoidCallback<T> callback) {
+		tagUpdateCallback = callback;
 	}
 
 	public void setCurrentSection(final S section) {
@@ -439,13 +414,5 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		} else {
 			toolBar.setVisibles(true, true, true);
 		}
-	}
-
-	public void setOnAddReader(VoidCallback<ThreadPane<S, T, H, M, C>> callback) {
-		addReader = callback;
-	}
-
-	public void setOnRemoveReader(VoidCallback<ThreadPane<S, T, H, M, C>> callback) {
-		removeReader = callback;
 	}
 }

@@ -225,7 +225,7 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 		return null;
 	}
 
-	public void setOnUpdate(final EventHandler<ActionEvent> handler) {
+	public void setOnUpdateTag(final EventHandler<ActionEvent> handler) {
 		updateHandler = handler;
 	}
 }

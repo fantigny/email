@@ -152,7 +152,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends VBox {
 	}
 
 	public void setOnUpdateTag(final EventHandler<ActionEvent> handler) {
-		tagDropPane.setOnUpdate(handler);
+		tagDropPane.setOnUpdateTag(handler);
 	}
 
 	@SuppressWarnings("unchecked")

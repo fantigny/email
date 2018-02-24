@@ -42,6 +42,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import net.anfoya.java.util.VoidCallback;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.mail.browser.javafx.css.CssHelper;
@@ -56,7 +57,6 @@ import net.anfoya.mail.service.Message;
 public class MailComposer<M extends Message, C extends Contact> extends Stage {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailComposer.class);
 	private static final int AUTO_SAVE_DELAY = 60; // seconds
-	private static final Runnable DEFAULT_UPDATE_CALLBACK = () -> {};
 
 	private final MailService<?, ?, ?, M, C> mailService;
 	private final Settings settings;
@@ -82,7 +82,10 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 
 	private M draft;
 	private M source;
-	private Runnable updateHandler;
+	
+	private VoidCallback<M> sendCallback;
+	private VoidCallback<M> discardCallback;
+	private VoidCallback<String> openUrlCallback;
 
 	public MailComposer(final MailService<?, ?, ?, M, C> mailService, final Settings settings) {
 		super(StageStyle.UNIFIED);
@@ -91,6 +94,8 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		myAddress = mailService.getContact().getEmail();
 		editedProperty = new SimpleBooleanProperty(false);
 		autosaveTimer = null;
+		sendCallback = discardCallback = m -> {};
+
 
 		final Image icon = new Image(getClass().getResourceAsStream("/net/anfoya/mail/img/Mail.png"));
 		getIcons().add(icon);
@@ -101,7 +106,6 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		setScene(scene);
 
 		this.mailService = mailService;
-		this.updateHandler = DEFAULT_UPDATE_CALLBACK;
 		this.settings = settings;
 
 		// load contacts from server
@@ -145,7 +149,9 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		editor.setOnMailtoCallback(p -> {
 			try {
 				final MailComposer<M, C> composer = new MailComposer<M, C>(mailService, settings);
-				composer.setOnMessageUpdate(updateHandler);
+				composer.setOnSend(sendCallback);
+				composer.setOnDiscard(discardCallback);
+				composer.setOnOpenUrl(openUrlCallback);
 				composer.newMessage(p);
 			} catch (final MailException e) {
 				LOGGER.error("create new mail to {}", p, e);
@@ -181,12 +187,16 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		});
 	}
 
-	public void setOnMessageUpdate(Runnable callback) {
-		if (updateHandler == null) {
-			updateHandler = DEFAULT_UPDATE_CALLBACK;
-		} else {
-			updateHandler = callback;
-		}
+	public void setOnOpenUrl(VoidCallback<String> callback) {
+		openUrlCallback = callback;
+	}
+
+	public void setOnDiscard(VoidCallback<M> callback) {
+		discardCallback = callback;
+	}
+
+	public void setOnSend(VoidCallback<M> callback) {
+		sendCallback = callback;
 	}
 
 	@Override
@@ -316,7 +326,6 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 
 	private void initComposer(final boolean quote, final boolean signature) {
 		final MimeMessage message = draft.getMimeMessage();
-		updateHandler.run();
 
 		try {
 			for(final String a: MessageHelper.getMailAddresses(message.getRecipients(MimeMessage.RecipientType.TO))) {
@@ -515,34 +524,19 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 	}
 
 	private void sendAndClose() {
-		final Task<Void> task = new Task<Void>() {
-			@Override
-			protected Void call() throws Exception {
-			    draft.setMimeDraft(buildMessage());
-				mailService.send(draft);
-				return null;
-			}
-		};
-		task.setOnFailed(e -> LOGGER.error("send message", e.getSource().getException()));
-		task.setOnSucceeded(e -> updateHandler.run());
-		ThreadPool.getDefault().submit(PoolPriority.MAX, "send message", task);
-
+		try {
+			draft.setMimeDraft(buildMessage());
+		} catch (MessagingException e) {
+			//TODO display error message
+			LOGGER.error("build message", e);
+		}
+		
+	    sendCallback.call(draft);
 		close();
 	}
 
 	private void discardAndClose() {
-		LOGGER.debug("discard draft");
-		final Task<Void> task = new Task<Void>() {
-			@Override
-			protected Void call() throws Exception {
-				mailService.remove(draft);
-				return null;
-			}
-		};
-		task.setOnFailed(e -> LOGGER.error("delete draft {}", draft, e.getSource().getException()));
-		task.setOnSucceeded(e -> updateHandler.run());
-		ThreadPool.getDefault().submit(PoolPriority.MAX, "delete draft", task);
-
+	    discardCallback.call(draft);
 		close();
 	}
 
