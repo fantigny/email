@@ -48,7 +48,7 @@ import net.anfoya.java.util.VoidCallback;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.javafx.scene.web.WebViewFitContent;
-import net.anfoya.mail.browser.javafx.attachment.AttachmentLoader;
+import net.anfoya.mail.browser.javafx.attachment.Attachment;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
 import net.anfoya.mail.mime.DateHelper;
 import net.anfoya.mail.mime.MessageHelper;
@@ -208,11 +208,11 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 			view.getEngine().getLoadWorker().cancel();
 			load();
 		});
-		
+
 		if (url == null || url.isEmpty()) {
 			return;
 		}
-		
+
 		openUrlCallback.call(url);
 	}
 
@@ -350,7 +350,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 				attachment.setCursor(Cursor.HAND);
 				attachment.setOnMouseClicked(e -> {
 					try {
-						new AttachmentLoader<M>(mailService, message.getId()).start(name);
+						new Attachment<>(mailService, message.getId()).start(name);
 					} catch (final Exception ex) {
 						LOGGER.error("load ", ex);
 					}

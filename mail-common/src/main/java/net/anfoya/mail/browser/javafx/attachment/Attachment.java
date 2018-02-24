@@ -24,8 +24,8 @@ import net.anfoya.mail.service.Section;
 import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
 
-public class AttachmentLoader<M extends Message> {
-	private static final Logger LOGGER = LoggerFactory.getLogger(AttachmentLoader.class);
+public class Attachment<M extends Message> {
+	private static final Logger LOGGER = LoggerFactory.getLogger(Attachment.class);
 	private static final String TEMP = System.getProperty("java.io.tmpdir") + File.separatorChar;
 	private static final String DOWNLOADS = System.getProperty("user.home") + File.separatorChar + "Downloads" + File.separatorChar;
 
@@ -33,7 +33,7 @@ public class AttachmentLoader<M extends Message> {
 	private final String messageId;
 	private final String destinationFolder;
 
-	public AttachmentLoader(final MailService<? extends Section, ? extends Tag, ? extends Thread, M, ? extends Contact> mailService
+	public Attachment(final MailService<? extends Section, ? extends Tag, ? extends Thread, M, ? extends Contact> mailService
 			, final String messageId) {
 		this.mailService = mailService;
 		this.messageId = messageId;
@@ -42,7 +42,7 @@ public class AttachmentLoader<M extends Message> {
 	}
 
 	public void start(final String filename) throws MailException, UnsupportedEncodingException, IOException, MessagingException {
-		final String filepath = saveAttachment(filename);
+		final String filepath = save(filename);
 
 		LOGGER.info("start {}", filepath);
 		try {
@@ -52,13 +52,13 @@ public class AttachmentLoader<M extends Message> {
 		}
 	}
 
-	public String saveAttachment(final String name) throws MailException, UnsupportedEncodingException, IOException, MessagingException {
+	public String save(final String name) throws MailException, UnsupportedEncodingException, IOException, MessagingException {
 		LOGGER.info("download attachment {} for message {}", name, messageId);
 		final M message = mailService.getMessage(messageId);
-		return saveAttachment(message.getMimeMessage(), name);
+		return save(message.getMimeMessage(), name);
 	}
 
-	private String saveAttachment(final Part part, final String name) throws UnsupportedEncodingException, IOException, MessagingException {
+	private String save(final Part part, final String name) throws UnsupportedEncodingException, IOException, MessagingException {
 		final String type = part.getContentType()
 				.toLowerCase()
 				.replaceAll("[\\r,\\n]", "")
@@ -68,7 +68,7 @@ public class AttachmentLoader<M extends Message> {
 			final Multipart parts = (Multipart) part.getContent();
 			String path = "";
 			for(int i=0, n=parts.getCount(); i<n; i++) {
-				path += saveAttachment(parts.getBodyPart(i), name);
+				path += save(parts.getBodyPart(i), name);
 			}
 			return path;
 		} else if (part instanceof MimeBodyPart
