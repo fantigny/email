@@ -63,7 +63,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 
 	private final BrowserToolBar<S, T, M, C> toolBar;
 	private final ThreadListDropPane threadListDropPane;
-	
+
 	private final T inbox;
 
 	private DelayTimeline patternDelay;
@@ -78,9 +78,8 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	private VoidCallback<Set<H>> trash;
 	private VoidCallback<Set<H>> toggleSpam;
 
-	private VoidCallback<Set<H>> selectCallback;
 	private VoidCallback<Set<H>> openCallback;
-	
+
 	private VoidCallback<T> tagUpdateCallback;
 
 	public ThreadListPane(final MailService<S, T, H, M, C> mailService
@@ -95,7 +94,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		patternField = new ResetTextField();
 		patternField.setPromptText("thread search");
 
-		threadList = new ThreadList<T, H>(mailService);
+		threadList = new ThreadList<>(mailService);
 		threadList.setOnMouseClicked(e -> threadListClicked(e));
 		threadList.setOnDragDetected(e -> {
 			final ClipboardContent content = new ClipboardContent();
@@ -104,7 +103,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 
 			int count = 0;
 			final StackPane stackPane = new StackPane();
-			final ThreadListCell<H> cell = new ThreadListCell<H>();
+			final ThreadListCell<H> cell = new ThreadListCell<>();
 			for (final H t : getSelectedThreads()) {
 				final Pane grid = cell.buildGridPane(t);
 				grid.getStyleClass().add("thread-list-cell-dnd");
@@ -145,7 +144,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		final VBox topBox = new VBox();
 		setTop(topBox);
 
-		toolBar = new BrowserToolBar<S, T, M, C>(mailService, undoService, settings);
+		toolBar = new BrowserToolBar<>(mailService, undoService, settings);
 		toolBar.setVisibles(true, false, false);
 
 		final HBox firstLineBox = new HBox(patternField, toolBar);
@@ -227,10 +226,8 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		}
 
 		e.consume();
-		
-		if (e.getClickCount() == 1) {
-			selectCallback.call(threads);
-		} else if (e.getClickCount() == 1) {
+
+		if (e.getClickCount() > 1) {
 			openCallback.call(threads);
 		}
 	}
@@ -362,7 +359,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	}
 
 	public void setOnView(final VoidCallback<Set<H>> callback) {
-		this.selectCallback = callback;
+		threadList.setOnSelect(callback);
 	}
 
 	public void setOnOpen(final VoidCallback<Set<H>> callback) {
@@ -378,7 +375,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	}
 
 	public Set<T> getThreadsTags() {
-		final Set<T> tags = new LinkedHashSet<T>();
+		final Set<T> tags = new LinkedHashSet<>();
 		for (final H t : getItems()) {
 			for (final String id : t.getTagIds()) {
 				try {
