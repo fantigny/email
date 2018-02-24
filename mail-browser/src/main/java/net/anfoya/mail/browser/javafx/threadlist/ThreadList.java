@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import edu.emory.mathcs.backport.java.util.concurrent.atomic.AtomicInteger;
 import edu.emory.mathcs.backport.java.util.concurrent.atomic.AtomicLong;
 import javafx.collections.ListChangeListener.Change;
-import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -35,12 +35,12 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 
 	private final MailService<?, T, H, ?, ?> mailService;
 
-	private final T unread;
+	private final String unreadTagId;
 
 	private final AtomicLong loadTaskId;
 	private Task<Set<H>> loadTask;
 
-	private final Set<String> selectedThreadIds;
+	private final Set<String> selectedIds;
 	private final AtomicInteger selectedIndex;
 
 	private Set<T> includes;
@@ -52,10 +52,9 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 	private Runnable loadCallback;
 	private Runnable archiveCallback;
 
-	private final Object refreshing;
 	private boolean firstLoad;
 
-	private boolean isNewList;
+	private boolean newFilter;
 	private boolean isUnreadList;
 
 	public ThreadList(final MailService<?, T, H, ?, ?> mailService) {
@@ -63,7 +62,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
         setPlaceholder(new Label("empty"));
 		this.mailService = mailService;
 
-		unread = mailService.getSpecialTag(SpecialTag.UNREAD);
+		unreadTagId = mailService.getSpecialTag(SpecialTag.UNREAD).getId();
 		loadTaskId = new AtomicLong();
 
 		includes = new LinkedHashSet<>();
@@ -71,10 +70,9 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 		sortOrder = SortField.DATE;
 		pattern = "";
 
-		refreshing = new Object();
 		firstLoad = true;
 
-		selectedThreadIds = new HashSet<>();
+		selectedIds = new HashSet<>();
 		selectedIndex = new AtomicInteger(-1);
 
 		setCellFactory(param -> new ThreadListCell<>());
@@ -83,10 +81,8 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 
 		getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 		getItems().addListener((final Change<? extends H> c) -> {
-			synchronized(refreshing) {
-				setFocusTraversable(!getItems().isEmpty());
-				restoreSelection();
-			}
+			setFocusTraversable(!getItems().isEmpty());
+			restoreSelection();
 		});
 	}
 
@@ -116,10 +112,10 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 	}
 
 	public void load(final Set<T> includes, final Set<T> excludes, final String pattern) {
-		isNewList = !includes.equals(this.includes) || !excludes.equals(this.excludes) || !pattern.equals(this.pattern);
-		isUnreadList = includes.size() == 1 && includes.contains(unread);
+		newFilter = !includes.equals(this.includes) || !excludes.equals(this.excludes) || !pattern.equals(this.pattern);
+		isUnreadList = includes.size() == 1 && includes.iterator().next().getId().equals(unreadTagId);
 
-		if (isNewList) {
+		if (newFilter) {
 			page = 1;
 		}
 
@@ -147,16 +143,9 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 	}
 
 	public Set<H> getSelectedThreads() {
-		final List<H> selectedList;
-		synchronized(refreshing) {
-			selectedList = new ArrayList<>(getSelectionModel().getSelectedItems());
-		}
-
-		LOGGER.debug("selected threads: {}", getSelectionModel().getSelectedItems());
-
-		return selectedList.isEmpty()
-				? Collections.emptySet()
-				: Collections.unmodifiableSet(new LinkedHashSet<>(selectedList));
+		return Collections.unmodifiableSet(getSelectionModel().getSelectedItems()
+				.stream()
+				.collect(Collectors.toSet()));
 	}
 
 	public void setOnSelect(final Runnable callback) {
@@ -187,30 +176,29 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 
 	private void refresh(final Set<H> threads) {
 		// save current selected thread list (or selected index in case GmailMoreThreads is selected)
-		final ObservableList<Integer> selected = getSelectionModel().getSelectedIndices();
-		selectedIndex.set(selected.size() == 1? selected.get(0): -1);
-		selectedThreadIds.clear();
-		selected.parallelStream().forEach(i -> selectedThreadIds.add(getItems().get(i).getId()));
+		selectedIndex.set(getSelectionModel().getSelectedIndex());
+		selectedIds.clear();
+		selectedIds.addAll(getSelectionModel().getSelectedItems()
+				.stream()
+				.map(t -> t.getId())
+				.collect(Collectors.toSet()));
 
 		// get list
 		final List<H> sortedThreads = new ArrayList<>(threads);
-		if (isUnreadList && !firstLoad && !isNewList) {
-			getItems()
-				.parallelStream()
-				.filter(t -> !threads.contains(t))
-				.forEach(t -> {
-					t.getTagIds().remove(unread.getId());
-					sortedThreads.add(t);
-				});
+		// if unread list we add the older items even if they are read now
+		if (isUnreadList && !firstLoad && !newFilter) {
+			sortedThreads.addAll(getItems()
+					.stream()
+					.filter(t -> !threads.contains(t))
+					.peek(t -> t.getTagIds().remove(unreadTagId))
+					.collect(Collectors.toList()));
 		}
 
 		// sort
 		Collections.sort(sortedThreads, sortOrder.getComparator());
 
 		// display
-		synchronized(refreshing) {
-			getItems().setAll(sortedThreads);
-		}
+		getItems().setAll(sortedThreads);
 
 		if (firstLoad) {
 			firstLoad  = false;
@@ -224,28 +212,32 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 
 	private void restoreSelection() {
 		LOGGER.debug("previously selected index ({})", selectedIndex);
-		LOGGER.debug("previously selected threads {}", selectedThreadIds);
+		LOGGER.debug("previously selected threads {}", selectedIds);
 
 		if (getItems().isEmpty()) {
 			getSelectionModel().clearSelection();
 			return;
 		}
 
-		if (!selectedThreadIds.isEmpty() && selectedThreadIds.iterator().next() == GmailMoreThreads.PAGE_TOKEN_ID) {
+		if (!selectedIds.isEmpty() && selectedIds.iterator().next() == GmailMoreThreads.PAGE_TOKEN_ID) {
 			// user clicked "more thread", new selection is the starts of the new set
-			getSelectionModel().selectIndices(selectedIndex.get());
-			scrollTo(selectedIndex.get());
-			return;
+			selectFirstOfAddedSet();
+		} else {
+			restoreRegularSelection();
 		}
 
+		LOGGER.debug("selected thread indices {}", getSelectionModel().getSelectedIndices().toArray());
+	}
+
+	private void restoreRegularSelection() {
 		// try to select the same item(s) as before
 		getSelectionModel().selectIndices(-1, getItems()
-				.parallelStream()
-				.filter(t -> selectedThreadIds.contains(t.getId()))
+				.stream()
+				.filter(t -> selectedIds.contains(t.getId()) && !t.isUnread())
 				.mapToInt(t -> getItems().indexOf(t))
 				.toArray());
 
-		if (getSelectionModel().isEmpty() && selectedThreadIds.size() == 1) {
+		if (!isUnreadList && getSelectionModel().isEmpty() && selectedIds.size() == 1) {
 			// try to find the closest following unread thread
 			getItems()
 				.subList(selectedIndex.get(), getItems().size())
@@ -255,7 +247,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 				.ifPresent(t -> getSelectionModel().selectIndices(getItems().indexOf(t)));
 		}
 
-		if (getSelectionModel().isEmpty() && selectedThreadIds.size() == 1) {
+		if (!isUnreadList && getSelectionModel().isEmpty() && selectedIds.size() == 1) {
 			// try to find the closest preceding unread thread
 			getItems()
 				.subList(0, selectedIndex.get())
@@ -264,7 +256,10 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 				.reduce((t1, t2) -> t2)
 				.ifPresent(t -> getSelectionModel().selectIndices(getItems().indexOf(t)));
 		}
+	}
 
-		LOGGER.debug("selected thread indices {}", getSelectionModel().getSelectedIndices().toArray());
+	private void selectFirstOfAddedSet() {
+		getSelectionModel().selectIndices(selectedIndex.get());
+		scrollTo(selectedIndex.get());
 	}
 }

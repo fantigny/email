@@ -2,7 +2,6 @@ package net.anfoya.mail.gmail.model;
 
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 
 @SuppressWarnings("serial")
 public class GmailMoreThreads extends GmailThread {
@@ -15,7 +14,7 @@ public class GmailMoreThreads extends GmailThread {
 				, ""
 				, Collections.emptySet()
 				, "more results..."
-				, new HashSet<String>()
+				, Collections.emptySet()
 				, new Date());
 		this.page = page;
 	}

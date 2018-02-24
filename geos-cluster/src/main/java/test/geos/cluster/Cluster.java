@@ -26,7 +26,7 @@ public class Cluster {
 	public long getSum() {
 		if (sum == -1) {
 			sum = geos
-					.parallelStream()
+					.stream()
 					.mapToLong(g -> g.getId())
 					.sum();
 		}

@@ -42,12 +42,12 @@ public class ThreadService {
 		this.gmail = gmail;
 		this.user = user;
 
-		idThreads = new FileSerieSerializedMap<String, CacheData<Thread>>(FILE_PREFIX + user, 50);
+		idThreads = new FileSerieSerializedMap<>(FILE_PREFIX + user, 50);
 	}
 
 	public Set<Thread> get(final Set<String> ids, boolean cached, Integer nextPage) throws ThreadException {
 		final long start = System.currentTimeMillis();
-		final Set<Thread> threads = new HashSet<Thread>();
+		final Set<Thread> threads = new HashSet<>();
 
 		if (ids.isEmpty()) {
 			return threads;
@@ -57,7 +57,7 @@ public class ThreadService {
 		if (!cached) {
 			notCachedIds = ids;
 		} else {
-			notCachedIds = new HashSet<String>();
+			notCachedIds = new HashSet<>();
 			for(final String id: ids) {
 				Thread thread = null;
 				if (idThreads.containsKey(id)) {
@@ -93,7 +93,7 @@ public class ThreadService {
 		}
 
 		final long start = System.currentTimeMillis();
-		final Set<String> ids = new LinkedHashSet<String>();
+		final Set<String> ids = new LinkedHashSet<>();
 		try {
 			ListThreadsResponse threadResponse;
 			threadResponse = gmail.users().threads().list(user)
@@ -200,9 +200,9 @@ public class ThreadService {
 			};
 			final ModifyThreadRequest request;
 			if (add) {
-				request = new ModifyThreadRequest().setAddLabelIds(new ArrayList<String>(labelIds));
+				request = new ModifyThreadRequest().setAddLabelIds(new ArrayList<>(labelIds));
 			} else {
-				request = new ModifyThreadRequest().setRemoveLabelIds(new ArrayList<String>(labelIds));
+				request = new ModifyThreadRequest().setRemoveLabelIds(new ArrayList<>(labelIds));
 			}
 			for(final String id: threadIds) {
 				gmail.users().threads().modify(user, id, request).queue(batch, callback);
@@ -250,7 +250,7 @@ public class ThreadService {
 
 	private Set<Thread> load(Set<String> ids) throws ThreadException {
 		final long start = System.currentTimeMillis();
-		final Set<Thread> threads = new HashSet<Thread>();
+		final Set<Thread> threads = new HashSet<>();
 		if (ids.isEmpty()) {
 			return threads;
 		}
@@ -262,7 +262,7 @@ public class ThreadService {
 				@Override
 				public void onSuccess(final Thread t, final HttpHeaders responseHeaders) {
 					threads.add(t);
-					idThreads.put(t.getId(), new CacheData<Thread>(t));
+					idThreads.put(t.getId(), new CacheData<>(t));
 					latch.countDown();
 				}
 				@Override
