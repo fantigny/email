@@ -20,9 +20,11 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.util.Duration;
 import net.anfoya.java.util.VoidCallback;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
+import net.anfoya.javafx.scene.animation.DelayTimeline;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
 import net.anfoya.mail.model.SimpleThread.SortField;
 import net.anfoya.mail.service.MailException;
@@ -62,6 +64,8 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 
 	private VoidCallback<Set<H>> selectCallback;
 
+	private DelayTimeline emptySelectDelay;
+
 	public ThreadList(final MailService<?, T, H, ?, ?> mailService) {
         getStyleClass().add("thread-list");
         setPlaceholder(new Label("empty"));
@@ -90,11 +94,17 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 			final Set<H> selectedThreads = c.getList()
 					.stream()
 					.collect(Collectors.toSet());
-			synchronized (selectedThreads) {
-				this.selectedThreads.clear();
-				this.selectedThreads.addAll(selectedThreads);
+			if (emptySelectDelay != null) { //TODO remove
+				emptySelectDelay.stop();
 			}
-			selectCallback.call(selectedThreads);
+			emptySelectDelay = new DelayTimeline(Duration.millis(selectedThreads.isEmpty()? 500: 1), e -> {
+				synchronized (selectedThreads) {
+					this.selectedThreads.clear();
+					this.selectedThreads.addAll(selectedThreads);
+				}
+				selectCallback.call(selectedThreads);
+			});
+			emptySelectDelay.playFromStart();
 		});
 
 		getItems().addListener((final Change<? extends H> c) -> {
