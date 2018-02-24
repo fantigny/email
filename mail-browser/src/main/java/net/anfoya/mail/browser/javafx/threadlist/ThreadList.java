@@ -94,7 +94,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 			final Set<H> selectedThreads = c.getList()
 					.stream()
 					.collect(Collectors.toSet());
-			if (emptySelectDelay != null) { //TODO remove
+			if (emptySelectDelay != null) { //TODO reduce flickering of messages -- to remove
 				emptySelectDelay.stop();
 			}
 			emptySelectDelay = new DelayTimeline(Duration.millis(selectedThreads.isEmpty()? 500: 1), e -> {

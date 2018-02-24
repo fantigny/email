@@ -79,7 +79,6 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	private VoidCallback<Set<H>> toggleSpam;
 
 	private VoidCallback<Set<H>> openCallback;
-
 	private VoidCallback<T> tagUpdateCallback;
 
 	public ThreadListPane(final MailService<S, T, H, M, C> mailService

@@ -82,10 +82,10 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 
 	private M draft;
 	private M source;
-	
+
 	private VoidCallback<M> sendCallback;
 	private VoidCallback<M> discardCallback;
-	private VoidCallback<String> openUrlCallback;
+	private VoidCallback<String> composeCallback;
 
 	public MailComposer(final MailService<?, ?, ?, M, C> mailService, final Settings settings) {
 		super(StageStyle.UNIFIED);
@@ -109,22 +109,22 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		this.settings = settings;
 
 		// load contacts from server
-		addressContacts = new ConcurrentHashMap<String, C>();
+		addressContacts = new ConcurrentHashMap<>();
 		initContacts();
 
 		mainPane = (BorderPane) getScene().getRoot();
 		mainPane.setPadding(new Insets(3));
 
-		toListBox = new RecipientListPane<C>("to: ");
+		toListBox = new RecipientListPane<>("to: ");
 		toListBox.setOnUpdateList(e -> editedProperty.set(true));
 		HBox.setHgrow(toListBox, Priority.ALWAYS);
 
-		ccListBox = new RecipientListPane<C>("cc/bcc: ");
+		ccListBox = new RecipientListPane<>("cc/bcc: ");
 		ccListBox.setFocusTraversable(false);
 		ccListBox.setOnUpdateList(e -> editedProperty.set(true));
 		HBox.setHgrow(ccListBox, Priority.ALWAYS);
 
-		bccListBox = new RecipientListPane<C>("bcc: ");
+		bccListBox = new RecipientListPane<>("bcc: ");
 		bccListBox.setOnUpdateList(e -> editedProperty.set(true));
 		HBox.setHgrow(bccListBox, Priority.ALWAYS);
 
@@ -146,18 +146,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 
 		editor = new MailEditor();
 		editor.editedProperty().addListener((ov, o, n) -> editedProperty.set(editedProperty.get() || n));
-		editor.setOnMailtoCallback(p -> {
-			try {
-				final MailComposer<M, C> composer = new MailComposer<M, C>(mailService, settings);
-				composer.setOnSend(sendCallback);
-				composer.setOnDiscard(discardCallback);
-				composer.setOnOpenUrl(openUrlCallback);
-				composer.newMessage(p);
-			} catch (final MailException e) {
-				LOGGER.error("create new mail to {}", p, e);
-			}
-			return null;
-		});
+		editor.setOnCompose(r -> composeCallback.call(r));
 
 		mainPane.setCenter(editor);
 
@@ -187,10 +176,6 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		});
 	}
 
-	public void setOnOpenUrl(VoidCallback<String> callback) {
-		openUrlCallback = callback;
-	}
-
 	public void setOnDiscard(VoidCallback<M> callback) {
 		discardCallback = callback;
 	}
@@ -207,8 +192,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 
 	private void initContacts() {
 		final Task<Set<C>> contactTask = new Task<Set<C>>() {
-			@Override
-			protected Set<C> call() throws Exception {
+			@Override protected Set<C> call() throws Exception {
 				return mailService.getContacts();
 			}
 		};
@@ -526,11 +510,11 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 	private void sendAndClose() {
 		try {
 			draft.setMimeDraft(buildMessage());
-		} catch (MessagingException e) {
+		} catch (final MessagingException e) {
 			//TODO display error message
 			LOGGER.error("build message", e);
 		}
-		
+
 	    sendCallback.call(draft);
 		close();
 	}
@@ -547,5 +531,9 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 			ccListBox.setFocusTraversable(true);
 			headerBox.getChildren().add(2, bccListBox);
 		}
+	}
+
+	public void setOnCompose(VoidCallback<String> callback) {
+		composeCallback = callback;
 	}
 }

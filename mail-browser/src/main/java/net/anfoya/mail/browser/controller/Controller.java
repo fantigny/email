@@ -83,11 +83,26 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 			}
 		});
 
+		String section = settings.sectionName().get();
+		String tag = settings.tagName().get();
+		if (section.isEmpty() || tag.isEmpty()) {
+			section = GmailSection.SYSTEM.getName();
+			tag = mailService.getSpecialTag(SpecialTag.INBOX).getName();
+		}
+		sectionListPane.init(section, tag);
+	}
+
+	public void setSectionListPane(SectionListPane<S, T> pane) {
+		sectionListPane = pane;
 		sectionListPane.setOnUpdateSection(e -> refreshAfterSectionUpdate());
 		sectionListPane.setOnSelectSection(e -> refreshAfterSectionSelect());
 		sectionListPane.setOnUpdateTag(e -> refreshAfterTagUpdate());
 		sectionListPane.setOnSelectTag(e -> refreshAfterTagSelected());
+	}
 
+	public void setThreadListPane(ThreadListPane<S, T, H, M, C> pane) {
+		threadListPane = pane;
+		threadListPane.setOnOpen(threads -> openDraft(threads));
 		threadListPane.setOnArchive(threads -> archive(threads));
 		threadListPane.setOnReply(threads -> reply(threads, false));
 		threadListPane.setOnReplyAll(threads -> reply(threads, true));
@@ -102,47 +117,17 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 
 		threadListPane.setOnLoad(() -> refreshAfterThreadListLoad());
 		threadListPane.setOnUpdatePattern(() -> refreshAfterPatternUpdate());
-
-		threadPanes
-			.stream()
-			.forEach(p -> {
-				p.setOnArchive(threads -> archive(threads));
-				p.setOnReply(threads -> reply(threads, false));
-				p.setOnReplyAll(threads -> reply(threads, true));
-				p.setOnForward(threads -> forward(threads));
-				p.setOnToggleFlag(threads -> toggleFlag(threads));
-				p.setOnTrash(threads -> trash(threads));
-				p.setOnToggleSpam(threads -> toggleSpam(threads));
-				p.setOnOpenUrl(url -> openUrl(url));
-			});
-
-		mailBrowser.addOnModeChange(() -> view(threadListPane.getSelectedThreads()));
-
-		String section = settings.sectionName().get();
-		String tag = settings.tagName().get();
-		if (section.isEmpty() || tag.isEmpty()) {
-			section = GmailSection.SYSTEM.getName();
-			tag = mailService.getSpecialTag(SpecialTag.INBOX).getName();
-		}
-		sectionListPane.init(section, tag);
 	}
 
-	public void addThreadPane(ThreadPane<S, T, H, M, C> threadPane) {
-		threadPanes.add(threadPane);
+	public void setMailBrowser(MailBrowser<S, T, H, M, C> mailBrowser) {
+		this.mailBrowser = mailBrowser;
+		this.mailBrowser.addOnModeChange(() -> view(threadListPane.getSelectedThreads()));
 	}
 
-	public void setSectionListPane(SectionListPane<S, T> sectionListPane) {
-		this.sectionListPane = sectionListPane;
-	}
-	public void setThreadListPane(ThreadListPane<S, T, H, M, C> threadListPane) {
-		this.threadListPane = threadListPane;
-	}
-
-	private void archive(Set<H> threads) {
+	private void archive(final Set<H> threads) {
 		final String description = "archive";
 		final Task<Void> task = new Task<Void>() {
-			@Override
-			protected Void call() throws Exception {
+			@Override protected Void call() throws Exception {
 				mailService.archive(threads);
 				return null;
 			}
@@ -184,18 +169,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 	}
 
 	private void openUrl(String url) {
-		UrlHelper.open(url, recipient -> {
-			try {
-				final MailComposer<M, C> composer = new MailComposer<>(mailService, settings);
-				composer.setOnSend(d -> send(d));
-				composer.setOnDiscard(d -> discard(d));
-				composer.setOnOpenUrl(u -> openUrl(u));
-				composer.newMessage(recipient);
-			} catch (final MailException e) {
-				LOGGER.error("create new mail to {}", recipient, e);
-			}
-			return null;
-		});
+		UrlHelper.open(url, r -> createComposer(r));
 	}
 
 	private void trash(Set<H> threads) {
@@ -259,36 +233,66 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		}
 	}
 
+	private MailComposer<M, C> createComposer() {
+		final MailComposer<M, C> composer = new MailComposer<>(mailService, settings);
+		composer.setOnSend(d -> send(d));
+		composer.setOnDiscard(d -> discard(d));
+		composer.setOnCompose(r -> createComposer(r));
+
+		return composer;
+	}
+
+	private MailComposer<M, C> createComposer(String recipient) {
+		final MailComposer<M, C> composer = createComposer();
+		if (composer != null) {
+			try {
+				composer.newMessage(recipient);
+			} catch (final MailException e) {
+				//TODO display error message
+				LOGGER.error("create new mail to {}", recipient, e);
+			}
+		}
+		return composer;
+	}
+
 	private void openDraft(Set<H> threads) {
 		threads.forEach(t -> {
-			final MailComposer<M, C> composer = new MailComposer<>(mailService, settings);
-			composer.setOnSend(d -> send(d));
-			composer.setOnDiscard(d -> discard(d));
-			composer.setOnOpenUrl(u -> openUrl(u));
+			final MailComposer<M, C> composer = createComposer();
 			composer.editOrReply(t.getLastMessageId(), false);
 		});
 	}
 
 	private void openThread(Set<H> threads) {
 		threads.forEach(t -> {
-			final ThreadPane<S, T, H, M, C> pane = new ThreadPane<>(mailService, undoService, settings);
-			threadPanes.add(pane);
-			pane.setDetached(true);
-			pane.setOnArchive(tSet -> archive(tSet));
-			pane.setOnReply(tSet -> reply(tSet, false));
-			pane.setOnReplyAll(tSet -> reply(tSet, false));
-			pane.setOnForward(tSet -> forward(tSet));
-			pane.setOnToggleFlag(tSet -> toggleFlag(tSet));
-			pane.setOnArchive(tSet -> archive(tSet));
-			pane.setOnTrash(tSet -> trash(tSet));
-			pane.setOnToggleSpam(tSet -> toggleSpam(tSet));
-			pane.refresh(Collections.singleton(t));
-			pane.setOnOpenUrl(url -> openUrl(url));
+			final ThreadPane<S, T, H, M, C> pane = createDetachedThreadPane(Collections.singleton(t));
 
 			final MailReader mailReader = new MailReader(pane);
-			mailReader.show();
 			mailReader.setOnHidden(ev -> threadPanes.remove(pane));
+			mailReader.show();
 		});
+	}
+
+	public void addThreadPane(ThreadPane<S, T, H, M, C> pane) {
+		threadPanes.add(pane);
+		pane.setOnArchive(tSet -> archive(tSet));
+		pane.setOnReply(tSet -> reply(tSet, false));
+		pane.setOnReplyAll(tSet -> reply(tSet, false));
+		pane.setOnForward(tSet -> forward(tSet));
+		pane.setOnToggleFlag(tSet -> toggleFlag(tSet));
+		pane.setOnArchive(tSet -> archive(tSet));
+		pane.setOnTrash(tSet -> trash(tSet));
+		pane.setOnToggleSpam(tSet -> toggleSpam(tSet));
+		pane.setOnOpenUrl(url -> openUrl(url));
+	}
+
+	private ThreadPane<S, T, H, M, C> createDetachedThreadPane(Set<H> threads) {
+		final ThreadPane<S, T, H, M, C> pane = new ThreadPane<>(mailService, undoService, settings);
+		pane.setDetached(true);
+		pane.refresh(threads);
+
+		addThreadPane(pane);
+
+		return pane;
 	}
 
 	private void view(Set<H> threads) {
@@ -471,10 +475,6 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 
 		sectionListPane.refreshAsync(() ->
 			threadListPane.refreshWithTags(sectionListPane.getIncludedOrSelectedTags(), sectionListPane.getExcludedTags()));
-	}
-
-	public void setMailBrowser(MailBrowser<S, T, H, M, C> mailBrowser) {
-		this.mailBrowser = mailBrowser;
 	}
 
 	private void refreshAfterUpdateMessage() {

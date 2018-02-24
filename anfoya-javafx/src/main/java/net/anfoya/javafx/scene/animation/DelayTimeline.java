@@ -178,5 +178,4 @@ public class DelayTimeline {
 		delegate.pause();
 	}
 
-
 }

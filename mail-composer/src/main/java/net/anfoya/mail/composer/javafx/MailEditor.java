@@ -31,7 +31,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.web.HTMLEditor;
 import javafx.scene.web.WebView;
-import javafx.util.Callback;
+import net.anfoya.java.util.VoidCallback;
 import net.anfoya.javafx.scene.control.HtmlEditorListener;
 import net.anfoya.javafx.scene.control.HtmlEditorToolBarHelper;
 import net.anfoya.javafx.scene.control.HtmlEditorToolBarHelper.Line;
@@ -48,7 +48,7 @@ public class MailEditor extends BorderPane {
 	private final FlowPane attachmentPane;
 	private final Set<File> attachments;
 
-	private Callback<String, Void> onMailtoCallback;
+	private VoidCallback<String> composeCallback;
 
 	public MailEditor() {
 		final StackPane stackPane = new StackPane();
@@ -66,7 +66,7 @@ public class MailEditor extends BorderPane {
 		attachmentPane = new FlowPane(Orientation.HORIZONTAL, 5, 0);
 		attachmentPane.setPadding(new Insets(0, 10, 0, 10));
 
-		attachments = new LinkedHashSet<File>();
+		attachments = new LinkedHashSet<>();
 
 		final AttchDropPane attachDropPane = new AttchDropPane();
 		attachDropPane.prefWidthProperty().bind(stackPane.widthProperty());
@@ -103,7 +103,11 @@ public class MailEditor extends BorderPane {
 					editorView.getEngine().getLoadWorker().cancel();
 					editorView.getEngine().loadContent(html);
 				});
-				UrlHelper.open(n, p -> onMailtoCallback == null? null: onMailtoCallback.call(p));
+				UrlHelper.open(n, r -> {
+					if (composeCallback != null) {
+						composeCallback.call(r);
+					}
+				});
 			}
 		});
 	}
@@ -119,8 +123,8 @@ public class MailEditor extends BorderPane {
 				, 1, false, false, false, false, false, false, false, false, false, false, null));
 	}
 
-	public void setOnMailtoCallback(Callback<String, Void> callback) {
-		this.onMailtoCallback = callback;
+	public void setOnCompose(VoidCallback<String> callback) {
+		this.composeCallback = callback;
 	}
 
 	public BooleanProperty editedProperty() {
