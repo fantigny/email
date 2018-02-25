@@ -62,6 +62,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	private VoidCallback<Set<H>> toggleSpamCallback;
 
 	private VoidCallback<Set<H>> openCallback;
+	private VoidCallback<Set<H>> editCallback;
 
 	private VoidCallback<TagForThreadsVo<T, H>> addTagForThreadsCallBack;
 	private VoidCallback<TagForThreadsVo<T, H>> createTagForThreadsCallBack;
@@ -203,7 +204,11 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		e.consume();
 
 		if (e.getClickCount() > 1) {
-			openCallback.call(threads);
+			if (threadList.isDraft()) {
+				editCallback.call(threads);
+			} else {
+				openCallback.call(threads);
+			}
 		}
 	}
 
@@ -275,8 +280,8 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		this.openCallback = callback;
 	}
 
-	public void setOnOpen(final Runnable callback) {
-		threadList.setOnSelect(callback);
+	public void setOnEdit(final VoidCallback<Set<H>> callback) {
+		this.editCallback = callback;
 	}
 
 	public void setOnLoad(final Runnable callback) {
@@ -309,5 +314,9 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 
 	public void setOnCreateTagForThreads(VoidCallback<TagForThreadsVo<T, H>> callBack) {
 		createTagForThreadsCallBack = callBack;
+	}
+
+	public void setOnCompose(Runnable callback) {
+		toolBar.setOnCompose(callback);
 	}
 }

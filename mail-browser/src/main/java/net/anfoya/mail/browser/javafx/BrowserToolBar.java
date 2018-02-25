@@ -127,7 +127,7 @@ public class BrowserToolBar<S extends Section, T extends Tag, M extends Message,
 		settingsDialog.requestFocus();
 	}
 
-	public void setOnCreateNew(Runnable callback) {
+	public void setOnCompose(Runnable callback) {
 		createNewCallback = callback;
 	}
 }

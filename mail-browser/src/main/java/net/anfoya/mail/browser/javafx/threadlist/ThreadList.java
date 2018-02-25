@@ -39,6 +39,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 
 	private final MailService<?, T, H, ?, ?> mailService;
 
+	private final String draftTagId;
 	private final String unreadTagId;
 
 	private final AtomicLong loadTaskId;
@@ -72,6 +73,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
         setPlaceholder(new Label("empty"));
 		this.mailService = mailService;
 
+		draftTagId = mailService.getSpecialTag(SpecialTag.DRAFT).getId();
 		unreadTagId = mailService.getSpecialTag(SpecialTag.UNREAD).getId();
 		loadTaskId = new AtomicLong();
 		selectedThreads = Collections.synchronizedSet(new HashSet<>());
@@ -137,6 +139,10 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 	public void loadPage(final int page) {
 		this.page = page;
 		load();
+	}
+
+	public boolean isDraft() {
+		return includes.size() == 1 && includes.iterator().next().getId().equals(draftTagId);
 	}
 
 	public void load(final Set<T> includes, final Set<T> excludes, final String pattern) {

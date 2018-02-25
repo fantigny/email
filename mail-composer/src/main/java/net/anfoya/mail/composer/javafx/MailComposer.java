@@ -50,7 +50,6 @@ import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.mime.MessageHelper;
 import net.anfoya.mail.mime.MessageReader;
 import net.anfoya.mail.service.Contact;
-import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.Message;
 
@@ -216,96 +215,68 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		ThreadPool.getDefault().submit(PoolPriority.MAX, "load contacts", contactTask);
 	}
 
-	public void newMessage(final String recipient) throws MailException {
-		final InternetAddress to;
-		if (recipient == null || recipient.isEmpty()) {
-			to = null;
-		} else {
-			InternetAddress address;
-			try {
-				address = new InternetAddress(recipient);
-			} catch (final AddressException e) {
-				address = null;
-			}
-			to = address;
-		}
+	public void compose(M draft, String recipient) {
+		this.draft = draft;
 
-		final Task<Void> task = new Task<Void>() {
-			@Override
-			protected Void call() throws Exception {
-				final MimeMessage message = new MimeMessage(Session.getDefaultInstance(new Properties()));
-				message.setContent("", "text/html");
-				if (to != null) {
-					message.addRecipient(RecipientType.TO, to);
-				}
-				message.saveChanges();
-				draft = mailService.createDraft(null);
-				draft.setMimeDraft(message);
-				return null;
-			}
-		};
-		task.setOnFailed(e -> LOGGER.error("create  draft", e.getSource().getException()));
-		task.setOnSucceeded(e -> initComposer(false, true));
-		ThreadPool.getDefault().submit(PoolPriority.MAX, "create  draft", task);
-	}
-
-	public void editOrReply(final String id, final boolean all) {
-		// try to find a draft with this id
+		InternetAddress to;
 		try {
-			draft = mailService.getDraft(id);
-		} catch (final MailException e) {
-			LOGGER.error("load draft for id {}", id, e);
+			to = new InternetAddress(recipient);
+		} catch (final AddressException e) {
+			to = null;
 		}
-		if (draft != null) {
-			// edit
-			initComposer(false, false);
-		} else {
-			// reply
-			try {
-				final M message = mailService.getMessage(id);
-				reply(message, all);
-			} catch (final MailException e) {
-				LOGGER.error("load message for id {}", id, e);
+
+		final MimeMessage message = new MimeMessage(Session.getDefaultInstance(new Properties()));
+		try {
+			message.setContent("", "text/html");
+			if (to != null) {
+				message.addRecipient(RecipientType.TO, to);
 			}
+			message.saveChanges();
+		} catch (final MessagingException e) {
+			LOGGER.error("compose", e);
 		}
+		draft.setMimeDraft(message);
+		initComposer(false, true);
 	}
 
-	public void reply(final M source, final boolean all) {
-		this.source = source;
-		final Task<Void> task = new Task<Void>() {
-			@Override
-			protected Void call() throws Exception {
-				final MimeMessage reply = (MimeMessage) source.getMimeMessage().reply(all);
-				reply.setContent(source.getMimeMessage().getContent(), source.getMimeMessage().getContentType());
-				reply.saveChanges();
-				MessageHelper.removeMyselfFromRecipient(myAddress, reply);
-				draft = mailService.createDraft(source);
-				draft.setMimeDraft(reply);
-				return null;
-			}
-		};
-		task.setOnFailed(event -> LOGGER.error("create  reply draft", event.getSource().getException()));
-		task.setOnSucceeded(e -> initComposer(true, true));
-		ThreadPool.getDefault().submit(PoolPriority.MAX, "create  reply draft", task);
+	public void edit(final M draft) {
+		this.draft = draft;
+		initComposer(false, false);
 	}
 
-	public void forward(final M source) {
+	public void reply(final M draft, final M source, final boolean all) {
+		this.draft = draft;
 		this.source = source;
-		final Task<Void> task = new Task<Void>() {
-			@Override
-			protected Void call() throws Exception {
-				final MimeMessage forward = new MimeMessage(Session.getDefaultInstance(new Properties()));
-				forward.setSubject("Fwd: " + source.getMimeMessage().getSubject());
-				forward.setContent(source.getMimeMessage().getContent(), source.getMimeMessage().getContentType());
-				forward.saveChanges();
-				draft = mailService.createDraft(source);
-				draft.setMimeDraft(forward);
-				return null;
-			}
-		};
-		task.setOnFailed(event -> LOGGER.error("create  forward draft", event.getSource().getException()));
-		task.setOnSucceeded(e -> initComposer(true, true));
-		ThreadPool.getDefault().submit(PoolPriority.MAX, "create  forward draft", task);
+
+		MimeMessage reply;
+		try {
+			reply = (MimeMessage) source.getMimeMessage().reply(all);
+			reply.setContent(source.getMimeMessage().getContent(), source.getMimeMessage().getContentType());
+			reply.saveChanges();
+			MessageHelper.removeMyselfFromRecipient(myAddress, reply);
+			draft.setMimeDraft(reply);
+		} catch (final IOException | MessagingException e) {
+			LOGGER.error("reply", e);
+		}
+
+		initComposer(true, true);
+	}
+
+	public void forward(final M draft, M source) {
+		this.draft = draft;
+		this.source = source;
+
+		final MimeMessage forward = new MimeMessage(Session.getDefaultInstance(new Properties()));
+		try {
+			forward.setSubject("Fwd: " + source.getMimeMessage().getSubject());
+			forward.setContent(source.getMimeMessage().getContent(), source.getMimeMessage().getContentType());
+			forward.saveChanges();
+			draft.setMimeDraft(forward);
+		} catch (final IOException | MessagingException e) {
+			LOGGER.error("forward", e);
+		}
+
+		initComposer(true, true);
 	}
 
 	private void initComposer(final boolean quote, final boolean signature) {

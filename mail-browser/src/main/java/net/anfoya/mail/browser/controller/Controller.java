@@ -52,7 +52,6 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 	private final T trash;
 	private final T flagged;
 	private final T spam;
-	private final T draft;
 	private final T unread;
 
 	private MailBrowser<S, T, H, M, C> mailBrowser;
@@ -75,7 +74,6 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		trash = mailService.getSpecialTag(SpecialTag.TRASH);
 		flagged = mailService.getSpecialTag(SpecialTag.FLAGGED);
 		spam = mailService.getSpecialTag(SpecialTag.SPAM);
-		draft = mailService.getSpecialTag(SpecialTag.DRAFT);
 		unread = mailService.getSpecialTag(SpecialTag.UNREAD);
 	}
 
@@ -107,22 +105,25 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 
 	public void setThreadListPane(ThreadListPane<S, T, H, M, C> pane) {
 		threadListPane = pane;
-		threadListPane.setOnOpen(threads -> openDraft(threads));
+
+		threadListPane.setOnLoad(() -> refreshAfterThreadListLoad());
+		threadListPane.setOnUpdatePattern(() -> refreshAfterPatternUpdate());
+
+		threadListPane.setOnCompose(() -> compose(""));
 		threadListPane.setOnArchive(threads -> archive(threads));
 		threadListPane.setOnReply(threads -> reply(threads, false));
 		threadListPane.setOnReplyAll(threads -> reply(threads, true));
 		threadListPane.setOnForward(threads -> forward(threads));
-		threadListPane.setOnToggleFlag(threads -> toggleFlag(threads));
 		threadListPane.setOnTrash(threads -> trash(threads));
-		threadListPane.setOnToggleSpam(threads -> toggleSpam(threads));
-		threadListPane.setOnAddTagForThreads(vo -> addTagForThreads(vo));
-		threadListPane.setOnCreateTagForThreads(vo -> createTagForThreads(vo.getTag().getName(), vo.getThreads()));
 
 		threadListPane.setOnView(threads -> view(threads));
 		threadListPane.setOnOpen(threads -> open(threads));
+		threadListPane.setOnEdit(threads -> edit(threads));
 
-		threadListPane.setOnLoad(() -> refreshAfterThreadListLoad());
-		threadListPane.setOnUpdatePattern(() -> refreshAfterPatternUpdate());
+		threadListPane.setOnToggleFlag(threads -> toggleFlag(threads));
+		threadListPane.setOnToggleSpam(threads -> toggleSpam(threads));
+		threadListPane.setOnAddTagForThreads(vo -> addTagForThreads(vo));
+		threadListPane.setOnCreateTagForThreads(vo -> createTagForThreads(vo.getTag().getName(), vo.getThreads()));
 	}
 
 
@@ -147,36 +148,8 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		this.mailBrowser.addOnModeChange(() -> view(threadListPane.getSelectedThreads()));
 	}
 
-	private void reply(Set<H> threads, final boolean all) {
-		try {
-			for (final H t : threads) {
-				final M message = mailService.getMessage(t.getLastMessageId());
-				final MailComposer<M, C> composer = new MailComposer<>(mailService, settings);
-				composer.setOnSend(d -> send(d));
-				composer.setOnDiscard(d -> discard(d));
-				composer.reply(message, all);
-			}
-		} catch (final Exception e) {
-			LOGGER.error("load reply{} composer", all ? " all" : "", e);
-		}
-	}
-
-	private void forward(Set<H> threads) {
-		try {
-			for (final H t : threads) {
-				final M message = mailService.getMessage(t.getLastMessageId());
-				final MailComposer<M, C> composer = new MailComposer<>(mailService, settings);
-				composer.setOnSend(d -> send(d));
-				composer.setOnDiscard(d -> discard(d));
-				composer.forward(message);
-			}
-		} catch (final Exception e) {
-			LOGGER.error("load forward composer", e);
-		}
-	}
-
 	private void openUrl(String url) {
-		UrlHelper.open(url, r -> createComposer(r));
+		UrlHelper.open(url, r -> compose(r));
 	}
 
 	private void trash(Set<H> threads) {
@@ -206,70 +179,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		ThreadPool.getDefault().submit(PoolPriority.MAX, description, task);
 	}
 
-	private void send(M draft) {
-		final Task<Void> task = new Task<Void>() {
-			@Override
-			protected Void call() throws Exception {
-				mailService.send(draft);
-				return null;
-			}
-		};
-		task.setOnFailed(e -> LOGGER.error("send message", e.getSource().getException()));
-		ThreadPool.getDefault().submit(PoolPriority.MIN, "send message", task);
-	}
-
-	private void discard(M draft) {
-		LOGGER.debug("discard draft");
-		final Task<Void> task = new Task<Void>() {
-			@Override
-			protected Void call() throws Exception {
-				mailService.remove(draft);
-				return null;
-			}
-		};
-		task.setOnFailed(e -> LOGGER.error("delete draft {}", draft, e.getSource().getException()));
-		ThreadPool.getDefault().submit(PoolPriority.MIN, "delete draft", task);
-	}
-
 	private void open(Set<H> threads) {
-		final boolean isDraft = sectionListPane.getIncludedOrSelectedTags().contains(draft);
-		if (isDraft) {
-			openDraft(threads);
-		} else {
-			openThread(threads);
-		}
-	}
-
-	private MailComposer<M, C> createComposer() {
-		final MailComposer<M, C> composer = new MailComposer<>(mailService, settings);
-		composer.setOnSend(d -> send(d));
-		composer.setOnDiscard(d -> discard(d));
-		composer.setOnCompose(r -> createComposer(r));
-
-		return composer;
-	}
-
-	private MailComposer<M, C> createComposer(String recipient) {
-		final MailComposer<M, C> composer = createComposer();
-		if (composer != null) {
-			try {
-				composer.newMessage(recipient);
-			} catch (final MailException e) {
-				//TODO display error message
-				LOGGER.error("create new mail to {}", recipient, e);
-			}
-		}
-		return composer;
-	}
-
-	private void openDraft(Set<H> threads) {
-		threads.forEach(t -> {
-			final MailComposer<M, C> composer = createComposer();
-			composer.editOrReply(t.getLastMessageId(), false);
-		});
-	}
-
-	private void openThread(Set<H> threads) {
 		threads.forEach(t -> {
 			final ThreadPane<S, T, H, M, C> pane = createDetachedThreadPane(Collections.singleton(t));
 
@@ -634,4 +544,105 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 					, sectionListPane.getExcludedTags()));
 	}
 
+
+	/////// compose
+
+	private MailComposer<M, C> createComposer() {
+		final MailComposer<M, C> composer = new MailComposer<>(mailService, settings);
+		composer.setOnSend(d -> send(d));
+		composer.setOnDiscard(d -> discard(d));
+		composer.setOnCompose(r -> compose(r));
+
+		return composer;
+	}
+
+	public void compose(final String recipient) {
+		LOGGER.debug("compose");
+		final MailComposer<M, C> composer = createComposer();
+		final Task<M> task = new Task<M>() {
+			@Override protected M call() throws Exception {
+				return mailService.createDraft(null);
+			}
+		};
+		task.setOnFailed(e -> LOGGER.error("new draft", e.getSource().getException()));
+		task.setOnSucceeded(e -> composer.compose(task.getValue(), recipient));
+		ThreadPool.getDefault().submit(PoolPriority.MAX, "new draft", task);
+	}
+
+	private void edit(Set<H> threads) {
+		LOGGER.debug("edit draft");
+		threads.forEach(t -> {
+			final MailComposer<M, C> composer = createComposer();
+			final Task<M> task = new Task<M>() {
+				@Override protected M call() throws Exception {
+					return mailService.getDraft(t.getId());
+				}
+			};
+			task.setOnFailed(e -> LOGGER.error("read draft {}", t.getId(), e.getSource().getException()));
+			task.setOnSucceeded(e -> composer.edit(task.getValue()));
+			ThreadPool.getDefault().submit(PoolPriority.MAX, "read draft", task);
+		});
+	}
+
+	private void reply(Set<H> threads, final boolean all) {
+		LOGGER.debug("reply");
+		threads.forEach(t -> {
+			final MailComposer<M, C> composer = createComposer();
+			final Task<List<M>> task = new Task<List<M>>() {
+				@Override protected List<M> call() throws Exception {
+					final List<M> messages = new ArrayList<>();
+					messages.add(mailService.getMessage(t.getLastMessageId()));
+					messages.add(0, mailService.createDraft(messages.get(0)));
+					return messages;
+				}
+			};
+			task.setOnFailed(event -> LOGGER.error("create reply draft", event.getSource().getException()));
+			task.setOnSucceeded(e -> composer.reply(task.getValue().get(0), task.getValue().get(1), all));
+			ThreadPool.getDefault().submit(PoolPriority.MAX, "create reply draft", task);
+		});
+	}
+
+	private void forward(Set<H> threads) {
+		LOGGER.debug("forward");
+		threads.forEach(t -> {
+			final MailComposer<M, C> composer = createComposer();
+			final Task<List<M>> task = new Task<List<M>>() {
+				@Override protected List<M> call() throws Exception {
+					final List<M> messages = new ArrayList<>();
+					messages.add(mailService.getMessage(t.getLastMessageId()));
+					messages.add(0, mailService.createDraft(messages.get(0)));
+					return messages;
+				}
+			};
+			task.setOnFailed(event -> LOGGER.error("create reply draft", event.getSource().getException()));
+			task.setOnSucceeded(e -> composer.forward(task.getValue().get(0), task.getValue().get(1)));
+			ThreadPool.getDefault().submit(PoolPriority.MAX, "create reply draft", task);
+		});
+	}
+
+	private void send(M draft) {
+		LOGGER.debug("send");
+		final Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				mailService.send(draft);
+				return null;
+			}
+		};
+		task.setOnFailed(e -> LOGGER.error("send message", e.getSource().getException()));
+		ThreadPool.getDefault().submit(PoolPriority.MIN, "send message", task);
+	}
+
+	private void discard(M draft) {
+		LOGGER.debug("discard draft");
+		final Task<Void> task = new Task<Void>() {
+			@Override
+			protected Void call() throws Exception {
+				mailService.remove(draft);
+				return null;
+			}
+		};
+		task.setOnFailed(e -> LOGGER.error("delete draft {}", draft, e.getSource().getException()));
+		ThreadPool.getDefault().submit(PoolPriority.MIN, "delete draft", task);
+	}
 }
