@@ -1,15 +1,10 @@
 package net.anfoya.mail.browser.javafx.threadlist;
 
-import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.stream.Collectors;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
@@ -29,8 +24,6 @@ import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.VoidCallback;
-import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.javafx.scene.animation.DelayTimeline;
 import net.anfoya.javafx.scene.control.ResetTextField;
 import net.anfoya.javafx.scene.dnd.DndHelper;
@@ -38,6 +31,7 @@ import net.anfoya.mail.browser.controller.vo.TagForThreadsVo;
 import net.anfoya.mail.browser.javafx.BrowserToolBar;
 import net.anfoya.mail.browser.javafx.MailBrowser.Mode;
 import net.anfoya.mail.browser.javafx.settings.Settings;
+import net.anfoya.mail.model.SimpleTag;
 import net.anfoya.mail.model.SimpleThread.SortField;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
@@ -47,16 +41,9 @@ import net.anfoya.mail.service.Section;
 import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
 import net.anfoya.tag.javafx.scene.dnd.ExtItemDropPane;
-import net.anfoya.tag.model.SpecialTag;
 
 public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends BorderPane {
-	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadListPane.class);
-
 	public static final DataFormat DND_THREADS_DATA_FORMAT = new DataFormat("DND_THREADS_DATA_FORMAT");
-
-	private final MailService<S, T, H, M, C> mailService;
-	private final UndoService undoService;
-	private final Settings settings;
 
 	private final ThreadList<T, H> threadList;
 	private final ResetTextField patternField;
@@ -64,11 +51,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	private final BrowserToolBar<S, T, M, C> toolBar;
 	private final ThreadListDropPane threadListDropPane;
 
-	private final T inbox;
-
 	private DelayTimeline patternDelay;
-
-	private S currentSection;
 
 	private VoidCallback<Set<H>> archiveCallback;
 	private VoidCallback<Set<H>> replyCallback;
@@ -79,19 +62,13 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	private VoidCallback<Set<H>> toggleSpamCallback;
 
 	private VoidCallback<Set<H>> openCallback;
-	private VoidCallback<T> tagUpdateCallback;
 
 	private VoidCallback<TagForThreadsVo<T, H>> addTagForThreadsCallBack;
+	private VoidCallback<TagForThreadsVo<T, H>> createTagForThreadsCallBack;
 
 	public ThreadListPane(final MailService<S, T, H, M, C> mailService
 			, final UndoService undoService
 			, final Settings settings) throws MailException {
-		this.mailService = mailService;
-		this.undoService = undoService;
-		this.settings = settings;
-
-		inbox = mailService.getSpecialTag(SpecialTag.INBOX);
-
 		patternField = new ResetTextField();
 		patternField.setPromptText("thread search");
 
@@ -122,13 +99,12 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		threadList.setOnDragDone(e -> {
 			final Dragboard db = e.getDragboard();
 			if (db.hasContent(Tag.TAG_DATA_FORMAT)) {
-				@SuppressWarnings("unchecked")
-				final T tag = (T) db.getContent(Tag.TAG_DATA_FORMAT);
-				final Set<H> selected = getSelectedThreads();
-				addTagForThreadsCallBack.call(new TagForThreadsVo<>(tag, selected));
+				@SuppressWarnings("unchecked") final T tag = (T) db.getContent(Tag.TAG_DATA_FORMAT);
+				addTagForThreadsCallBack.call(new TagForThreadsVo<>(tag, getSelectedThreads()));
 			} else if (db.hasContent(ExtItemDropPane.TAG_NAME_DATA_FORMAT)) {
 				final String name = (String) db.getContent(ExtItemDropPane.TAG_NAME_DATA_FORMAT);
-				createTagForThreads(name, getSelectedThreads());
+				@SuppressWarnings("unchecked") final T tag = (T)new SimpleTag(null, name, null, false);
+				createTagForThreadsCallBack.call(new TagForThreadsVo<>(tag, getSelectedThreads()));
 			}
 			e.consume();
 		});
@@ -307,18 +283,11 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		threadList.setOnLoad(callback);
 	}
 
-	public Set<T> getThreadsTags() {
-		final Set<T> tags = new LinkedHashSet<>();
-		for (final H t : getItems()) {
-			for (final String id : t.getTagIds()) {
-				try {
-					tags.add(mailService.getTag(id));
-				} catch (final MailException e) {
-					LOGGER.error("get tag {}", id, e);
-				}
-			}
-		}
-		return tags;
+	public Set<String> getThreadsTagIds() {
+		return getItems()
+				.stream()
+				.flatMap(t -> t.getTagIds().stream())
+				.collect(Collectors.toSet());
 	}
 
 	public void setOnUpdatePattern(final Runnable callback) {
@@ -330,14 +299,6 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		});
 	}
 
-	public void setOnTagUpdate(final VoidCallback<T> callback) {
-		tagUpdateCallback = callback;
-	}
-
-	public void setCurrentSection(final S section) {
-		currentSection = section;
-	}
-
 	public void setMode(Mode mode) {
 		if (mode == Mode.FULL) {
 			toolBar.setVisibles(true, false, false);
@@ -346,37 +307,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		}
 	}
 
-	//TODO remove
-	private void createTagForThreads(final String name, final Set<H> threads) {
-		final Iterator<H> iterator = threads.iterator();
-		final boolean hasInbox = iterator.hasNext() && iterator.next().getTagIds().contains(inbox.getId());
-		final String desc = "add " + name;
-
-		final Task<T> task = new Task<T>() {
-			@Override
-			protected T call() throws Exception {
-				final T tag = mailService.addTag(name);
-				if (currentSection != null && !currentSection.isSystem()) {
-					mailService.moveToSection(tag, currentSection);
-				}
-				mailService.addTagForThreads(tag, threads);
-				if (settings.archiveOnDrop().get() && hasInbox) {
-					mailService.archive(threads);
-				}
-				return tag;
-			}
-		};
-		task.setOnSucceeded(e -> {
-			final T tag = task.getValue();
-			undoService.setUndo(() -> {
-				mailService.remove(tag);
-				if (hasInbox && settings.archiveOnDrop().get()) {
-					mailService.addTagForThreads(inbox, threads);
-				}
-			}, desc);
-			tagUpdateCallback.call(tag);
-		});
-		task.setOnFailed(e -> LOGGER.error(desc, e.getSource().getException()));
-		ThreadPool.getDefault().submit(PoolPriority.MAX, desc, task);
+	public void setOnCreateTagForThreads(VoidCallback<TagForThreadsVo<T, H>> callBack) {
+		createTagForThreadsCallBack = callBack;
 	}
 }

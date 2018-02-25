@@ -48,7 +48,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends VBox {
 	private Set<S> sections;
 	private EventHandler<ActionEvent> selectTagHandler;
 	private EventHandler<ActionEvent> selectSectionHandler;
-	private EventHandler<ActionEvent> updateSectionHandler;
+	private EventHandler<ActionEvent> updateSectionCallback;
 
 	private boolean sectionDisableWhenZero;
 
@@ -184,17 +184,17 @@ public class SectionListPane<S extends Section, T extends Tag> extends VBox {
 		});
 	}
 
-	public void setOnSelectTag(final EventHandler<ActionEvent> handler) {
+	public void setOnSelectTag(final EventHandler<ActionEvent> callback) {
 		selectTagHandler = e -> {
 			unselectOthers();
 			selectedTagsPane.refresh(getAllSelectedTags());
-			handler.handle(e);
+			callback.handle(e);
 		};
 	}
 
-	public void setOnUpdateSection(final EventHandler<ActionEvent> handler) {
-		updateSectionHandler = handler;
-		sectionDropPane.setOnUpdateSection(handler);
+	public void setOnUpdateSection(final EventHandler<ActionEvent> callback) {
+		updateSectionCallback = callback;
+		sectionDropPane.setOnUpdateSection(callback);
 	}
 
 	public void updateItemCount(final Set<T> toRefresh, final String itemPattern, final boolean lazy) {
@@ -275,7 +275,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends VBox {
 				sectionPane.setDisableWhenZero(sectionDisableWhenZero);
 				sectionPane.setLazyCount(lazyCount);
 				sectionPane.setOnSelectTag(selectTagHandler);
-				sectionPane.setOnUpdateSection(updateSectionHandler);
+				sectionPane.setOnUpdateSection(updateSectionCallback);
 				sectionAcc.getPanes().add(index, sectionPane);
 			}
 			index++;
@@ -346,7 +346,7 @@ public class SectionListPane<S extends Section, T extends Tag> extends VBox {
 		} else {
 			searchPane = new SearchPane<>(tagService, showExcludeBox);
 			searchPane.setOnSelectTag(selectTagHandler);
-			searchPane.setOnUpdateSection(updateSectionHandler);
+			searchPane.setOnUpdateSection(updateSectionCallback);
 
 			sectionAcc.getPanes().setAll(searchPane);
 		}

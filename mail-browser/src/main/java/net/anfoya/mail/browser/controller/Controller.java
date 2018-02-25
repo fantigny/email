@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,10 +116,10 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		threadListPane.setOnTrash(threads -> trash(threads));
 		threadListPane.setOnToggleSpam(threads -> toggleSpam(threads));
 		threadListPane.setOnAddTagForThreads(vo -> addTagForThreads(vo));
+		threadListPane.setOnCreateTagForThreads(vo -> createTagForThreads(vo.getTag().getName(), vo.getThreads()));
 
 		threadListPane.setOnView(threads -> view(threads));
 		threadListPane.setOnOpen(threads -> open(threads));
-		threadListPane.setOnTagUpdate(t -> sectionListPane.refreshAsync(null));
 
 		threadListPane.setOnLoad(() -> refreshAfterThreadListLoad());
 		threadListPane.setOnUpdatePattern(() -> refreshAfterPatternUpdate());
@@ -449,6 +450,37 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		ThreadPool.getDefault().submit(PoolPriority.MAX, desc, task);
 	}
 
+	private void createTagForThreads(final String name, final Set<H> threads) {
+		final Iterator<H> iterator = threads.iterator();
+		final boolean hasInbox = iterator.hasNext() && iterator.next().getTagIds().contains(inbox.getId());
+		final String desc = "add " + name;
+
+		final Task<T> task = new Task<T>() {
+			@Override protected T call() throws Exception {
+				final T tag = mailService.addTag(name);
+				if (currentSection != null && !currentSection.isSystem()) {
+					mailService.moveToSection(tag, currentSection);
+				}
+				mailService.addTagForThreads(tag, threads);
+				if (settings.archiveOnDrop().get() && hasInbox) {
+					mailService.archive(threads);
+				}
+				return tag;
+			}
+		};
+		task.setOnSucceeded(e -> {
+			final T tag = task.getValue();
+			undoService.setUndo(() -> {
+				mailService.remove(tag);
+				if (hasInbox && settings.archiveOnDrop().get()) {
+					mailService.addTagForThreads(inbox, threads);
+				}
+			}, desc);
+			refreshTags();
+		});
+		task.setOnFailed(e -> LOGGER.error(desc, e.getSource().getException()));
+		ThreadPool.getDefault().submit(PoolPriority.MAX, desc, task);
+	}
 
 	private final boolean refreshUnreadCount = true;
 	private final boolean refreshAfterTagSelected = true;
@@ -462,6 +494,8 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 	private final boolean refreshAfterThreadUpdate = true;
 	private final boolean refreshAfterPatternUpdate = true;
 	private final boolean refreshAfterUpdateMessage = true;
+
+	private S currentSection;
 
 
 	private void refreshAfterThreadUpdate() {
@@ -483,7 +517,20 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		LOGGER.debug("refreshAfterThreadListLoad");
 
 		//TODO review if necessary, maybe not worth fixing few inconsistencies in item counts
-		sectionListPane.updateItemCount(threadListPane.getThreadsTags(), threadListPane.getNamePattern(), true);
+		final Set<T> tags = threadListPane.getThreadsTagIds()
+				.stream()
+				.map(id -> {
+					try {
+						return mailService.getTag(id);
+					} catch (final MailException e) {
+						LOGGER.error("get tag {}", id, e);
+						return null;
+					}
+				})
+				.collect(Collectors.toSet());
+
+
+		sectionListPane.updateItemCount(tags, threadListPane.getNamePattern(), true);
 	}
 
 	private void refreshAfterSectionSelect() {
@@ -493,7 +540,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		}
 		LOGGER.debug("refreshAfterSectionSelect");
 
-		threadListPane.setCurrentSection(sectionListPane.getSelectedSection());
+		currentSection = sectionListPane.getSelectedSection();
 	}
 
 	private void refreshAfterTagUpdate() {
