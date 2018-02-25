@@ -56,9 +56,9 @@ public class MailEditor extends BorderPane {
 		setCenter(stackPane);
 
 		editor = new HTMLEditor();
-		editor.needsLayoutProperty().addListener((ov, o, n) -> cleanToolBar());
 		editor.getStyleClass().add("message-editor");
 		stackPane.getChildren().add(editor);
+		cleanEditorToolBar();
 
 		editedProperty = new SimpleBooleanProperty();
 		editedProperty.bindBidirectional(new HtmlEditorListener(editor).editedProperty());
@@ -177,13 +177,8 @@ public class MailEditor extends BorderPane {
 		return null;
 	}
 
-	private boolean toolbarCleaned = false;
-	private synchronized void cleanToolBar() {
+	private void cleanEditorToolBar() {
 		LOGGER.debug("clean tool bars");
-		if (toolbarCleaned) {
-			return;
-		}
-		toolbarCleaned = true;
 
 		final HtmlEditorToolBarHelper helper = new HtmlEditorToolBarHelper(editor);
 		helper.hideToolBar(Line.TOP);
@@ -197,5 +192,7 @@ public class MailEditor extends BorderPane {
 		helper.moveToolbarItem(Line.TOP, 15, Line.BOTTOM, 7); //fg color
 		helper.moveToolbarItem(Line.TOP, 12, Line.BOTTOM, 8); //bullet
 		helper.moveToolbarItem(Line.TOP, 12, Line.BOTTOM, 9); //number
+
+		helper.doWhenReady();
 	}
 }
