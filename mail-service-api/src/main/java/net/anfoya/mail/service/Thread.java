@@ -20,4 +20,5 @@ public interface Thread extends Serializable {
 
 	public boolean isUnread();
 	public boolean isFlagged();
+	public boolean isSpam();
 }

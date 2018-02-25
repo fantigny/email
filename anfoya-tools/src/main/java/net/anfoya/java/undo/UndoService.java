@@ -6,16 +6,16 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import net.anfoya.java.util.VoidCallable;
 
 public class UndoService {
-	private final ReadOnlyObjectWrapper<VoidCallable> callableProperty;
+	private final ReadOnlyObjectWrapper<VoidCallable> callbackProperty;
 	private final ReadOnlyBooleanWrapper canUndoProperty;
 	private String description;
 
 	public UndoService() {
-		callableProperty = new ReadOnlyObjectWrapper<VoidCallable>();
+		callbackProperty = new ReadOnlyObjectWrapper<>();
 		description = "";
 
 		canUndoProperty = new ReadOnlyBooleanWrapper(false);
-		canUndoProperty.bind(callableProperty.isNotNull());
+		canUndoProperty.bind(callbackProperty.isNotNull());
 	}
 
 	public ReadOnlyBooleanProperty canUndoProperty() {
@@ -23,25 +23,36 @@ public class UndoService {
 	}
 
 	public void clear() {
-		callableProperty.set(null);
-		description = null;
+		synchronized (callbackProperty) {
+			callbackProperty.set(null);
+			description = null;
+		}
 	}
 
-	public void set(VoidCallable undoCall, String description) {
+	public void setUndo(VoidCallable callback, String description) {
 		clear();
 
-		this.description = description;
-		callableProperty.set(undoCall);
+		synchronized (callbackProperty) {
+			callbackProperty.set(callback);
+			this.description = description;
+		}
 	}
 
 	public synchronized void undo() throws UndoException {
 		if (canUndoProperty.get()) {
-			final VoidCallable callable = callableProperty.get();
+			final VoidCallable callback;
+			final String description;
+			synchronized (callbackProperty) {
+				callback = callbackProperty.get();
+				description = this.description;
+			}
 			clear();
-			try {
-				callable.call();
-			} catch (final Exception e) {
-				throw new UndoException(description, e);
+			if (callback != null) {
+				try {
+					callback.call();
+				} catch (final Exception e) {
+					throw new UndoException(description, e);
+				}
 			}
 			clear();
 		}

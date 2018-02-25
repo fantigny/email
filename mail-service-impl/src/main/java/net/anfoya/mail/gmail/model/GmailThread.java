@@ -159,4 +159,9 @@ public class GmailThread extends SimpleThread {
 	public boolean isFlagged() {
 		return getTagIds().contains(GmailTag.STARRED.getId());
 	}
+
+	@Override
+	public boolean isSpam() {
+		return getTagIds().contains(GmailTag.SPAM.getId());
+	}
 }

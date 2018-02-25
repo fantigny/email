@@ -94,7 +94,7 @@ public class SectionDropPane<S extends Section> extends GridPane {
 			}
 		};
 		task.setOnSucceeded(event -> {
-			undoService.set(() -> tagService.rename(task.get(), section.getName()), "rename " + section.getName());
+			undoService.setUndo(() -> tagService.rename(task.get(), section.getName()), "rename " + section.getName());
 			updateHandler.handle(null);
 		});
 		task.setOnFailed(e -> LOGGER.error(description, e.getSource().getException()));
@@ -136,7 +136,7 @@ public class SectionDropPane<S extends Section> extends GridPane {
 			}
 		};
 		task.setOnSucceeded(event -> {
-			undoService.set(
+			undoService.setUndo(
 					() -> tagService.show(section)
 					, description);
 			updateHandler.handle(null);

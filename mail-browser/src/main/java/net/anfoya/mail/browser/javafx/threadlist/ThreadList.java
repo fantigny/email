@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import edu.emory.mathcs.backport.java.util.concurrent.atomic.AtomicInteger;
 import edu.emory.mathcs.backport.java.util.concurrent.atomic.AtomicLong;
+import javafx.animation.Animation.Status;
 import javafx.collections.ListChangeListener.Change;
 import javafx.concurrent.Task;
 import javafx.scene.control.Label;
@@ -94,7 +95,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 			final Set<H> selectedThreads = c.getList()
 					.stream()
 					.collect(Collectors.toSet());
-			if (emptySelectDelay != null) { //TODO reduce flickering of messages -- to remove
+			if (emptySelectDelay != null && emptySelectDelay.getStatus() == Status.RUNNING) { //TODO reduce flickering of messages -- to remove
 				emptySelectDelay.stop();
 			}
 			emptySelectDelay = new DelayTimeline(Duration.millis(selectedThreads.isEmpty()? 500: 1), e -> {
@@ -102,7 +103,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 					this.selectedThreads.clear();
 					this.selectedThreads.addAll(selectedThreads);
 				}
-				selectCallback.call(selectedThreads);
+				selectCallback.call(getSelectedThreads());
 			});
 			emptySelectDelay.playFromStart();
 		});
@@ -170,7 +171,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 	}
 
 	public Set<H> getSelectedThreads() {
-		return selectedThreads;
+		return new HashSet<>(selectedThreads);
 	}
 
 	public void setOnSelect(final Runnable callback) {

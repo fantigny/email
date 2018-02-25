@@ -1,5 +1,6 @@
 package net.anfoya.mail.browser.javafx.thread;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Set;
@@ -28,6 +29,7 @@ import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.VoidCallback;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
+import net.anfoya.mail.browser.controller.vo.TagForThreadsVo;
 import net.anfoya.mail.browser.javafx.BrowserToolBar;
 import net.anfoya.mail.browser.javafx.message.MessagePane;
 import net.anfoya.mail.browser.javafx.settings.Settings;
@@ -53,7 +55,6 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
     private static final Image ATTACH_ICON = new Image(ATTACH_PNG);
 
 	private final MailService<S, T, H, M, C> mailService;
-	private final UndoService undoService;
 
 	private final BrowserToolBar<S, T, M, C> browserToolBar;
 	private final ThreadToolBar threadToolBar;
@@ -80,12 +81,16 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 
 	private VoidCallback<String> openUrlCallback;
 
+	private VoidCallback<Set<H>> markReadCallback;
+	private VoidCallback<TagForThreadsVo<T, H>> removeTagForThreadsCallback;
+
 	public ThreadPane(final MailService<S, T, H, M, C> mailService
 			, final UndoService undoService
 			, final Settings settings) {
 		getStyleClass().add("thread");
 		this.mailService = mailService;
-		this.undoService = undoService;
+
+		threads = Collections.emptySet();
 
 		unread = mailService.getSpecialTag(SpecialTag.UNREAD);
 		unreadTagId = unread.getId();
@@ -144,7 +149,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		VBox.setVgrow(stackPane, Priority.ALWAYS);
 
 		tagsPane = new SelectedTagsPane<>();
-		tagsPane.setRemoveTagCallBack(t -> remove(threads, t, true));
+		tagsPane.setRemoveTagCallBack(t -> removeTagForThreadsCallback.call(new TagForThreadsVo<>(t, threads)));
 		getChildren().add(tagsPane);
 	}
 
@@ -316,29 +321,8 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		}
 
 		if (thread.isUnread()) {
-			remove(threads, unread, false);
+			markReadCallback.call(threads);
 		}
-	}
-
-	private Void remove(final Set<H> threads, final T tag, final boolean undo) {
-		final String desc = String.format("remove tag %s", tag);
-		final Task<Void> task = new Task<Void>() {
-			@Override
-			protected Void call() throws Exception {
-				mailService.removeTagForThreads(tag, threads);
-				return null;
-			}
-		};
-		task.setOnFailed(e -> LOGGER.error(desc, tag, threads, e.getSource().getException()));
-		task.setOnSucceeded(e -> {
-			if (undo) {
-				undoService.set(
-						() -> mailService.addTagForThreads(tag, threads)
-						, desc);
-			}
-		});
-		ThreadPool.getDefault().submit(PoolPriority.MAX, desc, task);
-		return null;
 	}
 
 	public void setDetached(boolean detached) {
@@ -348,10 +332,6 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		} else if (!detached && getChildren().get(0) instanceof ThreadToolBar) {
 			getChildren().remove(0);
 		}
-	}
-
-	public boolean isDetached() {
-		return getChildren().get(0) instanceof ThreadToolBar;
 	}
 
 	public void setOnReply(VoidCallback<Set<H>> callback) {
@@ -387,5 +367,17 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 
 	public H getThread() {
 		return thread;
+	}
+
+	public boolean hasThreads(Set<H> threads) {
+		return this.threads.equals(threads);
+	}
+
+	public void setOnMarkRead(VoidCallback<Set<H>> callback) {
+		this.markReadCallback = callback;
+	}
+
+	public void setOnRemoveTagForThreads(VoidCallback<TagForThreadsVo<T, H>> callback) {
+		this.removeTagForThreadsCallback = callback;
 	}
 }

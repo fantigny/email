@@ -1,3 +1,4 @@
+
 package net.anfoya.mail.browser.controller;
 
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ import net.anfoya.java.util.VoidCallable;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.javafx.notification.NotificationService;
+import net.anfoya.mail.browser.controller.vo.TagForThreadsVo;
 import net.anfoya.mail.browser.javafx.MailBrowser;
 import net.anfoya.mail.browser.javafx.MailBrowser.Mode;
 import net.anfoya.mail.browser.javafx.message.MailReader;
@@ -50,6 +52,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 	private final T flagged;
 	private final T spam;
 	private final T draft;
+	private final T unread;
 
 	private MailBrowser<S, T, H, M, C> mailBrowser;
 	private SectionListPane<S, T> sectionListPane;
@@ -72,6 +75,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		flagged = mailService.getSpecialTag(SpecialTag.FLAGGED);
 		spam = mailService.getSpecialTag(SpecialTag.SPAM);
 		draft = mailService.getSpecialTag(SpecialTag.DRAFT);
+		unread = mailService.getSpecialTag(SpecialTag.UNREAD);
 	}
 
 	public void init() {
@@ -110,6 +114,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		threadListPane.setOnToggleFlag(threads -> toggleFlag(threads));
 		threadListPane.setOnTrash(threads -> trash(threads));
 		threadListPane.setOnToggleSpam(threads -> toggleSpam(threads));
+		threadListPane.setOnAddTagForThreads(vo -> addTagForThreads(vo));
 
 		threadListPane.setOnView(threads -> view(threads));
 		threadListPane.setOnOpen(threads -> open(threads));
@@ -119,25 +124,26 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		threadListPane.setOnUpdatePattern(() -> refreshAfterPatternUpdate());
 	}
 
+
+	public void addThreadPane(ThreadPane<S, T, H, M, C> pane) {
+		threadPanes.add(pane);
+
+		pane.setOnArchive(tSet -> archive(tSet));
+		pane.setOnReply(tSet -> reply(tSet, false));
+		pane.setOnReplyAll(tSet -> reply(tSet, false));
+		pane.setOnForward(tSet -> forward(tSet));
+		pane.setOnToggleFlag(tSet -> toggleFlag(tSet));
+		pane.setOnArchive(tSet -> archive(tSet));
+		pane.setOnTrash(tSet -> trash(tSet));
+		pane.setOnToggleSpam(tSet -> toggleSpam(tSet));
+		pane.setOnOpenUrl(url -> openUrl(url));
+		pane.setOnMarkRead(tSet -> markUnread(tSet));
+		pane.setOnRemoveTagForThreads(vo -> removeTagForThreads(vo));
+	}
+
 	public void setMailBrowser(MailBrowser<S, T, H, M, C> mailBrowser) {
 		this.mailBrowser = mailBrowser;
 		this.mailBrowser.addOnModeChange(() -> view(threadListPane.getSelectedThreads()));
-	}
-
-	private void archive(final Set<H> threads) {
-		final String description = "archive";
-		final Task<Void> task = new Task<Void>() {
-			@Override protected Void call() throws Exception {
-				mailService.archive(threads);
-				return null;
-			}
-		};
-		task.setOnSucceeded(e -> {
-			undoService.set(() -> mailService.addTagForThreads(inbox, threads), description);
-			refreshAfterThreadUpdate();
-		});
-		task.setOnFailed(e -> LOGGER.error(description, e.getSource().getException()));
-		ThreadPool.getDefault().submit(PoolPriority.MAX, description, task);
 	}
 
 	private void reply(Set<H> threads, final boolean all) {
@@ -187,7 +193,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 			}
 		};
 		task.setOnSucceeded(e -> {
-			undoService.set(() -> {
+			undoService.setUndo(() -> {
 				mailService.removeTagForThreads(trash, threads);
 				if (hasInbox) {
 					mailService.addTagForThreads(inbox, threads);
@@ -272,19 +278,6 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		});
 	}
 
-	public void addThreadPane(ThreadPane<S, T, H, M, C> pane) {
-		threadPanes.add(pane);
-		pane.setOnArchive(tSet -> archive(tSet));
-		pane.setOnReply(tSet -> reply(tSet, false));
-		pane.setOnReplyAll(tSet -> reply(tSet, false));
-		pane.setOnForward(tSet -> forward(tSet));
-		pane.setOnToggleFlag(tSet -> toggleFlag(tSet));
-		pane.setOnArchive(tSet -> archive(tSet));
-		pane.setOnTrash(tSet -> trash(tSet));
-		pane.setOnToggleSpam(tSet -> toggleSpam(tSet));
-		pane.setOnOpenUrl(url -> openUrl(url));
-	}
-
 	private ThreadPane<S, T, H, M, C> createDetachedThreadPane(Set<H> threads) {
 		final ThreadPane<S, T, H, M, C> pane = new ThreadPane<>(mailService, undoService, settings);
 		pane.setDetached(true);
@@ -295,7 +288,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		return pane;
 	}
 
-	private void view(Set<H> threads) {
+	private void view(final Set<H> threads) {
 		if (mailBrowser.modeProperty().get() != Mode.FULL) {
 			return;
 		}
@@ -303,18 +296,51 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		if (threads.size() == 1 && threads.iterator().next() instanceof GmailMoreThreads) {
 			refreshAfterMoreThreadsSelected();
 		} else {
-			// update thread details when threads are selected
-			threadPanes
-				.stream()
-				.filter(p -> !p.isDetached())
-				.findAny()
-				.ifPresent(p -> Platform.runLater(() -> p.refresh(threads)));
+			threadPanes.get(0).refresh(threads);
 		}
 	}
 
 	private void refreshTags() {
-		threadPanes.forEach(p -> p.refresh());
+		threadPanes
+			.stream()
+			.filter(p -> p.getThread() != null)
+			.forEach(p -> {
+				final H thread = p.getThread();
+				final Task<Set<H>> task = new Task<Set<H>>() {
+					@Override protected Set<H> call() throws Exception {
+						try {
+							return Collections.singleton(mailService.getThread(thread.getId()));
+						} catch (final MailException e) {
+							LOGGER.error("load thread {} {}", thread.getId(), thread.getSubject());
+							return null;
+						}
+					}
+				};
+				task.setOnFailed(e -> LOGGER.error("reload thread {}", thread.getId(), e.getSource().getException()));
+				task.setOnSucceeded(e -> {
+					Platform.runLater(() -> p.refresh(task.getValue()));
+				});
+				ThreadPool.getDefault().submit(PoolPriority.MAX, "reload tags", task);
+
+			});
 	}
+
+	private void markUnread(Set<H> threads) {
+		try {
+			removeTagForThreads(unread, threads, "mark unread", (VoidCallable)null);
+		} catch (final Exception e) {
+			LOGGER.error("mark unread", e);
+		}
+	}
+
+	private void archive(final Set<H> threads) {
+		try {
+			removeTagForThreads(inbox, threads, "archive", "unarchive");
+		} catch (final Exception e) {
+			LOGGER.error("archive", e);
+		}
+	}
+
 
 	private void toggleFlag(Set<H> threads) {
 		if (threads.isEmpty()) {
@@ -322,11 +348,9 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		}
 		try {
 			if (threads.iterator().next().isFlagged()) {
-				removeTagForThreads(flagged, threads, "unflag"
-						, () -> addTagForThreads(flagged, threads, "flag", null));
+				removeTagForThreads(flagged, threads, "flag", "unflag");
 			} else {
-				addTagForThreads(flagged, threads, "flag"
-						, () -> removeTagForThreads(flagged, threads, "unflag", null));
+				addTagForThreads(flagged, threads, "unflag", "flag");
 			}
 		} catch (final Exception e) {
 			LOGGER.error("toggle flag", e);
@@ -338,24 +362,43 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 			return;
 		}
 		try {
-			if (threads.iterator().next().getTagIds().contains(spam.getId())) {
-				removeTagForThreads(spam, threads, "not spam", null);
-				addTagForThreads(inbox, threads, "not spam", () -> addTagForThreads(spam, threads, "not spam", null));
+			if (threads.iterator().next().isSpam()) {
+				unsetSpam(threads);
 			} else {
-				addTagForThreads(spam, threads, "spam", () -> {
-					removeTagForThreads(spam, threads, "spam", null);
-					addTagForThreads(inbox, threads, "spam", null);
-				});
+				setSpam(threads);
 			}
 		} catch (final Exception e) {
-			LOGGER.error("toggle flag", e);
+			LOGGER.error("toggle spam", e);
 		}
 	}
 
-	private void addTagForThreads(final T tag, final Set<H> threads, final String desc, final VoidCallable undo) {
+	private void setSpam(Set<H> threads) {
+		addTagForThreads(spam, threads, "spam", () -> unsetSpam(threads));
+	}
+
+	private void unsetSpam(Set<H> threads) {
+		removeTagForThreads(spam, threads, "not spam", () -> setSpam(threads));
+		addTagForThreads(inbox, threads, "not spam", (VoidCallable)null);
+	}
+
+	private void addTagForThreads(TagForThreadsVo<T, H> vo) {
+		addTagForThreads(vo.getTag(), vo.getThreads());
+	}
+
+	private void addTagForThreads(final T tag, final Set<H> threads) {
+		addTagForThreads(tag, threads, "add " + tag.getName(), "remove " + tag.getName());
+	}
+
+	private void addTagForThreads(final T tag, final Set<H> threads, String desc, String undoDesc) {
+		addTagForThreads(tag, threads, desc, () -> removeTagForThreads(tag, threads, undoDesc, desc));
+	}
+
+	private void addTagForThreads(final T tag, final Set<H> threads, String desc, VoidCallable undo) {
+		if (threads.isEmpty()) {
+			return;
+		}
 		final Task<Void> task = new Task<Void>() {
-			@Override
-			protected Void call() throws Exception {
+			@Override protected Void call() throws Exception {
 				mailService.addTagForThreads(tag, threads);
 				if (settings.archiveOnDrop().get() && !tag.isSystem()) {
 					mailService.archive(threads);
@@ -365,13 +408,30 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		};
 		task.setOnFailed(e -> LOGGER.error(desc, e.getSource().getException()));
 		task.setOnSucceeded(e -> {
-			undoService.set(undo, desc);
-			refreshAfterThreadUpdate();
+			if (undo != null) {
+				undoService.setUndo(undo, desc);
+			}
+			refreshTags();
 		});
 		ThreadPool.getDefault().submit(PoolPriority.MAX, desc, task);
 	}
 
-	private void removeTagForThreads(final T tag, final Set<H> threads, final String desc, final VoidCallable undo) {
+	private void removeTagForThreads(TagForThreadsVo<T, H> vo) {
+		removeTagForThreads(vo.getTag(), vo.getThreads());
+	}
+
+	private void removeTagForThreads(final T tag, final Set<H> threads) {
+		removeTagForThreads(tag, threads, "remove " + tag.getName(), "add " + tag.getName());
+	}
+
+	private void removeTagForThreads(final T tag, final Set<H> threads, String desc, String undoDesc) {
+		removeTagForThreads(tag, threads, desc, () -> addTagForThreads(tag, threads, undoDesc, desc));
+	}
+
+	private void removeTagForThreads(final T tag, final Set<H> threads, final String desc, VoidCallable undo) {
+		if (threads.isEmpty()) {
+			return;
+		}
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
@@ -381,11 +441,14 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		};
 		task.setOnFailed(e -> LOGGER.error(desc, e.getSource().getException()));
 		task.setOnSucceeded(e -> {
-			undoService.set(undo, desc);
-			refreshAfterThreadUpdate();
+			if (undo != null && desc != null) {
+				undoService.setUndo(undo, desc);
+			}
+			refreshTags();
 		});
 		ThreadPool.getDefault().submit(PoolPriority.MAX, desc, task);
 	}
+
 
 	private final boolean refreshUnreadCount = true;
 	private final boolean refreshAfterTagSelected = true;
@@ -523,4 +586,5 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 					sectionListPane.getIncludedOrSelectedTags()
 					, sectionListPane.getExcludedTags()));
 	}
+
 }
