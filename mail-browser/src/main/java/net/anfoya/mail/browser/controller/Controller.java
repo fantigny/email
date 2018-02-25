@@ -348,9 +348,9 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		}
 		try {
 			if (threads.iterator().next().isFlagged()) {
-				removeTagForThreads(flagged, threads, "flag", "unflag");
+				removeTagForThreads(flagged, threads, "unflag", "flag");
 			} else {
-				addTagForThreads(flagged, threads, "unflag", "flag");
+				addTagForThreads(flagged, threads, "flag", "unflag");
 			}
 		} catch (final Exception e) {
 			LOGGER.error("toggle flag", e);
