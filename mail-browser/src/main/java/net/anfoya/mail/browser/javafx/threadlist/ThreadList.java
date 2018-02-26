@@ -262,36 +262,38 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 	}
 
 	private void restoreRegularSelection() {
-		final boolean singleSelect = getItems()
-				.stream()
-				.filter(t -> selectedIds.contains(t.getId()))
-				.count() == 1;
-
-		// try to select the same item(s) as before
-		getSelectionModel().selectIndices(-1, getItems()
-				.stream()
-				.filter(t -> selectedIds.contains(t.getId()) && (!singleSelect || !t.isUnread()))
-				.mapToInt(t -> getItems().indexOf(t))
-				.toArray());
-
-		if (!isUnreadList && singleSelect && getSelectionModel().isEmpty()) {
-			// try to find the closest following unread thread
-			getItems()
-				.subList(selectedIndex.get(), getItems().size())
-				.stream()
-				.filter(t -> !t.isUnread())
-				.findFirst()
-				.ifPresent(t -> getSelectionModel().selectIndices(getItems().indexOf(t)));
-		}
-
-		if (!isUnreadList && singleSelect && getSelectionModel().isEmpty()) {
-			// try to find the closest preceding unread thread
-			getItems()
-				.subList(0, selectedIndex.get())
-				.stream()
-				.filter(t -> !t.isUnread())
-				.reduce((t1, t2) -> t2)
-				.ifPresent(t -> getSelectionModel().selectIndices(getItems().indexOf(t)));
+		synchronized(getItems()) {
+			final boolean singleSelect = getItems()
+					.stream()
+					.filter(t -> selectedIds.contains(t.getId()))
+					.count() == 1;
+	
+			// try to select the same item(s) as before
+			getSelectionModel().selectIndices(-1, getItems()
+					.stream()
+					.filter(t -> selectedIds.contains(t.getId()) && (!singleSelect || !t.isUnread()))
+					.mapToInt(t -> getItems().indexOf(t))
+					.toArray());
+	
+			if (!isUnreadList && singleSelect && getSelectionModel().isEmpty()) {
+				// try to find the closest following unread thread
+				getItems()
+					.subList(selectedIndex.get(), getItems().size())
+					.stream()
+					.filter(t -> !t.isUnread())
+					.findFirst()
+					.ifPresent(t -> getSelectionModel().selectIndices(getItems().indexOf(t)));
+			}
+	
+			if (!isUnreadList && singleSelect && getSelectionModel().isEmpty()) {
+				// try to find the closest preceding unread thread
+				getItems()
+					.subList(0, selectedIndex.get())
+					.stream()
+					.filter(t -> !t.isUnread())
+					.reduce((t1, t2) -> t2)
+					.ifPresent(t -> getSelectionModel().selectIndices(getItems().indexOf(t)));
+			}
 		}
 	}
 
