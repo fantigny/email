@@ -36,9 +36,9 @@ public class BrowserToolBar<S extends Section, T extends Tag, M extends Message,
 	private final MailService<S, T, ?, M, C> mailService;
 
 	private final UndoService undoService;
-	private Runnable createNewCallback;
+	private Runnable composeCallback;
 
-	private final Button newButton;
+	private final Button composeButton;
 
 	private final Button settingsButton;
 
@@ -53,12 +53,12 @@ public class BrowserToolBar<S extends Section, T extends Tag, M extends Message,
 		setMaxHeight(27);
 		setMinWidth(ToolBar.USE_PREF_SIZE);
 
-		newButton = new Button();
-		newButton.getStyleClass().add("flat-button");
-		newButton.setFocusTraversable(false);
-		newButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/img/new.png"))));
-		newButton.setTooltip(new Tooltip("new"));
-		newButton.setOnAction(e -> createNewCallback.run());
+		composeButton = new Button();
+		composeButton.getStyleClass().add("flat-button");
+		composeButton.setFocusTraversable(false);
+		composeButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/img/new.png"))));
+		composeButton.setTooltip(new Tooltip("new"));
+		composeButton.setOnAction(e -> composeCallback.run());
 
 		settingsButton = new Button();
 		settingsButton.getStyleClass().add("flat-button");
@@ -99,7 +99,7 @@ public class BrowserToolBar<S extends Section, T extends Tag, M extends Message,
 
 
 	public void setVisibles(boolean newMessage, boolean settings, boolean signout) {
-		setVisible(newButton, newMessage);
+		setVisible(composeButton, newMessage);
 		SEPARATOR.setVisible(newMessage && settings || signout);
 		setVisible(settingsButton, settings);
 		setVisible(signoutButton, signout);
@@ -128,6 +128,6 @@ public class BrowserToolBar<S extends Section, T extends Tag, M extends Message,
 	}
 
 	public void setOnCompose(Runnable callback) {
-		createNewCallback = callback;
+		composeCallback = callback;
 	}
 }
