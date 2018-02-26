@@ -30,8 +30,6 @@ import net.anfoya.tag.javafx.scene.section.SectionListPane;
 public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends Scene {
 	public enum Mode { FULL, MINI, MICRO }
 
-//	private static final Logger LOGGER = LoggerFactory.getLogger(MailBrowser.class);
-
 	private final Settings settings;
 
 	private final FixedSplitPane splitPane;
