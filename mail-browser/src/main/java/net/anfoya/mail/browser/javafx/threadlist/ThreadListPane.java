@@ -4,6 +4,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -29,25 +30,23 @@ import net.anfoya.javafx.scene.dnd.DndHelper;
 import net.anfoya.mail.browser.controller.vo.TagForThreadsVo;
 import net.anfoya.mail.browser.javafx.BrowserToolBar;
 import net.anfoya.mail.browser.javafx.MailBrowser.Mode;
-import net.anfoya.mail.browser.javafx.settings.Settings;
+import net.anfoya.mail.browser.javafx.thread.ThreadToolBar;
 import net.anfoya.mail.model.SimpleTag;
 import net.anfoya.mail.model.SimpleThread.SortField;
-import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
-import net.anfoya.mail.service.MailService;
-import net.anfoya.mail.service.Message;
-import net.anfoya.mail.service.Section;
 import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
 import net.anfoya.tag.javafx.scene.dnd.ExtItemDropPane;
 
-public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends BorderPane {
+public class ThreadListPane<T extends Tag, H extends Thread> extends BorderPane {
 	public static final DataFormat DND_THREADS_DATA_FORMAT = new DataFormat("DND_THREADS_DATA_FORMAT");
 
 	private final ThreadList<T, H> threadList;
 	private final ResetTextField patternField;
 
-	private final BrowserToolBar<S, T, M, C> toolBar;
+	private final BrowserToolBar toolBar;
+	private final BooleanProperty showToolBarProperty;
+
 	private final ThreadListDropPane threadListDropPane;
 
 	private DelayTimeline patternDelay;
@@ -65,9 +64,10 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	private VoidCallback<TagForThreadsVo<T, H>> addTagForThreadsCallBack;
 	private VoidCallback<TagForThreadsVo<T, H>> createTagForThreadsCallBack;
 
-	public ThreadListPane(final MailService<S, T, H, M, C> mailService
-			, final UndoService undoService
-			, final Settings settings) throws MailException {
+	private final DisconnectedPane disconnectedPane;
+
+
+	public ThreadListPane(final UndoService undoService) throws MailException {
 		patternField = new ResetTextField();
 		patternField.setPromptText("thread search");
 
@@ -117,12 +117,13 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		setCenter(centerPane);
 
 		centerPane.getChildren().add(new UndoPane(undoService));
-		centerPane.getChildren().add(new DisconnectedPane(mailService));
+
+		disconnectedPane = new DisconnectedPane();
 
 		final VBox topBox = new VBox();
 		setTop(topBox);
 
-		toolBar = new BrowserToolBar<>(mailService, undoService, settings);
+		toolBar = new BrowserToolBar();
 		toolBar.setVisibles(true, false, false);
 
 		final HBox firstLineBox = new HBox(patternField, toolBar);
@@ -141,11 +142,9 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		toolbar.setOnTrash(e -> trashCallback.call(getSelectedThreads()));
 		toolbar.setOnSpam(e -> toggleSpamCallback.call(getSelectedThreads()));
 
-		final BooleanProperty showToolbar = settings.showToolbar();
-		if (showToolbar.get()) {
-			topBox.getChildren().add(toolbar);
-		}
-		showToolbar.addListener((ov, o, n) -> {
+	//	final BooleanProperty showToolbar = settings.showToolbar();
+		showToolBarProperty = new SimpleBooleanProperty();
+		showToolBarProperty.addListener((ov, o, n) -> {
 			if (n) {
 				topBox.getChildren().add(toolbar);
 			} else {
@@ -291,5 +290,25 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 
 	public void setAll(Set<H> threads) {
 		threadList.setAll(threads);
+	}
+
+	public BooleanProperty disconnectedProperty() {
+		return disconnectedPane.disconnectedProperty();
+	}
+
+	public void setOnReconnect(Runnable callback) {
+		disconnectedPane.setOnReconnect(callback);
+	}
+
+	public void setOnShowSettings(Runnable callback) {
+		toolBar.setOnShowSettings(callback);
+	}
+
+	public void setOnSignout(Runnable callback) {
+		toolBar.setOnSignout(callback);
+	}
+
+	public BooleanProperty showToolBarProperty() {
+		return showToolBarProperty;
 	}
 }

@@ -1,4 +1,4 @@
-package net.anfoya.mail.browser.javafx.threadlist;
+package net.anfoya.mail.browser.javafx.thread;
 
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;

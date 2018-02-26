@@ -1,21 +1,28 @@
 package net.anfoya.mail.browser.javafx.threadlist;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.control.Button;
 import javafx.scene.layout.GridPane;
 import javafx.util.Duration;
-import net.anfoya.mail.service.MailService;
 
 public class DisconnectedPane extends GridPane {
-	private static final Logger LOGGER = LoggerFactory.getLogger(DisconnectedPane.class);
+	private final BooleanProperty disconnectedProperty;
+	private final Timeline timeline;
 
-	public DisconnectedPane(final MailService<?, ?, ?, ?, ?> mailService) {
+	private Runnable reconnectCallback;
+
+	public DisconnectedPane() {
+		disconnectedProperty = new SimpleBooleanProperty();
+		timeline = new Timeline(
+				new KeyFrame(Duration.ZERO, new KeyValue(opacityProperty(), 0))
+				, new KeyFrame(Duration.seconds(.5), new KeyValue(opacityProperty(), 1))
+				);
+
 		getStyleClass().add("droparea-grid");
 		setVisible(false);
 		setOpacity(0);
@@ -28,22 +35,12 @@ public class DisconnectedPane extends GridPane {
 		button.getStyleClass().add("disconnected");
 		button.prefWidthProperty().bind(widthProperty());
 		button.prefHeightProperty().bind(heightProperty());
-		button.setOnAction(e -> {
-			try {
-				mailService.reconnect();
-			} catch (final Exception ex) {
-				LOGGER.error("reconnect", ex);
-			}
-		});
+		button.setOnAction(e -> reconnectCallback.run());
 		add(button, 0, 0);
 
-		final Timeline timeline = new Timeline(
-				new KeyFrame(Duration.ZERO, new KeyValue(opacityProperty(), 0))
-				, new KeyFrame(Duration.seconds(.5), new KeyValue(opacityProperty(), 1))
-				);
-		timeline.setOnFinished(e -> setVisible(mailService.disconnectedProperty().get()));
+		timeline.setOnFinished(e -> setVisible(disconnectedProperty.get()));
 
-		mailService.disconnectedProperty().addListener((ov, o, n) -> {
+		disconnectedProperty.addListener((ov, o, n) -> {
 			if (n) {
 				Platform.runLater(() -> setVisible(true));
 				timeline.setRate(1);
@@ -53,5 +50,14 @@ public class DisconnectedPane extends GridPane {
 				timeline.playFrom(Duration.seconds(.5));
 			}
 		});
+
+	}
+
+	public void setOnReconnect(Runnable reconnectCallback) {
+		this.reconnectCallback = reconnectCallback;
+	}
+
+	public BooleanProperty disconnectedProperty() {
+		return disconnectedProperty;
 	}
 }

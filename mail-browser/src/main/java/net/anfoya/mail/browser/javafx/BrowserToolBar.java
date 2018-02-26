@@ -11,44 +11,27 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.util.Duration;
-import net.anfoya.java.undo.UndoService;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
-import net.anfoya.mail.browser.javafx.settings.Settings;
-import net.anfoya.mail.browser.javafx.settings.SettingsDialog;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
-import net.anfoya.mail.service.Contact;
-import net.anfoya.mail.service.MailService;
-import net.anfoya.mail.service.Message;
-import net.anfoya.mail.service.Section;
-import net.anfoya.mail.service.Tag;
 
-public class BrowserToolBar<S extends Section, T extends Tag, M extends Message, C extends Contact> extends ToolBar {
+public class BrowserToolBar extends ToolBar {
 	private static final Separator SEPARATOR = new Separator();
 
     private static final String IMG_PATH = "/net/anfoya/mail/img/";
     private static final String SETTINGS_PNG = ThreadPane.class.getResource(IMG_PATH + "settings.png").toExternalForm();
     private static final String SIGNOUT_PNG = ThreadPane.class.getResource(IMG_PATH + "signout.png").toExternalForm();
 
-	private Runnable signoutCallback;
-	private SettingsDialog<S, T> settingsDialog;
-
-	private final MailService<S, T, ?, M, C> mailService;
-
-	private final UndoService undoService;
 	private Runnable composeCallback;
+	private Runnable showSettingsCallback;
+	private Runnable signoutCallback;
 
 	private final Button composeButton;
-
 	private final Button settingsButton;
-
 	private final Button signoutButton;
 
 
-	public BrowserToolBar(MailService<S, T, ?, M, C> mailService, UndoService undoService, Settings settings) {
-		this.mailService = mailService;
-		this.undoService = undoService;
-
+	public BrowserToolBar() {
 		setMinHeight(27);
 		setMaxHeight(27);
 		setMinWidth(ToolBar.USE_PREF_SIZE);
@@ -65,7 +48,7 @@ public class BrowserToolBar<S extends Section, T extends Tag, M extends Message,
 		settingsButton.setFocusTraversable(false);
 		settingsButton.setGraphic(new ImageView(new Image(SETTINGS_PNG)));
 		settingsButton.setTooltip(new Tooltip("settings"));
-		settingsButton.setOnAction(e -> showSettings(settings));
+		settingsButton.setOnAction(e -> showSettingsCallback.run());
 
 		final Node graphics = settingsButton.getGraphic();
 
@@ -117,14 +100,8 @@ public class BrowserToolBar<S extends Section, T extends Tag, M extends Message,
 		signoutCallback = callback;
 	}
 
-	private void showSettings(final Settings settings) {
-		if (settingsDialog == null
-				|| !settingsDialog.isShowing()) {
-			settingsDialog = new SettingsDialog<>(mailService, undoService, settings);
-			settingsDialog.show();
-		}
-		settingsDialog.toFront();
-		settingsDialog.requestFocus();
+	public void setOnShowSettings(Runnable callback) {
+		showSettingsCallback = callback;
 	}
 
 	public void setOnCompose(Runnable callback) {
