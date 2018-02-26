@@ -23,7 +23,7 @@
   <logger name="net.anfoya.mail.browser.javafx.thread" level="DEBUG"/>
   -->
 
-	<root level="debug">
+	<root level="info">
 		<appender-ref ref="STDOUT" />
 	</root>
 </configuration>
