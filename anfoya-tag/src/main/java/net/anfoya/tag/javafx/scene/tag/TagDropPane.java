@@ -166,7 +166,7 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 			}
 		};
 		task.setOnSucceeded(event -> {
-			undoService.set(
+			undoService.setUndo(
 					() -> tagService.rename(tag, tag.getName())
 					, "rename " + tag.getName());
 			updateHandler.handle(null);
@@ -214,7 +214,7 @@ public class TagDropPane<S extends Section, T extends Tag> extends GridPane {
 			}
 		};
 		task.setOnSucceeded(e -> {
-			undoService.set(
+			undoService.setUndo(
 					() -> tagService.show(tag)
 					, description);
 			updateHandler.handle(null);

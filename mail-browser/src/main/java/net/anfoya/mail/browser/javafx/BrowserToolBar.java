@@ -1,13 +1,8 @@
 package net.anfoya.mail.browser.javafx;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javafx.animation.Interpolator;
 import javafx.animation.RotateTransition;
 import javafx.animation.Timeline;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Separator;
@@ -22,7 +17,6 @@ import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.settings.SettingsDialog;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
-import net.anfoya.mail.composer.javafx.MailComposer;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.Message;
@@ -30,22 +24,21 @@ import net.anfoya.mail.service.Section;
 import net.anfoya.mail.service.Tag;
 
 public class BrowserToolBar<S extends Section, T extends Tag, M extends Message, C extends Contact> extends ToolBar {
-	private static final Logger LOGGER = LoggerFactory.getLogger(BrowserToolBar.class);
 	private static final Separator SEPARATOR = new Separator();
 
     private static final String IMG_PATH = "/net/anfoya/mail/img/";
     private static final String SETTINGS_PNG = ThreadPane.class.getResource(IMG_PATH + "settings.png").toExternalForm();
     private static final String SIGNOUT_PNG = ThreadPane.class.getResource(IMG_PATH + "signout.png").toExternalForm();
 
-	private EventHandler<ActionEvent> signoutHandler;
+	private Runnable signoutCallback;
 	private SettingsDialog<S, T> settingsDialog;
 
 	private final MailService<S, T, ?, M, C> mailService;
 
 	private final UndoService undoService;
-	private Runnable messageUpdateCallback;
+	private Runnable composeCallback;
 
-	private final Button newButton;
+	private final Button composeButton;
 
 	private final Button settingsButton;
 
@@ -60,20 +53,12 @@ public class BrowserToolBar<S extends Section, T extends Tag, M extends Message,
 		setMaxHeight(27);
 		setMinWidth(ToolBar.USE_PREF_SIZE);
 
-		newButton = new Button();
-		newButton.getStyleClass().add("flat-button");
-		newButton.setFocusTraversable(false);
-		newButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/img/new.png"))));
-		newButton.setTooltip(new Tooltip("new"));
-		newButton.setOnAction(event -> {
-			try {
-				final MailComposer<M, C> composer = new MailComposer<M, C>(mailService, settings);
-				composer.setOnMessageUpdate(messageUpdateCallback);
-				composer.newMessage("");
-			} catch (final Exception e) {
-				LOGGER.error("load new message composer", e);
-			}
-		});
+		composeButton = new Button();
+		composeButton.getStyleClass().add("flat-button");
+		composeButton.setFocusTraversable(false);
+		composeButton.setGraphic(new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/img/new.png"))));
+		composeButton.setTooltip(new Tooltip("new"));
+		composeButton.setOnAction(e -> composeCallback.run());
 
 		settingsButton = new Button();
 		settingsButton.getStyleClass().add("flat-button");
@@ -109,12 +94,12 @@ public class BrowserToolBar<S extends Section, T extends Tag, M extends Message,
 		signoutButton.setFocusTraversable(false);
 		signoutButton.setGraphic(new ImageView(new Image(SIGNOUT_PNG)));
 		signoutButton.setTooltip(new Tooltip("sign out"));
-		signoutButton.setOnAction(e -> signoutHandler.handle(null));
+		signoutButton.setOnAction(e -> signoutCallback.run());
 	}
 
 
 	public void setVisibles(boolean newMessage, boolean settings, boolean signout) {
-		setVisible(newButton, newMessage);
+		setVisible(composeButton, newMessage);
 		SEPARATOR.setVisible(newMessage && settings || signout);
 		setVisible(settingsButton, settings);
 		setVisible(signoutButton, signout);
@@ -128,21 +113,21 @@ public class BrowserToolBar<S extends Section, T extends Tag, M extends Message,
 		}
 	}
 
-	public void setOnSignout(final EventHandler<ActionEvent> handler) {
-		signoutHandler = handler;
+	public void setOnSignout(Runnable callback) {
+		signoutCallback = callback;
 	}
 
 	private void showSettings(final Settings settings) {
 		if (settingsDialog == null
 				|| !settingsDialog.isShowing()) {
-			settingsDialog = new SettingsDialog<S, T>(mailService, undoService, settings);
+			settingsDialog = new SettingsDialog<>(mailService, undoService, settings);
 			settingsDialog.show();
 		}
 		settingsDialog.toFront();
 		settingsDialog.requestFocus();
 	}
 
-	public void setOnMessageUpdate(Runnable callback) {
-		messageUpdateCallback = callback;
+	public void setOnCompose(Runnable callback) {
+		composeCallback = callback;
 	}
 }

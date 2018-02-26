@@ -42,6 +42,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import net.anfoya.java.util.VoidCallback;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.mail.browser.javafx.css.CssHelper;
@@ -49,14 +50,12 @@ import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.mime.MessageHelper;
 import net.anfoya.mail.mime.MessageReader;
 import net.anfoya.mail.service.Contact;
-import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.Message;
 
 public class MailComposer<M extends Message, C extends Contact> extends Stage {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailComposer.class);
 	private static final int AUTO_SAVE_DELAY = 60; // seconds
-	private static final Runnable DEFAULT_UPDATE_CALLBACK = () -> {};
 
 	private final MailService<?, ?, ?, M, C> mailService;
 	private final Settings settings;
@@ -82,7 +81,10 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 
 	private M draft;
 	private M source;
-	private Runnable updateHandler;
+
+	private VoidCallback<M> sendCallback;
+	private VoidCallback<M> discardCallback;
+	private VoidCallback<String> composeCallback;
 
 	public MailComposer(final MailService<?, ?, ?, M, C> mailService, final Settings settings) {
 		super(StageStyle.UNIFIED);
@@ -91,6 +93,8 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		myAddress = mailService.getContact().getEmail();
 		editedProperty = new SimpleBooleanProperty(false);
 		autosaveTimer = null;
+		sendCallback = discardCallback = m -> {};
+
 
 		final Image icon = new Image(getClass().getResourceAsStream("/net/anfoya/mail/img/Mail.png"));
 		getIcons().add(icon);
@@ -101,26 +105,25 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		setScene(scene);
 
 		this.mailService = mailService;
-		this.updateHandler = DEFAULT_UPDATE_CALLBACK;
 		this.settings = settings;
 
 		// load contacts from server
-		addressContacts = new ConcurrentHashMap<String, C>();
+		addressContacts = new ConcurrentHashMap<>();
 		initContacts();
 
 		mainPane = (BorderPane) getScene().getRoot();
 		mainPane.setPadding(new Insets(3));
 
-		toListBox = new RecipientListPane<C>("to: ");
+		toListBox = new RecipientListPane<>("to: ");
 		toListBox.setOnUpdateList(e -> editedProperty.set(true));
 		HBox.setHgrow(toListBox, Priority.ALWAYS);
 
-		ccListBox = new RecipientListPane<C>("cc/bcc: ");
+		ccListBox = new RecipientListPane<>("cc/bcc: ");
 		ccListBox.setFocusTraversable(false);
 		ccListBox.setOnUpdateList(e -> editedProperty.set(true));
 		HBox.setHgrow(ccListBox, Priority.ALWAYS);
 
-		bccListBox = new RecipientListPane<C>("bcc: ");
+		bccListBox = new RecipientListPane<>("bcc: ");
 		bccListBox.setOnUpdateList(e -> editedProperty.set(true));
 		HBox.setHgrow(bccListBox, Priority.ALWAYS);
 
@@ -142,16 +145,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 
 		editor = new MailEditor();
 		editor.editedProperty().addListener((ov, o, n) -> editedProperty.set(editedProperty.get() || n));
-		editor.setOnMailtoCallback(p -> {
-			try {
-				final MailComposer<M, C> composer = new MailComposer<M, C>(mailService, settings);
-				composer.setOnMessageUpdate(updateHandler);
-				composer.newMessage(p);
-			} catch (final MailException e) {
-				LOGGER.error("create new mail to {}", p, e);
-			}
-			return null;
-		});
+		editor.setOnCompose(r -> composeCallback.call(r));
 
 		mainPane.setCenter(editor);
 
@@ -181,12 +175,12 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		});
 	}
 
-	public void setOnMessageUpdate(Runnable callback) {
-		if (updateHandler == null) {
-			updateHandler = DEFAULT_UPDATE_CALLBACK;
-		} else {
-			updateHandler = callback;
-		}
+	public void setOnDiscard(VoidCallback<M> callback) {
+		discardCallback = callback;
+	}
+
+	public void setOnSend(VoidCallback<M> callback) {
+		sendCallback = callback;
 	}
 
 	@Override
@@ -197,8 +191,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 
 	private void initContacts() {
 		final Task<Set<C>> contactTask = new Task<Set<C>>() {
-			@Override
-			protected Set<C> call() throws Exception {
+			@Override protected Set<C> call() throws Exception {
 				return mailService.getContacts();
 			}
 		};
@@ -222,101 +215,72 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		ThreadPool.getDefault().submit(PoolPriority.MAX, "load contacts", contactTask);
 	}
 
-	public void newMessage(final String recipient) throws MailException {
-		final InternetAddress to;
-		if (recipient == null || recipient.isEmpty()) {
-			to = null;
-		} else {
-			InternetAddress address;
-			try {
-				address = new InternetAddress(recipient);
-			} catch (final AddressException e) {
-				address = null;
-			}
-			to = address;
-		}
+	public void compose(M draft, String recipient) {
+		this.draft = draft;
 
-		final Task<Void> task = new Task<Void>() {
-			@Override
-			protected Void call() throws Exception {
-				final MimeMessage message = new MimeMessage(Session.getDefaultInstance(new Properties()));
-				message.setContent("", "text/html");
-				if (to != null) {
-					message.addRecipient(RecipientType.TO, to);
-				}
-				message.saveChanges();
-				draft = mailService.createDraft(null);
-				draft.setMimeDraft(message);
-				return null;
-			}
-		};
-		task.setOnFailed(e -> LOGGER.error("create  draft", e.getSource().getException()));
-		task.setOnSucceeded(e -> initComposer(false, true));
-		ThreadPool.getDefault().submit(PoolPriority.MAX, "create  draft", task);
-	}
-
-	public void editOrReply(final String id, final boolean all) {
-		// try to find a draft with this id
+		InternetAddress to;
 		try {
-			draft = mailService.getDraft(id);
-		} catch (final MailException e) {
-			LOGGER.error("load draft for id {}", id, e);
+			to = new InternetAddress(recipient);
+		} catch (final AddressException e) {
+			to = null;
 		}
-		if (draft != null) {
-			// edit
-			initComposer(false, false);
-		} else {
-			// reply
-			try {
-				final M message = mailService.getMessage(id);
-				reply(message, all);
-			} catch (final MailException e) {
-				LOGGER.error("load message for id {}", id, e);
+
+		final MimeMessage message = new MimeMessage(Session.getDefaultInstance(new Properties()));
+		try {
+			message.setContent("", "text/html");
+			if (to != null) {
+				message.addRecipient(RecipientType.TO, to);
 			}
+			message.saveChanges();
+		} catch (final MessagingException e) {
+			LOGGER.error("compose", e);
 		}
+		draft.setMimeDraft(message);
+		initComposer(false, true);
 	}
 
-	public void reply(final M source, final boolean all) {
-		this.source = source;
-		final Task<Void> task = new Task<Void>() {
-			@Override
-			protected Void call() throws Exception {
-				final MimeMessage reply = (MimeMessage) source.getMimeMessage().reply(all);
-				reply.setContent(source.getMimeMessage().getContent(), source.getMimeMessage().getContentType());
-				reply.saveChanges();
-				MessageHelper.removeMyselfFromRecipient(myAddress, reply);
-				draft = mailService.createDraft(source);
-				draft.setMimeDraft(reply);
-				return null;
-			}
-		};
-		task.setOnFailed(event -> LOGGER.error("create  reply draft", event.getSource().getException()));
-		task.setOnSucceeded(e -> initComposer(true, true));
-		ThreadPool.getDefault().submit(PoolPriority.MAX, "create  reply draft", task);
+	public void edit(final M draft) {
+		this.draft = draft;
+		initComposer(false, false);
 	}
 
-	public void forward(final M source) {
+	public void reply(final M draft, final M source, final boolean all) {
+		this.draft = draft;
 		this.source = source;
-		final Task<Void> task = new Task<Void>() {
-			@Override
-			protected Void call() throws Exception {
-				final MimeMessage forward = new MimeMessage(Session.getDefaultInstance(new Properties()));
-				forward.setSubject("Fwd: " + source.getMimeMessage().getSubject());
-				forward.setContent(source.getMimeMessage().getContent(), source.getMimeMessage().getContentType());
-				forward.saveChanges();
-				draft = mailService.createDraft(source);
-				draft.setMimeDraft(forward);
-				return null;
-			}
-		};
-		task.setOnFailed(event -> LOGGER.error("create  forward draft", event.getSource().getException()));
-		task.setOnSucceeded(e -> initComposer(true, true));
-		ThreadPool.getDefault().submit(PoolPriority.MAX, "create  forward draft", task);
+
+		MimeMessage reply;
+		try {
+			reply = (MimeMessage) source.getMimeMessage().reply(all);
+			reply.setContent(source.getMimeMessage().getContent(), source.getMimeMessage().getContentType());
+			reply.saveChanges();
+			MessageHelper.removeMyselfFromRecipient(myAddress, reply);
+			draft.setMimeDraft(reply);
+		} catch (final IOException | MessagingException e) {
+			LOGGER.error("reply", e);
+		}
+
+		initComposer(true, true);
+	}
+
+	public void forward(final M draft, M source) {
+		this.draft = draft;
+		this.source = source;
+
+		final MimeMessage forward = new MimeMessage(Session.getDefaultInstance(new Properties()));
+		try {
+			forward.setSubject("Fwd: " + source.getMimeMessage().getSubject());
+			forward.setContent(source.getMimeMessage().getContent(), source.getMimeMessage().getContentType());
+			forward.saveChanges();
+			draft.setMimeDraft(forward);
+		} catch (final IOException | MessagingException e) {
+			LOGGER.error("forward", e);
+		}
+
+		initComposer(true, true);
 	}
 
 	private void initComposer(final boolean quote, final boolean signature) {
 		final MimeMessage message = draft.getMimeMessage();
-		updateHandler.run();
 
 		try {
 			for(final String a: MessageHelper.getMailAddresses(message.getRecipients(MimeMessage.RecipientType.TO))) {
@@ -515,34 +479,19 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 	}
 
 	private void sendAndClose() {
-		final Task<Void> task = new Task<Void>() {
-			@Override
-			protected Void call() throws Exception {
-			    draft.setMimeDraft(buildMessage());
-				mailService.send(draft);
-				return null;
-			}
-		};
-		task.setOnFailed(e -> LOGGER.error("send message", e.getSource().getException()));
-		task.setOnSucceeded(e -> updateHandler.run());
-		ThreadPool.getDefault().submit(PoolPriority.MAX, "send message", task);
+		try {
+			draft.setMimeDraft(buildMessage());
+		} catch (final MessagingException e) {
+			//TODO display error message
+			LOGGER.error("build message", e);
+		}
 
+	    sendCallback.call(draft);
 		close();
 	}
 
 	private void discardAndClose() {
-		LOGGER.debug("discard draft");
-		final Task<Void> task = new Task<Void>() {
-			@Override
-			protected Void call() throws Exception {
-				mailService.remove(draft);
-				return null;
-			}
-		};
-		task.setOnFailed(e -> LOGGER.error("delete draft {}", draft, e.getSource().getException()));
-		task.setOnSucceeded(e -> updateHandler.run());
-		ThreadPool.getDefault().submit(PoolPriority.MAX, "delete draft", task);
-
+	    discardCallback.call(draft);
 		close();
 	}
 
@@ -553,5 +502,9 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 			ccListBox.setFocusTraversable(true);
 			headerBox.getChildren().add(2, bccListBox);
 		}
+	}
+
+	public void setOnCompose(VoidCallback<String> callback) {
+		composeCallback = callback;
 	}
 }

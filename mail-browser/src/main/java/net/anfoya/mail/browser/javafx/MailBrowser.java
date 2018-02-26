@@ -4,8 +4,6 @@ import java.util.Set;
 
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -49,7 +47,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		super(new FixedSplitPane(), Color.TRANSPARENT);
 		this.settings = settings;
 
-		modeProperty = new ReadOnlyObjectWrapper<Mode>();
+		modeProperty = new ReadOnlyObjectWrapper<>();
 
 		final UndoService undoService = new UndoService();
 
@@ -59,26 +57,26 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		splitPane = (FixedSplitPane) getRoot();
 		splitPane.getStyleClass().add("background");
 
-		sectionListPane = new SectionListPane<S, T>(mailService, undoService, settings.showExcludeBox().get());
+		sectionListPane = new SectionListPane<>(mailService, undoService, settings.showExcludeBox().get());
 		sectionListPane.setPrefWidth(settings.sectionListPaneWidth().get());
 		sectionListPane.setFocusTraversable(false);
 		sectionListPane.setSectionDisableWhenZero(false);
 		sectionListPane.setLazyCount(true);
 		splitPane.getPanes().add(sectionListPane);
 
-		threadListPane = new ThreadListPane<S, T, H, M, C>(mailService, undoService, settings);
+		threadListPane = new ThreadListPane<>(mailService, undoService, settings);
 		threadListPane.setPrefWidth(settings.threadListPaneWidth().get());
 		threadListPane.prefHeightProperty().bind(splitPane.heightProperty());
 		splitPane.getPanes().add(threadListPane);
 
-		threadPane = new ThreadPane<S, T, H, M, C>(mailService, undoService, settings);
+		threadPane = new ThreadPane<>(mailService, undoService, settings);
 		threadPane.setPrefWidth(settings.threadPaneWidth().get());
 		threadPane.setFocusTraversable(false);
 		splitPane.getPanes().add(threadPane);
 
 		splitPane.setOnKeyPressed(e -> toggleViewMode(e));
 
-		final Controller<S, T, H, M, C> controller = new Controller<S, T, H, M, C>(
+		final Controller<S, T, H, M, C> controller = new Controller<>(
 				mailService
 				, notificationService
 				, undoService
@@ -135,8 +133,8 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		}
 	}
 
-	public void setOnSignout(final EventHandler<ActionEvent> handler) {
-		threadPane.setOnSignout(handler);
+	public void setOnSignout(final Runnable callback) {
+		threadPane.setOnSignout(callback);
 	}
 
 	private void toggleViewMode(final KeyEvent e) {

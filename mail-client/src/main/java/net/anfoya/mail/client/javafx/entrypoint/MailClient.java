@@ -53,7 +53,7 @@ public class MailClient extends Application {
 	}
 
 	@Override
-	public void init() throws Exception {		
+	public void init() throws Exception {
 		initThreadPool();
 		initSettings();
 		initProxy();
@@ -156,7 +156,7 @@ public class MailClient extends Application {
 
 		MailBrowser<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact> mailBrowser;
 		try {
-			mailBrowser = new MailBrowser<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact>(
+			mailBrowser = new MailBrowser<>(
 					gmail
 					, notificationService
 					, settings);
@@ -164,7 +164,7 @@ public class MailClient extends Application {
 			LOGGER.error("load mail browser", e);
 			return;
 		}
-		mailBrowser.setOnSignout(e -> signout());
+		mailBrowser.setOnSignout(() -> signout());
 		mailBrowser.addOnModeChange(() -> refreshTitle(stage, mailBrowser));
 
 		stage.setScene(mailBrowser);
@@ -266,7 +266,7 @@ public class MailClient extends Application {
 			return null;
 		});
 	}
-	
+
 	private void initProxy() {
 		if (settings.proxyEnabled().getValue()) {
 			System.setProperty("http.proxyHost", settings.proxyHost().get());
@@ -277,6 +277,7 @@ public class MailClient extends Application {
 				System.setProperty("jdk.http.auth.tunneling.disabledSchemes","");
 			}
 			Authenticator.setDefault(new Authenticator() {
+				@Override
 				protected PasswordAuthentication getPasswordAuthentication() {
 					return getRequestorType() == RequestorType.PROXY && getRequestingHost().equals(settings.proxyHost().get()) && getRequestingPort() == settings.proxyPort().get()
 							? new PasswordAuthentication(settings.proxyUser().get(), settings.proxyPasswd().get().toCharArray())

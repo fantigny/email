@@ -44,14 +44,12 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import javafx.scene.web.WebView;
 import javafx.util.Duration;
+import net.anfoya.java.util.VoidCallback;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.javafx.scene.web.WebViewFitContent;
-import net.anfoya.mail.browser.javafx.attachment.AttachmentLoader;
-import net.anfoya.mail.browser.javafx.settings.Settings;
+import net.anfoya.mail.browser.javafx.attachment.Attachment;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
-import net.anfoya.mail.browser.javafx.util.UrlHelper;
-import net.anfoya.mail.composer.javafx.MailComposer;
 import net.anfoya.mail.mime.DateHelper;
 import net.anfoya.mail.mime.MessageHelper;
 import net.anfoya.mail.mime.MessageReader;
@@ -72,7 +70,6 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 
 	private final String messageId;
 	private final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService;
-	private final Settings settings;
 
 	private final BooleanProperty expanded;
 	private final BooleanProperty collapsible;
@@ -90,7 +87,6 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	private M message;
 	private Task<String> loadTask;
 
-	private Runnable updateCallback;
 	private volatile boolean mouseOver;
 
 	private Timeline showSnippetTimeline;
@@ -99,13 +95,13 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 
 	private VBox arrowBox;
 
+	private VoidCallback<String> openUrlCallback;
+
 	public MessagePane(final String messageId
-			, final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService
-			, final Settings settings) {
+			, final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService) {
 		getStyleClass().add("message");
 		this.mailService = mailService;
 		this.messageId = messageId;
-		this.settings = settings;
 
 		expanded = new SimpleBooleanProperty();
 		collapsible = new SimpleBooleanProperty();
@@ -208,22 +204,16 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	}
 
 	private void handleExtLink(final WebView view, final String url) {
-		if (url != null && !url.isEmpty()) {
-			Platform.runLater(() -> {
-				view.getEngine().getLoadWorker().cancel();
-				load();
-			});
-			UrlHelper.open(url, recipient -> {
-				try {
-					final MailComposer<M, C> composer = new MailComposer<M, C>(mailService, settings);
-					composer.setOnMessageUpdate(updateCallback);
-					composer.newMessage(recipient);
-				} catch (final MailException e) {
-					LOGGER.error("create new mail to {}", recipient, e);
-				}
-				return null;
-			});
+		Platform.runLater(() -> {
+			view.getEngine().getLoadWorker().cancel();
+			load();
+		});
+
+		if (url == null || url.isEmpty()) {
+			return;
 		}
+
+		openUrlCallback.call(url);
 	}
 
 	private void showSnippet(final boolean show) {
@@ -307,10 +297,6 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		return collapsible;
 	}
 
-	public void setUpdateHandler(final Runnable callback) {
-		this.updateCallback = callback;
-	}
-
 	private Node buildRecipientLabel(final Address address) {
 		final InternetAddress internetAddress = (InternetAddress) address;
 		final Label label = new Label(MessageHelper.getName(internetAddress));
@@ -364,7 +350,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 				attachment.setCursor(Cursor.HAND);
 				attachment.setOnMouseClicked(e -> {
 					try {
-						new AttachmentLoader<M>(mailService, message.getId()).start(name);
+						new Attachment<>(mailService, message.getId()).start(name);
 					} catch (final Exception ex) {
 						LOGGER.error("load ", ex);
 					}
@@ -382,5 +368,9 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 
 	public boolean hasAttachment() {
 		return !reader.getAttachmentNames().isEmpty();
+	}
+
+	public void setOnOpenUrl(VoidCallback<String> callback) {
+		openUrlCallback = callback;
 	}
 }

@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import edu.emory.mathcs.backport.java.util.concurrent.atomic.AtomicInteger;
 import edu.emory.mathcs.backport.java.util.concurrent.atomic.AtomicLong;
+import javafx.animation.Animation.Status;
 import javafx.collections.ListChangeListener.Change;
 import javafx.concurrent.Task;
 import javafx.scene.control.Label;
@@ -20,8 +21,11 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.util.Duration;
+import net.anfoya.java.util.VoidCallback;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
+import net.anfoya.javafx.scene.animation.DelayTimeline;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
 import net.anfoya.mail.model.SimpleThread.SortField;
 import net.anfoya.mail.service.MailException;
@@ -35,6 +39,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 
 	private final MailService<?, T, H, ?, ?> mailService;
 
+	private final String draftTagId;
 	private final String unreadTagId;
 
 	private final AtomicLong loadTaskId;
@@ -57,13 +62,21 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 	private boolean newFilter;
 	private boolean isUnreadList;
 
+	private final Set<H> selectedThreads;
+
+	private VoidCallback<Set<H>> selectCallback;
+
+	private DelayTimeline emptySelectDelay;
+
 	public ThreadList(final MailService<?, T, H, ?, ?> mailService) {
         getStyleClass().add("thread-list");
         setPlaceholder(new Label("empty"));
 		this.mailService = mailService;
 
+		draftTagId = mailService.getSpecialTag(SpecialTag.DRAFT).getId();
 		unreadTagId = mailService.getSpecialTag(SpecialTag.UNREAD).getId();
 		loadTaskId = new AtomicLong();
+		selectedThreads = Collections.synchronizedSet(new HashSet<>());
 
 		includes = new LinkedHashSet<>();
 		excludes = new LinkedHashSet<>();
@@ -80,6 +93,23 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 		setOnKeyPressed(e -> handleKey(e));
 
 		getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+		getSelectionModel().getSelectedItems().addListener((Change<? extends H> c) -> {
+			final Set<H> selectedThreads = c.getList()
+					.stream()
+					.collect(Collectors.toSet());
+			if (emptySelectDelay != null && emptySelectDelay.getStatus() == Status.RUNNING) { //TODO reduce flickering of messages -- to remove
+				emptySelectDelay.stop();
+			}
+			emptySelectDelay = new DelayTimeline(Duration.millis(selectedThreads.isEmpty()? 500: 1), e -> {
+				synchronized (selectedThreads) {
+					this.selectedThreads.clear();
+					this.selectedThreads.addAll(selectedThreads);
+				}
+				selectCallback.call(getSelectedThreads());
+			});
+			emptySelectDelay.playFromStart();
+		});
+
 		getItems().addListener((final Change<? extends H> c) -> {
 			setFocusTraversable(!getItems().isEmpty());
 			restoreSelection();
@@ -109,6 +139,10 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 	public void loadPage(final int page) {
 		this.page = page;
 		load();
+	}
+
+	public boolean isDraft() {
+		return includes.size() == 1 && includes.iterator().next().getId().equals(draftTagId);
 	}
 
 	public void load(final Set<T> includes, final Set<T> excludes, final String pattern) {
@@ -143,9 +177,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 	}
 
 	public Set<H> getSelectedThreads() {
-		return Collections.unmodifiableSet(getSelectionModel().getSelectedItems()
-				.stream()
-				.collect(Collectors.toSet()));
+		return new HashSet<>(selectedThreads);
 	}
 
 	public void setOnSelect(final Runnable callback) {
@@ -230,36 +262,47 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 	}
 
 	private void restoreRegularSelection() {
-		// try to select the same item(s) as before
-		getSelectionModel().selectIndices(-1, getItems()
-				.stream()
-				.filter(t -> selectedIds.contains(t.getId()) && !t.isUnread())
-				.mapToInt(t -> getItems().indexOf(t))
-				.toArray());
-
-		if (!isUnreadList && getSelectionModel().isEmpty() && selectedIds.size() == 1) {
-			// try to find the closest following unread thread
-			getItems()
-				.subList(selectedIndex.get(), getItems().size())
-				.stream()
-				.filter(t -> !t.isUnread())
-				.findFirst()
-				.ifPresent(t -> getSelectionModel().selectIndices(getItems().indexOf(t)));
-		}
-
-		if (!isUnreadList && getSelectionModel().isEmpty() && selectedIds.size() == 1) {
-			// try to find the closest preceding unread thread
-			getItems()
-				.subList(0, selectedIndex.get())
-				.stream()
-				.filter(t -> !t.isUnread())
-				.reduce((t1, t2) -> t2)
-				.ifPresent(t -> getSelectionModel().selectIndices(getItems().indexOf(t)));
+		synchronized(getItems()) {
+			final boolean singleSelect = getItems()
+					.stream()
+					.filter(t -> selectedIds.contains(t.getId()))
+					.count() == 1;
+	
+			// try to select the same item(s) as before
+			getSelectionModel().selectIndices(-1, getItems()
+					.stream()
+					.filter(t -> selectedIds.contains(t.getId()) && (!singleSelect || !t.isUnread()))
+					.mapToInt(t -> getItems().indexOf(t))
+					.toArray());
+	
+			if (!isUnreadList && singleSelect && getSelectionModel().isEmpty()) {
+				// try to find the closest following unread thread
+				getItems()
+					.subList(selectedIndex.get(), getItems().size())
+					.stream()
+					.filter(t -> !t.isUnread())
+					.findFirst()
+					.ifPresent(t -> getSelectionModel().selectIndices(getItems().indexOf(t)));
+			}
+	
+			if (!isUnreadList && singleSelect && getSelectionModel().isEmpty()) {
+				// try to find the closest preceding unread thread
+				getItems()
+					.subList(0, selectedIndex.get())
+					.stream()
+					.filter(t -> !t.isUnread())
+					.reduce((t1, t2) -> t2)
+					.ifPresent(t -> getSelectionModel().selectIndices(getItems().indexOf(t)));
+			}
 		}
 	}
 
 	private void selectFirstOfAddedSet() {
 		getSelectionModel().selectIndices(selectedIndex.get());
 		scrollTo(selectedIndex.get());
+	}
+
+	public void setOnSelect(VoidCallback<Set<H>> callback) {
+		selectCallback = callback;
 	}
 }
