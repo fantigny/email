@@ -12,7 +12,6 @@ import javafx.scene.image.Image;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
@@ -62,7 +61,6 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	private VoidCallback<Set<H>> toggleSpamCallback;
 
 	private VoidCallback<Set<H>> openCallback;
-	private VoidCallback<Set<H>> editCallback;
 
 	private VoidCallback<TagForThreadsVo<T, H>> addTagForThreadsCallBack;
 	private VoidCallback<TagForThreadsVo<T, H>> createTagForThreadsCallBack;
@@ -73,8 +71,12 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		patternField = new ResetTextField();
 		patternField.setPromptText("thread search");
 
-		threadList = new ThreadList<>(mailService);
-		threadList.setOnMouseClicked(e -> threadListClicked(e));
+		threadList = new ThreadList<>();
+		threadList.setOnMouseClicked(e -> {
+			if (e.getClickCount() > 1) {
+				openCallback.call(getSelectedThreads());
+			}
+		});
 		threadList.setOnDragDetected(e -> {
 			final ClipboardContent content = new ClipboardContent();
 			content.put(ExtItemDropPane.ADD_TAG_DATA_FORMAT, "");
@@ -195,23 +197,6 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		setMargin(sortPane, new Insets(5));
 	}
 
-	private void threadListClicked(MouseEvent e) {
-		final Set<H> threads = getSelectedThreads();
-		if (threads.isEmpty()) {
-			return;
-		}
-
-		e.consume();
-
-		if (e.getClickCount() > 1) {
-			if (threadList.isDraft()) {
-				editCallback.call(threads);
-			} else {
-				openCallback.call(threads);
-			}
-		}
-	}
-
 	public void setOnArchive(VoidCallback<Set<H>> callback) {
 		archiveCallback = callback;
 	}
@@ -244,24 +229,12 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		addTagForThreadsCallBack = callback;
 	}
 
-	public String getNamePattern() {
+	public String getSearchPattern() {
 		return patternField.getText();
-	}
-
-	public void refreshWithTags(final Set<T> includes, final Set<T> excludes) {
-		threadList.load(includes, excludes, patternField.getText());
-	}
-
-	public void refreshWithPage(final int page) {
-		threadList.loadPage(page);
 	}
 
 	public int getThreadCount() {
 		return threadList.getItems().size();
-	}
-
-	public Set<T> getMoviesTags() {
-		return threadList.getThreadsTags();
 	}
 
 	public Set<H> getSelectedThreads() {
@@ -278,10 +251,6 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 
 	public void setOnOpen(final VoidCallback<Set<H>> callback) {
 		this.openCallback = callback;
-	}
-
-	public void setOnEdit(final VoidCallback<Set<H>> callback) {
-		this.editCallback = callback;
 	}
 
 	public void setOnLoad(final Runnable callback) {

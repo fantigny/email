@@ -3,7 +3,6 @@ package net.anfoya.mail.browser.javafx.threadlist;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -12,10 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import edu.emory.mathcs.backport.java.util.concurrent.atomic.AtomicInteger;
-import edu.emory.mathcs.backport.java.util.concurrent.atomic.AtomicLong;
 import javafx.animation.Animation.Status;
 import javafx.collections.ListChangeListener.Change;
-import javafx.concurrent.Task;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
@@ -26,39 +23,21 @@ import net.anfoya.java.util.VoidCallback;
 import net.anfoya.javafx.scene.animation.DelayTimeline;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
 import net.anfoya.mail.model.SimpleThread.SortField;
-import net.anfoya.mail.service.MailException;
-import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
-import net.anfoya.tag.model.SpecialTag;
 
 public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadList.class);
 
-	private final MailService<?, T, H, ?, ?> mailService;
-
-	private final String draftTagId;
-	private final String unreadTagId;
-
-	private final AtomicLong loadTaskId;
-	private Task<Set<H>> loadTask;
-
 	private final Set<String> selectedIds;
 	private final AtomicInteger selectedIndex;
 
-	private Set<T> includes;
-	private Set<T> excludes;
 	private SortField sortOrder;
-	private String pattern;
-	private int page;
 
 	private Runnable loadCallback;
 	private Runnable archiveCallback;
 
 	private boolean firstLoad;
-
-	private boolean newFilter;
-	private boolean isUnreadList;
 
 	private final Set<H> selectedThreads;
 
@@ -66,20 +45,13 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 
 	private DelayTimeline emptySelectDelay;
 
-	public ThreadList(final MailService<?, T, H, ?, ?> mailService) {
+	public ThreadList() {
         getStyleClass().add("thread-list");
         setPlaceholder(new Label("empty"));
-		this.mailService = mailService;
 
-		draftTagId = mailService.getSpecialTag(SpecialTag.DRAFT).getId();
-		unreadTagId = mailService.getSpecialTag(SpecialTag.UNREAD).getId();
-		loadTaskId = new AtomicLong();
 		selectedThreads = Collections.synchronizedSet(new HashSet<>());
 
-		includes = new LinkedHashSet<>();
-		excludes = new LinkedHashSet<>();
 		sortOrder = SortField.DATE;
-		pattern = "";
 
 		firstLoad = true;
 
@@ -132,42 +104,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 
 	public void sortBy(final SortField order) {
 		sortOrder = order;
-		load();
-	}
-
-	public boolean isDraft() {
-		return includes.size() == 1 && includes.iterator().next().getId().equals(draftTagId);
-	}
-
-	public void load(final Set<T> includes, final Set<T> excludes, final String pattern) {
-		newFilter = !includes.equals(this.includes) || !excludes.equals(this.excludes) || !pattern.equals(this.pattern);
-		isUnreadList = includes.size() == 1 && includes.iterator().next().getId().equals(unreadTagId);
-
-		if (newFilter) {
-			page = 1;
-		}
-
-		this.includes = includes;
-		this.excludes = excludes;
-		this.pattern = pattern;
-
-		load();
-	}
-
-	public Set<T> getThreadsTags() {
-		// return all tags available from all threads
-		final Set<T> tags = new LinkedHashSet<>();
-		for (final H thread : getItems()) {
-			for (final String id : thread.getTagIds()) {
-				try {
-					tags.add(mailService.getTag(id));
-				} catch (final MailException e) {
-					LOGGER.error("load tag", e);
-				}
-			}
-		}
-
-		return Collections.unmodifiableSet(tags);
+		refresh();
 	}
 
 	public Set<H> getSelectedThreads() {
@@ -189,14 +126,6 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 
 		// get list
 		final List<H> sortedThreads = new ArrayList<>(threads);
-		// if unread list we add the older items even if they are read now
-		if (isUnreadList && !firstLoad && !newFilter) {
-			sortedThreads.addAll(getItems()
-					.stream()
-					.filter(t -> !threads.contains(t))
-					.peek(t -> t.getTagIds().remove(unreadTagId))
-					.collect(Collectors.toList()));
-		}
 
 		// sort
 		Collections.sort(sortedThreads, sortOrder.getComparator());
@@ -252,7 +181,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 				.filter(i -> i != -1)
 				.toArray();
 
-		if (indices.length == 0 && !wasSingleSelection && !isUnreadList) {
+		if (indices.length == 0 && !wasSingleSelection) {
 			// try to find the closest following unread thread
 			indices = getItems().subList(index, getItems().size())
 					.stream()
@@ -264,7 +193,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 					.toArray();
 		}
 
-		if (indices.length == 0 && !wasSingleSelection && !isUnreadList) {
+		if (indices.length == 0 && !wasSingleSelection) {
 			// try to find the closest preceding unread thread
 			indices = getItems().subList(0, index)
 					.stream()
