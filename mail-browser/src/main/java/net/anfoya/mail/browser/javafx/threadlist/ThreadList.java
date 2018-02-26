@@ -266,22 +266,23 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 
 	private void restoreRegularSelection() {
 		final int index = Math.max(0, selectedIndex.get());
-		final boolean singleSelect = getItems()
+		final boolean wasSingleSelection = selectedIds.size() == 1;
+		final boolean isMultipleSelection = !wasSingleSelection && getItems()
 				.stream()
 				.filter(t -> selectedIds.contains(t.getId()))
 				.mapToInt(t -> getItems().indexOf(t))
 				.filter(i -> i != -1)
-				.count() == 1;
+				.count() > 1;
 
 		// try to select the same item(s) as before
 		int[] indices = getItems()
 				.stream()
-				.filter(t -> selectedIds.contains(t.getId()) && (!singleSelect || !t.isUnread()))
+				.filter(t -> selectedIds.contains(t.getId()) && (!t.isUnread() || isMultipleSelection))
 				.mapToInt(t -> getItems().indexOf(t))
 				.filter(i -> i != -1)
 				.toArray();
 
-		if (indices.length == 0 && !isUnreadList) {
+		if (indices.length == 0 && !wasSingleSelection && !isUnreadList) {
 			// try to find the closest following unread thread
 			indices = getItems().subList(index, getItems().size())
 					.stream()
@@ -293,7 +294,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 					.toArray();
 		}
 
-		if (indices.length == 0 && !isUnreadList) {
+		if (indices.length == 0 && !wasSingleSelection && !isUnreadList) {
 			// try to find the closest preceding unread thread
 			indices = getItems().subList(0, index)
 					.stream()
