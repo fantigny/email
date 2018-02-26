@@ -27,7 +27,10 @@ public class GmailThread extends SimpleThread {
 	}
 
 	private static Set<String> findRecipients(Thread thread) {
-		return findHeaders(thread, "To").parallelStream().map(s -> cleanAddress(s)).collect(Collectors.toSet());
+		return findHeaders(thread, "To")
+				.stream()
+				.map(s -> cleanAddress(s))
+				.collect(Collectors.toSet());
 	}
 
 	private static String findSender(final Thread thread) {
@@ -69,7 +72,7 @@ public class GmailThread extends SimpleThread {
 	}
 
 	private static Set<String> getMessageIds(final Thread thread) {
-		final Set<String> messageIds = new LinkedHashSet<String>();
+		final Set<String> messageIds = new LinkedHashSet<>();
 		if (thread.getMessages() != null) {
 			for (final Message m : thread.getMessages()) {
 				messageIds.add(m.getId());
@@ -100,7 +103,11 @@ public class GmailThread extends SimpleThread {
 			return Collections.emptySet();
 		}
 
-		return thread.getMessages().parallelStream().flatMap(m -> m.getLabelIds().stream()).collect(Collectors.toSet());
+		return thread
+				.getMessages()
+				.stream()
+				.flatMap(m -> m.getLabelIds().stream())
+				.collect(Collectors.toSet());
 	}
 
 	private static String findHeader(final Thread thread, final String key) {
@@ -112,7 +119,7 @@ public class GmailThread extends SimpleThread {
 	}
 
 	private static Set<String> findHeaders(final Thread thread, final String key) {
-		final Set<String> headers = new LinkedHashSet<String>();
+		final Set<String> headers = new LinkedHashSet<>();
 		if (thread.getMessages() != null && !thread.getMessages().isEmpty()) {
 			final Message last = getLastMessage(thread);
 			if (last.getPayload() != null && last.getPayload().getHeaders() != null) {

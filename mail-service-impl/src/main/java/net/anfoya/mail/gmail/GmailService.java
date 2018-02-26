@@ -761,8 +761,10 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public void trash(final Set<GmailThread> threads) throws GMailException {
 		try {
-			final Set<String> ids = threads.parallelStream().map(GmailThread::getId).collect(Collectors.toSet());
-			threadService.trash(ids);
+			threadService.trash(threads
+					.stream()
+					.map(t -> t.getId())
+					.collect(Collectors.toSet()));
 		} catch (final ThreadException e) {
 			throw new GMailException("trash threads " + threads, e);
 		}

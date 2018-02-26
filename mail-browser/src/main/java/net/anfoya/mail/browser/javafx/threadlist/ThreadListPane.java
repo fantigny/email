@@ -425,7 +425,7 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 
 	public void setOnUpdate(final Runnable callback) {
 		updateCallback = callback;
-		threadList.setOnUpdate(callback);
+		threadList.setOnSelect(callback);
 		toolBar.setOnMessageUpdate(callback);
 	}
 

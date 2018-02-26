@@ -173,7 +173,7 @@ public class FixedSplitPane extends HBox {
 	}
 
 	public List<Pane> getVisiblePanes() {
-		return getPanes().parallelStream().filter(p -> p.isVisible()).collect(Collectors.toList());
+		return getPanes().stream().filter(p -> p.isVisible()).collect(Collectors.toList());
 	}
 
 	public void setResizableWithParent(Pane pane) {

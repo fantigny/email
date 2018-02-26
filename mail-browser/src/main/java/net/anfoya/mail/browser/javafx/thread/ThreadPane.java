@@ -1,9 +1,9 @@
 package net.anfoya.mail.browser.javafx.thread;
 
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,7 +74,6 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	private final ObservableList<Node> messagePanes;
 
 	private final T unread;
-	private final String unreadTagId;
 	private final String sentTagId;
 
 	private Runnable updateCallback;
@@ -90,7 +89,6 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		this.settings = settings;
 
 		unread = mailService.getSpecialTag(SpecialTag.UNREAD);
-		unreadTagId = unread.getId();
 		sentTagId = mailService.getSpecialTag(SpecialTag.SENT).getId();
 
 		threadToolBar = new ThreadToolBar();
@@ -199,20 +197,15 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		tagsTask = new Task<Set<T>>() {
 			@Override
 			protected Set<T> call() throws Exception {
-				final Set<T> tags = new LinkedHashSet<T>();
-				for(final H t: threads) {
-					for(final String id: t.getTagIds()) {
-						if (!id.equals(sentTagId)
-								&& !id.equals(unreadTagId)) {
-							try {
-								tags.add(mailService.getTag(id));
-							} catch (final MailException e) {
-								LOGGER.error("get tag {}", id, e);
-							}
-						}
-					}
-				}
-				return tags;
+				return threads
+						.stream()
+						.flatMap(t -> t.getTagIds().stream())
+						.filter(id -> !id.equals(sentTagId))
+						.<T>map(id -> {
+							try { return mailService.getTag(id); }
+							catch (final MailException e) { LOGGER.error("loading tag id {}", id); return null; }
+						})
+						.collect(Collectors.toSet());
 			}
 		};
 		tagsTask.setOnFailed(e -> LOGGER.error(desc, e.getSource().getException()));
