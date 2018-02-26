@@ -319,4 +319,8 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	public void setOnCompose(Runnable callback) {
 		toolBar.setOnCompose(callback);
 	}
+
+	public void setAll(Set<H> threads) {
+		threadList.setAll(threads);
+	}
 }

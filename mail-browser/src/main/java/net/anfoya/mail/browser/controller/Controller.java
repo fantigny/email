@@ -3,6 +3,7 @@ package net.anfoya.mail.browser.controller;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -11,6 +12,9 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.emory.mathcs.backport.java.util.concurrent.atomic.AtomicBoolean;
+import edu.emory.mathcs.backport.java.util.concurrent.atomic.AtomicInteger;
+import edu.emory.mathcs.backport.java.util.concurrent.atomic.AtomicLong;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.scene.media.AudioClip;
@@ -407,7 +411,6 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 
 	private S currentSection;
 
-
 	private void refreshAfterThreadUpdate() {
 		if (!refreshAfterThreadUpdate) {
 			LOGGER.warn("refreshAfterThreadUpdate");
@@ -644,5 +647,65 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		};
 		task.setOnFailed(e -> LOGGER.error("delete draft {}", draft, e.getSource().getException()));
 		ThreadPool.getDefault().submit(PoolPriority.MIN, "delete draft", task);
+	}
+	
+	/////////////// section pane
+	private final Set<T> includes = new HashSet<>();
+	private final Set<T> excludes = new HashSet<>();
+	
+	
+	/////////////// thread list
+	private AtomicBoolean firstLoad = new AtomicBoolean();
+	private final AtomicBoolean newFilter = new AtomicBoolean();
+
+	private final String pattern = "";
+	private final AtomicInteger threadListPage = new AtomicInteger();
+
+	private final AtomicLong loadThreadsTaskId = new AtomicLong();
+	private Task<Set<H>> loadThreadsTask = null;
+
+	private final Set<H> threads = new HashSet<>();
+	
+	public void load(final Set<T> includes, final Set<T> excludes, final String pattern) {
+		
+	}
+
+	private void loadThreads() {
+		final long taskId = loadThreadsTaskId.incrementAndGet();
+		if (loadThreadsTask != null && loadThreadsTask.isRunning()) {
+			loadThreadsTask.cancel();
+		}
+
+		final boolean isUnreadList = includes.size() == 1 && includes.iterator().next().getId().equals(unread.getId());
+		final Set<H> previousThreads = this.threads;
+		
+		loadThreadsTask = new Task<Set<H>>() {
+			@Override
+			protected Set<H> call() throws InterruptedException, MailException {
+				LOGGER.debug("load for includes {}, excludes {}, pattern: {}, pageMax: {}", includes, excludes, pattern, threadListPage.get());
+				final Set <H> threads = mailService.findThreads(includes, excludes, pattern, threadListPage.get());
+				// if unread list we add the older items even if they are read now
+				if (isUnreadList && !firstLoad.get() && !newFilter.get()) {
+					threads.addAll(previousThreads
+							.stream()
+							.filter(t -> !threads.contains(t))
+							.peek(t -> t.getTagIds().remove(unread.getId()))
+							.collect(Collectors.toList()));
+				}
+				return threads;
+			}
+		};
+		loadThreadsTask.setOnFailed(e -> LOGGER.error("load thread list", e.getSource().getException()));
+		loadThreadsTask.setOnSucceeded(e -> {
+			if (taskId == loadThreadsTaskId.get()) {
+				threadListPane.setAll(loadThreadsTask.getValue());
+			}
+		});
+		ThreadPool.getDefault().submit(PoolPriority.MAX, "load thread list", loadThreadsTask);
+	}
+
+	public void loadPage(final int page) {
+		threadListPage.set(page);
+		loadThreads();
 	}
 }

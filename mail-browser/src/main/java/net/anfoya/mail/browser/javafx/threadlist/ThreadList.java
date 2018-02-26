@@ -23,8 +23,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.util.Duration;
 import net.anfoya.java.util.VoidCallback;
-import net.anfoya.java.util.concurrent.ThreadPool;
-import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.javafx.scene.animation.DelayTimeline;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
 import net.anfoya.mail.model.SimpleThread.SortField;
@@ -137,11 +135,6 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 		load();
 	}
 
-	public void loadPage(final int page) {
-		this.page = page;
-		load();
-	}
-
 	public boolean isDraft() {
 		return includes.size() == 1 && includes.iterator().next().getId().equals(draftTagId);
 	}
@@ -185,30 +178,8 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 		getSelectionModel().selectedItemProperty().addListener((ov, n, o) -> callback.run());
 	}
 
-	private synchronized void load() {
-		final long taskId = loadTaskId.incrementAndGet();
-		if (loadTask != null && loadTask.isRunning()) {
-			loadTask.cancel();
-		}
-		loadTask = new Task<Set<H>>() {
-			@Override
-			protected Set<H> call() throws InterruptedException, MailException {
-				LOGGER.debug("load for includes {}, excludes {}, pattern: {}, pageMax: {}", includes, excludes, pattern, page);
-				final Set <H> threads = mailService.findThreads(includes, excludes, pattern, page);
-				return threads;
-			}
-		};
-		loadTask.setOnFailed(e -> LOGGER.error("load thread list", e.getSource().getException()));
-		loadTask.setOnSucceeded(e -> {
-			if (taskId == loadTaskId.get()) {
-				refresh(loadTask.getValue());
-			}
-		});
-		ThreadPool.getDefault().submit(PoolPriority.MAX, "load thread list", loadTask);
-	}
-
-	private void refresh(final Set<H> threads) {
-		// save current selected thread list (or selected index in case GmailMoreThreads is selected)
+	public void setAll(final Set<H> threads) {
+		// save current selected thread list and selected index in case of GmailMoreThreads
 		selectedIndex.set(getSelectionModel().getSelectedIndex());
 		selectedIds.clear();
 		selectedIds.addAll(getSelectionModel().getSelectedItems()
@@ -231,8 +202,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 		Collections.sort(sortedThreads, sortOrder.getComparator());
 
 		// display
-		getItems().clear();
-		getItems().addAll(sortedThreads);
+		getItems().setAll(sortedThreads);
 
 		// request focus on first load
 		if (firstLoad) {
