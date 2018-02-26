@@ -111,7 +111,8 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 		});
 
 		getItems().addListener((final Change<? extends H> c) -> {
-			setFocusTraversable(!getItems().isEmpty());
+			LOGGER.info("updated list size {}", c.getList().size());
+			setFocusTraversable(!c.getList().isEmpty());
 			restoreSelection();
 		});
 	}
@@ -230,8 +231,10 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 		Collections.sort(sortedThreads, sortOrder.getComparator());
 
 		// display
-		getItems().setAll(sortedThreads);
+		getItems().clear();
+		getItems().addAll(sortedThreads);
 
+		// request focus on first load
 		if (firstLoad) {
 			firstLoad  = false;
 			if (focusTraversableProperty().get()) {
@@ -244,7 +247,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 
 	private void restoreSelection() {
 		LOGGER.debug("previously selected index ({})", selectedIndex);
-		LOGGER.debug("previously selected threads {}", selectedIds);
+		LOGGER.debug("previously selected thread ids {}", selectedIds);
 
 		if (getItems().isEmpty()) {
 			getSelectionModel().clearSelection();
@@ -258,43 +261,52 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 			restoreRegularSelection();
 		}
 
-		LOGGER.debug("selected thread indices {}", getSelectionModel().getSelectedIndices().toArray());
+		LOGGER.info("restored selection with list of index {}", getSelectionModel().getSelectedIndices());
 	}
 
 	private void restoreRegularSelection() {
-		synchronized(getItems()) {
-			final boolean singleSelect = getItems()
+		final int index = Math.max(0, selectedIndex.get());
+		final boolean singleSelect = getItems()
+				.stream()
+				.filter(t -> selectedIds.contains(t.getId()))
+				.mapToInt(t -> getItems().indexOf(t))
+				.filter(i -> i != -1)
+				.count() == 1;
+
+		// try to select the same item(s) as before
+		int[] indices = getItems()
+				.stream()
+				.filter(t -> selectedIds.contains(t.getId()) && (!singleSelect || !t.isUnread()))
+				.mapToInt(t -> getItems().indexOf(t))
+				.filter(i -> i != -1)
+				.toArray();
+
+		if (indices.length == 0 && !isUnreadList) {
+			// try to find the closest following unread thread
+			indices = getItems().subList(index, getItems().size())
 					.stream()
-					.filter(t -> selectedIds.contains(t.getId()))
-					.count() == 1;
-	
-			// try to select the same item(s) as before
-			getSelectionModel().selectIndices(-1, getItems()
-					.stream()
-					.filter(t -> selectedIds.contains(t.getId()) && (!singleSelect || !t.isUnread()))
+					.filter(t -> !t.isUnread())
 					.mapToInt(t -> getItems().indexOf(t))
-					.toArray());
-	
-			if (!isUnreadList && singleSelect && getSelectionModel().isEmpty()) {
-				// try to find the closest following unread thread
-				getItems()
-					.subList(selectedIndex.get(), getItems().size())
-					.stream()
-					.filter(t -> !t.isUnread())
+					.filter(i -> i != -1)
 					.findFirst()
-					.ifPresent(t -> getSelectionModel().selectIndices(getItems().indexOf(t)));
-			}
-	
-			if (!isUnreadList && singleSelect && getSelectionModel().isEmpty()) {
-				// try to find the closest preceding unread thread
-				getItems()
-					.subList(0, selectedIndex.get())
+					.stream()
+					.toArray();
+		}
+
+		if (indices.length == 0 && !isUnreadList) {
+			// try to find the closest preceding unread thread
+			indices = getItems().subList(0, index)
 					.stream()
 					.filter(t -> !t.isUnread())
-					.reduce((t1, t2) -> t2)
-					.ifPresent(t -> getSelectionModel().selectIndices(getItems().indexOf(t)));
-			}
+					.sorted(Collections.reverseOrder())
+					.mapToInt(t -> getItems().indexOf(t))
+					.filter(i -> i != -1)
+					.findFirst()
+					.stream()
+					.toArray();
 		}
+
+		getSelectionModel().selectIndices(-1, indices);
 	}
 
 	private void selectFirstOfAddedSet() {
