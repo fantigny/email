@@ -28,8 +28,8 @@ import javafx.application.Platform;
 import javafx.concurrent.Worker.State;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.image.Image;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
@@ -57,7 +57,7 @@ public class GmailLogin {
 
 		httpTransport = new NetHttpTransport();
 		jsonFactory = new JacksonFactory();
-		
+
 		// workaround Google login issue -- https://stackoverflow.com/questions/44905264/cannot-sign-in-to-google-in-javafx-webview
 		System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
 	}
@@ -104,7 +104,7 @@ public class GmailLogin {
 			final Stage stage = new Stage(StageStyle.UNIFIED);
 			stage.setTitle(" loading...");
 			stage.getIcons().add(new Image(getClass().getResourceAsStream("googlemail-64.png")));
-			stage.setScene(new Scene(webView, 450, 650));
+			stage.setScene(new Scene(webView, 550, 800));
 
 			final WebEngine webEngine = webView.getEngine();
 			webEngine.getLoadWorker().stateProperty().addListener((ov, o, n) -> {
@@ -116,7 +116,7 @@ public class GmailLogin {
 						stage.close();
 					}
 				} else if (n == State.FAILED) {
-					Throwable exception = webEngine.getLoadWorker().getException();
+					final Throwable exception = webEngine.getLoadWorker().getException();
 					final String msg = exception == null? n.toString(): exception.toString();
 					Platform.runLater(() -> new Alert(AlertType.ERROR, msg, ButtonType.OK).showAndWait());
 				}
@@ -137,7 +137,7 @@ public class GmailLogin {
 		} catch (final InterruptedException e) {
 			LOGGER.error("wait for credentials", e);
 		}
-		
+
 		return sb.toString();
 	}
 
