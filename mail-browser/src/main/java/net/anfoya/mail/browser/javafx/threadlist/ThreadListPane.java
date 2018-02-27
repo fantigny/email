@@ -4,6 +4,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -12,7 +13,6 @@ import javafx.scene.image.Image;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DataFormat;
 import javafx.scene.input.Dragboard;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.FlowPane;
@@ -30,25 +30,23 @@ import net.anfoya.javafx.scene.dnd.DndHelper;
 import net.anfoya.mail.browser.controller.vo.TagForThreadsVo;
 import net.anfoya.mail.browser.javafx.BrowserToolBar;
 import net.anfoya.mail.browser.javafx.MailBrowser.Mode;
-import net.anfoya.mail.browser.javafx.settings.Settings;
+import net.anfoya.mail.browser.javafx.thread.ThreadToolBar;
 import net.anfoya.mail.model.SimpleTag;
 import net.anfoya.mail.model.SimpleThread.SortField;
-import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
-import net.anfoya.mail.service.MailService;
-import net.anfoya.mail.service.Message;
-import net.anfoya.mail.service.Section;
 import net.anfoya.mail.service.Tag;
 import net.anfoya.mail.service.Thread;
 import net.anfoya.tag.javafx.scene.dnd.ExtItemDropPane;
 
-public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends BorderPane {
+public class ThreadListPane<T extends Tag, H extends Thread> extends BorderPane {
 	public static final DataFormat DND_THREADS_DATA_FORMAT = new DataFormat("DND_THREADS_DATA_FORMAT");
 
 	private final ThreadList<T, H> threadList;
 	private final ResetTextField patternField;
 
-	private final BrowserToolBar<S, T, M, C> toolBar;
+	private final BrowserToolBar toolBar;
+	private final BooleanProperty showToolBarProperty;
+
 	private final ThreadListDropPane threadListDropPane;
 
 	private DelayTimeline patternDelay;
@@ -62,19 +60,23 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 	private VoidCallback<Set<H>> toggleSpamCallback;
 
 	private VoidCallback<Set<H>> openCallback;
-	private VoidCallback<Set<H>> editCallback;
 
 	private VoidCallback<TagForThreadsVo<T, H>> addTagForThreadsCallBack;
 	private VoidCallback<TagForThreadsVo<T, H>> createTagForThreadsCallBack;
 
-	public ThreadListPane(final MailService<S, T, H, M, C> mailService
-			, final UndoService undoService
-			, final Settings settings) throws MailException {
+	private final DisconnectedPane disconnectedPane;
+
+
+	public ThreadListPane(final UndoService undoService) throws MailException {
 		patternField = new ResetTextField();
 		patternField.setPromptText("thread search");
 
-		threadList = new ThreadList<>(mailService);
-		threadList.setOnMouseClicked(e -> threadListClicked(e));
+		threadList = new ThreadList<>();
+		threadList.setOnMouseClicked(e -> {
+			if (e.getClickCount() > 1) {
+				openCallback.call(getSelectedThreads());
+			}
+		});
 		threadList.setOnDragDetected(e -> {
 			final ClipboardContent content = new ClipboardContent();
 			content.put(ExtItemDropPane.ADD_TAG_DATA_FORMAT, "");
@@ -115,12 +117,13 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		setCenter(centerPane);
 
 		centerPane.getChildren().add(new UndoPane(undoService));
-		centerPane.getChildren().add(new DisconnectedPane(mailService));
+
+		disconnectedPane = new DisconnectedPane();
 
 		final VBox topBox = new VBox();
 		setTop(topBox);
 
-		toolBar = new BrowserToolBar<>(mailService, undoService, settings);
+		toolBar = new BrowserToolBar();
 		toolBar.setVisibles(true, false, false);
 
 		final HBox firstLineBox = new HBox(patternField, toolBar);
@@ -139,11 +142,9 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		toolbar.setOnTrash(e -> trashCallback.call(getSelectedThreads()));
 		toolbar.setOnSpam(e -> toggleSpamCallback.call(getSelectedThreads()));
 
-		final BooleanProperty showToolbar = settings.showToolbar();
-		if (showToolbar.get()) {
-			topBox.getChildren().add(toolbar);
-		}
-		showToolbar.addListener((ov, o, n) -> {
+	//	final BooleanProperty showToolbar = settings.showToolbar();
+		showToolBarProperty = new SimpleBooleanProperty();
+		showToolBarProperty.addListener((ov, o, n) -> {
 			if (n) {
 				topBox.getChildren().add(toolbar);
 			} else {
@@ -195,23 +196,6 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		setMargin(sortPane, new Insets(5));
 	}
 
-	private void threadListClicked(MouseEvent e) {
-		final Set<H> threads = getSelectedThreads();
-		if (threads.isEmpty()) {
-			return;
-		}
-
-		e.consume();
-
-		if (e.getClickCount() > 1) {
-			if (threadList.isDraft()) {
-				editCallback.call(threads);
-			} else {
-				openCallback.call(threads);
-			}
-		}
-	}
-
 	public void setOnArchive(VoidCallback<Set<H>> callback) {
 		archiveCallback = callback;
 	}
@@ -244,24 +228,12 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 		addTagForThreadsCallBack = callback;
 	}
 
-	public String getNamePattern() {
+	public String getSearchPattern() {
 		return patternField.getText();
-	}
-
-	public void refreshWithTags(final Set<T> includes, final Set<T> excludes) {
-		threadList.load(includes, excludes, patternField.getText());
-	}
-
-	public void refreshWithPage(final int page) {
-		threadList.loadPage(page);
 	}
 
 	public int getThreadCount() {
 		return threadList.getItems().size();
-	}
-
-	public Set<T> getMoviesTags() {
-		return threadList.getThreadsTags();
 	}
 
 	public Set<H> getSelectedThreads() {
@@ -278,10 +250,6 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 
 	public void setOnOpen(final VoidCallback<Set<H>> callback) {
 		this.openCallback = callback;
-	}
-
-	public void setOnEdit(final VoidCallback<Set<H>> callback) {
-		this.editCallback = callback;
 	}
 
 	public void setOnLoad(final Runnable callback) {
@@ -318,5 +286,29 @@ public class ThreadListPane<S extends Section, T extends Tag, H extends Thread, 
 
 	public void setOnCompose(Runnable callback) {
 		toolBar.setOnCompose(callback);
+	}
+
+	public void setAll(Set<H> threads) {
+		threadList.setAll(threads);
+	}
+
+	public BooleanProperty disconnectedProperty() {
+		return disconnectedPane.disconnectedProperty();
+	}
+
+	public void setOnReconnect(Runnable callback) {
+		disconnectedPane.setOnReconnect(callback);
+	}
+
+	public void setOnShowSettings(Runnable callback) {
+		toolBar.setOnShowSettings(callback);
+	}
+
+	public void setOnSignout(Runnable callback) {
+		toolBar.setOnSignout(callback);
+	}
+
+	public BooleanProperty showToolBarProperty() {
+		return showToolBarProperty;
 	}
 }

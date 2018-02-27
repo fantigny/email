@@ -34,10 +34,12 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 
 	private final FixedSplitPane splitPane;
 	private final SectionListPane<S, T> sectionListPane;
-	private final ThreadListPane<S, T, H, M, C> threadListPane;
+	private final ThreadListPane<T, H> threadListPane;
 	private final ThreadPane<S, T, H, M, C> threadPane;
 
 	private final ReadOnlyObjectWrapper<Mode> modeProperty;
+
+	private Runnable signoutCallback;
 
 	public MailBrowser(final MailService<S, T, H, M, C> mailService
 			, final NotificationService notificationService
@@ -62,7 +64,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		sectionListPane.setLazyCount(true);
 		splitPane.getPanes().add(sectionListPane);
 
-		threadListPane = new ThreadListPane<>(mailService, undoService, settings);
+		threadListPane = new ThreadListPane<>(undoService);
 		threadListPane.setPrefWidth(settings.threadListPaneWidth().get());
 		threadListPane.prefHeightProperty().bind(splitPane.heightProperty());
 		splitPane.getPanes().add(threadListPane);
@@ -132,7 +134,11 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 	}
 
 	public void setOnSignout(final Runnable callback) {
-		threadPane.setOnSignout(callback);
+		signoutCallback = callback;
+	}
+
+	public void signout( ) {
+		signoutCallback.run();
 	}
 
 	private void toggleViewMode(final KeyEvent e) {

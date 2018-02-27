@@ -33,7 +33,6 @@ import net.anfoya.mail.browser.controller.vo.TagForThreadsVo;
 import net.anfoya.mail.browser.javafx.BrowserToolBar;
 import net.anfoya.mail.browser.javafx.message.MessagePane;
 import net.anfoya.mail.browser.javafx.settings.Settings;
-import net.anfoya.mail.browser.javafx.threadlist.ThreadToolBar;
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
@@ -56,7 +55,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 
 	private final MailService<S, T, H, M, C> mailService;
 
-	private final BrowserToolBar<S, T, M, C> browserToolBar;
+	private final BrowserToolBar browserToolBar;
 	private final ThreadToolBar threadToolBar;
 
 	private final HBox iconBox;
@@ -112,7 +111,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		subjectField.prefWidthProperty().bind(widthProperty());
 		subjectField.setEditable(false);
 
-		browserToolBar = new BrowserToolBar<>(mailService, undoService, settings);
+		browserToolBar = new BrowserToolBar();
 		browserToolBar.setVisibles(false, true, true);
 
 		final HBox subjectBox = new HBox(iconBox, subjectField, browserToolBar);
@@ -379,5 +378,9 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 
 	public void setOnRemoveTagForThreads(VoidCallback<TagForThreadsVo<T, H>> callback) {
 		this.removeTagForThreadsCallback = callback;
+	}
+
+	public void setOnShowSettings(Runnable callback) {
+		browserToolBar.setOnShowSettings(callback);
 	}
 }

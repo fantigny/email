@@ -4,13 +4,13 @@ import java.net.URLStreamHandler;
 import java.net.URLStreamHandlerFactory;
 import java.util.StringTokenizer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import net.anfoya.java.net.url.filter.Matcher;
 import net.anfoya.java.net.url.handler.FilteredHttpHandler;
 import net.anfoya.java.net.url.handler.FilteredHttpsHandler;
 import net.anfoya.java.net.url.handler.StartHandler;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class CustomHandlerFactory implements URLStreamHandlerFactory {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CustomHandlerFactory.class);
@@ -73,7 +73,7 @@ public class CustomHandlerFactory implements URLStreamHandlerFactory {
 		            }
 		        }
 		        if (cls != null) {
-		            handler = (URLStreamHandler)cls.newInstance();
+		            handler = (URLStreamHandler) cls.getConstructor().newInstance();
 		        }
 		    } catch (final Exception e) {
 		        // any number of exceptions can get thrown here

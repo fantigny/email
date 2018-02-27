@@ -83,7 +83,7 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		this.undoService = undoService;
 		this.settings = settings;
 
-		idTasks = new ConcurrentHashMap<PoolPriority, Collection<String>>();
+		idTasks = new ConcurrentHashMap<>();
 
 		tabPane = new TabPane(buildSettingsTab(), buildProxyTab(), buildAboutTab(), buildHelpTab(), buildTaskTab());
 		tabPane.setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
@@ -100,7 +100,7 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 	}
 
 	private Tab buildTaskTab() {
-		final ListView<String> taskList = new ListView<String>();
+		final ListView<String> taskList = new ListView<>();
 		taskList.setPlaceholder(new Label("idle"));
 		for(final PoolPriority p: PoolPriority.values()) {
 			ThreadPool.getDefault().addOnChange(p, map -> Platform.runLater(() -> taskList.getItems().setAll(getTasks(p, map))));
