@@ -188,9 +188,8 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 					.filter(t -> !t.isUnread())
 					.mapToInt(t -> getItems().indexOf(t))
 					.filter(i -> i != -1)
-					.findFirst()
-					.stream()
 					.toArray();
+			indices = indices.length == 1? indices: new int[] { indices[0] };
 		}
 
 		if (indices.length == 0 && !wasSingleSelection) {
@@ -201,9 +200,8 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 					.sorted(Collections.reverseOrder())
 					.mapToInt(t -> getItems().indexOf(t))
 					.filter(i -> i != -1)
-					.findFirst()
-					.stream()
 					.toArray();
+			indices = indices.length == 1? indices: new int[] { indices[0] };
 		}
 
 		getSelectionModel().selectIndices(-1, indices);
