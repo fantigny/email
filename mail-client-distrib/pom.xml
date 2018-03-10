@@ -90,7 +90,7 @@
 									<runtime dir="/home/dell/jre/osx64/Contents/Home" />
 								</bundleapp>
 								<zip destfile="target/FisherMail-osx64.zip">
-									<zipfileset dir="target/FisherMail.app" prefix="FisherMail.app"/>
+									<zipfileset dir="target" includes="/isherMail.app"/>
 								</zip>
 								<zip destfile="target/FisherMail-win64.zip">
 									<zipfileset dir="/home/dell/jre/win32" prefix="jre"/>
