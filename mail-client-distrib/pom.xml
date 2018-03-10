@@ -89,6 +89,9 @@
 									<option value="-Xmx1g" />
 									<runtime dir="/home/dell/jre/osx64/Contents/Home" />
 								</bundleapp>
+								<copy todir="/target/FisherMail.app/Contents/PlugIns/osx64/Contents/Home">
+									<fileset dir="/home/dell/jre/osx64/Contents/Home/conf" />
+								</copy>
 								<zip destfile="target/FisherMail-osx64.zip">
 									<zipfileset dir="target/FisherMail.app" prefix="FisherMail.app"/>
 								</zip>
