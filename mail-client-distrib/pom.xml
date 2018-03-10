@@ -72,13 +72,19 @@
 						<phase>install</phase>
 						<configuration>
 							<target>
-								<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
-									classpathref="maven.plugin.classpath" />
-								<bundleapp outputdirectory="target" name="FisherMail"
-									displayname="FisherMail"
-									icon="../mail-common/src/main/resources/net/anfoya/mail/img/Mail.icns"
-									identifier="net.anfoya.mail-client" shortversion="1.0"
-									copyright="ANFOYA.net" mainclassname="net.anfoya.mail.client.javafx.entrypoint.MailClient">
+								<taskdef
+										name="bundleapp"
+										classname="com.oracle.appbundler.AppBundlerTask"
+										classpathref="maven.plugin.classpath" />
+								<bundleapp
+										outputdirectory="target"
+										name="FisherMail"
+										displayname="FisherMail"
+										icon="../mail-common/src/main/resources/net/anfoya/mail/img/Mail.icns"
+										identifier="net.anfoya.mail-client"
+										shortversion="2.0"
+										copyright="speederpan"
+										mainclassname="net.anfoya.mail.client.javafx.entrypoint.MailClient">
 									<classpath file="target/FisherMail.jar" />
 									<option value="-Xmx1g" />
 									<runtime dir="../../jre/mac_jre1.8.0_60/Contents/Home" />
@@ -100,9 +106,9 @@
 				</executions>
 				<dependencies>
 					<dependency>
-						<groupId>com.oracle</groupId>
+						<groupId>com.panayotis</groupId>
 						<artifactId>appbundler</artifactId>
-						<version>1.0ea</version>
+						<version>1.0.1</version>
 					</dependency>
 				</dependencies>
 			</plugin>
