@@ -47,9 +47,9 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<groupId>sh.tak.appbundler</groupId>
-				<artifactId>appbundle-maven-plugin</artifactId>
-				<version>1.2.0</version>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>osxappbundle-maven-plugin</artifactId>
+				<version>1.0-alpha-2</version>
 				<configuration>
 					<mainClass>net.anfoya.mail.client.javafx.entrypoint.MailClient</mainClass>
 					<iconFile>../mail-common/src/main/resources/net/anfoya/mail/img/Mail.ico</iconFile>
