@@ -52,9 +52,9 @@
 				<version>1.2.0</version>
 				<configuration>
 					<mainClass>net.anfoya.mail.client.javafx.entrypoint.MailClient</mainClass>
-					<dictionaryFile>../../../mail-client/src/main/resources/Info.plist</dictionaryFile>
+					<dictionaryFile>Info.plist</dictionaryFile>
 					<iconFile>../mail-common/src/main/resources/net/anfoya/mail/img/Mail.ico</iconFile>
-					<jrePath>/home/dell/jre/osx64</jrePath>
+					<!-- jrePath>/home/dell/jre/osx64</jrePath-->
 					<generateDiskImageFile>true</generateDiskImageFile>
 				</configuration>
 				<executions>
