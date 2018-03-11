@@ -64,24 +64,6 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<groupId>sh.tak.appbundler</groupId>
-				<artifactId>appbundle-maven-plugin</artifactId>
-				<version>1.0.1</version>
-				<configuration>
-					<mainClass>net.anfoya.mail.client.javafx.entrypoint.MailClient</mainClass>
-					<jrePath>/home/dell/jre/osx64/Contents/Home</jrePath>
-					<generateDiskImageFile>true</generateDiskImageFile>
-				</configuration>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>bundle</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
 			    <groupId>org.apache.maven.plugins</groupId>
 			    <artifactId>maven-antrun-plugin</artifactId>
 			    <version>1.8</version>
@@ -108,7 +90,7 @@
 									<runtime dir="/home/dell/jre/osx64/Contents/Home" />
 								</bundleapp>
 								<copy todir="target/FisherMail.app/Contents/PlugIns/osx64/Contents/Home/conf">
-									<fileset dir="/home/dell/jre/osx64/Contents/Home/conf" />
+									<zipfileset dir="/home/dell/jre/osx64/Contents/Home/conf" />
 								</copy>
 								<zip destfile="target/FisherMail-osx64.zip">
 									<zipfileset dir="target/FisherMail.app" prefix="FisherMail.app"/>
