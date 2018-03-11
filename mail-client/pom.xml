@@ -52,6 +52,7 @@
 				<version>1.2.0</version>
 				<configuration>
 					<mainClass>net.anfoya.mail.client.javafx.entrypoint.MailClient</mainClass>
+					<dictionaryFile>Info.plist</dictionaryFile>
 					<iconFile>../mail-common/src/main/resources/net/anfoya/mail/img/Mail.ico</iconFile>
 					<jrePath>/home/dell/jre/osx64</jrePath>
 					<generateDiskImageFile>true</generateDiskImageFile>
