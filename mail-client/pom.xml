@@ -1,6 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	
+
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.anfoya</groupId>
 	<artifactId>mail-client</artifactId>
@@ -21,7 +21,7 @@
 					<target>1.8</target>
 				</configuration>
 			</plugin>
-		 	<plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
 				<version>2.4</version>
@@ -32,7 +32,8 @@
 							<outputFile>target/FisherMail.jar</outputFile>
 							<shadedArtifactAttached>true</shadedArtifactAttached>
 							<transformers>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 									<manifestEntries>
 										<main-class>net.anfoya.mail.client.javafx.entrypoint.MailClient</main-class>
 									</manifestEntries>
@@ -45,12 +46,32 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>sh.tak.appbundler</groupId>
+				<artifactId>appbundle-maven-plugin</artifactId>
+				<version>1.2.0</version>
+				<configuration>
+					<mainClass>net.anfoya.mail.client.javafx.entrypoint.MailClient</mainClass>
+					<iconFile>../mail-common/src/main/resources/net/anfoya/mail/img/Mail.ico</iconFile>
+					<jrePath>/home/dell/jre/osx64/Contents/Home</jrePath>
+					<generateDiskImageFile>true</generateDiskImageFile>
+					<dictionaryFile>osx/info.plist</dictionaryFile>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>bundle</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 		<resources>
-		     <resource>
-		        <directory>src/main/resources</directory>
-		        <filtering>true</filtering>
-		     </resource>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
 		</resources>
 	</build>
 
@@ -59,18 +80,18 @@
 			<groupId>net.anfoya</groupId>
 			<artifactId>mail-common</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
-		</dependency>	
+		</dependency>
 		<dependency>
 			<groupId>net.anfoya</groupId>
 			<artifactId>mail-composer</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
-		</dependency>	
+		</dependency>
 		<dependency>
 			<groupId>net.anfoya</groupId>
 			<artifactId>mail-browser</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
-		</dependency>	
-	
+		</dependency>
+
 		<!-- compile -->
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
