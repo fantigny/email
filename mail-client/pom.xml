@@ -55,7 +55,7 @@
 					<iconFile>../mail-common/src/main/resources/net/anfoya/mail/img/Mail.ico</iconFile>
 					<jrePath>/home/dell/jre/osx64</jrePath>
 					<generateDiskImageFile>true</generateDiskImageFile>
-					<dictionaryFile>osx/info.plist</dictionaryFile>
+					<dictionaryFile>info.plist</dictionaryFile>
 				</configuration>
 				<executions>
 					<execution>
