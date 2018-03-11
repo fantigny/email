@@ -36,7 +36,7 @@
 						<configuration>
 							<headerType>gui</headerType>
 							<outfile>target/FisherMail.exe</outfile>
-							<jar>target/FisherMail.jar</jar>
+							<jar>../mail-client/target/FisherMail.jar</jar>
 							<errTitle>FisherMail Error</errTitle>
 							<classPath>
 								<mainClass>net.anfoya.mail.client.javafx.entrypoint.MailClient</mainClass>
