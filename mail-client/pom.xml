@@ -53,7 +53,7 @@
 				<configuration>
 					<mainClass>net.anfoya.mail.client.javafx.entrypoint.MailClient</mainClass>
 					<iconFile>../mail-common/src/main/resources/net/anfoya/mail/img/Mail.ico</iconFile>
-					<jrePath>/home/dell/jre/osx64/Contents/Home</jrePath>
+					<jrePath>/home/dell/jre/osx64</jrePath>
 					<generateDiskImageFile>true</generateDiskImageFile>
 					<dictionaryFile>osx/info.plist</dictionaryFile>
 				</configuration>
