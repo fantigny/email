@@ -89,7 +89,7 @@
 									<option value="-Xmx1g" />
 									<runtime dir="/home/dell/jre/osx64/Contents/Home" />
 								</bundleapp>
-								<!-- workaround for java9 security conf
+								<!-- workaround for java9 bundle missing security conf
 								 copy todir="target/FisherMail.app/Contents/PlugIns/osx64/Contents/Home/conf">
 									<fileset dir="/home/dell/jre/osx64/Contents/Home/conf" />
 								</copy -->
