@@ -72,10 +72,16 @@
 						<phase>install</phase>
 						<configuration>
 							<target>
+								<!-- get mail-client shaded jar -->
+								<copy todir="target">
+									<fileset dir="../mail-client/target" includes="FisherMail.jar"/>
+								</copy>
+								<!-- prepare Oracle task for Mac bundle -->
 								<taskdef
 										name="bundleapp"
 										classname="com.oracle.appbundler.AppBundlerTask"
 										classpathref="maven.plugin.classpath" />
+								<!-- bundle for Mac -->
 								<bundleapp
 										outputdirectory="target"
 										name="FisherMail"
