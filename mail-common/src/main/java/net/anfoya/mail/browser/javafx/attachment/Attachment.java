@@ -14,7 +14,7 @@ import javax.mail.internet.MimeUtility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sun.mail.util.BASE64DecoderStream;
+import com.sun.xml.internal.messaging.saaj.packaging.mime.util.BASE64DecoderStream;
 
 import net.anfoya.mail.service.Contact;
 import net.anfoya.mail.service.MailException;

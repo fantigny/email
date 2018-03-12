@@ -29,7 +29,7 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sun.mail.util.BASE64DecoderStream;
+import com.sun.xml.internal.messaging.saaj.packaging.mime.util.BASE64DecoderStream;
 
 public class MessageReader {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessageReader.class);
@@ -40,8 +40,8 @@ public class MessageReader {
 	private final Set<String> attachmentNames;
 
 	public MessageReader() {
-		cidUris = new HashMap<String, String>();
-		attachmentNames = new LinkedHashSet<String>();
+		cidUris = new HashMap<>();
+		attachmentNames = new LinkedHashSet<>();
 	}
 
 	public String toHtml(final MimeMessage message) throws IOException, MessagingException {
