@@ -151,7 +151,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	public ReadOnlyBooleanProperty disconnectedProperty() {
 		try {
 			return historyService.disconnected();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			return new ReadOnlyBooleanWrapper(true);
 		}
 	}
@@ -169,7 +169,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public Set<GmailThread> findThreads(final Set<GmailTag> includes, final Set<GmailTag> excludes, final String pattern, final int pageMax) throws GMailException {
 		try {
-			final Set<GmailThread> threads = new LinkedHashSet<GmailThread>();
+			final Set<GmailThread> threads = new LinkedHashSet<>();
 			if (includes.isEmpty() && pattern.isEmpty()) { //TODO && excludes.isEmpty()) {
 				return threads;
 			}
@@ -211,7 +211,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 					LOGGER.error("no message for thread {}", t.toPrettyString());
 				} else {
 					for(final Message m: t.getMessages()) {
-						final List<String> cleaned = new ArrayList<String>();
+						final List<String> cleaned = new ArrayList<>();
 						if (m.getLabelIds() == null) {
 							LOGGER.error("no label for message id: {}", m.getId());
 						} else {
@@ -266,7 +266,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	public Set<GmailSection> getSections() throws GMailException {
 		try {
 			final Collection<Label> labels = labelService.getAll();
-			final Set<GmailSection> alphaSections = new TreeSet<GmailSection>();
+			final Set<GmailSection> alphaSections = new TreeSet<>();
 			for(final Label label: labels) {
 				if (!GmailSection.isHidden(label)) {
 					final GmailSection section = new GmailSection(label);
@@ -280,7 +280,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 				}
 			}
 
-			final Set<GmailSection> sections = new LinkedHashSet<GmailSection>();
+			final Set<GmailSection> sections = new LinkedHashSet<>();
 			sections.add(GmailSection.SYSTEM);
 			sections.addAll(alphaSections);
 
@@ -295,7 +295,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	public Set<GmailSection> getHiddenSections() throws GMailException {
 		try {
 			final Collection<Label> labels = labelService.getAll();
-			final Set<GmailSection> hiddenSections = new TreeSet<GmailSection>();
+			final Set<GmailSection> hiddenSections = new TreeSet<>();
 			for(final Label label: labels) {
 				if (GmailSection.isHidden(label)) {
 					final GmailSection section = new GmailSection(label);
@@ -337,7 +337,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 				.filter(s -> !s.isEmpty())
 				.map(String::toLowerCase)
 				.collect(Collectors.toSet());
-		final Set<GmailTag> tags = new TreeSet<GmailTag>();
+		final Set<GmailTag> tags = new TreeSet<>();
 		Set<Label> labels;
 		try {
 			labels = labelService.getAll()
@@ -363,7 +363,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public Set<GmailTag> getHiddenTags() throws GMailException {
 		try {
-			final Set<GmailTag> tags = new TreeSet<GmailTag>();
+			final Set<GmailTag> tags = new TreeSet<>();
 			final Collection<Label> labels = labelService.getAll();
 			for(final Label l: labels) {
 				if (GmailTag.isHidden(l)) {
@@ -384,7 +384,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			final Set<GmailTag> tags;
 			final Collection<Label> labels = labelService.getAll();
 			if (GmailSection.SYSTEM.equals(section)) {
-				final Set<GmailTag> systemTags = new HashSet<GmailTag>();
+				final Set<GmailTag> systemTags = new HashSet<>();
 				systemTags.add(GmailTag.ALL);
 				for(final Label label: labels) {
 					final String name = label.getName();
@@ -409,7 +409,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 				}
 				tags = sortSystemTags(systemTags);
 			} else {
-				tags = new TreeSet<GmailTag>();
+				tags = new TreeSet<>();
 				for(final Label label: labels) {
 					if (!GmailTag.isHidden(label) && !GmailTag.isSystem(label)) {
 						final String name = label.getName();
@@ -458,8 +458,8 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	private Set<GmailTag> sortSystemTags(final Set<GmailTag> tags) {
-		final Set<GmailTag> alphaTags = new TreeSet<GmailTag>(tags);
-		final Set<GmailTag> sorted = new LinkedHashSet<GmailTag>();
+		final Set<GmailTag> alphaTags = new TreeSet<>(tags);
+		final Set<GmailTag> sorted = new LinkedHashSet<>();
 
 		for(final GmailTag t: SYSTEM_TAG_ORDER) {
 			if (alphaTags.contains(t)) {
@@ -602,7 +602,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	public void addTagForThreads(final GmailTag tag, final Set<GmailThread> threads) throws GMailException {
 		try {
 			final Set<String> threadIds = threads.stream().map(GmailThread::getId).collect(Collectors.toSet());
-			final Set<String> labelIds = new HashSet<String>();
+			final Set<String> labelIds = new HashSet<>();
 			labelIds.add(tag.getId());
 			threadService.update(threadIds, labelIds, true);
 		} catch (final ThreadException e) {
@@ -614,7 +614,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	public void removeTagForThreads(final GmailTag tag, final Set<GmailThread> threads) throws GMailException {
 		try {
 			final Set<String> threadIds = threads.stream().map(GmailThread::getId).collect(Collectors.toSet());
-			final Set<String> labelIds = new HashSet<String>();
+			final Set<String> labelIds = new HashSet<>();
 			labelIds.add(tag.getId());
 			threadService.update(threadIds, labelIds, false);
 		} catch (final ThreadException e) {
@@ -750,7 +750,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	public void archive(final Set<GmailThread> threads) throws GMailException {
 		try {
 			final Set<String> ids = threads.stream().map(GmailThread::getId).collect(Collectors.toSet());
-			final Set<String> labelIds = new HashSet<String>();
+			final Set<String> labelIds = new HashSet<>();
 			labelIds.add(GmailTag.INBOX.getId());
 			threadService.update(ids, labelIds, false);
 		} catch (final ThreadException e) {
@@ -796,7 +796,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public void addOnNewMessage(final Callback<Set<GmailThread>, Void> callback) {
 		historyService.addOnAddedMessage(mSet -> {
-			final Set<GmailThread> threads = new LinkedHashSet<GmailThread>();
+			final Set<GmailThread> threads = new LinkedHashSet<>();
 			mSet.forEach(m -> {
 				final Thread t;
 				try {
@@ -856,7 +856,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public Set<GmailContact> getContacts() throws GMailException {
 		try {
-			final Set<GmailContact> contacts = new LinkedHashSet<GmailContact>();
+			final Set<GmailContact> contacts = new LinkedHashSet<>();
 			for(final ContactEntry c: contactService.getAll()) {
 				if (c.getEmailAddresses() != null
 						&& c.getName() != null
