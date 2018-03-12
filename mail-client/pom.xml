@@ -46,26 +46,6 @@
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-				<groupId>sh.tak.appbundler</groupId>
-				<artifactId>appbundle-maven-plugin</artifactId>
-				<version>1.2.0</version>
-				<configuration>
-					<mainClass>net.anfoya.mail.client.javafx.entrypoint.MailClient</mainClass>
-					<dictionaryFile>Info.plist</dictionaryFile>
-					<iconFile>../mail-common/src/main/resources/net/anfoya/mail/img/Mail.ico</iconFile>
-					<jrePath>/home/dell/jre/osx64</jrePath>
-					<generateDiskImageFile>true</generateDiskImageFile>
-				</configuration>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>bundle</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
 		</plugins>
 		<resources>
 			<resource>
