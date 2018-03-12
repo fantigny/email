@@ -16,7 +16,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import net.anfoya.java.io.SerializedFile;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class FileSerieSerializedMap<K extends Serializable, V extends Serializable> implements Map<K, V>{
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileSerieSerializedMap.class);
@@ -33,19 +32,19 @@ public class FileSerieSerializedMap<K extends Serializable, V extends Serializab
 	public FileSerieSerializedMap(final String filepathPrefix, final int fileCreationThreshold) {
 		threshold = fileCreationThreshold;
 		filenamePattern = filepathPrefix + "-%s";
-		delegate = new HashMap<K, V>();
+		delegate = new HashMap<>();
 
 		dicoFilename = String.format(filenamePattern, "dico");
 		List<K> dico;
 		try {
 			dico = new SerializedFile<List<K>>(dicoFilename).load();
 		} catch (ClassNotFoundException | IOException e) {
-			dico = new ArrayList<K>();
+			dico = new ArrayList<>();
 		}
 		this.dico = dico;
 
-		loaded = new ArrayList<Boolean>();
-		saved = new ArrayList<Boolean>();
+		loaded = new ArrayList<>();
+		saved = new ArrayList<>();
 		for(int i=0, n=dico.size(); i<n; i++) {
 			loaded.add(false);
 			saved.add(true);
@@ -68,7 +67,7 @@ public class FileSerieSerializedMap<K extends Serializable, V extends Serializab
 
 			for(int i=0, n=saved.size(); i<n; i++) {
 				if (!saved.get(i)) {
-					final Map<K, V> map = new HashMap<K, V>();
+					final Map<K, V> map = new HashMap<>();
 					final int fileIndex = i / threshold;
 					final int start = threshold * fileIndex;
 					final int end = Math.min(start + threshold, saved.size());
@@ -199,21 +198,21 @@ public class FileSerieSerializedMap<K extends Serializable, V extends Serializab
 
 	@Override
 	public synchronized Set<K> keySet() {
-		return Collections.unmodifiableSet(new HashSet<K>(dico));
+		return Collections.unmodifiableSet(new HashSet<>(dico));
 	}
 
 	@Override
 	public synchronized boolean containsValue(final Object value) {
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public Collection<V> values() {
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public Set<Entry<K, V>> entrySet() {
-		throw new NotImplementedException();
+		throw new UnsupportedOperationException();
 	}
 }
