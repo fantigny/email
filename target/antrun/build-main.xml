@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="maven-antrun-" default="main"  >
+<target name="main">
+  <copy todir="target">
+    <fileset includes="FisherMail.jar" dir="mail-client/target"/>
+  </copy>
+  <taskdef classname="com.oracle.appbundler.AppBundlerTask" name="bundleapp" classpathref="maven.plugin.classpath"/>
+  <bundleapp identifier="net.anfoya.mail-client" copyright="speederpan" displayname="FisherMail" mainclassname="net.anfoya.mail.client.javafx.entrypoint.MailClient" outputdirectory="target" name="FisherMail" icon="mail-common/src/main/resources/net/anfoya/mail/img/Mail.icns" shortversion="2.0">
+    <classpath file="target/FisherMail.jar"/>
+    <option value="-Xmx1g"/>
+    <runtime dir="/home/dell/jre/osx64/Contents/Home"/>
+  </bundleapp>
+  <zip destfile="target/FisherMail-osx64.zip">
+    <zipfileset prefix="FisherMail.app" dir="target/FisherMail.app"/>
+    <zipfileset prefix="FisherMail.app/Contents/MacOS" includes="JavaAppLauncher" filemode="744" dir="target/FisherMail.app/Contents/MacOS"/>
+  </zip>
+  <zip destfile="target/FisherMail-win64.zip">
+    <zipfileset prefix="jre" dir="/home/dell/jre/win64"/>
+    <zipfileset fullpath="FisherMail.exe" includes="FisherMail.exe" dir="target"/>
+  </zip>
+  <zip destfile="target/FisherMail-win32.zip">
+    <zipfileset prefix="jre" dir="/home/dell/jre/win32"/>
+    <zipfileset fullpath="FisherMail.exe" includes="FisherMail.exe" dir="target"/>
+  </zip>
+  <mkdir dir="distrib"/>
+  <copy todir="distrib">
+    <fileset includes="*.zip,*.jar,*.exe" dir="target"/>
+  </copy>
+</target>
+</project>

@@ -114,7 +114,6 @@
 								<mkdir dir="distrib" />
 								<copy todir="distrib">
 									<fileset dir="target" includes="*.zip,*.jar,*.exe"/>
-									<fileset dir="/var/lib/jenkins/workspace/mail-client-distrib/mail-client/target/" includes="mail-client-1.0.160129-alpha.dmg" />
 								</copy>
 							</target>
 						</configuration>
