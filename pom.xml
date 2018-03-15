@@ -113,7 +113,7 @@
 								</zip>
 								<mkdir dir="distrib" />
 								<copy todir="distrib">
-									<fileset dir="target" includes="*.zip,*.jar,*.exe,*.txt”/>
+									<fileset dir="target" includes="*.zip,*.jar,*.exe,*.txt" />
 								</copy>
 							</target>
 						</configuration>
