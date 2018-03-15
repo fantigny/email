@@ -41,7 +41,7 @@
 							<classPath>
 								<mainClass>net.anfoya.mail.client.javafx.entrypoint.MailClient</mainClass>
 							</classPath>
-							<icon>../mail-common/src/main/resources/net/anfoya/mail/img/Mail.ico</icon>
+							<icon>mail-common/src/main/resources/net/anfoya/mail/img/Mail.ico</icon>
 							<jre>
 								<path>jre</path>
 								<minVersion>1.8.0</minVersion>
@@ -74,7 +74,7 @@
 							<target>
 								<!-- get mail-client shaded jar -->
 								<copy todir="target">
-									<fileset dir="../mail-client/target" includes="FisherMail.jar"/>
+									<fileset dir="mail-client/target" includes="FisherMail.jar"/>
 								</copy>
 								<!-- prepare Oracle task for Mac bundle -->
 								<taskdef
@@ -86,7 +86,7 @@
 										outputdirectory="target"
 										name="FisherMail"
 										displayname="FisherMail"
-										icon="../mail-common/src/main/resources/net/anfoya/mail/img/Mail.icns"
+										icon="mail-common/src/main/resources/net/anfoya/mail/img/Mail.icns"
 										identifier="net.anfoya.mail-client"
 										shortversion="2.0"
 										copyright="speederpan"
