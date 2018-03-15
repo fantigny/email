@@ -34,11 +34,10 @@ import net.anfoya.mail.service.MailService;
 
 @SuppressWarnings("serial")
 public class Settings implements Serializable {
-	public static final String DOWNLOAD_URL = "http://fishermail.anfoya.net/?page_id=12";
+	public static final String DOWNLOAD_URL = "http://fishermail.speederpan.com/distrib";
 
 	public static final String VERSION_TXT_RESOURCE = "/version.txt";
-//	public static final String VERSION_TXT_URL = "https://www.dropbox.com/s/tpknt8yxfhnlwhm/version.txt?dl=1";
-	public static final String VERSION_TXT_URL = "http://google.com";
+	public static final String VERSION_TXT_URL = "http://speederpan.com/fishermail/distrib/version.txt"; // not masked
 
 	private static final String SND_PATH = "/net/anfoya/mail/snd/";
 	public static final String MP3_NEW_MAIL = Settings.class.getResource(SND_PATH + "new_mail.mp3").toExternalForm();
@@ -75,14 +74,14 @@ public class Settings implements Serializable {
 
 	private final StringProperty sectionName;
 	private final StringProperty tagName;
-	
+
 	private final BooleanProperty proxyEnabled;
 	private final BooleanProperty proxyBasicAuth;
 	private final StringProperty proxyHost;
 	private final IntegerProperty proxyPort;
 	private final StringProperty proxyUser;
 	private final StringProperty proxyPasswd;
-	
+
 	public Settings(MailService<?, ?, ?, ?, ?> mailService) {
 		this.mailService = mailService;
 
@@ -107,7 +106,7 @@ public class Settings implements Serializable {
 		date = new SimpleLongProperty();
 		sectionName = new SimpleStringProperty("");
 		tagName = new SimpleStringProperty("");
-		
+
 		proxyEnabled = new SimpleBooleanProperty(false);
 		proxyBasicAuth = new SimpleBooleanProperty(false);
 		proxyHost = new SimpleStringProperty();
@@ -117,7 +116,7 @@ public class Settings implements Serializable {
 	}
 
 	public List<?> toList() {
-		final List<Object> list = new ArrayList<Object>();
+		final List<Object> list = new ArrayList<>();
 		Collections.addAll(list
 				, showToolbar.get()
 				, showExcludeBox.get()
@@ -181,7 +180,7 @@ public class Settings implements Serializable {
 		if (i.hasNext()) { proxyPasswd			.set((String) 	i.next()); }
 		if (i.hasNext()) { proxyBasicAuth		.set((Boolean) 	i.next()); }
 	}
-	
+
 	public void load() {
 		try {
 			fromList(new SerializedFile<List<Object>>(FILENAME).load());

@@ -24,7 +24,7 @@ public class VersionHelper {
 	private final ReadOnlyBooleanWrapper isLatest;
 
 	private final Timer timer;
-	
+
 	private String myVersion;
 	private String latestVersion;
 
@@ -34,11 +34,19 @@ public class VersionHelper {
 		isLatest = new ReadOnlyBooleanWrapper(true);
 		timer = new Timer("version-checker", true);
 	}
-	
+
 	public void start() {
-		timer.scheduleAtFixedRate(new TimerTask() { @Override public void run() { refresh(); } }, 0, REFRESH_DELAY);
+		timer.scheduleAtFixedRate(new TimerTask() {
+			@Override public void run() {
+				try {
+					refresh();
+				} catch (final VersionException e) {
+					LOGGER.error(e.getMessage(), e);
+				}
+			}
+		}, 0, REFRESH_DELAY);
 	}
-	
+
 	public void stop() {
 		timer.cancel();
 	}
@@ -55,13 +63,13 @@ public class VersionHelper {
 		return isLatest.getReadOnlyProperty();
 	}
 
-	public void refresh() {
+	public void refresh() throws VersionException {
 		if (myVersion.isEmpty()) {
 			try (final InputStream in = getClass().getResourceAsStream(VERSION_TXT_RESOURCE);
 					final BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
 				reader.lines().forEach(l -> myVersion = l);
-			} catch (final IOException e) {
-				LOGGER.error("error read version from {}", VERSION_TXT_RESOURCE, e);
+			} catch (final Exception e) {
+				throw new VersionException("error read version from " + VERSION_TXT_RESOURCE, e);
 			}
 		}
 		try (InputStream in = new URL(VERSION_TXT_URL).openConnection().getInputStream();
@@ -69,7 +77,7 @@ public class VersionHelper {
 			reader.lines().forEach(l -> latestVersion = l);
 		} catch (final IOException e) {
 			latestVersion = myVersion;
-			LOGGER.error("error read version from {}", VERSION_TXT_URL, e);
+			throw new VersionException("error read version from " + VERSION_TXT_URL, e);
 		}
 		isLatest.set(myVersion.equals(latestVersion));
 
