@@ -1,0 +1,236 @@
+/**/
+/**/
+/* common */
+/**/
+/**/
+
+.background {
+    -fx-background-color: #FDFDFD;
+}
+
+.system {
+    -fx-text-fill: darkblue;
+}
+
+.tooltip {
+	-fx-background-radius: 3;
+	-fx-background-color: black;     
+	-fx-text-fill: white;
+	-fx-font-size: 12px;
+	-fx-padding: 4 5 4 5;
+}
+
+.fixed-split-pane *.split-pane-divider {
+    -fx-min-width: 2;
+    -fx-max-width: 2;
+    -fx-background-color: lightgray;
+}
+
+.text-field {
+    -fx-border-width: 0;
+    -fx-background-insets: 0;
+    -fx-background-color: transparent;
+}
+.text-field:hover {
+    -fx-prompt-text-fill: gray;
+}
+.text-field:focused,hover {
+    -fx-prompt-text-fill: transparent;
+}
+
+.list-view {
+    -fx-border-width: 0;
+    -fx-background-insets: 0;
+    -fx-background-color: transparent;
+}
+
+.border-pane {
+    -fx-border-width: 5;
+    -fx-background-insets: 0;
+    -fx-background-color: transparent;
+}
+
+.tool-bar {
+    -fx-background-color: transparent;
+}
+
+.flat-button {
+	-fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-background-insets: -1.4, 0, 1, 2;
+}  
+.button:hover {
+    -fx-background-color: transparent, -fx-outer-border, -fx-inner-border, transparent;
+    -fx-background-insets: -1.4, 0, 1, 2;
+}
+.button:armed {
+    -fx-background-color: transparent, -fx-outer-border, -fx-inner-border, transparent;
+    -fx-background-insets: -1.4, 0, 1, 2;
+}
+
+.label-dnd {
+	-fx-padding: 2 5 2 5;
+	-fx-background-insets: 1 1 1 1;
+	-fx-background-color: white;
+	
+	-fx-border-width: 1;
+	-fx-border-color: black;
+	
+	-fx-text-fill: black;
+	-fx-font-size: 13px;
+}
+
+/* List of removable labels */
+.label-list-pane {	
+}
+.label-list-pane .label {
+    -fx-padding: 2 5 2 5;
+    -fx-background-color: transparent;
+    
+    -fx-border-width: 1;
+    -fx-border-color: darkgray;
+    -fx-border-radius: 5;
+    
+    -fx-text-fill: black;
+    -fx-font-size: 11px;
+}
+.label-list-pane .label:hover {
+    -fx-border-color: black;
+}
+
+/**/
+/**/
+/* mail browser */
+/**/
+/**/
+ 
+/* section accordion */
+.section-accordion {
+    -fx-border-width: 0;
+    -fx-background-insets: 0;
+    -fx-background-color: transparent;
+}
+.section-pane-title {
+}
+.section-pane > .title {
+    -fx-border-width: 0;
+    -fx-background-insets: 0;
+    -fx-font-weight: bold;
+    -fx-background-color: transparent;
+}
+.section-pane-dnd-highlight > .title {
+    -fx-background-color: lightblue;
+}
+.section-pane > *.content {
+    -fx-border-width: 0;
+    -fx-background-insets: 0;
+    -fx-background-color: transparent;
+}
+.tag-list {
+}
+.tag-list .cell:empty {
+	-fx-background-color: transparent;
+}
+
+.tag-list-cell-dnd-highlight {
+	-fx-background-color: lightblue;
+}
+
+/* thread list */
+.thread-list {
+	-fx-padding: 0;
+	-fx-border: 0;
+}
+.thread-list .cell {
+}
+.thread-list .cell:empty {
+	-fx-background-color: transparent;
+}
+
+.thread-list-cell-dnd {
+	-fx-min-width: 300;
+	-fx-max-width: 300;
+	-fx-pref-width: 300;
+	-fx-background-color: white;
+	-fx-border-width: 1;
+	-fx-border-color: black;
+}
+
+.thread-list .cell .date, .thread-list-cell-dnd .date {
+	-fx-font-size: 11px;
+}
+.thread-list .cell .sender, .thread-list-cell-dnd .sender {
+	-fx-font-size: 13px;
+	-fx-font-weight: bold;
+}
+.thread-list .cell .subject, .thread-list-cell-dnd .subject {
+}
+ 
+/* thread pane */
+.thread {
+}
+.thread .message {
+}
+.thread .message .arrow-button {
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-padding: 5 7 7 0;
+}
+.thread .message .arrow {
+    -fx-background-color: -fx-mark-color;
+    -fx-background-insets: 1 0 -1 0, 0;
+    -fx-padding: 0.25em 0.3125em 0.25em 0.3125em; /* 3 3.75 3 3.75 */
+    -fx-shape: "M 0 0 h 7 l -3.5 4 z";
+}
+.thread .message .header {
+    -fx-padding: 5;
+    -fx-background-color: lightgray;
+}
+
+/* undo button */
+.undo {
+    -fx-padding: 2;
+	-fx-opacity: 0.9;
+	-fx-background-radius: 5;
+    -fx-background-color: wheat;
+    -fx-border-width: 0;
+
+    -fx-font-weight: bold;
+    -fx-text-fill: gray;
+}
+.undo:hover {
+    -fx-background-color: lightsalmon;
+    -fx-text-fill: black;
+}
+
+/* disconnected button */
+.disconnected, .disconnected:hover, .disconnected:selected {
+    -fx-padding: 2;
+	-fx-opacity: 0.9;
+	-fx-background-radius: 5;
+    -fx-background-color: lightsalmon;
+    -fx-border-width: 0;
+
+    -fx-font-weight: bold;
+    -fx-text-fill: black;
+}
+
+/**/
+/**/
+/* mail composer */
+/**/
+/**/
+.recipient-list-pane {
+    -fx-border-color: lightgray;
+	-fx-border-width: 0 0 1 0;
+}
+.combofield {
+	-fx-padding: 2;
+}
+.message-editor {
+	-fx-background-color: transparent;
+	-fx-border-width: 0 0 1 0;
+	-fx-border-color: lightgray;
+	-fx-font-size: 11px;
+}
+
