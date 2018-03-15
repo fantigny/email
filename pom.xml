@@ -138,7 +138,7 @@
 									<zipfileset dir="target" includes="FisherMail.exe" fullpath="FisherMail.exe" />
 								</zip>
 								<mkdir dir="distrib" />
-								<copy todir="distrib">
+								<copy todir="distrib" overwrite="true">
 									<fileset dir="target" includes="*.zip,*.jar,*.exe,*.txt" />
 								</copy>
 							</target>
