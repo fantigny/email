@@ -1,0 +1,15 @@
+.button{
+	-fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-background-insets: 0;
+}
+  
+.button:hover {
+    -fx-background-color: transparent, -fx-outer-border, -fx-inner-border, transparent;
+    -fx-background-insets: -1.4, 0, 1, 2;
+}
+ 
+.button:armed {
+    -fx-background-color: transparent, -fx-outer-border, -fx-inner-border, transparent;
+    -fx-background-insets: -1.4, 0, 1, 2;
+}

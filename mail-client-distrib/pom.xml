@@ -1,0 +1,139 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>net.anfoya</groupId>
+	<artifactId>mail-client-distrib</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+
+	<modules>
+		<module>../anfoya-tools</module>
+		<module>../anfoya-tag</module>
+		<module>../anfoya-javafx</module>
+		<module>mail-service-api</module>
+		<module>mail-service-impl</module>
+		<module>mail-common</module>
+		<module>mail-composer</module>
+		<module>mail-browser</module>
+		<module>mail-client</module>
+	</modules>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>com.akathist.maven.plugins.launch4j</groupId>
+				<artifactId>launch4j-maven-plugin</artifactId>
+				<version>1.7.7</version>
+				<executions>
+					<execution>
+						<phase>install</phase>
+						<goals>
+							<goal>launch4j</goal>
+						</goals>
+						<configuration>
+							<headerType>gui</headerType>
+							<outfile>target/FisherMail.exe</outfile>
+							<jar>mail-client/target/FisherMail.jar</jar>
+							<errTitle>FisherMail Error</errTitle>
+							<classPath>
+								<mainClass>net.anfoya.mail.client.javafx.entrypoint.MailClient</mainClass>
+							</classPath>
+							<icon>mail-common/src/main/resources/net/anfoya/mail/img/Mail.ico</icon>
+							<jre>
+								<path>jre</path>
+								<minVersion>1.8.0</minVersion>
+								<initialHeapSize>128</initialHeapSize>
+								<maxHeapSize>1024</maxHeapSize>
+							</jre>
+							<versionInfo>
+								<fileVersion>1.0.0.0</fileVersion>
+								<txtFileVersion>1.0.0.0</txtFileVersion>
+								<fileDescription>Desc</fileDescription>
+								<copyright>ANFOYA.net</copyright>
+								<productVersion>1.0.0.0</productVersion>
+								<txtProductVersion>1.0.0.0</txtProductVersion>
+								<productName>FisherMail</productName>
+								<internalName>net.anfoya.mail-client</internalName>
+								<originalFilename>FisherMail.exe</originalFilename>
+							</versionInfo>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+			    <groupId>org.apache.maven.plugins</groupId>
+			    <artifactId>maven-antrun-plugin</artifactId>
+			    <version>1.8</version>
+				<executions>
+					<execution>
+						<phase>install</phase>
+						<configuration>
+							<target>
+								<!-- get mail-client shaded jar -->
+								<copy todir="target">
+									<fileset dir="mail-client/target" includes="FisherMail.jar"/>
+								</copy>
+								<!-- prepare Oracle task for Mac bundle -->
+								<taskdef
+										name="bundleapp"
+										classname="com.oracle.appbundler.AppBundlerTask"
+										classpathref="maven.plugin.classpath" />
+								<!-- bundle for Mac -->
+								<bundleapp
+										outputdirectory="target"
+										name="FisherMail"
+										displayname="FisherMail"
+										icon="mail-common/src/main/resources/net/anfoya/mail/img/Mail.icns"
+										identifier="net.anfoya.mail-client"
+										shortversion="2.0"
+										copyright="speederpan"
+										mainclassname="net.anfoya.mail.client.javafx.entrypoint.MailClient">
+									<classpath file="target/FisherMail.jar" />
+									<option value="-Xmx1g" />
+									<runtime dir="/home/dell/jre/osx64/Contents/Home" />
+								</bundleapp>
+								<!-- workaround for java9 bundle missing security conf
+								 copy todir="target/FisherMail.app/Contents/PlugIns/osx64/Contents/Home/conf">
+									<fileset dir="/home/dell/jre/osx64/Contents/Home/conf" />
+								</copy -->
+								<!-- build osx64 and make sure of exec premission -->
+								<zip destfile="target/FisherMail-osx64.zip">
+									<zipfileset dir="target/FisherMail.app" prefix="FisherMail.app"/>
+									<zipfileset dir="target/FisherMail.app/Contents/MacOS" includes="JavaAppLauncher" prefix="FisherMail.app/Contents/MacOS" filemode="744" />
+								</zip>
+								<!-- build win64 -->
+								<zip destfile="target/FisherMail-win64.zip">
+									<zipfileset dir="/home/dell/jre/win64" prefix="jre" />
+									<zipfileset dir="target" includes="FisherMail.exe" fullpath="FisherMail.exe" />
+								</zip>
+								<!-- build win32 -->
+								<zip destfile="target/FisherMail-win32.zip">
+									<zipfileset dir="/home/dell/jre/win32" prefix="jre"/>
+									<zipfileset dir="target" includes="FisherMail.exe" fullpath="FisherMail.exe" />
+								</zip>
+								<mkdir dir="distrib" />
+								<copy todir="distrib">
+									<fileset dir="target" includes="*.zip,*.jar,*.exe"/>
+									<fileset dir="/var/lib/jenkins/workspace/mail-client-distrib/mail-client/target/" includes="mail-client-1.0.160129-alpha.dmg" />
+								</copy>
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>com.panayotis</groupId>
+						<artifactId>appbundler</artifactId>
+						<version>1.0.1</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+		</plugins>
+	</build>
+</project>

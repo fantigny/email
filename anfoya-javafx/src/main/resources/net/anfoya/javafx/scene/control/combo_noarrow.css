@@ -1,0 +1,11 @@
+
+.combo-noarrow .arrow, .combo-noarrow .arrow-button  {
+    -fx-width: 0;
+    -fx-background-color: transparent;
+    -fx-cursor: text;
+}
+
+.combo-noarrow {
+    -fx-background-color: transparent;
+}
+
