@@ -1,5 +1,4 @@
-# fishermail
-FiseherMail - multiplatform e-mail client
+# FisherMail - cross-platform e-mail client
 
 continuous integration http://jenkins.speederpan.com/
 
