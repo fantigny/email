@@ -32,7 +32,6 @@
 							<outputFile>target/FisherMail.jar</outputFile>
 							<shadedArtifactAttached>true</shadedArtifactAttached>
 							<shadedClassifierName>jar-with-dependencies</shadedClassifierName>
-							<minimizeJar>true</minimizeJar>
 							<transformers>
 								<transformer
 									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
