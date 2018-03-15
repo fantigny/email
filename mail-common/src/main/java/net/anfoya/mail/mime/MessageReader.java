@@ -63,13 +63,9 @@ public class MessageReader {
 
 	private StringBuilder toHtml(final Part part, boolean isHtml) throws IOException, MessagingException {
 		final Object content = part.getContent();
-		final String type = part.getContentType()
-				.toLowerCase()
-				.replaceAll("[\\r,\\n]", "")
-				.replaceAll("\\t", " ");
-		isHtml = isHtml || type.contains("multipart/alternative");
-		LOGGER.info("isHtml({}) type({}) part/content({}/{})", isHtml, type, part.getClass(), content.getClass());
-		if (part instanceof Multipart || type.contains("multipart")) {
+		isHtml = isHtml || part.isMimeType("multipart/alternative");
+		LOGGER.info("isHtml({}) type({}) part/content({}/{})", isHtml, part.getContentType(), part.getClass(), content.getClass());
+		if (part instanceof Multipart || part.isMimeType("multipart/*")) {
 			final Multipart parts = (Multipart) content;
 			final StringBuilder html = new StringBuilder();
 			for(int i=0, n=parts.getCount(); i<n; i++) {
@@ -78,9 +74,9 @@ public class MessageReader {
 			return html;
 		}
 		if (content instanceof String) {
-			final boolean isPlainContent = type.contains("text/plain");
+			final boolean isPlainContent = part.isMimeType("text/plain");
 			if (isHtml && isPlainContent) {
-				LOGGER.info("discard {}", type);
+				LOGGER.info("discard {}", part.getContentType());
 				return new StringBuilder();
 			}
 
@@ -112,7 +108,7 @@ public class MessageReader {
 		}
 		if (part instanceof MimeBodyPart && content instanceof BASE64DecoderStream) {
 			final MimeBodyPart bodyPart = (MimeBodyPart) part;
-			if (type.contains("text/calendar")) {
+			if (part.isMimeType("text/calendar")) {
 				final File file = File.createTempFile("event-", ".ics", new File(TEMP));
 				LOGGER.info("save inline calendar {}", file);
 				bodyPart.saveFile(file);
@@ -133,7 +129,7 @@ public class MessageReader {
 					final File file = new File(TEMP + filename);
 					LOGGER.info("save inline file {}", file);
 					bodyPart.saveFile(file);
-					if (type.contains("image/")) {
+					if (part.isMimeType("image/*")) {
 						return new StringBuilder("<img src='").append(file.toURI()).append("'>");
 					} else {
 						return buildImgAnchor(file);
@@ -147,7 +143,7 @@ public class MessageReader {
 			}
 		}
 
-		LOGGER.warn("not handled {}/{}", type, content.getClass());
+		LOGGER.warn("not handled {}/{}", part.getContentType(), content.getClass());
 		return new StringBuilder();
 	}
 
