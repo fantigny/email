@@ -1,6 +1,6 @@
 # FisherMail
 cross-platform e-mail client
 
-continuous integration http://jenkins.speederpan.com/
+http://jenkins.speederpan.com/
 
-downloads http://fishermail.speederpan.com/distrib
+http://fishermail.speederpan.com/distrib
