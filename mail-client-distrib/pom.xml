@@ -9,6 +9,15 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
+	
+	<modules>
+		<module>../mail-service-api</module>
+		<module>../mail-service-impl</module>
+		<module>../mail-common</module>
+		<module>../mail-composer</module>
+		<module>../mail-browser</module>
+		<module>../mail-client</module>
+	</modules>
 
 	<dependencies>
 		<dependency>
