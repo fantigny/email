@@ -174,6 +174,7 @@
 							<finalName>distrib</finalName>
 							<outputDirectory>${project.basedir}</outputDirectory>
 		                    <appendAssemblyId>false</appendAssemblyId>
+							<attach>false</attach>
 							<descriptors>
 								<descriptor>assembly-distrib.xml</descriptor>
 							</descriptors>
