@@ -1,0 +1,186 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>net.anfoya</groupId>
+	<artifactId>mail-client-distrib</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+	
+	<modules>
+		<module>../mail-service-api</module>
+		<module>../mail-service-impl</module>
+		<module>../mail-common</module>
+		<module>../mail-composer</module>
+		<module>../mail-browser</module>
+		<module>../mail-client</module>
+	</modules>
+
+	<dependencies>
+		<dependency>
+			<groupId>net.anfoya</groupId>
+			<artifactId>mail-client</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.7.0</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+
+			<!-- build self contained executable JAR -->
+			<plugin>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<configuration>
+							<outputFile>target/FisherMail.jar</outputFile>
+							<shadedArtifactAttached>true</shadedArtifactAttached>
+							<shadedClassifierName>jar-with-dependencies</shadedClassifierName>
+							<transformers>
+								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+									<manifestEntries>
+										<main-class>net.anfoya.mail.client.javafx.entrypoint.MailClient</main-class>
+									</manifestEntries>
+								</transformer>
+							</transformers>
+						</configuration>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- build windows binary(x86,x64) from self contained executable JAR -->
+			<plugin>
+				<groupId>com.akathist.maven.plugins.launch4j</groupId>
+				<artifactId>launch4j-maven-plugin</artifactId>
+				<version>1.7.7</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>launch4j</goal>
+						</goals>
+						<configuration>
+							<headerType>gui</headerType>
+							<jar>target/FisherMail.jar</jar>
+							<outfile>target/FisherMail.exe</outfile>
+							<errTitle>FisherMail Error</errTitle>
+							<classPath>
+								<mainClass>net.anfoya.mail.client.javafx.entrypoint.MailClient</mainClass>
+							</classPath>
+							<icon>../mail-common/src/main/resources/net/anfoya/mail/img/Mail.ico</icon>
+							<jre>
+								<path>jre</path>
+								<minVersion>1.8.0</minVersion>
+								<initialHeapSize>128</initialHeapSize>
+								<maxHeapSize>1024</maxHeapSize>
+							</jre>
+							<versionInfo>
+								<fileVersion>1.0.0.0</fileVersion>
+								<txtFileVersion>1.0.0.0</txtFileVersion>
+								<fileDescription>Desc</fileDescription>
+								<copyright>speederpan.com</copyright>
+								<productVersion>1.0.0.0</productVersion>
+								<txtProductVersion>1.0.0.0</txtProductVersion>
+								<productName>FisherMail</productName>
+								<internalName>FisherMail</internalName>
+								<originalFilename>FisherMail.exe</originalFilename>
+							</versionInfo>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- build macOs binary(x64) from self contained executable JAR -->
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.8</version>
+				<dependencies>
+					<dependency>
+						<groupId>com.panayotis</groupId>
+						<artifactId>appbundler</artifactId>
+						<version>1.0.1</version>
+					</dependency>
+				</dependencies>
+				<executions>
+					<execution>
+						<id>macAppBundle</id>
+						<phase>package</phase>
+						<configuration>
+							<target>
+								<!-- create App bundle for Mac -->
+								<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
+									classpathref="maven.plugin.classpath" />
+								<bundleapp outputdirectory="target" name="FisherMail"
+									displayname="FisherMail"
+									icon="../mail-common/src/main/resources/net/anfoya/mail/img/Mail.icns"
+									identifier="net.anfoya.mail-client" shortversion="2.0"
+									copyright="speederpan.com" mainclassname="net.anfoya.mail.client.javafx.entrypoint.MailClient">
+									<classpath file="../mail-client/target/FisherMail.jar" />
+									<option value="-Xmx1g" />
+									<runtime dir="/home/dell/jre/osx64/Contents/Home" />
+								</bundleapp>
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			
+			<!-- create deliverables -->
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<id>build-platform-dependent-packages</id>
+						<phase>install</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<finalName>FisherMail</finalName>
+							<descriptors>
+								<descriptor>assembly-osx64.xml</descriptor>
+								<descriptor>assembly-win32.xml</descriptor>
+								<descriptor>assembly-win64.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>
+					<execution>
+						<id>move-to-distrib</id>
+						<phase>install</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<finalName>distrib</finalName>
+							<outputDirectory>${project.basedir}</outputDirectory>
+		                    <appendAssemblyId>false</appendAssemblyId>
+							<descriptors>
+								<descriptor>assembly-distrib.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>

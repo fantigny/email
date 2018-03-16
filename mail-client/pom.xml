@@ -5,55 +5,29 @@
 	<groupId>net.anfoya</groupId>
 	<artifactId>mail-client</artifactId>
 	<packaging>jar</packaging>
-	<version>1.0.160129-alpha</version>
+	<version>0.0.1-SNAPSHOT</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<fishermail.version>1.0.180315-alpha</fishermail.version>
 	</properties>
 
 	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.1</version>
-				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.1.0</version>
-				<executions>
-					<execution>
-						<phase>install</phase>
-						<configuration>
-							<outputFile>target/FisherMail.jar</outputFile>
-							<shadedArtifactAttached>true</shadedArtifactAttached>
-							<shadedClassifierName>jar-with-dependencies</shadedClassifierName>
-							<transformers>
-								<transformer
-									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<manifestEntries>
-										<main-class>net.anfoya.mail.client.javafx.entrypoint.MailClient</main-class>
-									</manifestEntries>
-								</transformer>
-							</transformers>
-						</configuration>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
 		<resources>
 			<resource>
 				<directory>src/main/resources</directory>
 				<filtering>true</filtering>
 			</resource>
 		</resources>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.7.0</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+		</plugins>
 	</build>
 
 	<dependencies>

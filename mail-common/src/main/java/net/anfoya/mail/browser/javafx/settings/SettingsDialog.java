@@ -5,7 +5,7 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,15 +102,20 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 	private Tab buildTaskTab() {
 		final ListView<String> taskList = new ListView<>();
 		taskList.setPlaceholder(new Label("idle"));
-		for(final PoolPriority p: PoolPriority.values()) {
-			ThreadPool.getDefault().addOnChange(p, map -> Platform.runLater(() -> taskList.getItems().setAll(getTasks(p, map))));
-		}
-		return new Tab("tasks", taskList);
-	}
 
-	private Set<String> getTasks(PoolPriority priority, Map<Future<?>, String> map) {
-		idTasks.put(priority, map.values());
-		return (Set<String>) idTasks.values().stream().reduce(new LinkedHashSet<String>(), (a, c) -> a.addAll(c)? a: a);
+		for(final PoolPriority p: PoolPriority.values()) {
+			ThreadPool.getDefault().addOnChange(p, map -> {
+				idTasks.put(p, map.values());
+				final Set<String> tasks = idTasks
+						.values()
+						.stream()
+						.flatMap(v -> v.stream())
+						.collect(Collectors.toSet());
+				Platform.runLater(() -> taskList.getItems().setAll(tasks));
+			});
+		}
+
+		return new Tab("tasks", taskList);
 	}
 
 	private Tab buildHelpTab() {
@@ -122,14 +127,13 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 	}
 
 	private Tab buildAboutTab() {
-		final VersionHelper checker = new VersionHelper();
 		final ImageView image = new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/img/Mail.png")));
 
 		final Text fishermail = new Text("FisherMail                         ");
 		fishermail.setFont(Font.font("Amble Cn", FontWeight.BOLD, 32));
 		fishermail.setFill(Color.web("#555555"));
 
-		final Text version = new Text(checker.getMyVersion() + "                     ");
+		final Text version = new Text();
 		version.setFont(Font.font("Amble Cn", FontWeight.NORMAL, 18));
 		version.setFill(Color.web("#555555"));
 
@@ -152,12 +156,19 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		GridPane.setVgrow(textPane, javafx.scene.layout.Priority.ALWAYS);
 		gridPane.add(textPane, 1, 0);
 
+		final VersionHelper checker = new VersionHelper();
 		checker.isLastest().addListener((ov, o, n) -> {
 			if (!n) {
 				Platform.runLater(() -> addVersionMessage(gridPane, checker.getLatestVersion()));
 			}
 		});
-		checker.start();
+		try {
+			checker.refresh();
+			version.setText(checker.getMyVersion() + "                     ");
+		} catch (final VersionException e) {
+			version.setText("error reading version number");
+			LOGGER.error(e.getMessage(), e);
+		}
 
 		return new Tab("about", gridPane);
 	}
@@ -172,11 +183,12 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 			hyperlink.setVisited(false);
 		});
 
-		final FlowPane newVersionPane = new FlowPane(newLabel, hyperlink);
-		newVersionPane.setPadding(new Insets(0, 0, 5, 10));
+		final FlowPane newVersionPane = new FlowPane(0, 0, newLabel, hyperlink);
+		newVersionPane.setPadding(new Insets(0, 0, 6, 10));
+
+		gridPane.add(newVersionPane, 0, 2);
 		GridPane.setColumnSpan(newVersionPane, 2);
 		GridPane.setHalignment(newVersionPane, HPos.CENTER);
-		gridPane.add(newVersionPane, 0, 2);
 	}
 
 	private Tab buildSettingsTab() {
