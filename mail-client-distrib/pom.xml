@@ -41,7 +41,8 @@
 							<shadedArtifactAttached>true</shadedArtifactAttached>
 							<shadedClassifierName>jar-with-dependencies</shadedClassifierName>
 							<transformers>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 									<manifestEntries>
 										<main-class>net.anfoya.mail.client.javafx.entrypoint.MailClient</main-class>
 									</manifestEntries>
@@ -134,11 +135,14 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 			<!-- create deliverables -->
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>3.1.0</version>
+				<configuration>
+					<argLine>-Xmx1024m</argLine>
+				</configuration>
 				<executions>
 					<execution>
 						<id>build-platform-dependent-packages</id>
@@ -149,6 +153,7 @@
 						<configuration>
 							<finalName>FisherMail</finalName>
 							<descriptors>
+								<descriptor>assembly-osx64.xml</descriptor>
 								<descriptor>assembly-win32.xml</descriptor>
 								<descriptor>assembly-win64.xml</descriptor>
 							</descriptors>
@@ -163,7 +168,7 @@
 						<configuration>
 							<finalName>distrib</finalName>
 							<outputDirectory>${project.basedir}</outputDirectory>
-		                    <appendAssemblyId>false</appendAssemblyId>
+							<appendAssemblyId>false</appendAssemblyId>
 							<descriptors>
 								<descriptor>assembly-distrib.xml</descriptor>
 							</descriptors>
