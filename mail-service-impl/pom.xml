@@ -48,10 +48,6 @@
 					<groupId>com.google.oauth-client</groupId>
 					<artifactId>google-oauth-client-java6</artifactId>
 				</exclusion>
-				<exclusion>
-					<groupId>com.google.guava</groupId>
-					<artifactId>guava</artifactId>
-				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
