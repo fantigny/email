@@ -131,7 +131,7 @@
 									icon="../mail-common/src/main/resources/net/anfoya/mail/img/Mail.icns"
 									identifier="net.anfoya.mail-client" shortversion="2.0"
 									copyright="speederpan.com" mainclassname="net.anfoya.mail.client.javafx.entrypoint.MailClient">
-									<classpath file="../mail-client/target/FisherMail.jar" />
+									<classpath file="target/FisherMail.jar" />
 									<option value="-Xmx1g" />
 									<runtime dir="/home/dell/jre/osx64/Contents/Home" />
 								</bundleapp>
