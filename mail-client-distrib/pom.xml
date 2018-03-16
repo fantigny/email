@@ -147,6 +147,7 @@
 							<goal>single</goal>
 						</goals>
 						<configuration>
+          <archiveBaseDirectory>${project.basedir}</archiveBaseDirectory>
 							<finalName>FisherMail</finalName>
 							<descriptors>
 								<descriptor>assembly-osx64.xml</descriptor>
@@ -162,6 +163,7 @@
 							<goal>single</goal>
 						</goals>
 						<configuration>
+          <archiveBaseDirectory>${project.basedir}</archiveBaseDirectory>
 							<finalName>distrib</finalName>
 							<outputDirectory>${project.basedir}</outputDirectory>
 		                    <appendAssemblyId>false</appendAssemblyId>
