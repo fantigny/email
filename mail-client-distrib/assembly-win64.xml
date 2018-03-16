@@ -13,7 +13,7 @@
 	</fileSets>
 	<files>
 		<file>
-			<source>target/FisherMail.jar</source>
+			<source>target/FisherMail.exe</source>
 			<outputDirectory></outputDirectory>
 		</file>
 	</files>
