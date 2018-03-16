@@ -157,6 +157,7 @@
 						</goals>
 						<configuration>
 							<finalName>FisherMail</finalName>
+							<attach>false</attach>
 							<descriptors>
 								<descriptor>assembly-osx64.xml</descriptor>
 								<descriptor>assembly-win32.xml</descriptor>
