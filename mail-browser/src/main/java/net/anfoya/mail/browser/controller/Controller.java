@@ -60,6 +60,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 	private final T flagged;
 	private final T spam;
 	private final T unread;
+	private final T draft;
 
 	private MailBrowser<S, T, H, M, C> mailBrowser;
 	private SectionListPane<S, T> sectionListPane;
@@ -82,6 +83,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		flagged = mailService.getSpecialTag(SpecialTag.FLAGGED);
 		spam = mailService.getSpecialTag(SpecialTag.SPAM);
 		unread = mailService.getSpecialTag(SpecialTag.UNREAD);
+		draft = mailService.getSpecialTag(SpecialTag.DRAFT);
 	}
 
 	public void init() {
@@ -195,9 +197,9 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 	}
 
 	private void open(Set<H> threads) {
-		final boolean unreadList = includes.contains(unread);
+		final boolean draftList = includes.contains(draft);
 		threads.forEach(t -> {
-			if (unreadList) {
+			if (draftList) {
 				edit(t);
 			} else {
 				open(t);
