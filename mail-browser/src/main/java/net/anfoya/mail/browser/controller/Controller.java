@@ -699,11 +699,11 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		final int page = newFilter? 1: threadListPage.get();
 		threadListPage.set(page);
 
-		synchronized (includes) {
+		synchronized (this.includes) {
 			this.includes.clear();
 			this.includes.addAll(includes);
 		}
-		synchronized (excludes) {
+		synchronized (this.excludes) {
 			this.excludes.clear();
 			this.excludes.addAll(excludes);
 		}
@@ -748,7 +748,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 					this.threads.clear();
 					this.threads.addAll(threads);
 				}
-				Platform.runLater(() -> threadListPane.setAll(threads));
+				Platform.runLater(() -> threadListPane.setAll(threads, isUnreadList.get()));
 			}
 		});
 		ThreadPool.getDefault().submit(PoolPriority.MAX, "load thread list", loadThreadsTask);
