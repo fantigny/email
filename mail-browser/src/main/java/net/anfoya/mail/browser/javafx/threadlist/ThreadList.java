@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.emory.mathcs.backport.java.util.concurrent.atomic.AtomicBoolean;
 import edu.emory.mathcs.backport.java.util.concurrent.atomic.AtomicInteger;
 import javafx.animation.Animation.Status;
 import javafx.collections.ListChangeListener.Change;
@@ -31,6 +32,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 
 	private final Set<String> selectedIds;
 	private final AtomicInteger selectedIndex;
+	private final AtomicBoolean unread;
 
 	private SortField sortOrder;
 
@@ -57,6 +59,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 
 		selectedIds = new HashSet<>();
 		selectedIndex = new AtomicInteger(-1);
+		unread = new AtomicBoolean();
 
 		setCellFactory(param -> new ThreadListCell<>());
 
@@ -83,7 +86,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 		getItems().addListener((final Change<? extends H> c) -> {
 			LOGGER.info("updated list size {}", c.getList().size());
 			setFocusTraversable(!c.getList().isEmpty());
-			restoreSelection();
+			selectThread();
 		});
 	}
 
@@ -115,8 +118,11 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 		getSelectionModel().selectedItemProperty().addListener((ov, n, o) -> callback.run());
 	}
 
-	public void setAll(final Set<H> threads) {
-		// save current selected thread list and selected index in case of GmailMoreThreads
+	public void setAll(final Set<H> threads, boolean unread) {
+		// allow specific behavior for unread list
+		this.unread.set(unread);
+
+		// save current selected thread list and selected index (in case of GmailMoreThreads)
 		selectedIndex.set(getSelectionModel().getSelectedIndex());
 		selectedIds.clear();
 		selectedIds.addAll(getSelectionModel().getSelectedItems()
@@ -124,10 +130,8 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 				.map(t -> t.getId())
 				.collect(Collectors.toSet()));
 
-		// get list
-		final List<H> sortedThreads = new ArrayList<>(threads);
-
 		// sort
+		final List<H> sortedThreads = new ArrayList<>(threads);
 		Collections.sort(sortedThreads, sortOrder.getComparator());
 
 		// display
@@ -144,7 +148,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 		loadCallback.run();
 	}
 
-	private void restoreSelection() {
+	private void selectThread() {
 		LOGGER.debug("previously selected index ({})", selectedIndex);
 		LOGGER.debug("previously selected thread ids {}", selectedIds);
 
@@ -156,14 +160,36 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 		if (!selectedIds.isEmpty() && selectedIds.iterator().next() == GmailMoreThreads.PAGE_TOKEN_ID) {
 			// user clicked "more thread", new selection is the starts of the new set
 			selectFirstOfAddedSet();
+		} else if (unread.get()) {
+			restoreUnreadSelection();
 		} else {
-			restoreRegularSelection();
+			restoreSelection();
 		}
 
 		LOGGER.info("restored selection with list of index {}", getSelectionModel().getSelectedIndices());
 	}
 
-	private void restoreRegularSelection() {
+	private void restoreUnreadSelection() {
+		final boolean wasSingleSelection = selectedIds.size() == 1;
+		final boolean isMultipleSelection = !wasSingleSelection && getItems()
+				.stream()
+				.filter(t -> selectedIds.contains(t.getId()))
+				.mapToInt(t -> getItems().indexOf(t))
+				.filter(i -> i != -1)
+				.count() > 1;
+
+		// try to select the same item(s) as before
+		final int[] indices = getItems()
+				.stream()
+				.filter(t -> selectedIds.contains(t.getId()) && (!t.isUnread() || isMultipleSelection))
+				.mapToInt(t -> getItems().indexOf(t))
+				.filter(i -> i != -1)
+				.toArray();
+
+		getSelectionModel().selectIndices(-1, indices);
+	}
+
+	private void restoreSelection() {
 		final int index = Math.max(0, selectedIndex.get());
 		final boolean wasSingleSelection = selectedIds.size() == 1;
 		final boolean isMultipleSelection = !wasSingleSelection && getItems()
@@ -181,27 +207,25 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 				.filter(i -> i != -1)
 				.toArray();
 
-		if (indices.length == 0 && !wasSingleSelection) {
+		if (indices.length == 0) {
 			// try to find the closest following unread thread
 			indices = getItems().subList(index, getItems().size())
 					.stream()
-					.filter(t -> !t.isUnread())
 					.mapToInt(t -> getItems().indexOf(t))
 					.filter(i -> i != -1)
 					.toArray();
-			indices = indices.length == 1? indices: new int[] { indices[0] };
+			indices = indices.length < 2? indices: new int[] { indices[0] };
 		}
 
-		if (indices.length == 0 && !wasSingleSelection) {
+		if (indices.length == 0) {
 			// try to find the closest preceding unread thread
 			indices = getItems().subList(0, index)
 					.stream()
-					.filter(t -> !t.isUnread())
 					.sorted(Collections.reverseOrder())
 					.mapToInt(t -> getItems().indexOf(t))
 					.filter(i -> i != -1)
 					.toArray();
-			indices = indices.length == 1? indices: new int[] { indices[0] };
+			indices = indices.length < 2? indices: new int[] { indices[0] };
 		}
 
 		getSelectionModel().selectIndices(-1, indices);
