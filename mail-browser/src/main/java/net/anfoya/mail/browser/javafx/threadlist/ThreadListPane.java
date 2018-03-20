@@ -288,8 +288,8 @@ public class ThreadListPane<T extends Tag, H extends Thread> extends BorderPane 
 		toolBar.setOnCompose(callback);
 	}
 
-	public void setAll(Set<H> threads) {
-		threadList.setAll(threads);
+	public void setAll(Set<H> threads, boolean unread) {
+		threadList.setAll(threads, unread);
 	}
 
 	public BooleanProperty disconnectedProperty() {
