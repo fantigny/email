@@ -25,7 +25,6 @@ import net.anfoya.java.util.VoidCallable;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.javafx.notification.NotificationService;
-import net.anfoya.mail.browser.controller.vo.TagForThreadsVo;
 import net.anfoya.mail.browser.javafx.MailBrowser;
 import net.anfoya.mail.browser.javafx.MailBrowser.Mode;
 import net.anfoya.mail.browser.javafx.message.MailReader;
@@ -130,7 +129,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 
 		threadListPane.setOnToggleFlag(threads -> toggleFlag(threads));
 		threadListPane.setOnToggleSpam(threads -> toggleSpam(threads));
-		threadListPane.setOnAddTagForThreads(vo -> addTagForThreads(vo));
+		threadListPane.setOnAddTagForThreads(vo -> addTagForThreads(vo.getTag(), vo.getThreads()));
 		threadListPane.setOnCreateTagForThreads(vo -> createTagForThreads(vo.getTag().getName(), vo.getThreads()));
 
 		threadListPane.disconnectedProperty().bind(mailService.disconnectedProperty());
@@ -155,7 +154,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		pane.setOnToggleSpam(tSet -> toggleSpam(tSet));
 		pane.setOnOpenUrl(url -> openUrl(url));
 		pane.setOnMarkRead(tSet -> markUnread(tSet));
-		pane.setOnRemoveTagForThreads(vo -> removeTagForThreads(vo));
+		pane.setOnRemoveTagForThreads(vo -> removeTagForThreads(vo.getTag(), vo.getThreads()));
 		pane.setOnShowSettings(() -> showSettingsDialog());
 		pane.setOnSignout(() -> signout());
 	}
@@ -209,16 +208,16 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 
 	private void open(H thread) {
 		final ThreadPane<S, T, H, M, C> pane = createDetachedThreadPane(thread);
-
 		final MailReader mailReader = new MailReader(pane);
 		mailReader.setOnHidden(ev -> threadPanes.remove(pane));
+
 		mailReader.show();
+		pane.refresh(Collections.singleton(thread));
 	}
 
 	private ThreadPane<S, T, H, M, C> createDetachedThreadPane(H thread) {
 		final ThreadPane<S, T, H, M, C> pane = new ThreadPane<>(mailService, undoService, settings);
 		pane.setDetached(true);
-		pane.refresh(Collections.singleton(thread));
 
 		addThreadPane(pane);
 
@@ -318,10 +317,6 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		addTagForThreads(inbox, threads, "not spam", (VoidCallable)null);
 	}
 
-	private void addTagForThreads(TagForThreadsVo<T, H> vo) {
-		addTagForThreads(vo.getTag(), vo.getThreads());
-	}
-
 	private void addTagForThreads(final T tag, final Set<H> threads) {
 		addTagForThreads(tag, threads, "add " + tag.getName(), "remove " + tag.getName());
 	}
@@ -351,10 +346,6 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 			refreshTags();
 		});
 		ThreadPool.getDefault().submit(PoolPriority.MAX, desc, task);
-	}
-
-	private void removeTagForThreads(TagForThreadsVo<T, H> vo) {
-		removeTagForThreads(vo.getTag(), vo.getThreads());
 	}
 
 	private void removeTagForThreads(final T tag, final Set<H> threads) {
@@ -387,8 +378,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 	}
 
 	private void createTagForThreads(final String name, final Set<H> threads) {
-		final Iterator<H> iterator = threads.iterator();
-		final boolean hasInbox = iterator.hasNext() && iterator.next().getTagIds().contains(inbox.getId());
+		final boolean hasInbox = !threads.isEmpty() && threads.iterator().next().getTagIds().contains(inbox.getId());
 		final String desc = "add " + name;
 
 		final Task<T> task = new Task<T>() {

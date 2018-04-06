@@ -28,6 +28,7 @@ import net.anfoya.mail.service.Thread;
 import net.anfoya.tag.javafx.scene.section.SectionListPane;
 
 public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends Scene {
+	private static final int MIN_COLUMN_WIDTH = 200;
 	public enum Mode { FULL, MINI, MICRO }
 
 	private final Settings settings;
@@ -58,19 +59,19 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		splitPane.getStyleClass().add("background");
 
 		sectionListPane = new SectionListPane<>(mailService, undoService, settings.showExcludeBox().get());
-		sectionListPane.setPrefWidth(settings.sectionListPaneWidth().get());
+		sectionListPane.setPrefWidth(Math.max(MIN_COLUMN_WIDTH, settings.sectionListPaneWidth().get()));
 		sectionListPane.setFocusTraversable(false);
 		sectionListPane.setSectionDisableWhenZero(false);
 		sectionListPane.setLazyCount(true);
 		splitPane.getPanes().add(sectionListPane);
 
 		threadListPane = new ThreadListPane<>(undoService);
-		threadListPane.setPrefWidth(settings.threadListPaneWidth().get());
+		threadListPane.setPrefWidth(Math.max(MIN_COLUMN_WIDTH, settings.threadListPaneWidth().get()));
 		threadListPane.prefHeightProperty().bind(splitPane.heightProperty());
 		splitPane.getPanes().add(threadListPane);
 
 		threadPane = new ThreadPane<>(mailService, undoService, settings);
-		threadPane.setPrefWidth(settings.threadPaneWidth().get());
+		threadPane.setPrefWidth(Math.max(MIN_COLUMN_WIDTH, settings.threadPaneWidth().get()));
 		threadPane.setFocusTraversable(false);
 		splitPane.getPanes().add(threadPane);
 
