@@ -208,16 +208,16 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 
 	private void open(H thread) {
 		final ThreadPane<S, T, H, M, C> pane = createDetachedThreadPane(thread);
-
 		final MailReader mailReader = new MailReader(pane);
 		mailReader.setOnHidden(ev -> threadPanes.remove(pane));
+
 		mailReader.show();
+		pane.refresh(Collections.singleton(thread));
 	}
 
 	private ThreadPane<S, T, H, M, C> createDetachedThreadPane(H thread) {
 		final ThreadPane<S, T, H, M, C> pane = new ThreadPane<>(mailService, undoService, settings);
 		pane.setDetached(true);
-		pane.refresh(Collections.singleton(thread));
 
 		addThreadPane(pane);
 
