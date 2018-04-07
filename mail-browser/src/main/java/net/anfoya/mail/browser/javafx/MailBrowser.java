@@ -84,8 +84,8 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 				, settings);
 		controller.setMailBrowser(this);
 		controller.setSectionListPane(sectionListPane);
-		controller.addThreadPane(threadPane);
 		controller.setThreadListPane(threadListPane);
+		controller.addThreadPane(threadPane);
 		controller.init();
 
 		windowProperty().addListener((ov, o, n) -> {
