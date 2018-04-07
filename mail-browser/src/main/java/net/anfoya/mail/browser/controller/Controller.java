@@ -738,7 +738,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 					this.threads.clear();
 					this.threads.addAll(threads);
 				}
-				Platform.runLater(() -> threadListPane.setAll(threads, isUnreadList.get()));
+				threadListPane.setAll(threads, isUnreadList.get());
 			}
 		});
 		ThreadPool.getDefault().submit(PoolPriority.MAX, "load thread list", loadThreadsTask);
