@@ -106,7 +106,7 @@ public class ThreadListPane<T extends Tag, H extends Thread> extends BorderPane 
 				addTagForThreadsCallBack.call(new TagForThreadsVo<>(tag, getSelectedThreads()));
 			} else if (db.hasContent(ExtItemDropPane.TAG_NAME_DATA_FORMAT)) {
 				final String name = (String) db.getContent(ExtItemDropPane.TAG_NAME_DATA_FORMAT);
-				@SuppressWarnings("unchecked") final T tag = (T)new SimpleTag(null, name, null, false);
+				@SuppressWarnings("unchecked") final T tag = (T) new SimpleTag(null, name, null, false);
 				createTagForThreadsCallBack.call(new TagForThreadsVo<>(tag, getSelectedThreads()));
 			}
 			e.consume();
