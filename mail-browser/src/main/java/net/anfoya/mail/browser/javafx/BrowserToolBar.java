@@ -47,7 +47,7 @@ public class BrowserToolBar extends ToolBar {
 		settingsButton.getStyleClass().add("flat-button");
 		settingsButton.setFocusTraversable(false);
 		settingsButton.setGraphic(new ImageView(new Image(SETTINGS_PNG)));
-		settingsButton.setTooltip(new Tooltip("settings"));
+		settingsButton.setTooltip(new Tooltip("preferences"));
 		settingsButton.setOnAction(e -> showSettingsCallback.run());
 
 		final Node graphics = settingsButton.getGraphic();
