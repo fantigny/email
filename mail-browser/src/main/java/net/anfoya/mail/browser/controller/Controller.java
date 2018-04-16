@@ -88,7 +88,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 	public void init() {
 		mailService.addOnUpdateMessage(() -> Platform.runLater(() -> refreshAfterUpdateMessage()));
 //		mailService.addOnUpdateTagOrSection(() -> Platform.runLater(() -> refreshTags()));
-		mailService.disconnectedProperty().addListener((ov, o, n) -> {
+		mailService.connected().addListener((ov, o, n) -> {
 			if (!o && n) {
 				Platform.runLater(() -> refreshAfterTagSelected());
 			}
@@ -132,7 +132,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		threadListPane.setOnAddTagForThreads(vo -> addTagForThreads(vo.getTag(), vo.getThreads()));
 		threadListPane.setOnCreateTagForThreads(vo -> createTagForThreads(vo.getTag().getName(), vo.getThreads()));
 
-		threadListPane.disconnectedProperty().bind(mailService.disconnectedProperty());
+		threadListPane.disconnected().bind(mailService.connected().not());
 		threadListPane.setOnReconnect(() -> reconnect());
 
 		threadListPane.setOnShowSettings(() -> showSettingsDialog());

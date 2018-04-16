@@ -18,7 +18,7 @@ public interface MailService<
 	public void connect(String appName) throws MailException;
 	public void reconnect() throws MailException;
 	public void disconnect();
-	public ReadOnlyBooleanProperty disconnectedProperty();
+	public ReadOnlyBooleanProperty connected();
 
 	public void start();
 	public void stop();

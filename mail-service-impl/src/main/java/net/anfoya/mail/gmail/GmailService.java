@@ -81,6 +81,8 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			, GmailTag.TRASH
 	};
 
+	private final ReadOnlyBooleanWrapper connected;
+
 	private ConnectionService connectionService;
 	private LabelService labelService;
 	private MessageService messageService;
@@ -90,11 +92,15 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 	private String address;
 
+	public GmailService() {
+		connected = new ReadOnlyBooleanWrapper(false);
+	}
+
 	@Override
 	public void connect(final String appName) throws GMailException {
 		connectionService = new ConnectionService(appName);
-		final boolean connected = connectionService.connect();
-		if (!connected) {
+		connectionService.connect();
+		if (connectionService.connected().not().get()) {
 			return;
 		}
 
@@ -115,6 +121,8 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 		historyService = new HistoryService(gmail, USER);
 		historyService.addOnUpdateLabel(() -> labelService.clearCache());
+
+		connected.bind(connectionService.connected().and(historyService.disconnected().not()));
 	}
 
 	@Override
@@ -136,7 +144,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 	@Override
 	public void reconnect() throws GMailException {
-		if (!disconnectedProperty().get()) {
+		if (connected().get()) {
 			return;
 		}
 
@@ -148,9 +156,9 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	@Override
-	public ReadOnlyBooleanProperty disconnectedProperty() {
+	public ReadOnlyBooleanProperty connected() {
 		try {
-			return historyService.disconnected();
+			return connected.getReadOnlyProperty();
 		} catch (final Exception e) {
 			return new ReadOnlyBooleanWrapper(true);
 		}

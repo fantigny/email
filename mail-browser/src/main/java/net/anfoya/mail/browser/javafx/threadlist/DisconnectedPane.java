@@ -11,13 +11,13 @@ import javafx.scene.layout.GridPane;
 import javafx.util.Duration;
 
 public class DisconnectedPane extends GridPane {
-	private final BooleanProperty disconnectedProperty;
+	private final BooleanProperty disconnected;
 	private final Timeline timeline;
 
 	private Runnable reconnectCallback;
 
 	public DisconnectedPane() {
-		disconnectedProperty = new SimpleBooleanProperty();
+		disconnected = new SimpleBooleanProperty();
 		timeline = new Timeline(
 				new KeyFrame(Duration.ZERO, new KeyValue(opacityProperty(), 0))
 				, new KeyFrame(Duration.seconds(.5), new KeyValue(opacityProperty(), 1))
@@ -38,9 +38,9 @@ public class DisconnectedPane extends GridPane {
 		button.setOnAction(e -> reconnectCallback.run());
 		add(button, 0, 0);
 
-		timeline.setOnFinished(e -> setVisible(disconnectedProperty.get()));
+		timeline.setOnFinished(e -> setVisible(disconnected.get()));
 
-		disconnectedProperty.addListener((ov, o, n) -> {
+		disconnected.addListener((ov, o, n) -> {
 			if (n) {
 				Platform.runLater(() -> setVisible(true));
 				timeline.setRate(1);
@@ -57,7 +57,7 @@ public class DisconnectedPane extends GridPane {
 		this.reconnectCallback = reconnectCallback;
 	}
 
-	public BooleanProperty disconnectedProperty() {
-		return disconnectedProperty;
+	public BooleanProperty disconnected() {
+		return disconnected;
 	}
 }
