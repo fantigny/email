@@ -17,7 +17,6 @@ import javafx.collections.ListChangeListener.Change;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.SelectionMode;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.util.Duration;
 import net.anfoya.java.util.VoidCallback;
@@ -30,19 +29,16 @@ import net.anfoya.mail.service.Thread;
 public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadList.class);
 
-	private final Set<String> selectedIds;
 	private final AtomicInteger selectedIndex;
+	private final Set<String> selectedIds;
+	private final Set<H> selectedThreads;
+	
 	private final AtomicBoolean unread;
-
+	private boolean firstLoad;
 	private SortField sortOrder;
 
 	private Runnable loadCallback;
-	private Runnable archiveCallback;
-
-	private boolean firstLoad;
-
-	private final Set<H> selectedThreads;
-
+	private VoidCallback<Set<H>> archiveCallback;
 	private VoidCallback<Set<H>> selectCallback;
 
 	private DelayTimeline emptySelectDelay;
@@ -91,9 +87,12 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 	}
 
 	private void handleKey(KeyEvent e) {
-		if (e.getCode() == KeyCode.BACK_SPACE
-				|| e.getCode() == KeyCode.DELETE) {
-			archiveCallback.run();
+		switch(e.getCode()) {
+		case BACK_SPACE: case DELETE:
+			archiveCallback.call(getSelectedThreads());
+			break;
+		default:
+			break;
 		}
 	}
 
@@ -101,7 +100,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 		this.loadCallback = callback;
 	}
 
-	public void setOnArchive(final Runnable callback) {
+	public void setOnArchive(final VoidCallback<Set<H>> callback) {
 		archiveCallback = callback;
 	}
 

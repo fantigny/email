@@ -198,6 +198,7 @@ public class ThreadListPane<T extends Tag, H extends Thread> extends BorderPane 
 
 	public void setOnArchive(VoidCallback<Set<H>> callback) {
 		archiveCallback = callback;
+		threadList.setOnArchive(callback);
 	}
 
 	public void setOnReply(VoidCallback<Set<H>> callback) {
