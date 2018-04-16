@@ -24,6 +24,8 @@ import com.google.api.services.gmail.Gmail;
 import com.google.gdata.client.contacts.ContactsService;
 
 import javafx.application.Platform;
+import javafx.beans.property.ReadOnlyBooleanProperty;
+import javafx.beans.property.ReadOnlyBooleanWrapper;
 import net.anfoya.mail.gmail.GMailException;
 import net.anfoya.mail.gmail.GmailService;
 import net.anfoya.mail.gmail.javafx.ConnectionProgress;
@@ -31,7 +33,7 @@ import net.anfoya.mail.gmail.javafx.GmailLogin;
 
 public class ConnectionService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GmailService.class);
-	private static final boolean HL = GraphicsEnvironment.isHeadless();
+	private static final boolean GUI = !GraphicsEnvironment.isHeadless();
 
 	private static final String CLIENT_SECRET_PATH = "client_secret.json";
     private static final String REFRESH_TOKEN_SUFFIX = "%s-refresh-token";
@@ -41,6 +43,8 @@ public class ConnectionService {
 
 	private final HttpTransport httpTransport;
 	private final JsonFactory jsonFactory;
+
+	private final ReadOnlyBooleanWrapper connected;
 
 	private GoogleCredential credential;
 
@@ -59,14 +63,18 @@ public class ConnectionService {
 
 		credential = null;
 
-		if (!HL) Platform.runLater(() -> progress = new ConnectionProgress());
+		connected = new ReadOnlyBooleanWrapper(false);
+
+		updateGui(() -> progress = new ConnectionProgress());
 	}
 
-	public boolean connect() throws GMailException {
-		if (!HL) Platform.runLater(() -> progress.setValue(1/3d, "Google sign in..."));
+	public void connect() throws GMailException {
+		updateGui(() -> progress.setValue(1/3d, "Google sign in..."));
 		try {
-			final BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(CLIENT_SECRET_PATH)));
-			final GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(jsonFactory, reader);
+			final GoogleClientSecrets clientSecrets;
+			try (final BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(CLIENT_SECRET_PATH)))) {
+				clientSecrets = GoogleClientSecrets.load(jsonFactory, reader);
+			};
 			credential = new GoogleCredential.Builder()
 					.setClientSecrets(clientSecrets)
 					.setJsonFactory(jsonFactory)
@@ -85,12 +93,13 @@ public class ConnectionService {
 				}
 			}
 			if (refreshToken == null) {
-				if (!HL) Platform.runLater(() -> progress.hide());
+				updateGui(() -> progress.hide());
 
 				// Generate Credential using login token.
 				final TokenResponse tokenResponse = new GmailLogin(clientSecrets).getTokenResponseCredentials();
 				if (tokenResponse == null) {
-					return false;
+					connected.set(false);
+					return;
 				}
 				credential.setFromTokenResponse(tokenResponse);
 			}
@@ -99,24 +108,31 @@ public class ConnectionService {
 			prefs.put(refreshTokenName, credential.getRefreshToken());
 			prefs.flush();
 
-			if (!HL) Platform.runLater(() -> progress.setValue(2/3d, "connect to contact..."));
+			updateGui(() -> progress.setValue(2/3d, "connect to contact..."));
 			gcontact = new ContactsService(appName);
 			gcontact.setOAuth2Credentials(credential);
 
-			if (!HL) Platform.runLater(() -> progress.setValue(1, "connect to mail..."));
+			updateGui(() -> progress.setValue(1, "connect to mail..."));
 			gmail = new Gmail.Builder(httpTransport, jsonFactory, credential)
 				.setApplicationName(appName)
 				.build();
+
+			connected.set(true);
 		} catch (final IOException | BackingStoreException | InterruptedException e) {
 			throw new GMailException("connection", e);
 		} finally {
-			if (!HL) Platform.runLater(() -> progress.hide());
+			updateGui(() -> progress.hide());
 		}
+	}
 
-		return true;
+	public ReadOnlyBooleanProperty connected() {
+		return connected.getReadOnlyProperty();
 	}
 
 	public void disconnect() {
+		connected.set(false);
+
+		// remove token from local preferences
 	    final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
 		prefs.remove(refreshTokenName);
 		try {
@@ -124,6 +140,8 @@ public class ConnectionService {
 		} catch (final BackingStoreException e) {
 			LOGGER.error("remove authentication token", e);
 		}
+
+		// revoke token
 		try {
 			final GenericUrl url = new GenericUrl(String.format(
 					"https://accounts.google.com/o/oauth2/revoke?token=%s"
@@ -135,6 +153,8 @@ public class ConnectionService {
 		} catch (final IOException e) {
 			LOGGER.error("revoke authentication token", e);
 		}
+
+		// reset cookies
 		CookieManager.setDefault(new CookieManager());
 	}
 
@@ -147,5 +167,11 @@ public class ConnectionService {
 
 	public ContactsService getGcontactService() throws GMailException {
 		return gcontact;
+	}
+
+	private void updateGui(Runnable runnable) {
+		if (GUI) {
+			Platform.runLater(runnable);
+		}
 	}
 }

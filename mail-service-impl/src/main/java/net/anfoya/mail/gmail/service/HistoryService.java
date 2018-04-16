@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.History;
-import com.google.api.services.gmail.model.HistoryMessageAdded;
 import com.google.api.services.gmail.model.ListHistoryResponse;
 import com.google.api.services.gmail.model.Message;
 
@@ -55,7 +54,7 @@ public class HistoryService extends TimerTask {
 			}
 		});
 
-		final SerializedFile<BigInteger> file = new SerializedFile<BigInteger>(FILE_PREFIX + user);
+		final SerializedFile<BigInteger> file = new SerializedFile<>(FILE_PREFIX + user);
 		try {
 			historyId = file.load();
 		} catch (final Exception e) {
@@ -69,9 +68,9 @@ public class HistoryService extends TimerTask {
 			}
 		}));
 
-		updateMessageCallBacks = new LinkedHashSet<VoidCallback<Set<Message>>>();
-		addedMessageCallBacks = new LinkedHashSet<VoidCallback<Set<Message>>>();
-		updateLabelCallBacks = new LinkedHashSet<Runnable>();
+		updateMessageCallBacks = new LinkedHashSet<>();
+		addedMessageCallBacks = new LinkedHashSet<>();
+		updateLabelCallBacks = new LinkedHashSet<>();
 	}
 
 	public void start(final Duration pullPeriod) {
@@ -121,7 +120,7 @@ public class HistoryService extends TimerTask {
 
 			LOGGER.info("updated historyId: {}", historyId);
 			if (response.getHistory() == null) {
-				return new ArrayList<History>();
+				return new ArrayList<>();
 			} else {
 				return response.getHistory();
 			}
@@ -139,23 +138,23 @@ public class HistoryService extends TimerTask {
 			return;
 		}
 
-		final Set<Message> updatedMessages = new LinkedHashSet<Message>();
-		final Set<Message> addedMessages = new LinkedHashSet<Message>();
+		final Set<Message> updatedMessages = new LinkedHashSet<>();
+		final Set<Message> addedMessages = new LinkedHashSet<>();
 		for(final History h: updates) {
 			if (h.getLabelsAdded() != null) {
-				h.getLabelsAdded().forEach(history -> updatedMessages.add(history.getMessage()));
+				h.getLabelsAdded().forEach(l -> updatedMessages.add(l.getMessage()));
 			}
 			if (h.getLabelsRemoved() != null) {
-				h.getLabelsRemoved().forEach(history -> updatedMessages.add(history.getMessage()));
+				h.getLabelsRemoved().forEach(l -> updatedMessages.add(l.getMessage()));
 			}
 			if (h.getMessages() != null) {
 				h.getMessages().forEach(m -> updatedMessages.add(m));
-				if (h.getMessagesAdded() != null) {
-					addedMessages.addAll(h.getMessagesAdded()
-							.stream()
-							.map(HistoryMessageAdded::getMessage)
-							.collect(Collectors.toSet()));
-				}
+			}
+			if (h.getMessagesAdded() != null) {
+				addedMessages.addAll(h.getMessagesAdded()
+						.stream()
+						.map(m -> m.getMessage())
+						.collect(Collectors.toSet()));
 			}
 		}
 

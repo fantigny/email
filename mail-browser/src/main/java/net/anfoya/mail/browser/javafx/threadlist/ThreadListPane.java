@@ -45,7 +45,7 @@ public class ThreadListPane<T extends Tag, H extends Thread> extends BorderPane 
 	private final ResetTextField patternField;
 
 	private final BrowserToolBar toolBar;
-	private final BooleanProperty showToolBarProperty;
+	private final BooleanProperty showToolBar;
 
 	private final ThreadListDropPane threadListDropPane;
 
@@ -119,6 +119,7 @@ public class ThreadListPane<T extends Tag, H extends Thread> extends BorderPane 
 		centerPane.getChildren().add(new UndoPane(undoService));
 
 		disconnectedPane = new DisconnectedPane();
+		centerPane.getChildren().add(disconnectedPane);
 
 		final VBox topBox = new VBox();
 		setTop(topBox);
@@ -142,9 +143,8 @@ public class ThreadListPane<T extends Tag, H extends Thread> extends BorderPane 
 		toolbar.setOnTrash(e -> trashCallback.call(getSelectedThreads()));
 		toolbar.setOnSpam(e -> toggleSpamCallback.call(getSelectedThreads()));
 
-	//	final BooleanProperty showToolbar = settings.showToolbar();
-		showToolBarProperty = new SimpleBooleanProperty();
-		showToolBarProperty.addListener((ov, o, n) -> {
+		showToolBar = new SimpleBooleanProperty();
+		showToolBar.addListener((ov, o, n) -> {
 			if (n) {
 				topBox.getChildren().add(toolbar);
 			} else {
@@ -293,8 +293,8 @@ public class ThreadListPane<T extends Tag, H extends Thread> extends BorderPane 
 		threadList.setAll(threads, unread);
 	}
 
-	public BooleanProperty disconnectedProperty() {
-		return disconnectedPane.disconnectedProperty();
+	public BooleanProperty disconnected() {
+		return disconnectedPane.disconnected();
 	}
 
 	public void setOnReconnect(Runnable callback) {
@@ -310,6 +310,6 @@ public class ThreadListPane<T extends Tag, H extends Thread> extends BorderPane 
 	}
 
 	public BooleanProperty showToolBarProperty() {
-		return showToolBarProperty;
+		return showToolBar;
 	}
 }

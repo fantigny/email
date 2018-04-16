@@ -62,6 +62,10 @@ public class MailClient extends Application {
 
 	@Override
 	public void start(final Stage stage) throws Exception {
+		if (gmail.connected().not().get()) {
+			return;
+		}
+
 		this.stage = stage;
 		stage.setOnCloseRequest(e -> confirmClose(e));
 		stage.initStyle(StageStyle.UNIFIED);
@@ -92,7 +96,7 @@ public class MailClient extends Application {
 	}
 
 	private void signout() {
-		boolean signout = false;
+		boolean signout = true;
 		if (settings.confirmOnSignout().get()) {
 			final CheckBox checkBox = new CheckBox("don't show again");
 			checkBox.selectedProperty().addListener((ov, o, n) -> settings.confirmOnSignout().set(!n));
@@ -103,15 +107,13 @@ public class MailClient extends Application {
 			alert.getDialogPane().contentProperty().set(checkBox);
 			final Optional<ButtonType> response = alert.showAndWait();
 			signout = response.isPresent() && response.get() == ButtonType.OK;
-		} else {
-			signout = true;
 		}
-		if (signout) {
-			stage.hide();
-			gmail.disconnect();
-			initGmail();
-			showBrowser();
+		if (!signout) {
+			return;
 		}
+
+		stage.hide();
+		gmail.disconnect();
 	}
 
 	private void initGmail() {
@@ -126,7 +128,8 @@ public class MailClient extends Application {
 	}
 
 	private void initThreadPool() {
-		ThreadPool.setDefault(ObservableExecutors.newCachedThreadPool("min", Thread.MIN_PRIORITY)
+		ThreadPool.setDefault(
+				ObservableExecutors.newCachedThreadPool("min", Thread.MIN_PRIORITY)
 				,  null
 				,  ObservableExecutors.newCachedThreadPool("max", Thread.MAX_PRIORITY));
 	}
@@ -150,10 +153,6 @@ public class MailClient extends Application {
 	}
 
 	private void showBrowser() {
-		if (gmail.disconnectedProperty().get()) {
-			return;
-		}
-
 		MailBrowser<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact> mailBrowser;
 		try {
 			mailBrowser = new MailBrowser<>(
@@ -232,9 +231,6 @@ public class MailClient extends Application {
 	}
 
 	private void initNewThreadNotifier() {
-		if (gmail.disconnectedProperty().get()) {
-			return;
-		}
 		gmail.addOnNewMessage(threads -> {
 			LOGGER.info("notify new thread");
 			new AudioClip(Settings.MP3_NEW_MAIL).play();
