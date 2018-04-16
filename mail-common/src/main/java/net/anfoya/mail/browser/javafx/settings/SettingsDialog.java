@@ -76,7 +76,7 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 			, final UndoService undoService
 			, final Settings settings) {
 		initStyle(StageStyle.UNIFIED);
-		setTitle("FisherMail - profile");
+		setTitle("FisherMail - preferences");
 		setOnCloseRequest(e -> settings.saveLater());
 
 		this.mailService = mailService;
