@@ -41,7 +41,6 @@ import net.anfoya.mail.gmail.model.GmailMoreThreads;
 import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.gmail.model.GmailTag;
 import net.anfoya.mail.gmail.model.GmailThread;
-import net.anfoya.mail.gmail.service.ConnectionService;
 import net.anfoya.mail.gmail.service.ContactException;
 import net.anfoya.mail.gmail.service.ContactService;
 import net.anfoya.mail.gmail.service.HistoryException;
@@ -50,6 +49,7 @@ import net.anfoya.mail.gmail.service.LabelException;
 import net.anfoya.mail.gmail.service.LabelService;
 import net.anfoya.mail.gmail.service.MessageException;
 import net.anfoya.mail.gmail.service.MessageService;
+import net.anfoya.mail.gmail.service.AuthenticationService;
 import net.anfoya.mail.gmail.service.ThreadException;
 import net.anfoya.mail.gmail.service.ThreadService;
 import net.anfoya.mail.service.MailException;
@@ -83,7 +83,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 	private final ReadOnlyBooleanWrapper connected;
 
-	private ConnectionService connectionService;
+	private AuthenticationService authService;
 	private LabelService labelService;
 	private MessageService messageService;
 	private ThreadService threadService;
@@ -92,54 +92,63 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 	private String address;
 
-	public GmailService() {
+	public GmailService(String appName) {
+		authService = new AuthenticationService(appName);
 		connected = new ReadOnlyBooleanWrapper(false);
 	}
 
 	@Override
-	public void connect(final String appName) throws GMailException {
-		connectionService = new ConnectionService(appName);
-		connectionService.connect();
-		if (connectionService.connected().not().get()) {
-			return;
-		}
+	public void authenticate() throws GMailException {
+		authService.authenticate();
+	}
+	
+	@Override
+	public void setOnAuth(Runnable callback) {
+		authService.setOnAuth(() -> {
+			final ContactsService gcontact = authService.getGcontactService();
+			final Gmail gmail = authService.getGmailService();
 
-		final ContactsService gcontact = connectionService.getGcontactService();
-		final Gmail gmail = connectionService.getGmailService();
+			try {
+				address = gmail.users().getProfile(USER).execute().getEmailAddress();
+			} catch (final IOException e) {
+				address = "uknown!";
+			}
 
-		try {
-			address = gmail.users().getProfile(USER).execute().getEmailAddress();
-		} catch (final IOException e) {
-			address = "uknown!";
-		}
+			contactService = new ContactService(gcontact, DEFAULT).init();
 
-		contactService = new ContactService(gcontact, DEFAULT).init();
+			messageService = new MessageService(gmail, USER);
+			threadService = new ThreadService(gmail, USER);
+			labelService = new LabelService(gmail, USER);
 
-		messageService = new MessageService(gmail, USER);
-		threadService = new ThreadService(gmail, USER);
-		labelService = new LabelService(gmail, USER);
+			historyService = new HistoryService(gmail, USER);
+			historyService.addOnUpdateLabel(() -> labelService.clearCache());
 
-		historyService = new HistoryService(gmail, USER);
-		historyService.addOnUpdateLabel(() -> labelService.clearCache());
-
-		connected.bind(connectionService.connected().and(historyService.disconnected().not()));
+			connected.bind(historyService.disconnected().not());
+			
+			callback.run();
+		});
 	}
 
 	@Override
-	public void start() {
+	public void setOnAuthFailed(Runnable callback) {
+		authService.setOnAuthFailed(callback);	
+	}
+
+	@Override
+	public void signout() {
+	    authService.signout();
+	    historyService.stop();
+	    clearCache();
+	}
+
+	@Override
+	public void startListening() {
 		historyService.start(PULL_PERIOD);
 	}
 
 	@Override
-	public void stop() {
+	public void stopListening() {
 		historyService.stop();
-	}
-
-	@Override
-	public void disconnect() {
-	    connectionService.disconnect();
-	    historyService.stop();
-	    clearCache();
 	}
 
 	@Override

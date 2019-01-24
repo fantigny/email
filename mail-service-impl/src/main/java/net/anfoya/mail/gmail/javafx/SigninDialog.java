@@ -7,10 +7,7 @@ import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -37,11 +34,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import net.anfoya.mail.gmail.GMailException;
 
-public class GmailLogin {
-
-	public static final String TEST_ID = "test";
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(GmailLogin.class);
+public class SigninDialog {
 	private static final List<String> SCOPE = Arrays.asList(new String[] {
 			"https://www.googleapis.com/auth/gmail.modify"
 			, "https://www.googleapis.com/auth/gmail.labels"
@@ -52,7 +45,7 @@ public class GmailLogin {
 	private final HttpTransport httpTransport;
 	private final JsonFactory jsonFactory;
 
-	public GmailLogin(final GoogleClientSecrets clientSecrets) {
+	public SigninDialog(final GoogleClientSecrets clientSecrets) {
 		this.clientSecrets = clientSecrets;
 
 		httpTransport = new NetHttpTransport();
@@ -96,7 +89,6 @@ public class GmailLogin {
 	}
 
 	private String getCredentialsFx(final String url) {
-		final CountDownLatch fxLock = new CountDownLatch(1);
 		final StringBuilder sb = new StringBuilder();
 
 		final Runnable loginRequest = () -> {
@@ -123,19 +115,12 @@ public class GmailLogin {
 			});
 			webEngine.load(url);
 			stage.showAndWait();
-			fxLock.countDown();
 		};
 
 		if (Platform.isFxApplicationThread()) {
 			loginRequest.run();
 		} else {
 			Platform.runLater(loginRequest);
-		}
-
-		try {
-			fxLock.await();
-		} catch (final InterruptedException e) {
-			LOGGER.error("wait for credentials", e);
 		}
 
 		return sb.toString();

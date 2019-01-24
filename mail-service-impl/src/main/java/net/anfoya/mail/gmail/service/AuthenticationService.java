@@ -24,15 +24,13 @@ import com.google.api.services.gmail.Gmail;
 import com.google.gdata.client.contacts.ContactsService;
 
 import javafx.application.Platform;
-import javafx.beans.property.ReadOnlyBooleanProperty;
-import javafx.beans.property.ReadOnlyBooleanWrapper;
 import net.anfoya.mail.gmail.GMailException;
 import net.anfoya.mail.gmail.GmailService;
 import net.anfoya.mail.gmail.javafx.ConnectionProgress;
-import net.anfoya.mail.gmail.javafx.GmailLogin;
+import net.anfoya.mail.gmail.javafx.SigninDialog;
 
-public class ConnectionService {
-	private static final Logger LOGGER = LoggerFactory.getLogger(GmailService.class);
+public class AuthenticationService {
+	private static final Logger LOGGER = LoggerFactory.getLogger(AuthenticationService.class);
 	private static final boolean GUI = !GraphicsEnvironment.isHeadless();
 
 	private static final String CLIENT_SECRET_PATH = "client_secret.json";
@@ -44,8 +42,6 @@ public class ConnectionService {
 	private final HttpTransport httpTransport;
 	private final JsonFactory jsonFactory;
 
-	private final ReadOnlyBooleanWrapper connected;
-
 	private GoogleCredential credential;
 
 	private ConnectionProgress progress;
@@ -53,8 +49,11 @@ public class ConnectionService {
 	private ContactsService gcontact;
 
 	private Gmail gmail;
+	
+	private Runnable authCallback;
+	private Runnable authFailedCallback;
 
-    public ConnectionService(final String appName) {
+    public AuthenticationService(final String appName) {
     	this.appName = appName;
 		refreshTokenName = String.format(REFRESH_TOKEN_SUFFIX, appName);
 
@@ -63,12 +62,18 @@ public class ConnectionService {
 
 		credential = null;
 
-		connected = new ReadOnlyBooleanWrapper(false);
-
 		updateGui(() -> progress = new ConnectionProgress());
 	}
+    
+	public void setOnAuth(Runnable callback) {
+		authCallback = callback;
+	}
 
-	public void connect() throws GMailException {
+	public void setOnAuthFailed(Runnable callback) {
+		authFailedCallback = callback;
+	}
+
+	public void authenticate() throws GMailException {
 		updateGui(() -> progress.setValue(1/3d, "Google sign in..."));
 		try {
 			final GoogleClientSecrets clientSecrets;
@@ -96,9 +101,9 @@ public class ConnectionService {
 				updateGui(() -> progress.hide());
 
 				// Generate Credential using login token.
-				final TokenResponse tokenResponse = new GmailLogin(clientSecrets).getTokenResponseCredentials();
+				final TokenResponse tokenResponse = new SigninDialog(clientSecrets).getTokenResponseCredentials();
 				if (tokenResponse == null) {
-					connected.set(false);
+					authFailedCallback.run();
 					return;
 				}
 				credential.setFromTokenResponse(tokenResponse);
@@ -117,7 +122,7 @@ public class ConnectionService {
 				.setApplicationName(appName)
 				.build();
 
-			connected.set(true);
+			authCallback.run();
 		} catch (final IOException | BackingStoreException | InterruptedException e) {
 			throw new GMailException("connection", e);
 		} finally {
@@ -125,13 +130,7 @@ public class ConnectionService {
 		}
 	}
 
-	public ReadOnlyBooleanProperty connected() {
-		return connected.getReadOnlyProperty();
-	}
-
-	public void disconnect() {
-		connected.set(false);
-
+	public void signout() {
 		// remove token from local preferences
 	    final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
 		prefs.remove(refreshTokenName);
@@ -161,11 +160,11 @@ public class ConnectionService {
 	public void reconnect() {
 	}
 
-	public Gmail getGmailService() throws GMailException {
+	public Gmail getGmailService() {
 		return gmail;
 	}
 
-	public ContactsService getGcontactService() throws GMailException {
+	public ContactsService getGcontactService() {
 		return gcontact;
 	}
 

@@ -10,13 +10,13 @@ public class GmailTest {
 
 	@Test
 	public void login() throws MailException {
-		new GmailService().connect("test");
+		new GmailService("testApp").authenticate();
 	}
 
 	@Test
 	public void getTags() throws MailException, TagException {
-		final GmailService gmail = new GmailService();
-		gmail.connect("test");
+		final GmailService gmail = new GmailService("testApp");
+		gmail.authenticate();
 		for(final Tag t: gmail.getTags("")) {
 			System.out.println(t);
 		}
@@ -24,8 +24,8 @@ public class GmailTest {
 
 	@Test
 	public void clearCache() throws MailException, TagException {
-		final GmailService gmail = new GmailService();
-		gmail.connect("test");
+		final GmailService gmail = new GmailService("testApp");
+		gmail.authenticate();
 		gmail.clearCache();
 	}
 }

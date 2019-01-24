@@ -46,7 +46,6 @@ public class MailClient extends Application {
 	private Settings settings;
 	private NotificationService notificationService;
 	private GmailService gmail;
-	private Stage stage;
 
 	public static void main(final String[] args) {
 		launch(args);
@@ -61,31 +60,29 @@ public class MailClient extends Application {
 	}
 
 	@Override
-	public void start(final Stage stage) throws Exception {
-		if (gmail.connected().not().get()) {
-			return;
-		}
+	public void start(final Stage primaryStage) throws Exception {
+		primaryStage.initStyle(StageStyle.UNIFIED);
 
-		this.stage = stage;
-		stage.setOnCloseRequest(e -> confirmClose(e));
-		stage.initStyle(StageStyle.UNIFIED);
+		gmail.setOnAuth(() -> {
+			primaryStage.setOnCloseRequest(e -> confirmClose(primaryStage, e));
+			showBrowser(primaryStage);
+			initNewThreadNotifier(primaryStage);
+			checkVersion();
+		});
+		gmail.setOnAuthFailed(() -> {
+			primaryStage.close();
+		});
 
-		notificationService = new NotificationService(stage);
-		notificationService.popupLifeTime().bind(settings.popupLifetime());
-
-		showBrowser();
-
-		initNewThreadNotifier();
-		checkVersion();
+		gmail.authenticate();
 	}
 
-	private void confirmClose(final WindowEvent e) {
+	private void confirmClose(Stage primaryStage, final WindowEvent e) {
 		if (settings.confirmOnQuit().get()) {
 			final CheckBox checkBox = new CheckBox("don't show again");
 			checkBox.selectedProperty().addListener((ov, o, n) -> settings.confirmOnQuit().set(!n));
 
 			final Alert alert = new Alert(AlertType.CONFIRMATION);
-			alert.initOwner(stage);
+			alert.initOwner(primaryStage);
 			alert.setTitle("FisherMail");
 			alert.setHeaderText("you are about to close FisherMail\rnew e-mail notification will be stopped");
 			alert.getDialogPane().contentProperty().set(checkBox);
@@ -95,7 +92,7 @@ public class MailClient extends Application {
 		}
 	}
 
-	private void signout() {
+	private void signout(Stage primaryStage) {
 		boolean signout = true;
 		if (settings.confirmOnSignout().get()) {
 			final CheckBox checkBox = new CheckBox("don't show again");
@@ -112,19 +109,12 @@ public class MailClient extends Application {
 			return;
 		}
 
-		stage.hide();
-		gmail.disconnect();
+		primaryStage.hide();
+		gmail.signout();
 	}
 
 	private void initGmail() {
-		if (gmail == null) {
-			gmail = new GmailService();
-		}
-		try {
-			gmail.connect(App.MAIL_CLIENT);
-		} catch (final MailException e) {
-			LOGGER.error("login failed", e);
-		}
+		gmail = new GmailService(App.MAIL_CLIENT);
 	}
 
 	private void initThreadPool() {
@@ -152,7 +142,7 @@ public class MailClient extends Application {
 		version.start();
 	}
 
-	private void showBrowser() {
+	private void showBrowser(final Stage primaryStage) {
 		MailBrowser<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact> mailBrowser;
 		try {
 			mailBrowser = new MailBrowser<>(
@@ -163,23 +153,23 @@ public class MailClient extends Application {
 			LOGGER.error("load mail browser", e);
 			return;
 		}
-		mailBrowser.setOnSignout(() -> signout());
-		mailBrowser.addOnModeChange(() -> refreshTitle(stage, mailBrowser));
+		mailBrowser.setOnSignout(() -> signout(primaryStage));
+		mailBrowser.addOnModeChange(() -> refreshTitle(primaryStage, mailBrowser));
 
-		stage.setScene(mailBrowser);
-		initSize(stage);
-		stage.show();
-		stage.setOnHiding(e -> ThreadPool.getDefault().mustRun("save global settings", () -> {
-			gmail.stop();
+		primaryStage.setScene(mailBrowser);
+		initSize(primaryStage);
+		primaryStage.show();
+		primaryStage.setOnHiding(e -> ThreadPool.getDefault().mustRun("save global settings", () -> {
+			gmail.stopListening();
 			mailBrowser.saveSettings();
-			settings.windowX().set(stage.getX());
-			settings.windowY().set(stage.getY());
-			settings.windowWidth().set(stage.getWidth());
-			settings.windowHeight().set(stage.getHeight());
+			settings.windowX().set(primaryStage.getX());
+			settings.windowY().set(primaryStage.getY());
+			settings.windowWidth().set(primaryStage.getWidth());
+			settings.windowHeight().set(primaryStage.getHeight());
 			settings.saveNow();
 		}));
 
-		gmail.start();
+		gmail.startListening();
 	}
 
 	private void refreshTitle(final Stage stage, MailBrowser<?, ?, ?, ?, ?> browser) {
@@ -230,7 +220,10 @@ public class MailClient extends Application {
 		}
 	}
 
-	private void initNewThreadNotifier() {
+	private void initNewThreadNotifier(Stage primaryStage) {
+		notificationService = new NotificationService(primaryStage);
+		notificationService.popupLifeTime().bind(settings.popupLifetime());
+
 		gmail.addOnNewMessage(threads -> {
 			LOGGER.info("notify new thread");
 			new AudioClip(Settings.MP3_NEW_MAIL).play();
@@ -248,11 +241,11 @@ public class MailClient extends Application {
 						t.getSubject()
 						, task.getValue()
 						, () -> {
-							if (stage.isIconified()) {
-								stage.setIconified(false);
+							if (primaryStage.isIconified()) {
+								primaryStage.setIconified(false);
 							}
-							if (!stage.isFocused()) {
-								stage.requestFocus();
+							if (!primaryStage.isFocused()) {
+								primaryStage.requestFocus();
 							}
 						}));
 				task.setOnFailed(e -> LOGGER.error("notify new thread {}", t.getId(), e.getSource().getException()));
