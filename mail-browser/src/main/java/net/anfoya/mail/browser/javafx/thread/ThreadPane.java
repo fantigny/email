@@ -266,9 +266,6 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 			final String id = i.next();
 			@SuppressWarnings("unchecked")
 			final MessagePane<M, C> messagePane = index >= messagePanes.size()? null: (MessagePane<M, C>) messagePanes.get(index);
-			if (messagePane != null && messagePane.hasAttachment()) {
-				showIcon(ATTACH_ICON);
-			}
 			if (messagePane == null || !id.equals(messagePane.getMessageId())) {
 				messagePanes.add(index, createMessagePane(id));
 			}
@@ -282,7 +279,7 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		messagePane.setScrollHandler(webScrollHandler);
 		messagePane.setOnOpenUrl(openUrlCallback);
 		messagePane.setExpanded(false);
-		messagePane.onContainAttachment(e -> showIcon(ATTACH_ICON));
+		messagePane.onContainAttachment(() -> showIcon(ATTACH_ICON));
 		messagePane.load();
 
 		return messagePane;
