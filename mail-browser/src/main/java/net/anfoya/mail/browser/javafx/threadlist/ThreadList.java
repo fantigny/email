@@ -220,7 +220,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 			// try to find the closest preceding unread thread
 			indices = getItems().subList(0, index)
 					.stream()
-					.sorted(Collections.reverseOrder())
+					.sorted(sortOrder.getComparator().reversed())
 					.mapToInt(t -> getItems().indexOf(t))
 					.filter(i -> i != -1)
 					.toArray();
