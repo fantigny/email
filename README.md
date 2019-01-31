@@ -1,6 +1,5 @@
 # FisherMail
 cross-platform e-mail client
 
-(offline) http:/ /jenkins.speederpan.com
+[Download](https://github.com/fantigny/email/tree/master/mail-client-distrib/distrib)
 
-(offline) http:/ /fishermail.speederpan.com/distrib
