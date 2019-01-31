@@ -23,7 +23,6 @@ import javafx.beans.binding.DoubleBinding;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.concurrent.Task;
-import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
@@ -91,7 +90,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 
 	private Timeline showSnippetTimeline;
 	private Timeline showMessageTimeline;
-	private EventHandler<ActionEvent> attachmentHandler;
+	private Runnable attachmentHandler;
 
 	private VBox arrowBox;
 
@@ -341,6 +340,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		snippetView.getEngine().loadContent(message.getSnippet() + "...");
 		snippetView.getEngine().setUserStyleSheetLocation(DEFAULT_CSS);
 
+		iconBox.getChildren().clear();
 		attachmentPane.getChildren().clear();
 		final Set<String> attachNames = reader.getAttachmentNames();
 		if (!attachNames.isEmpty()) {
@@ -358,11 +358,11 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 				attachmentPane.getChildren().add(attachment);
 			}
 			iconBox.getChildren().add(new ImageView(MINI_ATTACHMENT));
-			attachmentHandler.handle(null);
+			attachmentHandler.run();
 		}
 	}
 
-	public void onContainAttachment(final EventHandler<ActionEvent> handler) {
+	public void onContainAttachment(final Runnable handler) {
 		attachmentHandler = handler;
 	}
 
