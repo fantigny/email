@@ -64,7 +64,7 @@ public class MailClient extends Application {
 		primaryStage.initStyle(StageStyle.UNIFIED);
 
 		gmail.setOnAuth(() -> {
-			primaryStage.setOnCloseRequest(e -> confirmClose(primaryStage, e));
+			primaryStage.setOnCloseRequest(e -> confirmClose(e, primaryStage));
 			showBrowser(primaryStage);
 			initNewThreadNotifier(primaryStage);
 			checkVersion();
@@ -76,7 +76,7 @@ public class MailClient extends Application {
 		gmail.authenticate();
 	}
 
-	private void confirmClose(Stage primaryStage, final WindowEvent e) {
+	private void confirmClose(final WindowEvent e, final Stage primaryStage) {
 		if (settings.confirmOnQuit().get()) {
 			final CheckBox checkBox = new CheckBox("don't show again");
 			checkBox.selectedProperty().addListener((ov, o, n) -> settings.confirmOnQuit().set(!n));
@@ -259,17 +259,21 @@ public class MailClient extends Application {
 	private void initProxy() {
 		if (settings.proxyEnabled().getValue()) {
 			System.setProperty("http.proxyHost", settings.proxyHost().get());
-			System.setProperty("http.proxyPort", settings.proxyPort().get() + "");
+			System.setProperty("http.proxyPort", "" + settings.proxyPort().get());
 			System.setProperty("https.proxyHost", settings.proxyHost().get());
-			System.setProperty("https.proxyPort", settings.proxyPort().get() + "");
+			System.setProperty("https.proxyPort", "" + settings.proxyPort().get());
 			if (settings.proxyBasicAuth().get()) {
-				System.setProperty("jdk.http.auth.tunneling.disabledSchemes","");
+				System.setProperty("jdk.http.auth.tunneling.disabledSchemes", "");
 			}
 			Authenticator.setDefault(new Authenticator() {
 				@Override
 				protected PasswordAuthentication getPasswordAuthentication() {
-					return getRequestorType() == RequestorType.PROXY && getRequestingHost().equals(settings.proxyHost().get()) && getRequestingPort() == settings.proxyPort().get()
-							? new PasswordAuthentication(settings.proxyUser().get(), settings.proxyPasswd().get().toCharArray())
+					return getRequestorType() == RequestorType.PROXY
+							&& getRequestingHost().equals(settings.proxyHost().get())
+							&& getRequestingPort() == settings.proxyPort().get()
+							? new PasswordAuthentication(
+									settings.proxyUser().get(),
+									settings.proxyPasswd().get().toCharArray())
 							: null;
 			    }
 			});

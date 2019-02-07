@@ -189,7 +189,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 	}
 
 	private void restoreSelection() {
-		final int index = Math.max(0, selectedIndex.get());
+		final int index = Math.min(Math.max(0, selectedIndex.get()), getItems().size());
 		final boolean wasSingleSelection = selectedIds.size() == 1;
 		final boolean isMultipleSelection = !wasSingleSelection && getItems()
 				.stream()
