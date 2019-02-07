@@ -253,11 +253,8 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 					}
 				};
 				task.setOnFailed(e -> LOGGER.error("reload thread {}", thread.getId(), e.getSource().getException()));
-				task.setOnSucceeded(e -> {
-					Platform.runLater(() -> p.refresh(task.getValue()));
-				});
+				task.setOnSucceeded(e -> Platform.runLater(() -> p.refresh(task.getValue())));
 				ThreadPool.getDefault().submit(PoolPriority.MAX, "reload tags", task);
-
 			});
 	}
 

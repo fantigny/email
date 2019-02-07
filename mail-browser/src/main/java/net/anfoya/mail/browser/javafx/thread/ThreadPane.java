@@ -156,9 +156,6 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 		browserToolBar.setOnSignout(callback);
 	}
 
-	public void refresh() {
-	}
-
 	public void refresh(final Set<H> threads) {
 		this.threads = threads;
 		refreshThread();
