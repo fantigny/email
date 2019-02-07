@@ -72,7 +72,6 @@ public class MailClient extends Application {
 		gmail.setOnAuthFailed(() -> {
 			primaryStage.close();
 		});
-
 		gmail.authenticate();
 	}
 
