@@ -709,7 +709,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 			protected Set<H> call() throws InterruptedException, MailException {
 				LOGGER.debug("load for includes {}, excludes {}, pattern: {}, pageMax: {}", includes, excludes, pattern, page);
 				final Set <H> threads = mailService.findThreads(includes, excludes, pattern, threadListPage.get());
-				// if unread list we add the older items even if they are read now
+				// if unread list we keep the older items even if they are not marked as "unread" anymore
 				if (isUnreadList.get() && !newFilter) {
 					threads.addAll(previousThreads
 							.stream()
