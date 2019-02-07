@@ -34,12 +34,14 @@ public class ThreadService {
 	private static final Long MAX_THREAD_COUNT = Long.valueOf(1000);
 
 	private final Gmail gmail;
+	private final LabelService labelService;
 	private final String user;
 
 	private final Map<String, CacheData<Thread>> idThreads;
 
-	public ThreadService(final Gmail gmail, final String user) {
+	public ThreadService(final Gmail gmail, final LabelService labelService, final String user) {
 		this.gmail = gmail;
+		this.labelService = labelService;
 		this.user = user;
 
 		idThreads = new FileSerieSerializedMap<>(FILE_PREFIX + user, 50);
@@ -261,6 +263,7 @@ public class ThreadService {
 			final JsonBatchCallback<Thread> callback = new JsonBatchCallback<Thread>() {
 				@Override
 				public void onSuccess(final Thread t, final HttpHeaders responseHeaders) {
+					labelService.clean(t);
 					threads.add(t);
 					idThreads.put(t.getId(), new CacheData<>(t));
 					latch.countDown();

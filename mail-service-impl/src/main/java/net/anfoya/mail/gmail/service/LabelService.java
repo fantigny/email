@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +19,7 @@ import com.google.api.services.gmail.model.Label;
 import net.anfoya.java.io.SerializedFile;
 import net.anfoya.mail.gmail.cache.CacheData;
 import net.anfoya.mail.gmail.cache.CacheException;
+import net.anfoya.mail.gmail.model.GmailTag;
 
 public class LabelService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LabelService.class);
@@ -31,7 +33,7 @@ public class LabelService {
 		this.gmail = gmail;
 		this.user = user;
 
-		idLabels = new ConcurrentHashMap<String, Label>();
+		idLabels = new ConcurrentHashMap<>();
 		try {
 			for(final Entry<String, CacheData<Label>> entry: new SerializedFile<Map<String, CacheData<Label>>>(FILE_PREFIX + user).load().entrySet()) {
 				idLabels.put(entry.getKey(), entry.getValue().getData());
@@ -43,9 +45,9 @@ public class LabelService {
 			@Override
 			public void run() {
 				try {
-					final Map<String, CacheData<Label>> map = new HashMap<String, CacheData<Label>>();
+					final Map<String, CacheData<Label>> map = new HashMap<>();
 					for(final Entry<String, Label> entry: idLabels.entrySet()) {
-						map.put(entry.getKey(), new CacheData<Label>(entry.getValue()));
+						map.put(entry.getKey(), new CacheData<>(entry.getValue()));
 					}
 					new SerializedFile<Map<String, CacheData<Label>>>(FILE_PREFIX + user).save(map);
 				} catch (final IOException e) {
@@ -66,7 +68,7 @@ public class LabelService {
 			}
 			LOGGER.debug("all labels: {}", idLabels.values());
 		}
-		return new HashSet<Label>(idLabels.values());
+		return new HashSet<>(idLabels.values());
 	}
 
 	public Label get(final String id) throws LabelException {
@@ -159,5 +161,24 @@ public class LabelService {
 	public void clearCache() {
 		idLabels.clear();
 		new SerializedFile<Map<String, CacheData<Label>>>(FILE_PREFIX + user).clear();
+	}
+
+	public void clean(com.google.api.services.gmail.model.Thread t) {
+		// clean labels
+		t.getMessages()
+			.stream()
+			.filter(m -> m.getLabelIds() != null)
+			.forEach(m -> {
+				m.setLabelIds(m.getLabelIds()
+						.stream()
+						.filter(id -> {
+							try {
+								return !GmailTag.isHidden(get(id));
+							} catch (final LabelException e) {
+								return false;
+							}
+						})
+						.collect(Collectors.toList()));
+			});
 	}
 }
