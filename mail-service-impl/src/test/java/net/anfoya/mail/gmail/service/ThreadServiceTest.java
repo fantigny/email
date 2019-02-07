@@ -19,8 +19,8 @@ public class ThreadServiceTest {
 	private ThreadService service;
 
 	@Before public void init() throws MailException {
-		final GmailService gmail = new GmailService();
-		gmail.connect("test");
+		final GmailService gmail = new GmailService("testApp");
+		gmail.authenticate();
 		service = gmail.getThreadService();
 	}
 

@@ -15,13 +15,17 @@ public interface MailService<
 		, C extends Contact>
 		extends TagService<S, T> {
 
-	public void connect(String appName) throws MailException;
-	public void reconnect() throws MailException;
-	public void disconnect();
-	public ReadOnlyBooleanProperty connected();
+	public void authenticate() throws MailException;
+	public void signout();
 
-	public void start();
-	public void stop();
+	public void setOnAuth(Runnable callback);
+	public void setOnAuthFailed(Runnable callback);
+	
+	public ReadOnlyBooleanProperty connected();
+	public void reconnect() throws MailException;
+
+	public void startListening();
+	public void stopListening();
 
 	public void clearCache();
 
