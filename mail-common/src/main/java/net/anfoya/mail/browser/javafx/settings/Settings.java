@@ -37,7 +37,7 @@ public class Settings implements Serializable {
 	public static final String DOWNLOAD_URL = "http://fishermail.speederpan.com/distrib";
 
 	public static final String VERSION_TXT_RESOURCE = "/version.txt";
-	public static final String VERSION_TXT_URL = "https://raw.githubusercontent.com/fantigny/email/master/distrib/version.txt";
+	public static final String VERSION_TXT_URL = "https://raw.githubusercontent.com/fantigny/email/master/mail-client-distrib/distrib/version.txt";
 	//public static final String VERSION_TXT_URL = "http://speederpan.com/fishermail/distrib/version.txt"; // not masked
 
 	private static final String SND_PATH = "/net/anfoya/mail/snd/";
