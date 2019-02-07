@@ -32,7 +32,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 	private final AtomicInteger selectedIndex;
 	private final Set<String> selectedIds;
 	private final Set<H> selectedThreads;
-	
+
 	private final AtomicBoolean unread;
 	private boolean firstLoad;
 	private SortField sortOrder;
@@ -80,7 +80,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 		});
 
 		getItems().addListener((final Change<? extends H> c) -> {
-			LOGGER.info("updated list size {}", c.getList().size());
+			LOGGER.debug("updated list size {}", c.getList().size());
 			setFocusTraversable(!c.getList().isEmpty());
 			selectThread();
 		});
@@ -165,7 +165,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 			restoreSelection();
 		}
 
-		LOGGER.info("restored selection with list of index {}", getSelectionModel().getSelectedIndices());
+		LOGGER.debug("restored selection with list of index {}", getSelectionModel().getSelectedIndices());
 	}
 
 	private void restoreUnreadSelection() {
