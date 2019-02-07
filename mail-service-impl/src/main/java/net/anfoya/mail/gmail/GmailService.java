@@ -2,13 +2,11 @@ package net.anfoya.mail.gmail;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
@@ -41,6 +39,7 @@ import net.anfoya.mail.gmail.model.GmailMoreThreads;
 import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.gmail.model.GmailTag;
 import net.anfoya.mail.gmail.model.GmailThread;
+import net.anfoya.mail.gmail.service.AuthenticationService;
 import net.anfoya.mail.gmail.service.ContactException;
 import net.anfoya.mail.gmail.service.ContactService;
 import net.anfoya.mail.gmail.service.HistoryException;
@@ -49,7 +48,6 @@ import net.anfoya.mail.gmail.service.LabelException;
 import net.anfoya.mail.gmail.service.LabelService;
 import net.anfoya.mail.gmail.service.MessageException;
 import net.anfoya.mail.gmail.service.MessageService;
-import net.anfoya.mail.gmail.service.AuthenticationService;
 import net.anfoya.mail.gmail.service.ThreadException;
 import net.anfoya.mail.gmail.service.ThreadService;
 import net.anfoya.mail.service.MailException;
@@ -83,7 +81,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 	private final ReadOnlyBooleanWrapper connected;
 
-	private AuthenticationService authService;
+	private final AuthenticationService authService;
 	private LabelService labelService;
 	private MessageService messageService;
 	private ThreadService threadService;
@@ -101,7 +99,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	public void authenticate() throws GMailException {
 		authService.authenticate();
 	}
-	
+
 	@Override
 	public void setOnAuth(Runnable callback) {
 		authService.setOnAuth(() -> {
@@ -117,21 +115,21 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			contactService = new ContactService(gcontact, DEFAULT).init();
 
 			messageService = new MessageService(gmail, USER);
-			threadService = new ThreadService(gmail, USER);
 			labelService = new LabelService(gmail, USER);
+			threadService = new ThreadService(gmail, labelService, USER);
 
 			historyService = new HistoryService(gmail, USER);
 			historyService.addOnUpdateLabel(() -> labelService.clearCache());
 
 			connected.bind(historyService.disconnected().not());
-			
+
 			callback.run();
 		});
 	}
 
 	@Override
 	public void setOnAuthFailed(Runnable callback) {
-		authService.setOnAuthFailed(callback);	
+		authService.setOnAuthFailed(callback);
 	}
 
 	@Override
@@ -223,33 +221,21 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 			}
 
 			for(final Thread t: threadService.find(query.toString(), pageMax)) {
-				// clean labels
-				if (t.getMessages() == null) {
-					LOGGER.error("no message for thread {}", t.toPrettyString());
-				} else {
-					for(final Message m: t.getMessages()) {
-						final List<String> cleaned = new ArrayList<>();
-						if (m.getLabelIds() == null) {
-							LOGGER.error("no label for message id: {}", m.getId());
-						} else {
-							for(final String id: m.getLabelIds()) {
-								if (!GmailTag.isHidden(labelService.get(id))) {
-									cleaned.add(id);
-								}
-							}
-						}
-						m.setLabelIds(cleaned);
-					}
-				}
 				if (GmailThread.PAGE_TOKEN_ID.equals(t.getId())) {
 					threads.add(new GmailMoreThreads(pageMax + 1));
-				} else {
-					threads.add(new GmailThread(t));
+					continue;
 				}
+				if (t.getMessages() == null) {
+					LOGGER.error("no message for thread {}", t.toPrettyString());
+					continue;
+				}
+
+				threads.add(new GmailThread(t));
 			}
 
 			return threads;
-		} catch (final ThreadException | LabelException | IOException e) {
+
+		} catch (final ThreadException | IOException e) {
 			throw new GMailException("find threads for includes=" + includes
 					+ " excludes=" + excludes
 					+ " pattern=" + pattern

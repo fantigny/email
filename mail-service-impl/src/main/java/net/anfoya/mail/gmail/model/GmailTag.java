@@ -22,13 +22,17 @@ public class GmailTag extends SimpleTag implements Tag {
 	public static final GmailTag UPDATES = new GmailTag("CATEGORY_UPDATES", "updates", "UPDATES", true);
 	public static final GmailTag FORUMS = new GmailTag("CATEGORY_FORUMS", "forums", "FORUMS", true);
 
-	public static boolean isHidden(final Label label) {
-		return "labelHide".equals(label.getLabelListVisibility())
-				|| "CATEGORY_PERSONAL".equals(label.getName());
-	}
+	public static final String SYSTEM = "system";
+	public static final String HIDDEN = "labelHide";
+	public static final String CAT_PERSONAL = "CATEGORY_PERSONAL";
 
 	public static boolean isSystem(final Label label) {
-		return "system".equals(label.getType());
+		return SYSTEM.equals(label.getType());
+	}
+
+	public static boolean isHidden(final Label label) {
+		return HIDDEN.equals(label.getLabelListVisibility())
+				|| CAT_PERSONAL.equals(label.getName());
 	}
 
 	public static String getName(final Label label) {

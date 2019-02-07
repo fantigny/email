@@ -91,7 +91,7 @@ public class GmailThread extends SimpleThread {
 		Message last = null;
 		for(int i=messages.size()-1; i>=0; i--) {
 			last = messages.get(i);
-			if (!last.getLabelIds().contains(GmailTag.SENT.getId())) {
+			if (last.getLabelIds() == null || !last.getLabelIds().contains(GmailTag.SENT.getId())) {
 				break;
 			}
 		}
@@ -106,6 +106,7 @@ public class GmailThread extends SimpleThread {
 		return thread
 				.getMessages()
 				.stream()
+				.filter(m -> m.getLabelIds() != null)
 				.flatMap(m -> m.getLabelIds().stream())
 				.collect(Collectors.toSet());
 	}
