@@ -107,7 +107,7 @@
 			</plugin>
 
 			<!-- build macOs binary(x64) from self contained executable JAR -->
-			<!-- plugin>
+			<plugin>
 				<artifactId>maven-antrun-plugin</artifactId>
 				<version>1.8</version>
 				<dependencies>
@@ -123,7 +123,7 @@
 						<phase>package</phase>
 						<configuration>
 							<target>
-								<!- - create App bundle for Mac - ->
+								<!-- create App bundle for Mac -->
 								<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
 									classpathref="maven.plugin.classpath" />
 								<bundleapp outputdirectory="target" name="FisherMail"
@@ -133,7 +133,7 @@
 									copyright="speederpan.com" mainclassname="net.anfoya.mail.client.javafx.entrypoint.MailClient">
 									<classpath file="target/FisherMail.jar" />
 									<option value="-Xmx1g" />
-									<runtime dir="/home/dell/jre/osx64/Contents/Home" />
+									<runtime dir="/Library/Java/JavaVirtualMachines/jdk1.8.0_162.jdk/Contents/Home" />
 								</bundleapp>
 							</target>
 						</configuration>
@@ -142,7 +142,7 @@
 						</goals>
 					</execution>
 				</executions>
-			</plugin -->
+			</plugin>
 			
 			<!-- create deliverables -->
 			<plugin>
