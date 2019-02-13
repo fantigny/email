@@ -7,7 +7,7 @@
 	</formats>
 	<fileSets>
 		<fileSet>
-			<directory>jre\win64\jre1.8.0_202</directory>
+			<directory>jre/win64/jre1.8.0_202</directory>
 			<outputDirectory>jre</outputDirectory>
 		</fileSet>
 	</fileSets>
