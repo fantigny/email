@@ -159,7 +159,7 @@
 							<finalName>FisherMail</finalName>
 							<attach>false</attach>
 							<descriptors>
-								<descriptor>assembly-osx64.xml</descriptor>
+								<descriptor>assembly-macos.xml</descriptor>
 								<descriptor>assembly-win32.xml</descriptor>
 								<descriptor>assembly-win64.xml</descriptor>
 							</descriptors>
