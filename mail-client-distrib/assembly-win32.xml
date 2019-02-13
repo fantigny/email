@@ -7,7 +7,7 @@
 	</formats>
 	<fileSets>
 		<fileSet>
-			<directory>/home/dell/jre/win32</directory>
+			<directory>jre\win32\jre1.8.0_201</directory>
 			<outputDirectory>jre</outputDirectory>
 		</fileSet>
 	</fileSets>
