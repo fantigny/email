@@ -106,6 +106,7 @@
 				</executions>
 			</plugin>
 
+			<!-- !!!! this only works on *nix systems !!!! -->
 			<!-- build macOs binary(x64) from self contained executable JAR -->
 			<plugin>
 				<artifactId>maven-antrun-plugin</artifactId>

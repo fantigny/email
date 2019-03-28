@@ -72,8 +72,8 @@ public class VersionHelper {
 				throw new VersionException("error read version from " + VERSION_TXT_RESOURCE, e);
 			}
 		}
-		try (InputStream in = new URL(VERSION_TXT_URL).openConnection().getInputStream();
-				BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
+		try (final InputStream in = new URL(VERSION_TXT_URL).openStream();
+				final BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
 			reader.lines().forEach(l -> latestVersion = l);
 		} catch (final IOException e) {
 			latestVersion = myVersion;
