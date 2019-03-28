@@ -17,6 +17,7 @@ import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.model.Label;
 
 import net.anfoya.java.io.SerializedFile;
+import net.anfoya.java.util.system.ShutdownHook;
 import net.anfoya.mail.gmail.cache.CacheData;
 import net.anfoya.mail.gmail.cache.CacheException;
 import net.anfoya.mail.gmail.model.GmailTag;
@@ -41,20 +42,20 @@ public class LabelService {
 		} catch (ClassNotFoundException | IOException | CacheException e) {
 			idLabels.clear();
 		}
-		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					final Map<String, CacheData<Label>> map = new HashMap<>();
-					for(final Entry<String, Label> entry: idLabels.entrySet()) {
-						map.put(entry.getKey(), new CacheData<>(entry.getValue()));
-					}
-					new SerializedFile<Map<String, CacheData<Label>>>(FILE_PREFIX + user).save(map);
-				} catch (final IOException e) {
-					LOGGER.error("save history id", e);
-				}
+
+		new ShutdownHook(() -> save());
+	}
+	
+	private synchronized void save() {
+		try {
+			final Map<String, CacheData<Label>> map = new HashMap<>();
+			for(final Entry<String, Label> entry: idLabels.entrySet()) {
+				map.put(entry.getKey(), new CacheData<>(entry.getValue()));
 			}
-		}));
+			new SerializedFile<Map<String, CacheData<Label>>>(FILE_PREFIX + user).save(map);
+		} catch (final IOException e) {
+			LOGGER.error("save history id", e);
+		}
 	}
 
 	public Set<Label> getAll() throws LabelException {

@@ -28,6 +28,7 @@ import net.anfoya.java.io.SerializedFile;
 import net.anfoya.java.util.VoidCallback;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
+import net.anfoya.java.util.system.ShutdownHook;
 
 public class HistoryService extends TimerTask {
 	private static final Logger LOGGER = LoggerFactory.getLogger(HistoryService.class);
@@ -60,17 +61,23 @@ public class HistoryService extends TimerTask {
 		} catch (final Exception e) {
 			historyId = null;
 		}
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-			try {
-				file.save(historyId);
-			} catch (final IOException e) {
-				LOGGER.error("save history id", e);
-			}
-		}));
 
 		updateMessageCallBacks = new LinkedHashSet<>();
 		addedMessageCallBacks = new LinkedHashSet<>();
 		updateLabelCallBacks = new LinkedHashSet<>();
+		
+		new ShutdownHook(() -> save());
+	}
+
+	private synchronized void save() {
+		LOGGER.info("saving...");
+
+		final SerializedFile<BigInteger> file = new SerializedFile<>(FILE_PREFIX + user);
+		try {
+			file.save(historyId);
+		} catch (final IOException e) {
+			LOGGER.error("save history id", e);
+		}
 	}
 
 	public void start(final Duration pullPeriod) {
