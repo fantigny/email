@@ -1,7 +1,6 @@
 package net.anfoya.mail.gmail.service;
 
 import java.io.File;
-import java.io.IOException;
 import java.math.BigInteger;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
@@ -66,18 +65,10 @@ public class HistoryService extends TimerTask {
 		addedMessageCallBacks = new LinkedHashSet<>();
 		updateLabelCallBacks = new LinkedHashSet<>();
 		
-		new ShutdownHook(() -> save());
-	}
-
-	private synchronized void save() {
-		LOGGER.info("saving...");
-
-		final SerializedFile<BigInteger> file = new SerializedFile<>(FILE_PREFIX + user);
-		try {
-			file.save(historyId);
-		} catch (final IOException e) {
-			LOGGER.error("save history id", e);
-		}
+		new ShutdownHook(() -> {
+			LOGGER.info("saving...");
+			new SerializedFile<>(FILE_PREFIX + user).save(historyId);
+		});
 	}
 
 	public void start(final Duration pullPeriod) {
