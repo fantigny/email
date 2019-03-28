@@ -106,7 +106,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 
 	public void sortBy(final SortField order) {
 		sortOrder = order;
-		refresh();
+		setAll(new HashSet<H>(getItems()), unread.get());
 	}
 
 	public Set<H> getSelectedThreads() {
