@@ -105,10 +105,10 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 
 	public void setSectionListPane(SectionListPane<S, T> pane) {
 		sectionListPane = pane;
-		sectionListPane.setOnUpdateSection(e -> refreshAfterSectionUpdate());
-		sectionListPane.setOnSelectSection(e -> refreshAfterSectionSelect());
-		sectionListPane.setOnUpdateTag(e -> refreshAfterTagUpdate());
-		sectionListPane.setOnSelectTag(e -> refreshAfterTagSelected());
+		sectionListPane.setOnUpdateSection(() -> refreshAfterSectionUpdate());
+		sectionListPane.setOnSelectSection(() -> refreshAfterSectionSelect());
+		sectionListPane.setOnUpdateTag(() -> refreshAfterTagUpdate());
+		sectionListPane.setOnSelectTag(() -> refreshAfterTagSelected());
 	}
 
 	public void setThreadListPane(ThreadListPane<T, H> pane) {
