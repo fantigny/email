@@ -68,6 +68,8 @@ public class ThreadListPane<T extends Tag, H extends Thread> extends BorderPane 
 
 
 	public ThreadListPane(final UndoService undoService) throws MailException {
+        getStyleClass().add("thread-list-pane");
+		
 		patternField = new ResetTextField();
 		patternField.setPromptText("thread search");
 
