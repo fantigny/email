@@ -649,7 +649,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 	}
 
 	/////////////// section pane
-	private final ObjectProperty<T> selected = new SimpleObjectProperty<T>();
+	private final ObjectProperty<T> selected = new SimpleObjectProperty<>();
 	private final Set<T> includes = new HashSet<>();
 	private final Set<T> excludes = new HashSet<>();
 
@@ -678,32 +678,15 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		final Set<T> excludes = sectionListPane.getExcludedTags();
 		final String pattern = threadListPane.getSearchPattern();
 
-		// check if new filter
-		boolean newFilter =
-				selected == null && this.selected.isNotNull().get()
-				|| selected != null && !selected.equals(this.selected.get())
-				|| !includes.equals(this.includes)
-				|| !excludes.equals(this.excludes)
-				|| !pattern.equals(this.pattern.get());
+		boolean newFilter = isNewFilter(selected, sectionListPane.getIncludedTags(), excludes, pattern);
 		if (!newFilter && !update) {
 			return;
 		}
 
-		isUnreadList.set(includes.size() == 1 && includes.iterator().next().getId().equals(unread.getId()));
+		isUnreadList.set(includes.size() == 1 && selected.getId().equals(unread.getId()));
 
 		final int page = newFilter? 1: threadListPage.get();
 		threadListPage.set(page);
-
-		this.selected.set(selected);
-		synchronized (this.includes) {
-			this.includes.clear();
-			this.includes.addAll(includes);
-		}
-		synchronized (this.excludes) {
-			this.excludes.clear();
-			this.excludes.addAll(excludes);
-		}
-		this.pattern.set(pattern);
 
 		final long taskId = loadThreadsTaskId.incrementAndGet();
 		if (loadThreadsTask != null && loadThreadsTask.isRunning()) {
@@ -747,6 +730,29 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 			}
 		});
 		ThreadPool.getDefault().submit(PoolPriority.MAX, "load thread list", loadThreadsTask);
+	}
+
+	private boolean isNewFilter(T selected, Set<T> includes, Set<T> excludes, String pattern) {
+		boolean newFilter = selected == null && this.selected.isNotNull().get()
+				|| selected != null && !selected.equals(this.selected.get())
+				|| !includes.equals(this.includes)
+				|| !excludes.equals(this.excludes)
+				|| !pattern.equals(this.pattern.get());
+
+		if (newFilter) {
+			this.selected.set(selected);
+			synchronized (this.includes) {
+				this.includes.clear();
+				this.includes.addAll(includes);
+			}
+			synchronized (this.excludes) {
+				this.excludes.clear();
+				this.excludes.addAll(excludes);
+			}
+			this.pattern.set(pattern);
+		}
+
+		return newFilter;
 	}
 
 
