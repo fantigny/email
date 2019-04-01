@@ -2,7 +2,6 @@ package net.anfoya.mail.gmail.service;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -43,19 +42,13 @@ public class LabelService {
 			idLabels.clear();
 		}
 
-		new ShutdownHook(() -> save());
-	}
-	
-	private synchronized void save() {
-		try {
-			final Map<String, CacheData<Label>> map = new HashMap<>();
-			for(final Entry<String, Label> entry: idLabels.entrySet()) {
-				map.put(entry.getKey(), new CacheData<>(entry.getValue()));
-			}
-			new SerializedFile<Map<String, CacheData<Label>>>(FILE_PREFIX + user).save(map);
-		} catch (final IOException e) {
-			LOGGER.error("save history id", e);
-		}
+		new ShutdownHook(() -> {
+			LOGGER.info("saving...");
+			new SerializedFile<Map<String, CacheData<Label>>>(FILE_PREFIX + user)
+				.save(idLabels.entrySet().stream().collect(Collectors.toMap(
+					e -> e.getKey(),
+					e -> new CacheData<>(e.getValue()))));
+		});
 	}
 
 	public Set<Label> getAll() throws LabelException {

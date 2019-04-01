@@ -46,12 +46,12 @@ import net.anfoya.tag.model.SpecialTag;
 public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> extends VBox {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadPane.class);
 
-    private static final String IMG_PATH = "/net/anfoya/mail/img/";
-    private static final String FLAG_PNG = ThreadPane.class.getResource(IMG_PATH + "mini_flag.png").toExternalForm();
-    private static final String ATTACH_PNG = ThreadPane.class.getResource(IMG_PATH + "mini_attach.png").toExternalForm();
+	private static final String IMG_PATH = "/net/anfoya/mail/img/";
+	private static final String FLAG_PNG = ThreadPane.class.getResource(IMG_PATH + "mini_flag.png").toExternalForm();
+	private static final String ATTACH_PNG = ThreadPane.class.getResource(IMG_PATH + "mini_attach.png").toExternalForm();
 
-    private static final Image FLAG_ICON = new Image(FLAG_PNG);
-    private static final Image ATTACH_ICON = new Image(ATTACH_PNG);
+	private static final Image FLAG_ICON = new Image(FLAG_PNG);
+	private static final Image ATTACH_ICON = new Image(ATTACH_PNG);
 
 	private final MailService<S, T, H, M, C> mailService;
 
@@ -328,31 +328,31 @@ public class ThreadPane<S extends Section, T extends Tag, H extends Thread, M ex
 	}
 
 	public void setOnReply(VoidCallback<Set<H>> callback) {
-		threadToolBar.setOnReply(e -> callback.call(threads));
+		threadToolBar.setOnReply(() -> callback.call(threads));
 	}
 
 	public void setOnReplyAll(VoidCallback<Set<H>> callback) {
-		threadToolBar.setOnReplyAll(e -> callback.call(threads));
+		threadToolBar.setOnReplyAll(() -> callback.call(threads));
 	}
 
 	public void setOnForward(VoidCallback<Set<H>> callback) {
-		threadToolBar.setOnForward(e -> callback.call(threads));
+		threadToolBar.setOnForward(() -> callback.call(threads));
 	}
 
 	public void setOnToggleFlag(VoidCallback<Set<H>> callback) {
-		threadToolBar.setOnToggleFlag(e -> callback.call(threads));
+		threadToolBar.setOnToggleFlag(() -> callback.call(threads));
 	}
 
 	public void setOnArchive(VoidCallback<Set<H>> callback) {
-		threadToolBar.setOnArchive(e -> callback.call(threads));
+		threadToolBar.setOnArchive(() -> callback.call(threads));
 	}
 
 	public void setOnTrash(VoidCallback<Set<H>> callback) {
-		threadToolBar.setOnTrash(e -> callback.call(threads));
+		threadToolBar.setOnTrash(() -> callback.call(threads));
 	}
 
 	public void setOnToggleSpam(VoidCallback<Set<H>> callback) {
-		threadToolBar.setOnSpam(e -> callback.call(threads));
+		threadToolBar.setOnSpam(() -> callback.call(threads));
 	}
 	public void setOnOpenUrl(VoidCallback<String> callback) {
 		openUrlCallback = callback;

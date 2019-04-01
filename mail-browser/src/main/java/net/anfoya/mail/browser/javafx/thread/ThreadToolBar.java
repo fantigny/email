@@ -1,7 +1,5 @@
 package net.anfoya.mail.browser.javafx.thread;
 
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.scene.control.Button;
 import javafx.scene.control.ToolBar;
 import javafx.scene.control.Tooltip;
@@ -65,31 +63,31 @@ public class ThreadToolBar extends ToolBar {
 		focusTraversableProperty().addListener((ov, o, n) -> getItems().forEach(node -> node.setFocusTraversable(n)));
 	}
 
-	public void setOnReply(final EventHandler<ActionEvent> handler) {
-		replyButton.setOnAction(handler);
+	public void setOnReply(final Runnable callback) {
+		replyButton.setOnAction(e -> callback.run());
 	}
 
-	public void setOnReplyAll(final EventHandler<ActionEvent> handler) {
-		replyAllButton.setOnAction(handler);
+	public void setOnReplyAll(final Runnable callback) {
+		replyAllButton.setOnAction(e -> callback.run());
 	}
 
-	public void setOnForward(final EventHandler<ActionEvent> handler) {
-		forwardButton.setOnAction(handler);
+	public void setOnForward(final Runnable callback) {
+		forwardButton.setOnAction(e -> callback.run());
 	}
 
-	public void setOnToggleFlag(final EventHandler<ActionEvent> handler) {
-		flagButton.setOnAction(handler);
+	public void setOnToggleFlag(final Runnable callback) {
+		flagButton.setOnAction(e -> callback.run());
 	}
 
-	public void setOnArchive(final EventHandler<ActionEvent> handler) {
-		archiveButton.setOnAction(handler);
+	public void setOnArchive(final Runnable callback) {
+		archiveButton.setOnAction(e -> callback.run());
 	}
 
-	public void setOnTrash(final EventHandler<ActionEvent> handler) {
-		trashButton.setOnAction(handler);
+	public void setOnTrash(final Runnable callback) {
+		trashButton.setOnAction(e -> callback.run());
 	}
 
-	public void setOnSpam(final EventHandler<ActionEvent> handler) {
-		spamButton.setOnAction(handler);
+	public void setOnSpam(final Runnable callback) {
+		spamButton.setOnAction(e -> callback.run());
 	}
 }

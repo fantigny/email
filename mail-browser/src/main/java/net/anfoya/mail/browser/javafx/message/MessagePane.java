@@ -63,9 +63,9 @@ import net.anfoya.mail.service.Thread;
 public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessagePane.class);
 
-    private static final Image ATTACHMENT = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/img/attachment.png"));
-    private static final Image MINI_ATTACHMENT = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/img/mini_attach.png"));
-    private static final String DEFAULT_CSS = ThreadPool.class.getResource("/net/anfoya/mail/css/default_browser.css").toExternalForm();
+	private static final Image ATTACHMENT = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/img/attachment.png"));
+	private static final Image MINI_ATTACHMENT = new Image(ThreadPane.class.getResourceAsStream("/net/anfoya/mail/img/mini_attach.png"));
+	private static final String DEFAULT_CSS = ThreadPool.class.getResource("/net/anfoya/mail/css/default_browser.css").toExternalForm();
 
 	private final String messageId;
 	private final MailService<? extends Section, ? extends Tag, ? extends Thread, M, C> mailService;
@@ -90,7 +90,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 
 	private Timeline showSnippetTimeline;
 	private Timeline showMessageTimeline;
-	private Runnable attachmentHandler;
+	private Runnable attachmentCallback;
 
 	private VBox arrowBox;
 
@@ -131,19 +131,19 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		attachmentPane = new FlowPane(Orientation.HORIZONTAL, 5, 0);
 		attachmentPane.setPadding(new Insets(0, 10, 0, 10));
 
-        arrowBox = new VBox();
-        arrowBox.getStyleClass().add("arrow-button");
+		arrowBox = new VBox();
+		arrowBox.getStyleClass().add("arrow-button");
 
-        final StackPane arrow = new StackPane();
-        arrow.getStyleClass().add("arrow");
-        arrow.rotateProperty().bind(new DoubleBinding() {
-        	{
-        		bind(expandedProperty());
-        	}
-        	@Override protected double computeValue() {
-        		return -90 * (1.0 - (isExpanded()? 1: 0));
-        	}
-        });
+		final StackPane arrow = new StackPane();
+		arrow.getStyleClass().add("arrow");
+		arrow.rotateProperty().bind(new DoubleBinding() {
+			{
+				bind(expandedProperty());
+			}
+			@Override protected double computeValue() {
+				return -90 * (1.0 - (isExpanded()? 1: 0));
+			}
+		});
 
 		final HBox title = new HBox(arrowBox, recipientFlow, iconBox, dateText);
 		title.setMinHeight(27);
@@ -159,18 +159,18 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 		titlePane.setAlignment(Pos.CENTER_LEFT);
 
 		titlePane.setOnMouseEntered(e ->{
-			 showSnippet(expanded.not().get());
-			 if (expanded.not().get()) {
-				 showAttachment(true);
-			 }
-			 mouseOver = true;
+			showSnippet(expanded.not().get());
+			if (expanded.not().get()) {
+				showAttachment(true);
+			}
+			mouseOver = true;
 		});
 		titlePane.setOnMouseExited(e -> {
-			 showSnippet(false);
-			 if (expanded.not().get()) {
-				 showAttachment(false);
-			 }
-			 mouseOver = false;
+			showSnippet(false);
+			if (expanded.not().get()) {
+				showAttachment(false);
+			}
+			mouseOver = false;
 		});
 
 		expanded.addListener((ov, o, n) -> {
@@ -253,7 +253,7 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 			@Override
 			protected String call() throws MailException, MessagingException, IOException, URISyntaxException {
 				message = mailService.getMessage(messageId);
-			    return reader.toHtml(message.getMimeMessage());
+				return reader.toHtml(message.getMimeMessage());
 			}
 		};
 		loadTask.setOnSucceeded(e -> {
@@ -358,12 +358,12 @@ public class MessagePane<M extends Message, C extends Contact> extends VBox {
 				attachmentPane.getChildren().add(attachment);
 			}
 			iconBox.getChildren().add(new ImageView(MINI_ATTACHMENT));
-			attachmentHandler.run();
+			attachmentCallback.run();
 		}
 	}
 
-	public void onContainAttachment(final Runnable handler) {
-		attachmentHandler = handler;
+	public void onContainAttachment(final Runnable callback) {
+		attachmentCallback = callback;
 	}
 
 	public boolean hasAttachment() {

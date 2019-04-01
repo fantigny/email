@@ -137,6 +137,9 @@
 }
 
 /* thread list */
+.thread-list-pane {
+	-fx-background-color: white;
+}
 .thread-list {
 	-fx-padding: 0;
 	-fx-border: 0;

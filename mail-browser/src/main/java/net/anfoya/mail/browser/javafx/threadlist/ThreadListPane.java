@@ -68,6 +68,8 @@ public class ThreadListPane<T extends Tag, H extends Thread> extends BorderPane 
 
 
 	public ThreadListPane(final UndoService undoService) throws MailException {
+		getStyleClass().add("thread-list-pane");
+
 		patternField = new ResetTextField();
 		patternField.setPromptText("thread search");
 
@@ -135,13 +137,13 @@ public class ThreadListPane<T extends Tag, H extends Thread> extends BorderPane 
 		final ThreadToolBar toolbar = new ThreadToolBar();
 		toolbar.setFocusTraversable(false);
 		toolbar.setPadding(new Insets(0));
-		toolbar.setOnReply(e -> replyCallback.call(getSelectedThreads()));
-		toolbar.setOnReplyAll(e -> replyAllCallback.call(getSelectedThreads()));
-		toolbar.setOnForward(e -> forwardCallback.call(getSelectedThreads()));
-		toolbar.setOnToggleFlag(e -> toggleFlagCallback.call(getSelectedThreads()));
-		toolbar.setOnArchive(e -> archiveCallback.call(getSelectedThreads()));
-		toolbar.setOnTrash(e -> trashCallback.call(getSelectedThreads()));
-		toolbar.setOnSpam(e -> toggleSpamCallback.call(getSelectedThreads()));
+		toolbar.setOnReply(() -> replyCallback.call(getSelectedThreads()));
+		toolbar.setOnReplyAll(() -> replyAllCallback.call(getSelectedThreads()));
+		toolbar.setOnForward(() -> forwardCallback.call(getSelectedThreads()));
+		toolbar.setOnToggleFlag(() -> toggleFlagCallback.call(getSelectedThreads()));
+		toolbar.setOnArchive(() -> archiveCallback.call(getSelectedThreads()));
+		toolbar.setOnTrash(() -> trashCallback.call(getSelectedThreads()));
+		toolbar.setOnSpam(() -> toggleSpamCallback.call(getSelectedThreads()));
 
 		showToolBar = new SimpleBooleanProperty();
 		showToolBar.addListener((ov, o, n) -> {
