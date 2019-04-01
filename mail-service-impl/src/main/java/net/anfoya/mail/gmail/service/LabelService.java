@@ -168,7 +168,8 @@ public class LabelService {
 						.filter(id -> {
 							try {
 								return !GmailTag.isHidden(get(id));
-							} catch (final LabelException e) {
+							} catch (final Exception e) {
+								LOGGER.warn("retrieving tag id {}: {}", id, e.getMessage());
 								return false;
 							}
 						})
