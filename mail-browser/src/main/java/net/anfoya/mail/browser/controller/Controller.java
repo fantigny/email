@@ -16,6 +16,8 @@ import edu.emory.mathcs.backport.java.util.concurrent.atomic.AtomicBoolean;
 import edu.emory.mathcs.backport.java.util.concurrent.atomic.AtomicInteger;
 import edu.emory.mathcs.backport.java.util.concurrent.atomic.AtomicLong;
 import javafx.application.Platform;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.concurrent.Task;
@@ -87,7 +89,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 
 	public void init() {
 		mailService.addOnUpdateMessage(() -> Platform.runLater(() -> refreshAfterUpdateMessage()));
-//		mailService.addOnUpdateTagOrSection(() -> Platform.runLater(() -> refreshTags()));
+		// mailService.addOnUpdateTagOrSection(() -> Platform.runLater(() -> refreshTags()));
 		mailService.connected().addListener((ov, o, n) -> {
 			if (!o && n) {
 				Platform.runLater(() -> refreshAfterTagSelected());
@@ -238,24 +240,24 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 
 	private void refreshTags() {
 		threadPanes
-			.stream()
-			.filter(p -> p.getThread() != null)
-			.forEach(p -> {
-				final H thread = p.getThread();
-				final Task<Set<H>> task = new Task<Set<H>>() {
-					@Override protected Set<H> call() throws Exception {
-						try {
-							return Collections.singleton(mailService.getThread(thread.getId()));
-						} catch (final MailException e) {
-							LOGGER.error("load thread {} {}", thread.getId(), thread.getSubject());
-							return null;
-						}
+		.stream()
+		.filter(p -> p.getThread() != null)
+		.forEach(p -> {
+			final H thread = p.getThread();
+			final Task<Set<H>> task = new Task<Set<H>>() {
+				@Override protected Set<H> call() throws Exception {
+					try {
+						return Collections.singleton(mailService.getThread(thread.getId()));
+					} catch (final MailException e) {
+						LOGGER.error("load thread {} {}", thread.getId(), thread.getSubject());
+						return null;
 					}
-				};
-				task.setOnFailed(e -> LOGGER.error("reload thread {}", thread.getId(), e.getSource().getException()));
-				task.setOnSucceeded(e -> Platform.runLater(() -> p.refresh(task.getValue())));
-				ThreadPool.getDefault().submit(PoolPriority.MAX, "reload tags", task);
-			});
+				}
+			};
+			task.setOnFailed(e -> LOGGER.error("reload thread {}", thread.getId(), e.getSource().getException()));
+			task.setOnSucceeded(e -> Platform.runLater(() -> p.refresh(task.getValue())));
+			ThreadPool.getDefault().submit(PoolPriority.MAX, "reload tags", task);
+		});
 	}
 
 	private void markUnread(Set<H> threads) {
@@ -648,6 +650,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 	}
 
 	/////////////// section pane
+	private final ObjectProperty<T> selected = new SimpleObjectProperty<T>();
 	private final Set<T> includes = new HashSet<>();
 	private final Set<T> excludes = new HashSet<>();
 
@@ -671,12 +674,16 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 	}
 
 	public void loadThreadList(final boolean update) {
+		final T selected = sectionListPane.getSelectedTag();
 		final Set<T> includes = sectionListPane.getIncludedOrSelectedTags();
 		final Set<T> excludes = sectionListPane.getExcludedTags();
 		final String pattern = threadListPane.getSearchPattern();
 
 		// check if new filter and new page
-		final boolean newFilter = !includes.equals(this.includes) || !excludes.equals(this.excludes) || !pattern.equals(this.pattern.get());
+		boolean newFilter = selected != this.selected
+				|| !includes.equals(this.includes)
+				|| !excludes.equals(this.excludes)
+				|| !pattern.equals(this.pattern.get());
 		if (!newFilter && !update) {
 			return;
 		}
@@ -686,6 +693,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		final int page = newFilter? 1: threadListPage.get();
 		threadListPage.set(page);
 
+		this.selected.set(selected);
 		synchronized (this.includes) {
 			this.includes.clear();
 			this.includes.addAll(includes);
@@ -694,7 +702,6 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 			this.excludes.clear();
 			this.excludes.addAll(excludes);
 		}
-
 		this.pattern.set(pattern);
 
 		final long taskId = loadThreadsTaskId.incrementAndGet();
