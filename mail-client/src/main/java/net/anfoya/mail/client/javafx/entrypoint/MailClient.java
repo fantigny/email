@@ -180,7 +180,7 @@ public class MailClient extends Application {
 				if (contact.getFullname().isEmpty() || mode != Mode.FULL) {
 					return contact.getEmail();
 				} else {
-					return "FisherMail - " + contact.getFullname() + " (" + contact.getEmail() + ")";
+					return "FisherMail - " + contact.getFullname();
 				}
 			}
 		};
