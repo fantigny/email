@@ -34,7 +34,7 @@ import net.anfoya.mail.service.MailService;
 
 @SuppressWarnings("serial")
 public class Settings implements Serializable {
-	public static final String DOWNLOAD_URL = "http://fishermail.speederpan.com/distrib";
+	public static final String DOWNLOAD_URL = "https://github.com/fantigny/email/releases";
 
 	public static final String VERSION_TXT_RESOURCE = "/version.txt";
 	public static final String VERSION_TXT_URL = "https://github.com/fantigny/email/releases/download/beta/version.txt";
