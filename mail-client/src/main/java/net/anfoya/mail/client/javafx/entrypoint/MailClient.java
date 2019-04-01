@@ -65,8 +65,8 @@ public class MailClient extends Application {
 
 		gmail.setOnAuth(() -> {
 			primaryStage.setOnCloseRequest(e -> confirmClose(e, primaryStage));
-			showBrowser(primaryStage);
 			initNewThreadNotifier(primaryStage);
+			showBrowser(primaryStage);
 			checkVersion();
 		});
 		gmail.setOnAuthFailed(() -> {
@@ -86,8 +86,8 @@ public class MailClient extends Application {
 			alert.setHeaderText("you are about to close FisherMail\rnew e-mail notification will be stopped");
 			alert.getDialogPane().contentProperty().set(checkBox);
 			alert.showAndWait()
-				.filter(response -> response == ButtonType.CANCEL)
-				.ifPresent(response -> e.consume());
+			.filter(response -> response == ButtonType.CANCEL)
+			.ifPresent(response -> e.consume());
 		}
 	}
 
@@ -133,9 +133,9 @@ public class MailClient extends Application {
 		version.isLastest().addListener((ov, o, n) -> {
 			if (!n) {
 				notificationService.notifySuccess(
-					"FisherMail - " + version.getLatestVersion()
-					, "click here to download"
-					, () -> UrlHelper.open(Settings.DOWNLOAD_URL));
+						"FisherMail - " + version.getLatestVersion()
+						, "click here to download"
+						, () -> UrlHelper.open(Settings.DOWNLOAD_URL));
 			}
 		});
 		version.start();
@@ -206,7 +206,7 @@ public class MailClient extends Application {
 			LOGGER.info("maximize to {}x{}", bounds.getWidth(), bounds.getHeight());
 			stage.setWidth(bounds.getWidth());
 			stage.setHeight(bounds.getHeight());
-//			stage.setMaximized(true);  // buggy on osx 10.7
+			// stage.setMaximized(true);  // buggy on osx 10.7
 		}
 
 		if (stage.getX() < bounds.getMinX() || stage.getX() > bounds.getMaxX()) {
@@ -274,7 +274,7 @@ public class MailClient extends Application {
 									settings.proxyUser().get(),
 									settings.proxyPasswd().get().toCharArray())
 							: null;
-			    }
+				}
 			});
 		}
 	}

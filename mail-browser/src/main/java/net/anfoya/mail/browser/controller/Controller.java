@@ -529,13 +529,12 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		final String desc = "count unread messages";
 		final Set<T> includes = Collections.singleton(mailService.getSpecialTag(SpecialTag.UNREAD));
 		ThreadPool.getDefault().submit(PoolPriority.MIN, desc, () -> {
-			int count = 0;
 			try {
-				count = mailService.findThreads(includes, Collections.emptySet(), "", 200).size();
-			} catch (final MailException e) {
+				final int count = mailService.findThreads(includes, Collections.emptySet(), "", 200).size();
+				notificationService.setIconBadge(count > 0? "" + count: "");
+			} catch (final Exception e) {
 				LOGGER.error(desc, e);
 			}
-			notificationService.setIconBadge("" + (count > 0? count: ""));
 		});
 	}
 
@@ -679,8 +678,10 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		final Set<T> excludes = sectionListPane.getExcludedTags();
 		final String pattern = threadListPane.getSearchPattern();
 
-		// check if new filter and new page
-		boolean newFilter = selected != this.selected
+		// check if new filter
+		boolean newFilter =
+				selected == null && this.selected.isNotNull().get()
+				|| selected != null && !selected.equals(this.selected.get())
 				|| !includes.equals(this.includes)
 				|| !excludes.equals(this.excludes)
 				|| !pattern.equals(this.pattern.get());
