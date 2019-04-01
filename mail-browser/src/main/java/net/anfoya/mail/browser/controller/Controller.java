@@ -678,8 +678,10 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		final Set<T> excludes = sectionListPane.getExcludedTags();
 		final String pattern = threadListPane.getSearchPattern();
 
-		// check if new filter and new page
-		boolean newFilter = selected != this.selected
+		// check if new filter
+		boolean newFilter =
+				selected == null && this.selected.isNotNull().get()
+				|| selected != null && !selected.equals(this.selected.get())
 				|| !includes.equals(this.includes)
 				|| !excludes.equals(this.excludes)
 				|| !pattern.equals(this.pattern.get());
