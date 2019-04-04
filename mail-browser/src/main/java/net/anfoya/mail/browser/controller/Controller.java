@@ -738,8 +738,8 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 				|| !excludes.equals(this.excludes)
 				|| !pattern.equals(this.pattern.get());
 
-		LOGGER.info("{} {} {} {}", selected==null? "null": selected.getName(), includes, excludes, pattern);
-		LOGGER.info("{} {} {} {}", this.selected.isNull().get()? "null": this.selected.get().getName(), this.includes, this.excludes, this.pattern.get());
+		LOGGER.debug("previous tag selection {} {} {} {}", this.selected.isNull().get()? "null": this.selected.get().getName(), this.includes, this.excludes, this.pattern.get());
+		LOGGER.debug(" current tag selection {} {} {} {}", selected==null? "null": selected.getName(), includes, excludes, pattern);
 
 		if (newFilter) {
 			this.selected.set(selected);
