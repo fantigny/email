@@ -655,9 +655,8 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 
 
 	/////////////// thread list
-	private final AtomicBoolean isUnreadList = new AtomicBoolean();
-
 	private final StringProperty pattern = new SimpleStringProperty("");
+	private final AtomicBoolean isUnreadList = new AtomicBoolean();
 	private final AtomicInteger threadListPage = new AtomicInteger(1);
 
 	private final AtomicLong loadThreadsTaskId = new AtomicLong();
@@ -683,7 +682,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 			return;
 		}
 
-		isUnreadList.set(includes.size() == 1 && selected.getId().equals(unread.getId()));
+		isUnreadList.set(selected != null && selected.getId().equals(unread.getId()));
 
 		final int page = newFilter? 1: threadListPage.get();
 		threadListPage.set(page);
@@ -738,6 +737,9 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 				|| !includes.equals(this.includes)
 				|| !excludes.equals(this.excludes)
 				|| !pattern.equals(this.pattern.get());
+
+		LOGGER.debug("previous tag selection {} {} {} {}", this.selected.isNull().get()? "null": this.selected.get().getName(), this.includes, this.excludes, this.pattern.get());
+		LOGGER.debug(" current tag selection {} {} {} {}", selected==null? "null": selected.getName(), includes, excludes, pattern);
 
 		if (newFilter) {
 			this.selected.set(selected);

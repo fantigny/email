@@ -34,10 +34,10 @@ public class AuthenticationService {
 	private static final boolean GUI = !GraphicsEnvironment.isHeadless();
 
 	private static final String CLIENT_SECRET_PATH = "client_secret.json";
-    private static final String REFRESH_TOKEN_SUFFIX = "%s-refresh-token";
+	private static final String REFRESH_TOKEN_SUFFIX = "%s-refresh-token";
 
-    private final String appName;
-    private final String refreshTokenName;
+	private final String appName;
+	private final String refreshTokenName;
 
 	private final HttpTransport httpTransport;
 	private final JsonFactory jsonFactory;
@@ -49,12 +49,12 @@ public class AuthenticationService {
 	private ContactsService gcontact;
 
 	private Gmail gmail;
-	
+
 	private Runnable authCallback;
 	private Runnable authFailedCallback;
 
-    public AuthenticationService(final String appName) {
-    	this.appName = appName;
+	public AuthenticationService(final String appName) {
+		this.appName = appName;
 		refreshTokenName = String.format(REFRESH_TOKEN_SUFFIX, appName);
 
 		httpTransport = new NetHttpTransport();
@@ -64,7 +64,7 @@ public class AuthenticationService {
 
 		updateGui(() -> progress = new ConnectionProgress());
 	}
-    
+
 	public void setOnAuth(Runnable callback) {
 		authCallback = callback;
 	}
@@ -79,14 +79,14 @@ public class AuthenticationService {
 			final GoogleClientSecrets clientSecrets;
 			try (final BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(CLIENT_SECRET_PATH)))) {
 				clientSecrets = GoogleClientSecrets.load(jsonFactory, reader);
-			};
+			}
 			credential = new GoogleCredential.Builder()
 					.setClientSecrets(clientSecrets)
 					.setJsonFactory(jsonFactory)
 					.setTransport(httpTransport)
 					.build();
 
-		    final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
+			final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
 			String refreshToken = prefs.get(refreshTokenName, null);
 			if (refreshToken != null) {
 				// Generate Credential using saved token.
@@ -94,6 +94,7 @@ public class AuthenticationService {
 				try {
 					credential.refreshToken();
 				} catch (final TokenResponseException e) {
+					LOGGER.warn("invalid token ({})", e.getMessage());
 					refreshToken = null;
 				}
 			}
@@ -119,8 +120,8 @@ public class AuthenticationService {
 
 			updateGui(() -> progress.setValue(1, "connect to mail..."));
 			gmail = new Gmail.Builder(httpTransport, jsonFactory, credential)
-				.setApplicationName(appName)
-				.build();
+					.setApplicationName(appName)
+					.build();
 
 			authCallback.run();
 		} catch (final IOException | BackingStoreException | InterruptedException e) {
@@ -132,7 +133,7 @@ public class AuthenticationService {
 
 	public void signout() {
 		// remove token from local preferences
-	    final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
+		final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
 		prefs.remove(refreshTokenName);
 		try {
 			prefs.flush();

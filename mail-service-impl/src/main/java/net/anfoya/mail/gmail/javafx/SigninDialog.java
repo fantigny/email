@@ -22,7 +22,6 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 
 import javafx.application.Platform;
-import javafx.concurrent.Worker.State;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -62,19 +61,17 @@ public class SigninDialog {
 				.setApprovalPrompt("auto")
 				.build();
 		// Allow user to authorise via URL and retrieve authorisation code
-		final String url = flow
+		final String uri = flow
 				.newAuthorizationUrl()
 				.setRedirectUri(GoogleOAuthConstants.OOB_REDIRECT_URI)
 				.build();
 
 		final String authCode;
 		if (GraphicsEnvironment.isHeadless()) {
-			System.out.println("Please open the following URL in your browser then type the authorization code:\n" + url);
-			// Read code entered by user.
-			final BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-			authCode = br.readLine();
+			System.out.println("Please open the following URL in your browser then type the authorization code:\n" + uri);
+			authCode = new BufferedReader(new InputStreamReader(System.in)).readLine();
 		} else {
-			authCode = getCredentialsFx(url);
+			authCode = getCredentialsFx(uri);
 		}
 
 		if (authCode.length() == 0) {
@@ -100,17 +97,21 @@ public class SigninDialog {
 
 			final WebEngine webEngine = webView.getEngine();
 			webEngine.getLoadWorker().stateProperty().addListener((ov, o, n) -> {
-				if (n == State.SUCCEEDED) {
+				switch(n) {
+				case SUCCEEDED: {
 					final String title = getTitle(webEngine);
 					stage.setTitle(title);
 					if (title.startsWith(LOGIN_SUCESS_PREFIX)) {
 						sb.append(title.substring(LOGIN_SUCESS_PREFIX.length()));
 						stage.close();
 					}
-				} else if (n == State.FAILED) {
+				} break;
+				case FAILED: {
 					final Throwable exception = webEngine.getLoadWorker().getException();
 					final String msg = exception == null? n.toString(): exception.toString();
 					Platform.runLater(() -> new Alert(AlertType.ERROR, msg, ButtonType.OK).showAndWait());
+				} break;
+				default:
 				}
 			});
 			webEngine.load(url);
@@ -127,20 +128,20 @@ public class SigninDialog {
 	}
 
 	private String getTitle(final WebEngine webEngine) {
-	    final NodeList heads = webEngine
-	    		.getDocument()
-	    		.getElementsByTagName("head");
-	    return getFirstElement(heads)
-	            .map(h -> h.getElementsByTagName("title"))
-	            .flatMap(this::getFirstElement)
-	            .map(Node::getTextContent)
-	            .orElse("");
+		final NodeList heads = webEngine
+				.getDocument()
+				.getElementsByTagName("head");
+		return getFirstElement(heads)
+				.map(h -> h.getElementsByTagName("title"))
+				.flatMap(this::getFirstElement)
+				.map(Node::getTextContent)
+				.orElse("");
 	}
 
 	private Optional<Element> getFirstElement(final NodeList nodeList) {
-	    if (nodeList.getLength() > 0 && nodeList.item(0) instanceof Element) {
-	        return Optional.of((Element) nodeList.item(0));
-	    }
-	    return Optional.empty();
+		if (nodeList.getLength() > 0 && nodeList.item(0) instanceof Element) {
+			return Optional.of((Element) nodeList.item(0));
+		}
+		return Optional.empty();
 	}
 }
