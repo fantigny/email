@@ -96,35 +96,41 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	}
 
 	@Override
-	public void authenticate() throws GMailException {
+	public void authenticate() {
 		authService.authenticate();
 	}
 
 	@Override
 	public void setOnAuth(Runnable callback) {
 		authService.setOnAuth(() -> {
-			final ContactsService gcontact = authService.getGcontactService();
 			final Gmail gmail = authService.getGmailService();
+			final ContactsService gcontact = authService.getGcontactService();
 
-			try {
-				address = gmail.users().getProfile(USER).execute().getEmailAddress();
-			} catch (final IOException e) {
-				address = "uknown!";
-			}
-
-			contactService = new ContactService(gcontact, DEFAULT).init();
-
-			messageService = new MessageService(gmail, USER);
-			labelService = new LabelService(gmail, USER);
-			threadService = new ThreadService(gmail, labelService, USER);
-
-			historyService = new HistoryService(gmail, USER);
-			historyService.addOnUpdateLabel(() -> labelService.clearCache());
-
-			connected.bind(historyService.disconnected().not());
+			initServices(gmail, gcontact);
+			initEmailAddress(gmail);
 
 			callback.run();
 		});
+	}
+
+	protected void initEmailAddress(Gmail gmail) {
+		try {
+			address = gmail.users().getProfile(USER).execute().getEmailAddress();
+		} catch (final IOException e) {
+			address = "uknown!";
+		}
+	}
+
+	protected void initServices(Gmail gmail, ContactsService gcontact) {
+		messageService = new MessageService(gmail, USER);
+		labelService = new LabelService(gmail, USER);
+		threadService = new ThreadService(gmail, labelService, USER);
+
+		historyService = new HistoryService(gmail, USER);
+		historyService.addOnUpdateLabel(() -> labelService.clearCache());
+		connected.bind(historyService.disconnected().not());
+
+		contactService = new ContactService(gcontact, DEFAULT).init();
 	}
 
 	@Override
@@ -132,11 +138,15 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		authService.setOnAuthFailed(callback);
 	}
 
+	public GMailException getAuthException() {
+		return authService.getException();
+	}
+
 	@Override
 	public void signout() {
-	    authService.signout();
-	    historyService.stop();
-	    clearCache();
+		authService.signout();
+		historyService.stop();
+		clearCache();
 	}
 
 	@Override
@@ -246,7 +256,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 	@Override
 	public GmailMessage getMessage(final String id) throws GMailException {
 		try {
-		    return new GmailMessage(messageService.getMessage(id));
+			return new GmailMessage(messageService.getMessage(id));
 		} catch (final MessageException | MessagingException e) {
 			throw new GMailException("load message id: " + id, e);
 		}

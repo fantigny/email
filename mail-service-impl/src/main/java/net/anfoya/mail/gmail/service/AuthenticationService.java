@@ -24,14 +24,16 @@ import com.google.api.services.gmail.Gmail;
 import com.google.gdata.client.contacts.ContactsService;
 
 import javafx.application.Platform;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import net.anfoya.mail.gmail.GMailException;
 import net.anfoya.mail.gmail.GmailService;
 import net.anfoya.mail.gmail.javafx.ConnectionProgress;
 import net.anfoya.mail.gmail.javafx.SigninDialog;
 
 public class AuthenticationService {
-	private static final Logger LOGGER = LoggerFactory.getLogger(AuthenticationService.class);
 	private static final boolean GUI = !GraphicsEnvironment.isHeadless();
+	private static final Logger LOGGER = LoggerFactory.getLogger(AuthenticationService.class);
 
 	private static final String CLIENT_SECRET_PATH = "client_secret.json";
 	private static final String REFRESH_TOKEN_SUFFIX = "%s-refresh-token";
@@ -41,6 +43,8 @@ public class AuthenticationService {
 
 	private final HttpTransport httpTransport;
 	private final JsonFactory jsonFactory;
+
+	private Stage stage;
 
 	private GoogleCredential credential;
 
@@ -53,6 +57,8 @@ public class AuthenticationService {
 	private Runnable authCallback;
 	private Runnable authFailedCallback;
 
+	private GMailException exception;
+
 	public AuthenticationService(final String appName) {
 		this.appName = appName;
 		refreshTokenName = String.format(REFRESH_TOKEN_SUFFIX, appName);
@@ -62,7 +68,13 @@ public class AuthenticationService {
 
 		credential = null;
 
-		updateGui(() -> progress = new ConnectionProgress());
+		updateProgress(() -> {
+			progress = new ConnectionProgress();
+			stage = new Stage(StageStyle.UNDECORATED);
+			stage.setScene(progress);
+			stage.sizeToScene();
+			stage.show();
+		});
 	}
 
 	public void setOnAuth(Runnable callback) {
@@ -73,8 +85,12 @@ public class AuthenticationService {
 		authFailedCallback = callback;
 	}
 
-	public void authenticate() throws GMailException {
-		updateGui(() -> progress.setValue(1/3d, "Google sign in..."));
+	public GMailException getException() {
+		return exception;
+	}
+
+	public void authenticate() {
+		updateProgress(() -> progress.setValue(1/3d, "Google sign in..."));
 		try {
 			final GoogleClientSecrets clientSecrets;
 			try (final BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(CLIENT_SECRET_PATH)))) {
@@ -99,35 +115,35 @@ public class AuthenticationService {
 				}
 			}
 			if (refreshToken == null) {
-				updateGui(() -> progress.hide());
+				updateProgress(() -> stage.hide());
 
 				// Generate Credential using login token.
-				final TokenResponse tokenResponse = new SigninDialog(clientSecrets).getTokenResponseCredentials();
-				if (tokenResponse == null) {
+				final TokenResponse token = new SigninDialog(clientSecrets).getToken();
+				if (token == null) {
 					authFailedCallback.run();
 					return;
 				}
-				credential.setFromTokenResponse(tokenResponse);
+				credential.setFromTokenResponse(token);
 			}
 
 			// save refresh token
 			prefs.put(refreshTokenName, credential.getRefreshToken());
 			prefs.flush();
 
-			updateGui(() -> progress.setValue(2/3d, "connect to contact..."));
+			updateProgress(() -> progress.setValue(2/3d, "connect to contact..."));
 			gcontact = new ContactsService(appName);
 			gcontact.setOAuth2Credentials(credential);
 
-			updateGui(() -> progress.setValue(1, "connect to mail..."));
+			updateProgress(() -> progress.setValue(1, "connect to mail..."));
 			gmail = new Gmail.Builder(httpTransport, jsonFactory, credential)
 					.setApplicationName(appName)
 					.build();
 
 			authCallback.run();
-		} catch (final IOException | BackingStoreException | InterruptedException e) {
-			throw new GMailException("connection", e);
+		} catch (final IOException | BackingStoreException | InterruptedException | GMailException e) {
+			exception = new GMailException("connection", e);
 		} finally {
-			updateGui(() -> progress.hide());
+			updateProgress(() -> stage.hide());
 		}
 	}
 
@@ -147,9 +163,9 @@ public class AuthenticationService {
 					"https://accounts.google.com/o/oauth2/revoke?token=%s"
 					, credential.getAccessToken()));
 			httpTransport
-				.createRequestFactory()
-				.buildGetRequest(url)
-				.execute();
+			.createRequestFactory()
+			.buildGetRequest(url)
+			.execute();
 		} catch (final IOException e) {
 			LOGGER.error("revoke authentication token", e);
 		}
@@ -169,7 +185,7 @@ public class AuthenticationService {
 		return gcontact;
 	}
 
-	private void updateGui(Runnable runnable) {
+	private void updateProgress(Runnable runnable) {
 		if (GUI) {
 			Platform.runLater(runnable);
 		}
