@@ -22,7 +22,9 @@ public class ConnectionProgressTestApp extends Application {
 		new Timer("progress test", true).schedule(new TimerTask() {
 			@Override
 			public void run() {
-				if (++i > 100) i = 0;
+				if (++i > 100) {
+					i = 0;
+				}
 				Platform.runLater(() -> cp.setValue(i / 100d, "test progress " + i + "%"));
 			}
 		}, 5000, 200);

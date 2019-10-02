@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.control.Alert;
@@ -56,32 +57,36 @@ public class MailClient extends Application {
 		initThreadPool();
 		initSettings();
 		initProxy();
-		initGmail();
 	}
 
 	@Override
-	public void start(final Stage primaryStage) throws Exception {
-		primaryStage.initStyle(StageStyle.UNIFIED);
-
+	public void start(final Stage primaryStage) {
+		gmail = new GmailService(App.MAIL_CLIENT);
 		gmail.setOnAuth(() -> {
-			primaryStage.setOnCloseRequest(e -> confirmClose(e, primaryStage));
-			initNewThreadNotifier(primaryStage);
-			showBrowser(primaryStage);
-			checkVersion();
+			Platform.runLater(() -> {
+				primaryStage.setOnCloseRequest(e -> confirmClose(e, primaryStage));
+				initNewThreadNotifier(primaryStage);
+				showBrowser(primaryStage);
+				checkVersion();
+			});
 		});
 		gmail.setOnAuthFailed(() -> {
-			primaryStage.close();
+			LOGGER.error(gmail.getAuthException().getMessage());
+			Platform.runLater(() -> primaryStage.close());
 		});
-		gmail.authenticate();
+
+		new Thread(() -> {
+			gmail.authenticate();
+		}).start();
 	}
 
-	private void confirmClose(final WindowEvent e, final Stage primaryStage) {
+	private void confirmClose(final WindowEvent e, final Stage stage) {
 		if (settings.confirmOnQuit().get()) {
 			final CheckBox checkBox = new CheckBox("don't show again");
 			checkBox.selectedProperty().addListener((ov, o, n) -> settings.confirmOnQuit().set(!n));
 
 			final Alert alert = new Alert(AlertType.CONFIRMATION);
-			alert.initOwner(primaryStage);
+			alert.initOwner(stage);
 			alert.setTitle("FisherMail");
 			alert.setHeaderText("you are about to close FisherMail\rnew e-mail notification will be stopped");
 			alert.getDialogPane().contentProperty().set(checkBox);
@@ -91,7 +96,7 @@ public class MailClient extends Application {
 		}
 	}
 
-	private void signout(Stage primaryStage) {
+	private void signout(Stage stage) {
 		boolean signout = true;
 		if (settings.confirmOnSignout().get()) {
 			final CheckBox checkBox = new CheckBox("don't show again");
@@ -108,12 +113,8 @@ public class MailClient extends Application {
 			return;
 		}
 
-		primaryStage.hide();
+		stage.hide();
 		gmail.signout();
-	}
-
-	private void initGmail() {
-		gmail = new GmailService(App.MAIL_CLIENT);
 	}
 
 	private void initThreadPool() {
@@ -141,7 +142,7 @@ public class MailClient extends Application {
 		version.start();
 	}
 
-	private void showBrowser(final Stage primaryStage) {
+	private void showBrowser(final Stage stage) {
 		MailBrowser<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact> mailBrowser;
 		try {
 			mailBrowser = new MailBrowser<>(
@@ -152,21 +153,23 @@ public class MailClient extends Application {
 			LOGGER.error("load mail browser", e);
 			return;
 		}
-		mailBrowser.setOnSignout(() -> signout(primaryStage));
-		mailBrowser.addOnModeChange(() -> refreshTitle(primaryStage, mailBrowser));
+		mailBrowser.setOnSignout(() -> signout(stage));
+		mailBrowser.addOnModeChange(() -> refreshTitle(stage, mailBrowser));
 
-		primaryStage.setScene(mailBrowser);
-		initSize(primaryStage);
-		primaryStage.show();
-		primaryStage.setOnHiding(e -> ThreadPool.getDefault().mustRun("save global settings", () -> {
+		stage.setScene(mailBrowser);
+		stage.initStyle(StageStyle.DECORATED);
+		stage.setOnHiding(e -> ThreadPool.getDefault().mustRun("save global settings", () -> {
 			gmail.stopListening();
 			mailBrowser.saveSettings();
-			settings.windowX().set(primaryStage.getX());
-			settings.windowY().set(primaryStage.getY());
-			settings.windowWidth().set(primaryStage.getWidth());
-			settings.windowHeight().set(primaryStage.getHeight());
+			settings.windowX().set(stage.getX());
+			settings.windowY().set(stage.getY());
+			settings.windowWidth().set(stage.getWidth());
+			settings.windowHeight().set(stage.getHeight());
 			settings.saveNow();
 		}));
+
+		initSize(stage);
+		stage.show();
 
 		gmail.startListening();
 	}
@@ -219,8 +222,8 @@ public class MailClient extends Application {
 		}
 	}
 
-	private void initNewThreadNotifier(Stage primaryStage) {
-		notificationService = new NotificationService(primaryStage);
+	private void initNewThreadNotifier(Stage stage) {
+		notificationService = new NotificationService(stage);
 		notificationService.popupLifeTime().bind(settings.popupLifetime());
 
 		gmail.addOnNewMessage(threads -> {
@@ -240,11 +243,11 @@ public class MailClient extends Application {
 						t.getSubject()
 						, task.getValue()
 						, () -> {
-							if (primaryStage.isIconified()) {
-								primaryStage.setIconified(false);
+							if (stage.isIconified()) {
+								stage.setIconified(false);
 							}
-							if (!primaryStage.isFocused()) {
-								primaryStage.requestFocus();
+							if (!stage.isFocused()) {
+								stage.requestFocus();
 							}
 						}));
 				task.setOnFailed(e -> LOGGER.error("notify new thread {}", t.getId(), e.getSource().getException()));
@@ -273,7 +276,7 @@ public class MailClient extends Application {
 							? new PasswordAuthentication(
 									settings.proxyUser().get(),
 									settings.proxyPasswd().get().toCharArray())
-							: null;
+									: null;
 				}
 			});
 		}

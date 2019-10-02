@@ -31,16 +31,16 @@ public class ThreadServiceTest {
 
 	@Test public void findThread() throws ThreadException {
 		final Thread thread = service.find("subject:" + TEST_SUBJECT, 1).iterator().next();
-		final Set<String> threadIds = new HashSet<String>();
+		final Set<String> threadIds = new HashSet<>();
 		threadIds.add(thread.getId());
 	}
 
 	@Test public void addRemoveLabel() throws ThreadException {
 		final String INBOX = "INBOX";
 		final String threadId = service.find("subject:" + TEST_SUBJECT, 1).iterator().next().getId();
-		final Set<String> threadIds = new HashSet<String>();
+		final Set<String> threadIds = new HashSet<>();
 		threadIds.add(threadId);
-		final Set<String> labelIds = new HashSet<String>();
+		final Set<String> labelIds = new HashSet<>();
 		labelIds.add(INBOX);
 
 		// add to INBOX
@@ -57,9 +57,9 @@ public class ThreadServiceTest {
 	@Test public void cache() throws ThreadException {
 		final String INBOX = "INBOX";
 		final String threadId = service.find("subject:" + TEST_SUBJECT, 1).iterator().next().getId();
-		final Set<String> threadIds = new HashSet<String>();
+		final Set<String> threadIds = new HashSet<>();
 		threadIds.add(threadId);
-		final Set<String> labelIds = new HashSet<String>();
+		final Set<String> labelIds = new HashSet<>();
 		labelIds.add(INBOX);
 
 		// get thread

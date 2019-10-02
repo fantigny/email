@@ -11,12 +11,10 @@ import javafx.scene.control.Labeled;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import net.anfoya.javafx.scene.animation.DelayTimeline;
 
-public class ConnectionProgress extends Stage {
+public class ConnectionProgress extends Scene {
 	private static final int DEFAULT_WIDTH = 300;
 	private final Labeled progressText;
 	private final Label progressBar;
@@ -28,13 +26,11 @@ public class ConnectionProgress extends Stage {
 	}
 
 	public ConnectionProgress(final int width) {
-		super(StageStyle.UNDECORATED);
+		super(new BorderPane(), width, 110);
 
 		final ImageView image = new ImageView(new Image(getClass().getResourceAsStream("googlemail-64.png")));
 		image.setFitHeight(64);
 		image.setFitWidth(64);
-		BorderPane.setAlignment(image, Pos.CENTER);
-		BorderPane.setMargin(image, new Insets(0,0,0, 20));
 
 		progressText = new Label();
 		progressText.setMinSize(Label.USE_PREF_SIZE, Label.USE_PREF_SIZE);
@@ -44,35 +40,29 @@ public class ConnectionProgress extends Stage {
 		progressBar.setMinSize(0, 3);
 		progressBar.setPrefSize(0, 3);
 
-		final BorderPane borderPane = new BorderPane(progressText, null, null, progressBar, image);
+		final BorderPane borderPane = (BorderPane) getRoot();
 		borderPane.setStyle("-fx-background-color: white");
-
-		setScene(new Scene(borderPane, width, 110));
-		sizeToScene();
-	}
-	
-	@Override
-	public void hide() {
-		new DelayTimeline(Duration.millis(500), e -> super.hide()).play();
+		BorderPane.setAlignment(image, Pos.CENTER);
+		BorderPane.setMargin(image, new Insets(0,0,0, 20));
+		borderPane.setLeft(image);
+		borderPane.setCenter(progressText);
+		borderPane.setBottom(progressBar);
 	}
 
 	public ConnectionProgress setValue(final double progress, final String text) {
-		if (!isShowing()) {
-			show();
-		}
-
 		if (progress < 0) {
-			startUndeterminate();
+			startKITTmode();
 		} else {
-			stopUndeterminate();
+			stopKITTmode();
 			progressBar.setPrefWidth( getWidth() * progress );
 		}
 		progressText.setText(text);
+		new DelayTimeline(Duration.millis(500), e -> progressText.setText(text)).play();
 
 		return this;
 	}
 
-	private synchronized void stopUndeterminate() {
+	private synchronized void stopKITTmode() {
 		if (undeterminate == null) {
 			return;
 		}
@@ -81,7 +71,7 @@ public class ConnectionProgress extends Stage {
 		progressBar.setTranslateX(0);
 	}
 
-	private synchronized void startUndeterminate() {
+	private synchronized void startKITTmode() {
 		if (undeterminate != null) {
 			return;
 		}
