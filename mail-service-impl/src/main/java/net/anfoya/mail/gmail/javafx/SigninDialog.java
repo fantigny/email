@@ -19,7 +19,6 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 
-import javafx.application.Platform;
 import javafx.concurrent.Worker.State;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -85,35 +84,28 @@ public class SigninDialog {
 	}
 
 	private String getAuthCodeFx(final String url) {
-		final StringBuilder authCode = new StringBuilder();
-		final Runnable loginRequest = () -> {
-			final WebView webView = new WebView();
-			final Stage stage = new Stage(StageStyle.DECORATED);
-			stage.setTitle(LOADING);
-			stage.getIcons().add(new Image(getClass().getResourceAsStream("googlemail-64.png")));
-			stage.setScene(new Scene(webView, 550, 800));
+		final StringBuffer authCode = new StringBuffer();
 
-			final WebEngine webEngine = webView.getEngine();
-			webEngine.load(url);
-			webEngine.getLoadWorker().stateProperty().addListener((ov, o, n) -> {
-				String title = LOADING;
-				if (n == State.SUCCEEDED) {
-					title = getTitle(webEngine.getDocument());
-					if (title.startsWith(LOGIN_SUCESS)) {
-						authCode.append(title.substring(LOGIN_SUCESS.length()));
-						stage.close();
-					}
+		final Stage stage = new Stage(StageStyle.DECORATED);
+		final WebView webView = new WebView();
+		final WebEngine webEngine = webView.getEngine();
+		webEngine.load(url);
+		webEngine.getLoadWorker().stateProperty().addListener((ov, o, n) -> {
+			String title = LOADING;
+			if (n == State.SUCCEEDED) {
+				title = SigninDialog.this.getTitle(webEngine.getDocument());
+				if (title.startsWith(LOGIN_SUCESS)) {
+					authCode.append(title.substring(LOGIN_SUCESS.length()));
+					stage.close();
 				}
-				stage.setTitle(title);
-			});
-			stage.showAndWait();
-		};
+			}
+			stage.setTitle(title);
+		});
 
-		if (Platform.isFxApplicationThread()) {
-			loginRequest.run();
-		} else {
-			Platform.runLater(loginRequest);
-		}
+		stage.getIcons().add(new Image(getClass().getResourceAsStream("googlemail-64.png")));
+		stage.setScene(new Scene(webView, 550, 800));
+		stage.setTitle(LOADING);
+		stage.showAndWait();
 
 		return authCode.toString();
 	}
