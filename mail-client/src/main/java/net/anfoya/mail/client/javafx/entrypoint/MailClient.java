@@ -57,11 +57,11 @@ public class MailClient extends Application {
 		initThreadPool();
 		initSettings();
 		initProxy();
+		initGmail();
 	}
 
 	@Override
 	public void start(final Stage primaryStage) {
-		gmail = new GmailService(App.MAIL_CLIENT);
 		gmail.setOnAuth(() -> {
 			Platform.runLater(() -> {
 				primaryStage.setOnCloseRequest(e -> confirmClose(e, primaryStage));
@@ -75,9 +75,7 @@ public class MailClient extends Application {
 			Platform.runLater(() -> primaryStage.close());
 		});
 
-		new Thread(() -> {
-			gmail.authenticate();
-		}).start();
+		gmail.authenticate();
 	}
 
 	private void confirmClose(final WindowEvent e, final Stage stage) {
@@ -256,6 +254,10 @@ public class MailClient extends Application {
 
 			return null;
 		});
+	}
+
+	private void initGmail() {
+		gmail = new GmailService(App.MAIL_CLIENT);
 	}
 
 	private void initProxy() {
