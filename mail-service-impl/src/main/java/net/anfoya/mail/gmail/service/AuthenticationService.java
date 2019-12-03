@@ -187,7 +187,11 @@ public class AuthenticationService {
 
 	private void updateProgress(Runnable runnable) {
 		if (GUI) {
-			Platform.runLater(runnable);
+			if (Platform.isFxApplicationThread()) {
+				runnable.run();
+			} else {
+				Platform.runLater(runnable);
+			}
 		}
 	}
 }
