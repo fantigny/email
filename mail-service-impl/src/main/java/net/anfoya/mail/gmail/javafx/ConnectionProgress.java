@@ -28,6 +28,7 @@ public class ConnectionProgress extends Scene {
 	public ConnectionProgress(final int width) {
 		super(new BorderPane(), width, 110);
 
+
 		final ImageView image = new ImageView(new Image(getClass().getResourceAsStream("googlemail-64.png")));
 		image.setFitHeight(64);
 		image.setFitWidth(64);
@@ -41,7 +42,7 @@ public class ConnectionProgress extends Scene {
 		progressBar.setPrefSize(0, 3);
 
 		final BorderPane borderPane = (BorderPane) getRoot();
-		borderPane.setStyle("-fx-background-color: white");
+		borderPane.setStyle("-fx-background-color: #EEEEEE");
 		BorderPane.setAlignment(image, Pos.CENTER);
 		BorderPane.setMargin(image, new Insets(0,0,0, 20));
 		borderPane.setLeft(image);
