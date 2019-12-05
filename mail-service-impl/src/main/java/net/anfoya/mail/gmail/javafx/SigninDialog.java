@@ -22,26 +22,32 @@ public class SigninDialog {
 	private static final String TITLE = "title";
 	private static final String LOGIN_SUCESS = "Success code=";
 
-	public SigninDialog() {
+	private final String url;
+
+	public SigninDialog(String url) {
+		this.url = url;
+
 		// workaround Google login issue -- https://stackoverflow.com/questions/44905264/cannot-sign-in-to-google-in-javafx-webview
 		System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
 	}
 
-	public String requestAuthCode(String url) throws IOException {
-		final String authCode;
-		if (GraphicsEnvironment.isHeadless()) {
-			System.out.println("Please open the following URL in your browser then copy the authorization code here:\n" + url);
-			try (BufferedReader in = new BufferedReader(new InputStreamReader(System.in))) {
-				authCode = in.readLine();
-			}
-		} else {
-			authCode = getAuthCodeFx(url);
-		}
-
-		return authCode;
+	public String requestAuthCode() throws IOException {
+		return GraphicsEnvironment.isHeadless()?
+				getAuthCodeConsole():
+				getAuthCodeFx();
 	}
 
-	private String getAuthCodeFx(final String url) {
+	private String getAuthCodeConsole() {
+		System.out.println("Please open the following URL in your browser: " + url);
+		System.out.println("then copy the authorization code here: ");
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(System.in))) {
+			return in.readLine();
+		} catch (IOException e) {
+			return "";
+		}
+	}
+
+	private String getAuthCodeFx() {
 		StringBuffer authCode = new StringBuffer();
 
 		final Stage stage = new Stage(StageStyle.DECORATED);

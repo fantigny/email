@@ -49,18 +49,16 @@ public class AuthenticationService {
 	private static final String REFRESH_TOKEN_SUFFIX = "%s-refresh-token";
 
 	private final String appName;
-	private final String refreshTokenName;
-
-	private final HttpTransport httpTransport;
-	private final JsonFactory jsonFactory;
+	private final String prefsTokenName;
 
 	private ConnectionProgress stage;
 
+	private Gmail gmail;
+	private ContactsService gcontact;
 	private GoogleCredential credential;
 
-	private ContactsService gcontact;
-
-	private Gmail gmail;
+	private final HttpTransport httpTransport;
+	private final JsonFactory jsonFactory;
 
 	private Runnable authCallback;
 	private Runnable authFailedCallback;
@@ -69,7 +67,7 @@ public class AuthenticationService {
 
 	public AuthenticationService(final String appName) {
 		this.appName = appName;
-		refreshTokenName = String.format(REFRESH_TOKEN_SUFFIX, appName);
+		prefsTokenName = String.format(REFRESH_TOKEN_SUFFIX, appName);
 
 		httpTransport = new NetHttpTransport();
 		jsonFactory = new JacksonFactory();
@@ -107,7 +105,7 @@ public class AuthenticationService {
 		// save refresh token
 		try {
 			final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
-			prefs.put(refreshTokenName, credential.getRefreshToken());
+			prefs.put(prefsTokenName, credential.getRefreshToken());
 			prefs.flush();
 		} catch (Exception e) {
 			LOGGER.error("saving refresh token", e.getMessage());
@@ -171,7 +169,7 @@ public class AuthenticationService {
 		updateProgress(1 / 3d, "Google sign in...");
 
 		final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
-		String refreshToken = prefs.get(refreshTokenName, null);
+		String refreshToken = prefs.get(prefsTokenName, null);
 		if (refreshToken == null) {
 			return false;
 		}
@@ -196,7 +194,7 @@ public class AuthenticationService {
 		// Generate Credential using login token.
 		final String authCode;
 		try {
-			authCode = new SigninDialog().requestAuthCode(url);
+			authCode = new SigninDialog(url).requestAuthCode();
 		} catch (Exception e) {
 			exception = new GMailException("getting token from signin dialog", e);
 			return false;
@@ -227,7 +225,7 @@ public class AuthenticationService {
 	public void signout() {
 		// remove token from local preferences
 		final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
-		prefs.remove(refreshTokenName);
+		prefs.remove(prefsTokenName);
 		try {
 			prefs.flush();
 		} catch (final BackingStoreException e) {
