@@ -26,7 +26,6 @@ import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import net.anfoya.mail.gmail.GMailException;
 
 public class SigninDialog {
 	private static final String LOADING = " loading...";
@@ -52,24 +51,26 @@ public class SigninDialog {
 		System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
 	}
 
-	public TokenResponse getToken() throws GMailException, IOException, InterruptedException {
+	public TokenResponse getToken() throws IOException {
 		// Create flow object for the application
 		final GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(httpTransport, jsonFactory, clientSecrets, SCOPE)
 				.setAccessType("offline")
 				.setApprovalPrompt("auto")
 				.build();
 		// Allow user to authorise via URL and retrieve authorisation code
-		final String uri = flow
+		final String url = flow
 				.newAuthorizationUrl()
 				.setRedirectUri(GoogleOAuthConstants.OOB_REDIRECT_URI)
 				.build();
 
 		final String authCode;
 		if (GraphicsEnvironment.isHeadless()) {
-			System.out.println("Please open the following URL in your browser then type the authorization code:\n" + uri);
-			authCode = new BufferedReader(new InputStreamReader(System.in)).readLine();
+			System.out.println("Please open the following URL in your browser then copy the authorization code here:\n" + url);
+			try (BufferedReader in = new BufferedReader(new InputStreamReader(System.in))) {
+				authCode = in.readLine();
+			}
 		} else {
-			authCode = getAuthCodeFx(uri);
+			authCode = getAuthCodeFx(url);
 		}
 
 		if (authCode.length() == 0) {
@@ -78,28 +79,26 @@ public class SigninDialog {
 
 		// Generate token
 		return flow
-				.newTokenRequest(authCode)
+				.newTokenRequest(authCode.toString())
 				.setRedirectUri(GoogleOAuthConstants.OOB_REDIRECT_URI)
 				.execute();
 	}
 
 	private String getAuthCodeFx(final String url) {
-		final StringBuffer authCode = new StringBuffer();
+		StringBuffer authCode = new StringBuffer();
 
 		final Stage stage = new Stage(StageStyle.DECORATED);
 		final WebView webView = new WebView();
 		final WebEngine webEngine = webView.getEngine();
 		webEngine.load(url);
 		webEngine.getLoadWorker().stateProperty().addListener((ov, o, n) -> {
-			String title = LOADING;
 			if (n == State.SUCCEEDED) {
-				title = SigninDialog.this.getTitle(webEngine.getDocument());
-				if (title.startsWith(LOGIN_SUCESS)) {
-					authCode.append(title.substring(LOGIN_SUCESS.length()));
+				authCode.append(getAuthCode(webEngine));
+				if (authCode.length() != 0) {
 					stage.close();
 				}
 			}
-			stage.setTitle(title);
+			stage.setTitle(LOADING);
 		});
 
 		stage.getIcons().add(new Image(getClass().getResourceAsStream("googlemail-64.png")));
@@ -108,6 +107,15 @@ public class SigninDialog {
 		stage.showAndWait();
 
 		return authCode.toString();
+	}
+
+	private String getAuthCode(WebEngine webEngine) {
+		String title = getTitle(webEngine.getDocument());
+		if (title.startsWith(LOGIN_SUCESS)) {
+			return title.substring(LOGIN_SUCESS.length());
+		}
+
+		return "";
 	}
 
 	private String getTitle(final Document document) {
