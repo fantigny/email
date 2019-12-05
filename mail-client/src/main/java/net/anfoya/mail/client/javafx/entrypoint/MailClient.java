@@ -143,10 +143,7 @@ public class MailClient extends Application {
 	private void showBrowser(final Stage stage) {
 		MailBrowser<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact> mailBrowser;
 		try {
-			mailBrowser = new MailBrowser<>(
-					gmail
-					, notificationService
-					, settings);
+			mailBrowser = new MailBrowser<>(gmail, notificationService, settings);
 		} catch (final MailException e) {
 			LOGGER.error("load mail browser", e);
 			return;
