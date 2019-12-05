@@ -20,7 +20,7 @@ public class SigninDialog {
 	private static final String LOADING = " loading...";
 	private static final String HEAD = "head";
 	private static final String TITLE = "title";
-	private static final String LOGIN_SUCESS = "Success code=";
+	private static final String SUCCESS_CODE = "Success code=";
 
 	private final String url;
 
@@ -34,7 +34,7 @@ public class SigninDialog {
 	public String requestAuthCode() throws IOException {
 		return GraphicsEnvironment.isHeadless()?
 				getAuthCodeConsole():
-				getAuthCodeFx();
+					getAuthCodeFx();
 	}
 
 	private String getAuthCodeConsole() {
@@ -58,9 +58,9 @@ public class SigninDialog {
 			String title = LOADING;
 			if (n == State.SUCCEEDED) {
 				title = getTitle(webEngine.getDocument());
-				authCode.append(getAuthCode(title));
-				if (authCode.length() != 0) {
-					stage.close();
+				if (title.startsWith(SUCCESS_CODE)) {
+					authCode.append(title.substring(SUCCESS_CODE.length()));
+					stage.hide();
 				}
 			}
 			stage.setTitle(title);
@@ -72,14 +72,6 @@ public class SigninDialog {
 		stage.showAndWait();
 
 		return authCode.toString();
-	}
-
-	private String getAuthCode(String title) {
-		if (title.startsWith(LOGIN_SUCESS)) {
-			return title.substring(LOGIN_SUCESS.length());
-		}
-
-		return "";
 	}
 
 	private String getTitle(final Document document) {

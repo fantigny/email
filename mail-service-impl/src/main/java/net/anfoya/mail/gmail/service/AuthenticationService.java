@@ -4,7 +4,6 @@ import java.awt.GraphicsEnvironment;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.CookieManager;
 import java.util.Arrays;
 import java.util.List;
 import java.util.prefs.BackingStoreException;
@@ -51,10 +50,10 @@ public class AuthenticationService {
 	private final String appName;
 	private final String prefsTokenName;
 
-	private ConnectionProgress stage;
+	private ConnectionProgress progress;
 
 	private Gmail gmail;
-	private ContactsService gcontact;
+	private ContactsService contactsService;
 	private GoogleCredential credential;
 
 	private final HttpTransport httpTransport;
@@ -74,7 +73,7 @@ public class AuthenticationService {
 
 		credential = null;
 
-		showProgress();
+		updateProgress(() -> progress = new ConnectionProgress());
 	}
 
 	public void setOnAuth(Runnable callback) {
@@ -94,12 +93,12 @@ public class AuthenticationService {
 
 	protected void finaliseAuth() {
 		// connect to contact
-		updateProgress(2 / 3d, "init Contacts...");
-		gcontact = new ContactsService(appName);
-		gcontact.setOAuth2Credentials(credential);
+		updateProgress(() -> progress.setValue(2 / 3d, "Initialise Contacts..."));
+		contactsService = new ContactsService(appName);
+		contactsService.setOAuth2Credentials(credential);
 
 		// connect to gmail
-		updateProgress(1, "init Gmail...");
+		updateProgress(() -> progress.setValue(1, "Initialise Gmail..."));
 		gmail = new Gmail.Builder(httpTransport, jsonFactory, credential).setApplicationName(appName).build();
 
 		// save refresh token
@@ -111,12 +110,12 @@ public class AuthenticationService {
 			LOGGER.error("saving refresh token", e.getMessage());
 		}
 
-		closeProgress();
+		updateProgress(() -> progress.hide());
 	}
 
 	public void setOnAuthFailed(Runnable callback) {
 		authFailedCallback = () -> {
-			closeProgress();
+			updateProgress(() -> progress.hide());
 			callback.run();
 		};
 	}
@@ -144,8 +143,7 @@ public class AuthenticationService {
 				.setTransport(httpTransport).build();
 
 		Task<Boolean> task = new Task<Boolean>() {
-			@Override
-			protected Boolean call() throws Exception {
+			@Override protected Boolean call() throws Exception {
 				return refreshToken(clientSecrets);
 			}
 		};
@@ -166,7 +164,7 @@ public class AuthenticationService {
 	}
 
 	private boolean refreshToken(GoogleClientSecrets clientSecrets) throws IOException {
-		updateProgress(1 / 3d, "Google sign in...");
+		updateProgress(() -> progress.setValue(1 / 3d, "Sign in to Google..."));
 
 		final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
 		String refreshToken = prefs.get(prefsTokenName, null);
@@ -222,14 +220,15 @@ public class AuthenticationService {
 		return true;
 	}
 
-	public void signout() {
+	public boolean signout() {
 		// remove token from local preferences
 		final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
 		prefs.remove(prefsTokenName);
 		try {
 			prefs.flush();
 		} catch (final BackingStoreException e) {
-			LOGGER.error("remove authentication token", e);
+			exception = new GMailException("remove authentication token", e);
+			return false;
 		}
 
 		// revoke token (no API call available yet)
@@ -240,36 +239,22 @@ public class AuthenticationService {
 			.buildGetRequest(new GenericUrl(url))
 			.execute();
 		} catch (final IOException e) {
-			LOGGER.error("revoke authentication token", e);
+			exception = new GMailException("revoke authentication token", e);
+			return false;
 		}
 
-		// reset cookies
-		CookieManager.setDefault(new CookieManager());
+		return true;
 	}
 
 	public void reconnect() {
 	}
 
-	public Gmail getGmailService() {
+	public Gmail getGmail() {
 		return gmail;
 	}
 
-	public ContactsService getGcontactService() {
-		return gcontact;
-	}
-
-	private void showProgress() {
-		updateProgress(() -> {
-			stage = new ConnectionProgress();
-		});
-	}
-
-	private void closeProgress() {
-		updateProgress(() -> stage.hide());
-	}
-
-	private void updateProgress(double progress, String text) {
-		updateProgress(() -> stage.setValue(progress, text));
+	public ContactsService getContactsService() {
+		return contactsService;
 	}
 
 	private void updateProgress(Runnable update) {
