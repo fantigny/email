@@ -7,4 +7,8 @@ public abstract class MailException extends TagException {
 	public MailException(final String msg, final Throwable e) {
 		super(msg, e);
 	}
+
+	public MailException(String msg) {
+		super(msg);
+	}
 }

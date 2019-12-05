@@ -113,6 +113,11 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		});
 	}
 
+	@Override
+	public void setOnAuthFailed(Runnable callback) {
+		authService.setOnAuthFailed(callback);
+	}
+
 	protected void initEmailAddress(Gmail gmail) {
 		try {
 			address = gmail.users().getProfile(USER).execute().getEmailAddress();
@@ -131,11 +136,6 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		connected.bind(historyService.disconnected().not());
 
 		contactService = new ContactService(gcontact, DEFAULT).init();
-	}
-
-	@Override
-	public void setOnAuthFailed(Runnable callback) {
-		authService.setOnAuthFailed(callback);
 	}
 
 	public GMailException getAuthException() {

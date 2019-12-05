@@ -2,6 +2,9 @@ package net.anfoya.mail.gmail.javafx;
 
 import javafx.animation.Animation;
 import javafx.animation.Interpolator;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
 import javafx.animation.TranslateTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -11,10 +14,12 @@ import javafx.scene.control.Labeled;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
+import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import javafx.util.Duration;
 import net.anfoya.javafx.scene.animation.DelayTimeline;
 
-public class ConnectionProgress extends Scene {
+public class ConnectionProgress extends Stage {
 	private static final int DEFAULT_WIDTH = 300;
 	private final Labeled progressText;
 	private final Label progressBar;
@@ -26,8 +31,11 @@ public class ConnectionProgress extends Scene {
 	}
 
 	public ConnectionProgress(final int width) {
-		super(new BorderPane(), width, 110);
-
+		super(StageStyle.UNDECORATED);
+		getIcons().add(new Image(getClass().getResourceAsStream("/net/anfoya/mail/img/Mail.png")));
+		setScene(new Scene(new BorderPane(), width, 110));
+		sizeToScene();
+		show();
 
 		final ImageView image = new ImageView(new Image(getClass().getResourceAsStream("googlemail-64.png")));
 		image.setFitHeight(64);
@@ -41,13 +49,20 @@ public class ConnectionProgress extends Scene {
 		progressBar.setMinSize(0, 3);
 		progressBar.setPrefSize(0, 3);
 
-		final BorderPane borderPane = (BorderPane) getRoot();
+		final BorderPane borderPane = (BorderPane) getScene().getRoot();
 		borderPane.setStyle("-fx-background-color: #EEEEEE");
 		BorderPane.setAlignment(image, Pos.CENTER);
 		BorderPane.setMargin(image, new Insets(0,0,0, 20));
 		borderPane.setLeft(image);
 		borderPane.setCenter(progressText);
 		borderPane.setBottom(progressBar);
+	}
+
+	@Override
+	public void hide() {
+		final Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(1), new KeyValue(opacityProperty(), 0)));
+		timeline.setOnFinished(e -> super.hide());
+		timeline.playFromStart();
 	}
 
 	public ConnectionProgress setValue(final double progress, final String text) {

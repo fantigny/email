@@ -15,6 +15,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
+import javafx.scene.image.Image;
 import javafx.scene.media.AudioClip;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -151,8 +152,10 @@ public class MailClient extends Application {
 		mailBrowser.setOnSignout(() -> signout(stage));
 		mailBrowser.addOnModeChange(() -> refreshTitle(stage, mailBrowser));
 
-		stage.setScene(mailBrowser);
+		final Image icon = new Image(getClass().getResourceAsStream("/net/anfoya/mail/img/Mail.png"));
+		stage.getIcons().add(icon);
 		stage.initStyle(StageStyle.DECORATED);
+		stage.setScene(mailBrowser);
 		stage.setOnHiding(e -> ThreadPool.getDefault().mustRun("save global settings", () -> {
 			gmail.stopListening();
 			mailBrowser.saveSettings();
