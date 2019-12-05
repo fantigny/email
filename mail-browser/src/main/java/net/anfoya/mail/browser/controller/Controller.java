@@ -103,6 +103,8 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 			tag = mailService.getSpecialTag(SpecialTag.INBOX).getName();
 		}
 		sectionListPane.init(section, tag);
+
+		refreshUnreadCount();
 	}
 
 	public void setSectionListPane(SectionListPane<S, T> pane) {

@@ -4,16 +4,19 @@ import java.awt.GraphicsEnvironment;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.CookieManager;
+import java.util.Arrays;
+import java.util.List;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.api.client.auth.oauth2.TokenResponse;
+import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+import com.google.api.client.googleapis.auth.oauth2.GoogleOAuthConstants;
+import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
@@ -24,8 +27,6 @@ import com.google.gdata.client.contacts.ContactsService;
 
 import javafx.application.Platform;
 import javafx.concurrent.Task;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.gmail.GMailException;
 import net.anfoya.mail.gmail.GmailService;
@@ -33,27 +34,30 @@ import net.anfoya.mail.gmail.javafx.ConnectionProgress;
 import net.anfoya.mail.gmail.javafx.SigninDialog;
 
 public class AuthenticationService {
+	private static final String URL_REVOKE_TOKEN = "https://accounts.google.com/o/oauth2/revoke?token=%s";
 	private static final boolean GUI = !GraphicsEnvironment.isHeadless();
 	private static final Logger LOGGER = LoggerFactory.getLogger(AuthenticationService.class);
+
+	private static final List<String> SCOPE = Arrays.asList(new String[] {
+			"https://www.googleapis.com/auth/gmail.modify",
+			"https://www.googleapis.com/auth/gmail.labels",
+			"https://www.googleapis.com/auth/contacts.readonly"
+	});
 
 	private static final String CLIENT_SECRET_PATH = "client_secret.json";
 	private static final String REFRESH_TOKEN_SUFFIX = "%s-refresh-token";
 
 	private final String appName;
-	private final String refreshTokenName;
-
-	private final HttpTransport httpTransport;
-	private final JsonFactory jsonFactory;
-
-	private Stage stage;
-
-	private GoogleCredential credential;
+	private final String prefsTokenName;
 
 	private ConnectionProgress progress;
 
-	private ContactsService gcontact;
-
 	private Gmail gmail;
+	private ContactsService contactsService;
+	private GoogleCredential credential;
+
+	private final HttpTransport httpTransport;
+	private final JsonFactory jsonFactory;
 
 	private Runnable authCallback;
 	private Runnable authFailedCallback;
@@ -62,20 +66,14 @@ public class AuthenticationService {
 
 	public AuthenticationService(final String appName) {
 		this.appName = appName;
-		refreshTokenName = String.format(REFRESH_TOKEN_SUFFIX, appName);
+		prefsTokenName = String.format(REFRESH_TOKEN_SUFFIX, appName);
 
 		httpTransport = new NetHttpTransport();
 		jsonFactory = new JacksonFactory();
 
 		credential = null;
 
-		updateProgress(() -> {
-			progress = new ConnectionProgress();
-			stage = new Stage(StageStyle.UNDECORATED);
-			stage.setScene(progress);
-			stage.sizeToScene();
-			stage.show();
-		});
+		updateProgress(() -> progress = new ConnectionProgress());
 	}
 
 	public void setOnAuth(Runnable callback) {
@@ -95,31 +93,29 @@ public class AuthenticationService {
 
 	protected void finaliseAuth() {
 		// connect to contact
-		AuthenticationService.this.updateProgress(() -> progress.setValue(2/3d, "connect to contact..."));
-		gcontact = new ContactsService(appName);
-		gcontact.setOAuth2Credentials(credential);
+		updateProgress(() -> progress.setValue(2 / 3d, "Initialise Contacts..."));
+		contactsService = new ContactsService(appName);
+		contactsService.setOAuth2Credentials(credential);
 
 		// connect to gmail
-		AuthenticationService.this.updateProgress(() -> progress.setValue(1, "connect to mail..."));
-		gmail = new Gmail.Builder(httpTransport, jsonFactory, credential)
-				.setApplicationName(appName)
-				.build();
+		updateProgress(() -> progress.setValue(1, "Initialise Gmail..."));
+		gmail = new Gmail.Builder(httpTransport, jsonFactory, credential).setApplicationName(appName).build();
 
 		// save refresh token
 		try {
 			final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
-			prefs.put(refreshTokenName, credential.getRefreshToken());
+			prefs.put(prefsTokenName, credential.getRefreshToken());
 			prefs.flush();
 		} catch (Exception e) {
 			LOGGER.error("saving refresh token", e.getMessage());
 		}
 
-		updateProgress(() -> stage.hide());
+		updateProgress(() -> progress.hide());
 	}
 
 	public void setOnAuthFailed(Runnable callback) {
 		authFailedCallback = () -> {
-			updateProgress(() -> stage.hide());
+			updateProgress(() -> progress.hide());
 			callback.run();
 		};
 	}
@@ -135,20 +131,20 @@ public class AuthenticationService {
 				clientSecrets = GoogleClientSecrets.load(jsonFactory, reader);
 			}
 		} catch (Exception e) {
+			exception = new GMailException("loading client secret", e);
 			authFailedCallback.run();
 			return;
 		}
 
-		credential = new GoogleCredential.Builder()
+		credential = new GoogleCredential
+				.Builder()
 				.setClientSecrets(clientSecrets)
 				.setJsonFactory(jsonFactory)
-				.setTransport(httpTransport)
-				.build();
+				.setTransport(httpTransport).build();
 
 		Task<Boolean> task = new Task<Boolean>() {
-			@Override
-			protected Boolean call() throws Exception {
-				return refresh(clientSecrets);
+			@Override protected Boolean call() throws Exception {
+				return refreshToken(clientSecrets);
 			}
 		};
 		task.setOnFailed((e) -> authFailedCallback.run());
@@ -167,11 +163,11 @@ public class AuthenticationService {
 		ThreadPool.getDefault().mustRun("refreshToken", task);
 	}
 
-	private boolean refresh(GoogleClientSecrets clientSecrets) throws IOException {
-		updateProgress(() -> progress.setValue(1/3d, "Google sign in..."));
+	private boolean refreshToken(GoogleClientSecrets clientSecrets) throws IOException {
+		updateProgress(() -> progress.setValue(1 / 3d, "Sign in to Google..."));
 
 		final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
-		String refreshToken = prefs.get(refreshTokenName, null);
+		String refreshToken = prefs.get(prefsTokenName, null);
 		if (refreshToken == null) {
 			return false;
 		}
@@ -182,64 +178,90 @@ public class AuthenticationService {
 	}
 
 	private boolean signin(GoogleClientSecrets clientSecrets) {
+		// Allow user to authorise via URL and retrieve authorisation code
+		final GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow
+				.Builder(httpTransport, jsonFactory, clientSecrets, SCOPE)
+				.setAccessType("offline")
+				.setApprovalPrompt("auto")
+				.build();
+		final String url = flow
+				.newAuthorizationUrl()
+				.setRedirectUri(GoogleOAuthConstants.OOB_REDIRECT_URI)
+				.build();
+
 		// Generate Credential using login token.
-		final TokenResponse token;
+		final String authCode;
 		try {
-			token = new SigninDialog(clientSecrets).getToken();
+			authCode = new SigninDialog(url).requestAuthCode();
 		} catch (Exception e) {
-			LOGGER.error("getting token from signin dialog", e.getMessage());
+			exception = new GMailException("getting token from signin dialog", e);
 			return false;
 		}
+
+		if (authCode.isEmpty()) {
+			exception = new GMailException("authentication code is empty");
+			return false;
+		}
+
+		// Generate token
+		final GoogleTokenResponse token;
+		try {
+			token = flow
+					.newTokenRequest(authCode.toString())
+					.setRedirectUri(GoogleOAuthConstants.OOB_REDIRECT_URI)
+					.execute();
+		} catch (IOException e) {
+			exception = new GMailException("requesting token", e);
+			return false;
+		}
+
 		credential.setFromTokenResponse(token);
 
 		return true;
 	}
 
-	public void signout() {
+	public boolean signout() {
 		// remove token from local preferences
 		final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
-		prefs.remove(refreshTokenName);
+		prefs.remove(prefsTokenName);
 		try {
 			prefs.flush();
 		} catch (final BackingStoreException e) {
-			LOGGER.error("remove authentication token", e);
+			exception = new GMailException("remove authentication token", e);
+			return false;
 		}
 
-		// revoke token
+		// revoke token (no API call available yet)
+		final String url = String.format(URL_REVOKE_TOKEN, credential.getAccessToken());
 		try {
-			final GenericUrl url = new GenericUrl(String.format(
-					"https://accounts.google.com/o/oauth2/revoke?token=%s"
-					, credential.getAccessToken()));
 			httpTransport
 			.createRequestFactory()
-			.buildGetRequest(url)
+			.buildGetRequest(new GenericUrl(url))
 			.execute();
 		} catch (final IOException e) {
-			LOGGER.error("revoke authentication token", e);
+			exception = new GMailException("revoke authentication token", e);
+			return false;
 		}
 
-		// reset cookies
-		CookieManager.setDefault(new CookieManager());
+		return true;
 	}
 
 	public void reconnect() {
 	}
 
-	public Gmail getGmailService() {
+	public Gmail getGmail() {
 		return gmail;
 	}
 
-	public ContactsService getGcontactService() {
-		return gcontact;
+	public ContactsService getContactsService() {
+		return contactsService;
 	}
 
-	private void updateProgress(Runnable runnable) {
-		if (GUI) {
-			if (Platform.isFxApplicationThread()) {
-				runnable.run();
-			} else {
-				Platform.runLater(runnable);
-			}
+	private void updateProgress(Runnable update) {
+		if (!GUI) {
+			return;
 		}
+
+		Platform.runLater(update);
 	}
 }

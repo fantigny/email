@@ -95,7 +95,6 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		autosaveTimer = null;
 		sendCallback = discardCallback = m -> {};
 
-
 		final Image icon = new Image(getClass().getResourceAsStream("/net/anfoya/mail/img/Mail.png"));
 		getIcons().add(icon);
 
@@ -208,7 +207,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 				setTitle(getTitle() + " - " + contact.getEmail());
 			} else {
 				setTitle(getTitle() + " - " + contact.getFullname() + " (" + contact.getEmail() + ")");
-//				setTitle("FisherMail - Fred A. (abc.xyz@gmail.com)");
+				//				setTitle("FisherMail - Fred A. (abc.xyz@gmail.com)");
 			}
 		});
 		contactTask.setOnFailed(e -> LOGGER.error("load contacts", e.getSource().getException()));
@@ -386,7 +385,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		final Task<Void> task = new Task<Void>() {
 			@Override
 			protected Void call() throws Exception {
-			    draft.setMimeDraft(buildMessage());
+				draft.setMimeDraft(buildMessage());
 				mailService.save(draft);
 				return null;
 			}
@@ -486,12 +485,12 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 			LOGGER.error("build message", e);
 		}
 
-	    sendCallback.call(draft);
+		sendCallback.call(draft);
 		close();
 	}
 
 	private void discardAndClose() {
-	    discardCallback.call(draft);
+		discardCallback.call(draft);
 		close();
 	}
 

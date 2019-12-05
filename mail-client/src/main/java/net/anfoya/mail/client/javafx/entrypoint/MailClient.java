@@ -2,7 +2,6 @@ package net.anfoya.mail.client.javafx.entrypoint;
 
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
-import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,11 +14,11 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
+import javafx.scene.image.Image;
 import javafx.scene.media.AudioClip;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import javafx.stage.WindowEvent;
 import net.anfoya.java.util.concurrent.ObservableExecutors;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
@@ -62,9 +61,10 @@ public class MailClient extends Application {
 
 	@Override
 	public void start(final Stage primaryStage) {
+		primaryStage.initStyle(StageStyle.DECORATED);
+
 		gmail.setOnAuth(() -> {
 			Platform.runLater(() -> {
-				primaryStage.setOnCloseRequest(e -> confirmClose(e, primaryStage));
 				initNewThreadNotifier(primaryStage);
 				showBrowser(primaryStage);
 				checkVersion();
@@ -78,7 +78,7 @@ public class MailClient extends Application {
 		gmail.authenticate();
 	}
 
-	private void confirmClose(final WindowEvent e, final Stage stage) {
+	private boolean confirmClose(final Stage stage) {
 		if (settings.confirmOnQuit().get()) {
 			final CheckBox checkBox = new CheckBox("don't show again");
 			checkBox.selectedProperty().addListener((ov, o, n) -> settings.confirmOnQuit().set(!n));
@@ -88,31 +88,32 @@ public class MailClient extends Application {
 			alert.setTitle("FisherMail");
 			alert.setHeaderText("you are about to close FisherMail\rnew e-mail notification will be stopped");
 			alert.getDialogPane().contentProperty().set(checkBox);
-			alert.showAndWait()
-			.filter(response -> response == ButtonType.CANCEL)
-			.ifPresent(response -> e.consume());
+			return alert
+					.showAndWait()
+					.filter(response -> response == ButtonType.OK)
+					.isPresent();
 		}
+
+		return true;
 	}
 
-	private void signout(Stage stage) {
-		boolean signout = true;
+	private boolean confirmSignout(Stage stage) {
 		if (settings.confirmOnSignout().get()) {
 			final CheckBox checkBox = new CheckBox("don't show again");
 			checkBox.selectedProperty().addListener((ov, o, n) -> settings.confirmOnSignout().set(!n));
 
 			final Alert alert = new Alert(AlertType.CONFIRMATION);
+			alert.initOwner(stage);
 			alert.setTitle("FisherMail");
 			alert.setHeaderText("sign out from your e-mail account\rthis will close the mail browser");
 			alert.getDialogPane().contentProperty().set(checkBox);
-			final Optional<ButtonType> response = alert.showAndWait();
-			signout = response.isPresent() && response.get() == ButtonType.OK;
-		}
-		if (!signout) {
-			return;
+			return alert
+					.showAndWait()
+					.filter(r -> r == ButtonType.OK)
+					.isPresent();
 		}
 
-		stage.hide();
-		gmail.signout();
+		return true;
 	}
 
 	private void initThreadPool() {
@@ -148,11 +149,24 @@ public class MailClient extends Application {
 			LOGGER.error("load mail browser", e);
 			return;
 		}
-		mailBrowser.setOnSignout(() -> signout(stage));
 		mailBrowser.addOnModeChange(() -> refreshTitle(stage, mailBrowser));
+		mailBrowser.setOnSignout(() -> {
+			if (!confirmSignout(stage)) {
+				return;
+			}
+			stage.hide();
+			gmail.signout();
+			gmail.authenticate();
+		});
 
+		final Image icon = new Image(getClass().getResourceAsStream("/net/anfoya/mail/img/Mail.png"));
+		stage.getIcons().add(icon);
 		stage.setScene(mailBrowser);
-		stage.initStyle(StageStyle.DECORATED);
+		stage.setOnCloseRequest(e -> {
+			if (!confirmClose(stage)) {
+				e.consume();
+			}
+		});
 		stage.setOnHiding(e -> ThreadPool.getDefault().mustRun("save global settings", () -> {
 			gmail.stopListening();
 			mailBrowser.saveSettings();

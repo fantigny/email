@@ -2,6 +2,8 @@ package net.anfoya.mail.gmail;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.CookieManager;
+import java.net.CookiePolicy;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -97,20 +99,26 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 	@Override
 	public void authenticate() {
+		CookieManager.setDefault(new CookieManager(null, CookiePolicy.ACCEPT_ORIGINAL_SERVER));
 		authService.authenticate();
 	}
 
 	@Override
 	public void setOnAuth(Runnable callback) {
 		authService.setOnAuth(() -> {
-			final Gmail gmail = authService.getGmailService();
-			final ContactsService gcontact = authService.getGcontactService();
+			final Gmail gmail = authService.getGmail();
+			final ContactsService contactsService = authService.getContactsService();
 
-			initServices(gmail, gcontact);
+			initServices(gmail, contactsService);
 			initEmailAddress(gmail);
 
 			callback.run();
 		});
+	}
+
+	@Override
+	public void setOnAuthFailed(Runnable callback) {
+		authService.setOnAuthFailed(callback);
 	}
 
 	protected void initEmailAddress(Gmail gmail) {
@@ -121,7 +129,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		}
 	}
 
-	protected void initServices(Gmail gmail, ContactsService gcontact) {
+	protected void initServices(Gmail gmail, ContactsService contactsService) {
 		messageService = new MessageService(gmail, USER);
 		labelService = new LabelService(gmail, USER);
 		threadService = new ThreadService(gmail, labelService, USER);
@@ -130,12 +138,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		historyService.addOnUpdateLabel(() -> labelService.clearCache());
 		connected.bind(historyService.disconnected().not());
 
-		contactService = new ContactService(gcontact, DEFAULT).init();
-	}
-
-	@Override
-	public void setOnAuthFailed(Runnable callback) {
-		authService.setOnAuthFailed(callback);
+		contactService = new ContactService(contactsService, DEFAULT).init();
 	}
 
 	public GMailException getAuthException() {
@@ -144,8 +147,8 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 	@Override
 	public void signout() {
-		authService.signout();
 		historyService.stop();
+		authService.signout();
 		clearCache();
 	}
 
