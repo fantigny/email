@@ -18,5 +18,5 @@ all windows [FisherMail.exe](http://speederpan.uk.to/jenkins/job/PROD%20mail-cli
 
 [macOs](http://speederpan.uk.to/jenkins/job/PROD%20mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-macOs.zip)
 
-## continuous build
-latest build is available [here](http://speederpan.uk.to/jenkins/job/DEV%20mail-client-distrib)
+## continuous integration
+latest build available in [Jenkins](http://speederpan.uk.to/jenkins/job/DEV%20mail-client-distrib)
