@@ -13,12 +13,19 @@
 	</fileSets>
 	<files>
 		<file>
-			<source>jre/FisherMail.bash</source>
-			<outputDirectory></outputDirectory>
-		</file>
-		<file>
 			<source>target/FisherMail.jar</source>
 			<outputDirectory></outputDirectory>
+			<fileMode>0755</fileMode>
+		</file>
+		<file>
+			<source>jre/lin64/jre1.8.0_231/bin/java</source>
+			<outputDirectory>jre/bin</outputDirectory>
+			<fileMode>0755</fileMode>
+		</file>
+		<file>
+			<source>jre/FisherMail.bash</source>
+			<outputDirectory></outputDirectory>
+			<fileMode>0755</fileMode>
 		</file>
 	</files>
 </assembly>
