@@ -5,7 +5,7 @@ cross-platform e-mail client
 __*`requires Java version greater or equals to 8 with JavaFX`*__
 
 all platforms [FisherMail.jar](http://speederpan.uk.to/jenkins/job/PROD%20mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail.jar)
-*(starts with double-click or with command* `java -jar FisherMail.jar`*)*
+starts with double-click or with command **`java -jar FisherMail.jar`**
 
 all windows [FisherMail.exe](http://speederpan.uk.to/jenkins/job/PROD%20mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail.exe) 
 
