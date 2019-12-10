@@ -5,7 +5,7 @@ cross-platform e-mail client
 ## cross platform 
 __*`Java 8 or newer with JavaFX required`*__
 
-download [FisherMail.jar](http://speederpan.uk.to/jenkins/job/PROD%20mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail.jar)
+[FisherMail.jar](http://speederpan.uk.to/jenkins/job/PROD%20mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail.jar)
 
 ### windows
 + download and install the [latest version](https://www.java.com/en/download/) of Java  
