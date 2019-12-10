@@ -18,7 +18,7 @@ download [FisherMail.jar](http://speederpan.uk.to/jenkins/job/PROD%20mail-client
 ### ubuntu
 + install Java and JavaFx  
 `sudo apt install default-jre openjfx`  
-+ start FisherMail with command
++ start FisherMail with command  
 `java --module-path /usr/share/openjfx/lib --add-modules=javafx.web,javafx.swing -jar FisherMail.jar`
 
 ## system specific\*
