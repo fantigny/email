@@ -42,13 +42,13 @@ public class SigninDialog {
 		System.out.println("then copy the authorization code here: ");
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(System.in))) {
 			return in.readLine();
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			return "";
 		}
 	}
 
 	private String getAuthCodeFx() {
-		StringBuffer authCode = new StringBuffer();
+		final StringBuffer authCode = new StringBuffer();
 
 		final Stage stage = new Stage(StageStyle.DECORATED);
 		final WebView webView = new WebView();
@@ -65,6 +65,10 @@ public class SigninDialog {
 			}
 			stage.setTitle(title);
 		});
+//		com.sun.javafx.webkit.WebConsoleListener.setDefaultListener(
+//			    (wbView, message, lineNumber, sourceId) ->
+//			        System.out.println("Console: [" + sourceId + ":" + lineNumber + "] " + message)
+//			);
 
 		stage.getIcons().add(new Image(getClass().getResourceAsStream("googlemail-64.png")));
 		stage.setScene(new Scene(webView, 550, 800));
@@ -82,7 +86,7 @@ public class SigninDialog {
 					.getElementsByTagName(TITLE)
 					.item(0)
 					.getTextContent();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			return "";
 		}
 	}

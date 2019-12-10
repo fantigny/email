@@ -78,7 +78,7 @@ public class AuthenticationService {
 
 	public void setOnAuth(Runnable callback) {
 		authCallback = () -> {
-			Task<Void> task = new Task<Void>() {
+			final Task<Void> task = new Task<Void>() {
 				@Override
 				protected Void call() throws Exception {
 					finaliseAuth();
@@ -106,7 +106,7 @@ public class AuthenticationService {
 			final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
 			prefs.put(prefsTokenName, credential.getRefreshToken());
 			prefs.flush();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOGGER.error("saving refresh token", e.getMessage());
 		}
 
@@ -130,7 +130,7 @@ public class AuthenticationService {
 			try (final BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(CLIENT_SECRET_PATH)))) {
 				clientSecrets = GoogleClientSecrets.load(jsonFactory, reader);
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			exception = new GMailException("loading client secret", e);
 			authFailedCallback.run();
 			return;
@@ -142,12 +142,15 @@ public class AuthenticationService {
 				.setJsonFactory(jsonFactory)
 				.setTransport(httpTransport).build();
 
-		Task<Boolean> task = new Task<Boolean>() {
+		final Task<Boolean> task = new Task<Boolean>() {
 			@Override protected Boolean call() throws Exception {
 				return refreshToken(clientSecrets);
 			}
 		};
-		task.setOnFailed((e) -> authFailedCallback.run());
+		task.setOnFailed((e) -> {
+			exception = new GMailException(task.getException().getMessage(), task.getException());
+			authFailedCallback.run();
+		});
 		task.setOnSucceeded((e) -> {
 			if (task.getValue()) {
 				authCallback.run();
@@ -167,14 +170,18 @@ public class AuthenticationService {
 		updateProgress(() -> progress.setValue(1 / 3d, "Sign in to Google..."));
 
 		final Preferences prefs = Preferences.userNodeForPackage(GmailService.class);
-		String refreshToken = prefs.get(prefsTokenName, null);
+		final String refreshToken = prefs.get(prefsTokenName, null);
 		if (refreshToken == null) {
 			return false;
 		}
 
 		credential.setRefreshToken(refreshToken);
 
-		return credential.refreshToken();
+		try {
+			return credential.refreshToken();
+		} catch (final Exception e) {
+			return false;
+		}
 	}
 
 	private boolean signin(GoogleClientSecrets clientSecrets) {
@@ -193,13 +200,13 @@ public class AuthenticationService {
 		final String authCode;
 		try {
 			authCode = new SigninDialog(url).requestAuthCode();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			exception = new GMailException("getting token from signin dialog", e);
 			return false;
 		}
 
 		if (authCode.isEmpty()) {
-			exception = new GMailException("authentication code is empty");
+			exception = new GMailException("authentication aborted");
 			return false;
 		}
 
@@ -210,7 +217,7 @@ public class AuthenticationService {
 					.newTokenRequest(authCode.toString())
 					.setRedirectUri(GoogleOAuthConstants.OOB_REDIRECT_URI)
 					.execute();
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			exception = new GMailException("requesting token", e);
 			return false;
 		}
