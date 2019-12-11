@@ -172,8 +172,9 @@ public class MailClient extends Application {
 		stage.setOnCloseRequest(e -> {
 			if (!confirmClose(stage)) {
 				e.consume();
+			} else {
+				Platform.exit();
 			}
-			Platform.exit();
 		});
 		stage.setOnHiding(e -> ThreadPool.getDefault().mustRun("save global settings", () -> {
 			gmail.stopListening();
