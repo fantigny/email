@@ -2,6 +2,7 @@ package net.anfoya.mail.client.javafx.entrypoint;
 
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
+import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,18 +44,29 @@ import net.anfoya.mail.service.Message;
 public class MailClient extends Application {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailClient.class);
 
+	private static final String[][] OPTIONS = {
+			{ "sun.net.http.allowRestrictedHeaders"	, "true"	, "allows restricted headers for Google sign in" },
+			{ "jdk.gtk.version"						, "2.2"		, "uses GTK2 lib for drag'n drop compatibility (Linux)" },
+			{ "glass.accessible.force"				, "false"	, "disabled to avoid crash on close (macOs)" }
+	};
+
 	private Settings settings;
 	private NotificationService notificationService;
 	private GmailService gmail;
 
 	public static void main(final String[] args) {
-		//workaround for broken drag and drop (Linux) -- https://bugs.openjdk.java.net/browse/JDK-8211302
-		System.setProperty("jdk.gtk.version", "2.2");
-		// workaround for application crashing on close (macOs) -- https://bugs.openjdk.java.net/browse/JDK-8203345
-		System.setProperty("glass.accessible.force", "false");
-		// workaround for Google login -- https://stackoverflow.com/questions/44905264/cannot-sign-in-to-google-in-javafx-webview
-		System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
-		
+		Arrays
+		.stream(OPTIONS)
+		.forEach(o -> {
+			String key = o[0], val = o[1], msg = o[2];
+			System.setProperty(key, val);
+			LOGGER.info(key + "=" + val + " (" +  msg + ")");
+			String sys = System.getProperty(key);
+			if (!sys.equals(val)) {
+				LOGGER.error(key + "=" + sys + " (should be " + val + ")");
+			}
+		});
+
 		launch(args);
 	}
 
