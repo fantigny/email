@@ -8,7 +8,7 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<fishermail.version>1.0.190401-beta</fishermail.version>
+		<fishermail.version>1.0.191211-beta</fishermail.version>
 	</properties>
 
 	<build>
