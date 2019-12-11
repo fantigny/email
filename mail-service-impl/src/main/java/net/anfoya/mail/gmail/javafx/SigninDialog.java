@@ -4,6 +4,8 @@ import java.awt.GraphicsEnvironment;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.CookieManager;
+import java.net.CookiePolicy;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -17,7 +19,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 public class SigninDialog {
-	private static final String LOADING = " loading...";
+	private static final String LOADING = " Please wait, page is loading...";
 	private static final String HEAD = "head";
 	private static final String TITLE = "title";
 	private static final String SUCCESS_CODE = "Success code=";
@@ -27,8 +29,8 @@ public class SigninDialog {
 	public SigninDialog(String url) {
 		this.url = url;
 
-		// workaround Google login issue -- https://stackoverflow.com/questions/44905264/cannot-sign-in-to-google-in-javafx-webview
-		System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
+		// clean cookies before sign in
+		CookieManager.setDefault(new CookieManager(null, CookiePolicy.ACCEPT_ORIGINAL_SERVER));
 	}
 
 	public String requestAuthCode() throws IOException {

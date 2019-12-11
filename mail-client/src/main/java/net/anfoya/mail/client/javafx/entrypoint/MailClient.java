@@ -2,6 +2,7 @@ package net.anfoya.mail.client.javafx.entrypoint;
 
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
+import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,16 +44,36 @@ import net.anfoya.mail.service.Message;
 public class MailClient extends Application {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailClient.class);
 
+	private static final String[][] OPTIONS = {
+			{ "sun.net.http.allowRestrictedHeaders"	, "true"	, "allows restricted headers for Google sign in" },
+			{ "jdk.gtk.version"						, "2.2"		, "uses GTK2 lib for drag'n drop compatibility (Linux)" },
+			{ "glass.accessible.force"				, "false"	, "disabled to avoid crash on close (macOs)" }
+	};
+
 	private Settings settings;
 	private NotificationService notificationService;
 	private GmailService gmail;
 
 	public static void main(final String[] args) {
+		Arrays
+		.stream(OPTIONS)
+		.forEach(o -> {
+			String key = o[0], val = o[1], msg = o[2];
+			System.setProperty(key, val);
+			LOGGER.info(key + "=" + val + " (" +  msg + ")");
+			String sys = System.getProperty(key);
+			if (!sys.equals(val)) {
+				LOGGER.error(key + "=" + sys + " (should be " + val + ")");
+			}
+		});
+
 		launch(args);
 	}
 
 	@Override
 	public void init() throws Exception {
+		Platform.setImplicitExit(false);
+
 		initThreadPool();
 		initSettings();
 		initProxy();
@@ -72,7 +93,7 @@ public class MailClient extends Application {
 		});
 		gmail.setOnAuthFailed(() -> {
 			LOGGER.error(gmail.getAuthException().getMessage());
-			Platform.runLater(() -> primaryStage.close());
+			Platform.exit();
 		});
 
 		gmail.authenticate();
@@ -165,6 +186,8 @@ public class MailClient extends Application {
 		stage.setOnCloseRequest(e -> {
 			if (!confirmClose(stage)) {
 				e.consume();
+			} else {
+				Platform.exit();
 			}
 		});
 		stage.setOnHiding(e -> ThreadPool.getDefault().mustRun("save global settings", () -> {
