@@ -48,11 +48,18 @@ public class MailClient extends Application {
 	private GmailService gmail;
 
 	public static void main(final String[] args) {
+		// workaround for macOs app crashing on close -- https://bugs.openjdk.java.net/browse/JDK-8203345
+		System.setProperty("glass.accessible.force", "false");
+		// workaround for Google login -- https://stackoverflow.com/questions/44905264/cannot-sign-in-to-google-in-javafx-webview
+		System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
+
 		launch(args);
 	}
 
 	@Override
 	public void init() throws Exception {
+		Platform.setImplicitExit(false);
+
 		initThreadPool();
 		initSettings();
 		initProxy();
@@ -72,7 +79,7 @@ public class MailClient extends Application {
 		});
 		gmail.setOnAuthFailed(() -> {
 			LOGGER.error(gmail.getAuthException().getMessage());
-			Platform.runLater(() -> primaryStage.close());
+			Platform.exit();
 		});
 
 		gmail.authenticate();
@@ -166,6 +173,7 @@ public class MailClient extends Application {
 			if (!confirmClose(stage)) {
 				e.consume();
 			}
+			Platform.exit();
 		});
 		stage.setOnHiding(e -> ThreadPool.getDefault().mustRun("save global settings", () -> {
 			gmail.stopListening();
