@@ -19,7 +19,7 @@ __*`Java 8 or newer with JavaFX required`*__
 + install Java and JavaFx  
 `sudo apt install default-jre openjfx`  
 + start FisherMail with command  
-`java --module-path /usr/share/openjfx/lib --add-modules=javafx.web,javafx.swing -jar FisherMail.jar`
+`java --module-path /usr/share/openjfx/lib --add-modules=javafx.web,javafx.swing  -Djdk.gtk.version=2.2 -jar FisherMail.jar`
 
 ## system specific\*
 
