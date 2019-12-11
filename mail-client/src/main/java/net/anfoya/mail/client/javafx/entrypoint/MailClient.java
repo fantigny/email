@@ -48,11 +48,13 @@ public class MailClient extends Application {
 	private GmailService gmail;
 
 	public static void main(final String[] args) {
-		// workaround for macOs app crashing on close -- https://bugs.openjdk.java.net/browse/JDK-8203345
+		//workaround for broken drag and drop (Linux) -- https://bugs.openjdk.java.net/browse/JDK-8211302
+		System.setProperty("jdk.gtk.version", "2.2");
+		// workaround for application crashing on close (macOs) -- https://bugs.openjdk.java.net/browse/JDK-8203345
 		System.setProperty("glass.accessible.force", "false");
 		// workaround for Google login -- https://stackoverflow.com/questions/44905264/cannot-sign-in-to-google-in-javafx-webview
 		System.setProperty("sun.net.http.allowRestrictedHeaders", "true");
-
+		
 		launch(args);
 	}
 
