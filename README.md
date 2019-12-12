@@ -17,7 +17,9 @@ __*`Java 8 or newer with JavaFX required`*__
 
 ### ubuntu
 + install Java and JavaFx  
-`sudo apt install default-jre openjfx`  
+```
+sudo apt install default-jre openjfx
+```  
 + start FisherMail with command
 ```
 java \
