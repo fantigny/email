@@ -2,8 +2,6 @@ package net.anfoya.mail.gmail;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.net.CookieManager;
-import java.net.CookiePolicy;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -149,9 +147,6 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		historyService.stop();
 		authService.signout();
 		clearCache();
-
-		// clean cookies
-		CookieManager.setDefault(new CookieManager(null, CookiePolicy.ACCEPT_ALL));
 	}
 
 	@Override

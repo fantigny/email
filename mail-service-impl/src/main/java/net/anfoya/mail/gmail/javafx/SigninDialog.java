@@ -8,6 +8,8 @@ import java.io.InputStreamReader;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.sun.webkit.network.CookieManager;
+
 import javafx.concurrent.Worker.State;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -26,6 +28,8 @@ public class SigninDialog {
 
 	public SigninDialog(String url) {
 		this.url = url;
+
+		CookieManager.setDefault(new CookieManager());
 	}
 
 	public String requestAuthCode() throws IOException {
@@ -62,10 +66,6 @@ public class SigninDialog {
 			}
 			stage.setTitle(title);
 		});
-		//		com.sun.javafx.webkit.WebConsoleListener.setDefaultListener(
-		//			    (wbView, message, lineNumber, sourceId) ->
-		//			        System.out.println("Console: [" + sourceId + ":" + lineNumber + "] " + message)
-		//			);
 
 		stage.getIcons().add(new Image(getClass().getResourceAsStream("googlemail-64.png")));
 		stage.setScene(new Scene(webView, 550, 800));
