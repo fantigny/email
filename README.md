@@ -34,4 +34,4 @@ __*`Java 8 or newer with JavaFX required`*__
 \**shipped with Java SE Runtime Environment*
 
 ## continuous integration
-latest build available in [Jenkins](http://speederpan.uk.to/jenkins/job/DEV%20mail-client-distrib)
+latest build available in [Jenkins](http://speederpan.uk.to/jenkins/job/mail-client-distrib)
