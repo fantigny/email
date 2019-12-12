@@ -45,9 +45,9 @@ public class MailClient extends Application {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailClient.class);
 
 	private static final String[][] OPTIONS = {
-			{ "sun.net.http.allowRestrictedHeaders"	, "true"	, "allows restricted headers for Google sign in" },
+			{ "sun.net.http.allowRestrictedHeaders"	, "true"	, "allows restricted headers for Google sign in" 		},
 			{ "jdk.gtk.version"						, "2.2"		, "uses GTK2 lib for drag'n drop compatibility (Linux)" },
-			{ "glass.accessible.force"				, "false"	, "disabled to avoid crash on close (macOs)" }
+			{ "glass.accessible.force"				, "false"	, "disabled to avoid crash on close (macOs)" 			}
 	};
 
 	private Settings settings;
