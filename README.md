@@ -26,7 +26,7 @@ java \
 --module-path /usr/share/openjfx/lib \
 --add-modules=javafx.swing,javafx.web \
 --add-exports=javafx.web/com.sun.webkit.network=ALL-UNNAMED \
--Djdk.gtk.version=2 \
+-Djdk.gtk.version=2.2 \
 -jar FisherMail.jar
 ```
 
