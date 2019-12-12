@@ -55,17 +55,7 @@ public class MailClient extends Application {
 	private GmailService gmail;
 
 	public static void main(final String[] args) {
-		Arrays
-		.stream(OPTIONS)
-		.forEach(o -> {
-			String key = o[0], val = o[1], msg = o[2];
-			System.setProperty(key, val);
-			LOGGER.info(key + "=" + val + " (" +  msg + ")");
-			String sys = System.getProperty(key);
-			if (!sys.equals(val)) {
-				LOGGER.error(key + "=" + sys + " (should be " + val + ")");
-			}
-		});
+		Arrays.stream(OPTIONS).forEach(o -> System.setProperty(o[0], o[1]));
 
 		launch(args);
 	}
