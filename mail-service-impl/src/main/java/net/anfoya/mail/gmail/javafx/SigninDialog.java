@@ -4,8 +4,6 @@ import java.awt.GraphicsEnvironment;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.CookieManager;
-import java.net.CookiePolicy;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -28,9 +26,6 @@ public class SigninDialog {
 
 	public SigninDialog(String url) {
 		this.url = url;
-
-		// clean cookies before sign in
-		CookieManager.setDefault(new CookieManager(null, CookiePolicy.ACCEPT_ORIGINAL_SERVER));
 	}
 
 	public String requestAuthCode() throws IOException {
@@ -67,10 +62,10 @@ public class SigninDialog {
 			}
 			stage.setTitle(title);
 		});
-//		com.sun.javafx.webkit.WebConsoleListener.setDefaultListener(
-//			    (wbView, message, lineNumber, sourceId) ->
-//			        System.out.println("Console: [" + sourceId + ":" + lineNumber + "] " + message)
-//			);
+		//		com.sun.javafx.webkit.WebConsoleListener.setDefaultListener(
+		//			    (wbView, message, lineNumber, sourceId) ->
+		//			        System.out.println("Console: [" + sourceId + ":" + lineNumber + "] " + message)
+		//			);
 
 		stage.getIcons().add(new Image(getClass().getResourceAsStream("googlemail-64.png")));
 		stage.setScene(new Scene(webView, 550, 800));
