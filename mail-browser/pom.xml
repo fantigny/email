@@ -53,6 +53,13 @@
 			<artifactId>mail-composer</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-web</artifactId>
+			<version>13.0.1</version>
+			<scope>provided</scope>
+		</dependency>	
 
 		<!-- compile -->
 		<dependency>

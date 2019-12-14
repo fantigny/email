@@ -71,6 +71,13 @@
 			<artifactId>mail</artifactId>
 			<version>1.4</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>org.openjfx</groupId>
+			<artifactId>javafx-web</artifactId>
+			<version>13.0.1</version>
+			<scope>provided</scope>
+		</dependency>
 
 		<!-- test -->
 		<dependency>
