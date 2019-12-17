@@ -30,7 +30,7 @@ public class RecipientListPane<C extends Contact> extends HBox {
 
 	private final Label title;
 	private final FlowPane flowPane;
-	private final ComboField comboField;
+	private final ComboField<String> comboField;
 	private final Set<String> selectedAdresses;
 
 	private Map<String, C> addressContacts;
@@ -61,23 +61,23 @@ public class RecipientListPane<C extends Contact> extends HBox {
 		organiseTask = null;
 		organiseTaskId = -1;
 
-		addressContacts = new HashMap<String, C>();
-		selectedAdresses = new LinkedHashSet<String>();
+		addressContacts = new HashMap<>();
+		selectedAdresses = new LinkedHashSet<>();
 
-		comboField = new ComboField();
+		comboField = new ComboField<>();
 		comboField.setCellFactory(listView -> {
 			return new ListCell<String>() {
 				@Override
-			    public void updateItem(final String address, final boolean empty) {
-			        super.updateItem(address, empty);
-			        if (!empty) {
-			        	try {
-			        		setText(addressContacts.get(address).getFullname() + " (" + addressContacts.get(address).getEmail() + ")");
-			        	} catch(final Exception e) {
-			        		setText(address);
-			        		//TODO: debug anita@glorywell.com.hk
-			        	}
-			        }
+				public void updateItem(final String address, final boolean empty) {
+					super.updateItem(address, empty);
+					if (!empty) {
+						try {
+							setText(addressContacts.get(address).getFullname() + " (" + addressContacts.get(address).getEmail() + ")");
+						} catch(final Exception e) {
+							setText(address);
+							//TODO: debug anita@glorywell.com.hk
+						}
+					}
 				}
 			};
 		});
@@ -143,7 +143,7 @@ public class RecipientListPane<C extends Contact> extends HBox {
 	}
 
 	public Set<String> getRecipients() {
-		final Set<String> addresses = new LinkedHashSet<String>(selectedAdresses);
+		final Set<String> addresses = new LinkedHashSet<>(selectedAdresses);
 		if (!comboField.getText().isEmpty()) {
 			addresses.add(comboField.getText());
 		}
