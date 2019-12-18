@@ -12,7 +12,7 @@
 	
 	<modules>
 		<module>../mail-service-api</module>
-		<module>../mail-service-impl</module>
+		<module>../mail-service-gmail</module>
 		<module>../mail-common</module>
 		<module>../mail-composer</module>
 		<module>../mail-browser</module>
