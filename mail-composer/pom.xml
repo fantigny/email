@@ -23,6 +23,7 @@
 	</build>
 
 	<dependencies>
+		<!-- home made -->
 		<dependency>
 			<groupId>net.anfoya</groupId>
 			<artifactId>anfoya-tools</artifactId>
@@ -40,16 +41,11 @@
 		</dependency>
 		<dependency>
 			<groupId>net.anfoya</groupId>
-			<artifactId>mail-service-api</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>net.anfoya</groupId>
 			<artifactId>mail-common</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 
-		<!-- compile -->
+		<!-- others -->
 		<dependency>
 			<groupId>np.com.ngopal</groupId>
 			<artifactId>javafx-autocomplete-field</artifactId>
@@ -66,6 +62,7 @@
 			<version>1.7.10</version>
 		</dependency>
 
+		<!-- provided -->
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-web</artifactId>
@@ -84,6 +81,7 @@
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 			<version>1.1.2</version>
+			<scope>test</scope>
 		</dependency>
 
 	</dependencies>
