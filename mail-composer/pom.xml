@@ -40,7 +40,7 @@
 		</dependency>
 		<dependency>
 			<groupId>net.anfoya</groupId>
-			<artifactId>mail-service-impl</artifactId>
+			<artifactId>mail-service-api</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
