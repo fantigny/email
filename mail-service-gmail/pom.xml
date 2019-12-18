@@ -23,6 +23,7 @@
 	</build>
 
 	<dependencies>
+		<!-- home made -->
 		<dependency>
 			<groupId>net.anfoya</groupId>
 			<artifactId>anfoya-tools</artifactId>
@@ -34,7 +35,7 @@
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 
-		<!-- compile -->
+		<!-- others -->
 		<dependency>
 			<groupId>com.google.gdata</groupId>
 			<artifactId>core</artifactId>
@@ -72,6 +73,7 @@
 			<version>1.4</version>
 		</dependency>
 		
+		<!-- provided -->
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-web</artifactId>

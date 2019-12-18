@@ -20,6 +20,7 @@
 	</modules>
 
 	<dependencies>
+		<!-- home made -->
 		<dependency>
 			<groupId>net.anfoya</groupId>
 			<artifactId>mail-client</artifactId>
@@ -29,6 +30,7 @@
 
 	<build>
 		<plugins>
+			<!-- compiling Java 8 for now -->
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.7.0</version>

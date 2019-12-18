@@ -23,17 +23,21 @@
 	</build>
 
 	<dependencies>
+		<!-- home made -->
 		<dependency>
 			<groupId>net.anfoya</groupId>
 			<artifactId>anfoya-tag</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
+
+		<!-- others -->
 		<dependency>
 			<groupId>javax.mail</groupId>
 			<artifactId>mail</artifactId>
 			<version>1.4</version>
 		</dependency>
 
+		<!-- provided -->
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-base</artifactId>
