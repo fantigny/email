@@ -44,21 +44,26 @@ import net.anfoya.mail.service.Message;
 public class MailClient extends Application {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailClient.class);
 
+	private static final String OPTION_LOG = "option: {} = {}";
 	private static final String[][] OPTIONS = {
-			{ "sun.net.http.allowRestrictedHeaders"	, "true"	, "allows restricted headers for Google sign in" 		},
-			{ "jdk.gtk.version"						, "2.2"		, "uses GTK2 lib for drag'n drop compatibility (Linux)" },
-			{ "glass.accessible.force"				, "false"	, "disabled to avoid crash on close (macOs)" 			}
+			{ "jdk.gtk.version"						, "2.2"		},	// uses GTK2 lib for drag'n drop compatibility (Linux)
+			{ "glass.accessible.force"				, "false"	}, 	// disabled to avoid crash on close (macOs)
+			{ "sun.net.http.allowRestrictedHeaders"	, "true"	}	// allows restricted headers for Google sign in
 	};
 
-	private Settings settings;
-	private NotificationService notificationService;
-	private GmailService gmail;
+
 
 	public static void main(final String[] args) {
 		Arrays.stream(OPTIONS).forEach(o -> System.setProperty(o[0], o[1]));
+		System.getProperties().forEach((k, v) -> LOGGER.info(OPTION_LOG, k, v));
 
 		launch(args);
 	}
+
+
+	private Settings settings;
+	private GmailService gmail;
+	private NotificationService notificationService;
 
 	@Override
 	public void init() throws Exception {
