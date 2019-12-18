@@ -8,7 +8,7 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<fishermail.version>1.0.191213-beta</fishermail.version>
+		<fishermail.version>1.0.191218-beta</fishermail.version>
 	</properties>
 
 	<build>
@@ -31,6 +31,7 @@
 	</build>
 
 	<dependencies>
+		<!-- home made -->
 		<dependency>
 			<groupId>net.anfoya</groupId>
 			<artifactId>mail-common</artifactId>
@@ -47,13 +48,14 @@
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 
-		<!-- compile -->
+		<!-- others -->
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 			<version>1.1.2</version>
 		</dependency>
 
+		<!-- provided -->
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-controls</artifactId>
