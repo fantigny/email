@@ -40,7 +40,7 @@ java \
 [linux-32](http://speederpan.uk.to/jenkins/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-lin32.zip),
 [linux-64](http://speederpan.uk.to/jenkins/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-lin64.zip)
 
-\**shipped with Java SE Runtime Environment*
+\**shipped with Java Runtime Environment*
 
 ## continuous integration
 latest build available in [Jenkins](https://speederpan.uk.to/jenkins/job/mail-client-distrib%20(continuous))
