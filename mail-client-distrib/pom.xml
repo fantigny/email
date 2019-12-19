@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.anfoya</groupId>
@@ -9,7 +10,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
-	
+
 	<modules>
 		<module>../mail-service-api</module>
 		<module>../mail-service-gmail</module>
@@ -52,7 +53,8 @@
 							<shadedArtifactAttached>true</shadedArtifactAttached>
 							<shadedClassifierName>jar-with-dependencies</shadedClassifierName>
 							<transformers>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 									<manifestEntries>
 										<main-class>net.anfoya.mail.client.javafx.entrypoint.MailClient</main-class>
 									</manifestEntries>
@@ -70,7 +72,7 @@
 			<plugin>
 				<groupId>com.akathist.maven.plugins.launch4j</groupId>
 				<artifactId>launch4j-maven-plugin</artifactId>
-				<version>1.7.7</version>
+				<version>1.7.25</version>
 				<executions>
 					<execution>
 						<phase>package</phase>
@@ -78,6 +80,7 @@
 							<goal>launch4j</goal>
 						</goals>
 						<configuration>
+						
 							<headerType>gui</headerType>
 							<jar>target/FisherMail.jar</jar>
 							<outfile>target/FisherMail.exe</outfile>
@@ -85,7 +88,7 @@
 							<classPath>
 								<mainClass>net.anfoya.mail.client.javafx.entrypoint.MailClient</mainClass>
 							</classPath>
-							<icon>../mail-common/src/main/resources/net/anfoya/mail/img/Mail.ico</icon>
+  							<icon>../mail-common/src/main/resources/net/anfoya/mail/img/Mail.ico</icon>
 							<jre>
 								<path>jre</path>
 								<minVersion>1.8.0</minVersion>
@@ -95,7 +98,7 @@
 							<versionInfo>
 								<fileVersion>1.0.0.0</fileVersion>
 								<txtFileVersion>1.0.0.0</txtFileVersion>
-								<fileDescription>Desc</fileDescription>
+								<fileDescription>FisherMail</fileDescription>
 								<copyright>speederpan.com</copyright>
 								<productVersion>1.0.0.0</productVersion>
 								<txtProductVersion>1.0.0.0</txtProductVersion>
@@ -127,13 +130,15 @@
 						<configuration>
 							<target>
 								<!-- create App bundle for Mac -->
-								<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
+								<taskdef name="bundleapp"
+									classname="com.oracle.appbundler.AppBundlerTask"
 									classpathref="maven.plugin.classpath" />
 								<bundleapp outputdirectory="target" name="FisherMail"
 									displayname="FisherMail"
 									icon="../mail-common/src/main/resources/net/anfoya/mail/img/Mail.icns"
 									identifier="net.anfoya.mail-client" shortversion="2.0"
-									copyright="speederpan.com" mainclassname="net.anfoya.mail.client.javafx.entrypoint.MailClient">
+									copyright="speederpan.com"
+									mainclassname="net.anfoya.mail.client.javafx.entrypoint.MailClient">
 									<classpath file="target/FisherMail.jar" />
 									<option value="-Xmx1g" />
 									<runtime dir="jre/macos/jdk1.8.0_162.jdk/Contents/Home" />
@@ -146,7 +151,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 			<!-- create deliverables -->
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
@@ -179,7 +184,7 @@
 						<configuration>
 							<finalName>distrib</finalName>
 							<outputDirectory>${project.basedir}</outputDirectory>
-		                    <appendAssemblyId>false</appendAssemblyId>
+							<appendAssemblyId>false</appendAssemblyId>
 							<attach>false</attach>
 							<descriptors>
 								<descriptor>assembly-distrib.xml</descriptor>
