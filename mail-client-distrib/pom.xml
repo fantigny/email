@@ -73,40 +73,41 @@
 				<groupId>com.akathist.maven.plugins.launch4j</groupId>
 				<artifactId>launch4j-maven-plugin</artifactId>
 				<version>1.7.25</version>
+				<configuration>
+					<skip>${assembly.skipAssembly}</skip>
+
+					<headerType>gui</headerType>
+					<jar>target/FisherMail.jar</jar>
+					<outfile>target/FisherMail.exe</outfile>
+					<errTitle>FisherMail Error</errTitle>
+					<classPath>
+						<mainClass>net.anfoya.mail.client.javafx.entrypoint.MailClient</mainClass>
+					</classPath>
+					<icon>../mail-common/src/main/resources/net/anfoya/mail/img/Mail.ico</icon>
+					<jre>
+						<path>jre</path>
+						<minVersion>1.8.0</minVersion>
+						<initialHeapSize>128</initialHeapSize>
+						<maxHeapSize>1024</maxHeapSize>
+					</jre>
+					<versionInfo>
+						<fileVersion>1.0.0.0</fileVersion>
+						<txtFileVersion>1.0.0.0</txtFileVersion>
+						<fileDescription>FisherMail</fileDescription>
+						<copyright>speederpan.com</copyright>
+						<productVersion>1.0.0.0</productVersion>
+						<txtProductVersion>1.0.0.0</txtProductVersion>
+						<productName>FisherMail</productName>
+						<internalName>FisherMail</internalName>
+						<originalFilename>FisherMail.exe</originalFilename>
+					</versionInfo>
+				</configuration>
 				<executions>
 					<execution>
 						<phase>package</phase>
 						<goals>
 							<goal>launch4j</goal>
 						</goals>
-						<configuration>
-
-							<headerType>gui</headerType>
-							<jar>target/FisherMail.jar</jar>
-							<outfile>target/FisherMail.exe</outfile>
-							<errTitle>FisherMail Error</errTitle>
-							<classPath>
-								<mainClass>net.anfoya.mail.client.javafx.entrypoint.MailClient</mainClass>
-							</classPath>
-							<icon>../mail-common/src/main/resources/net/anfoya/mail/img/Mail.ico</icon>
-							<jre>
-								<path>jre</path>
-								<minVersion>1.8.0</minVersion>
-								<initialHeapSize>128</initialHeapSize>
-								<maxHeapSize>1024</maxHeapSize>
-							</jre>
-							<versionInfo>
-								<fileVersion>1.0.0.0</fileVersion>
-								<txtFileVersion>1.0.0.0</txtFileVersion>
-								<fileDescription>FisherMail</fileDescription>
-								<copyright>speederpan.com</copyright>
-								<productVersion>1.0.0.0</productVersion>
-								<txtProductVersion>1.0.0.0</txtProductVersion>
-								<productName>FisherMail</productName>
-								<internalName>FisherMail</internalName>
-								<originalFilename>FisherMail.exe</originalFilename>
-							</versionInfo>
-						</configuration>
 					</execution>
 				</executions>
 			</plugin>
@@ -118,6 +119,8 @@
 				<artifactId>exec-maven-plugin</artifactId>
 				<version>1.6.0</version>
 				<configuration>
+					<skip>${assembly.skipAssembly}</skip>
+
 					<mainClass>de.audi.analysis.main.Main</mainClass>
 					<executable>ISCC.exe</executable>
 					<workingDirectory></workingDirectory>
@@ -162,28 +165,30 @@
 						<version>1.0.1</version>
 					</dependency>
 				</dependencies>
+				<configuration>
+					<skip>${assembly.skipAssembly}</skip>
+
+					<target>
+						<!-- create App bundle for Mac -->
+						<taskdef name="bundleapp"
+							classname="com.oracle.appbundler.AppBundlerTask"
+							classpathref="maven.plugin.classpath" />
+						<bundleapp outputdirectory="target" name="FisherMail"
+							displayname="FisherMail"
+							icon="../mail-common/src/main/resources/net/anfoya/mail/img/Mail.icns"
+							identifier="net.anfoya.mail-client" shortversion="2.0"
+							copyright="speederpan.com"
+							mainclassname="net.anfoya.mail.client.javafx.entrypoint.MailClient">
+							<classpath file="target/FisherMail.jar" />
+							<option value="-Xmx1g" />
+							<runtime dir="jre/macos/jdk1.8.0_162.jdk/Contents/Home" />
+						</bundleapp>
+					</target>
+				</configuration>
 				<executions>
 					<execution>
 						<id>macAppBundle</id>
 						<phase>package</phase>
-						<configuration>
-							<target>
-								<!-- create App bundle for Mac -->
-								<taskdef name="bundleapp"
-									classname="com.oracle.appbundler.AppBundlerTask"
-									classpathref="maven.plugin.classpath" />
-								<bundleapp outputdirectory="target" name="FisherMail"
-									displayname="FisherMail"
-									icon="../mail-common/src/main/resources/net/anfoya/mail/img/Mail.icns"
-									identifier="net.anfoya.mail-client" shortversion="2.0"
-									copyright="speederpan.com"
-									mainclassname="net.anfoya.mail.client.javafx.entrypoint.MailClient">
-									<classpath file="target/FisherMail.jar" />
-									<option value="-Xmx1g" />
-									<runtime dir="jre/macos/jdk1.8.0_162.jdk/Contents/Home" />
-								</bundleapp>
-							</target>
-						</configuration>
 						<goals>
 							<goal>run</goal>
 						</goals>
@@ -207,7 +212,6 @@
 							<attach>false</attach>
 							<descriptors>
 								<descriptor>assembly-macos.xml</descriptor>
-								<!-- descriptor>assembly-win32.xml</descriptor> <descriptor>assembly-win64.xml</descriptor -->
 								<descriptor>assembly-lin32.xml</descriptor>
 								<descriptor>assembly-lin64.xml</descriptor>
 							</descriptors>
