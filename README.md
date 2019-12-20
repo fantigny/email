@@ -33,8 +33,8 @@ java \
 
 ## system specific\*
 
-[win-32](https://speederpan.uk.to/jenkins/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win32.zip),
-[win-64](http://speederpan.uk.to/jenkins/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win64.zip)
+[win-32](https://speederpan.uk.to/jenkins/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win32.exe),
+[win-64](http://speederpan.uk.to/jenkins/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win64.exe)
 
 [macOs-64](http://speederpan.uk.to/jenkins/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-macOs.zip)
 
