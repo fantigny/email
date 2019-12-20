@@ -23,7 +23,7 @@
 			<fileMode>0755</fileMode>
 		</file>
 		<file>
-			<source>jre/FisherMail.bash</source>
+			<source>src/deploy/bash/FisherMail.sh</source>
 			<outputDirectory></outputDirectory>
 			<fileMode>0755</fileMode>
 		</file>

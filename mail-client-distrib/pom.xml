@@ -80,7 +80,7 @@
 							<goal>launch4j</goal>
 						</goals>
 						<configuration>
-						
+
 							<headerType>gui</headerType>
 							<jar>target/FisherMail.jar</jar>
 							<outfile>target/FisherMail.exe</outfile>
@@ -88,7 +88,7 @@
 							<classPath>
 								<mainClass>net.anfoya.mail.client.javafx.entrypoint.MailClient</mainClass>
 							</classPath>
-  							<icon>../mail-common/src/main/resources/net/anfoya/mail/img/Mail.ico</icon>
+							<icon>../mail-common/src/main/resources/net/anfoya/mail/img/Mail.ico</icon>
 							<jre>
 								<path>jre</path>
 								<minVersion>1.8.0</minVersion>
@@ -111,8 +111,56 @@
 				</executions>
 			</plugin>
 
-			<!-- !!!! this only works on *nix systems !!!! -->
+			<!-- win32 installer -->
+			<!-- ..needs inno-setup to be installed and available in path -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.6.0</version>
+				<configuration>
+					<mainClass>de.audi.analysis.main.Main</mainClass>
+					<executable>ISCC.exe</executable>
+					<workingDirectory></workingDirectory>
+					<arguments>
+						<argument>innosetup-win32.iss</argument>
+					</arguments>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>install</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- win64 installer -->
+			<!-- ..needs inno-setup to be installed and available in path -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.6.0</version>
+				<configuration>
+					<mainClass>de.audi.analysis.main.Main</mainClass>
+					<executable>ISCC.exe</executable>
+					<workingDirectory></workingDirectory>
+					<arguments>
+						<argument>innosetup-win64.iss</argument>
+					</arguments>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>install</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
 			<!-- build macOs binary(x64) from self contained executable JAR -->
+			<!-- ..only works on *nix systems -->
 			<plugin>
 				<artifactId>maven-antrun-plugin</artifactId>
 				<version>1.8</version>
@@ -168,8 +216,8 @@
 							<attach>false</attach>
 							<descriptors>
 								<descriptor>assembly-macos.xml</descriptor>
-								<descriptor>assembly-win32.xml</descriptor>
-								<descriptor>assembly-win64.xml</descriptor>
+								<!-- descriptor>assembly-win32.xml</descriptor>
+								<descriptor>assembly-win64.xml</descriptor -->
 								<descriptor>assembly-lin32.xml</descriptor>
 								<descriptor>assembly-lin64.xml</descriptor>
 							</descriptors>

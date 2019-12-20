@@ -7,8 +7,6 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sun.javafx.PlatformUtil;
-
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -57,10 +55,10 @@ public class MailClient extends Application {
 
 
 	public static void main(final String[] args) {
-		if (PlatformUtil.isWindows()) {
-			WinShell32.setExplicitAppUserModelId(App.MAIL_CLIENT);
-			LOGGER.info("app user model id is set to {}", WinShell32.getCurrentProcessExplicitAppUserModelID());
-		}
+		//		if (PlatformUtil.isWindows()) {
+		WinShell32.setExplicitAppUserModelId(App.MAIL_CLIENT);
+		LOGGER.info("app user model id is set to {}", WinShell32.getCurrentProcessExplicitAppUserModelID());
+		//		}
 
 		Arrays.stream(OPTIONS).forEach(o -> System.setProperty(o[0], o[1]));
 		System.getProperties().forEach((k, v) -> LOGGER.info(OPTION_LOG, k, v));
