@@ -22,6 +22,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
@@ -32,6 +33,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.web.HTMLEditor;
 import javafx.scene.web.WebView;
 import net.anfoya.java.util.VoidCallback;
+import net.anfoya.javafx.scene.control.HtmlEditorLinuxEnterFix;
 import net.anfoya.javafx.scene.control.HtmlEditorListener;
 import net.anfoya.javafx.scene.control.HtmlEditorToolBarHelper;
 import net.anfoya.javafx.scene.control.HtmlEditorToolBarHelper.Line;
@@ -39,7 +41,7 @@ import net.anfoya.mail.browser.javafx.util.UrlHelper;
 
 public class MailEditor extends BorderPane {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailEditor.class);
-    private static final Image ATTACHMENT = new Image(MailEditor.class.getResourceAsStream("/net/anfoya/mail/img/attachment.png"));
+	private static final Image ATTACHMENT = new Image(MailEditor.class.getResourceAsStream("/net/anfoya/mail/img/attachment.png"));
 
 	private final HTMLEditor editor;
 	private final WebView editorView;
@@ -57,6 +59,7 @@ public class MailEditor extends BorderPane {
 
 		editor = new HTMLEditor();
 		editor.getStyleClass().add("message-editor");
+		editor.addEventFilter(KeyEvent.KEY_PRESSED, new HtmlEditorLinuxEnterFix());
 		stackPane.getChildren().add(editor);
 		cleanEditorToolBar();
 

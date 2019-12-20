@@ -24,6 +24,7 @@ import net.anfoya.java.util.concurrent.ObservableExecutors;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.javafx.notification.NotificationService;
+import net.anfoya.javafx.util.WinShell32;
 import net.anfoya.mail.browser.javafx.MailBrowser;
 import net.anfoya.mail.browser.javafx.MailBrowser.Mode;
 import net.anfoya.mail.browser.javafx.settings.Settings;
@@ -54,6 +55,11 @@ public class MailClient extends Application {
 
 
 	public static void main(final String[] args) {
+		//		if (PlatformUtil.isWindows()) {
+		WinShell32.setExplicitAppUserModelId(App.MAIL_CLIENT);
+		LOGGER.info("app user model id is set to {}", WinShell32.getCurrentProcessExplicitAppUserModelID());
+		//		}
+
 		Arrays.stream(OPTIONS).forEach(o -> System.setProperty(o[0], o[1]));
 		System.getProperties().forEach((k, v) -> LOGGER.info(OPTION_LOG, k, v));
 
