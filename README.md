@@ -50,7 +50,7 @@ RPM package [linux-32.rpm](http://speederpan.uk.to/jenkins/job/mail-client-distr
 linux portable [linux-32.zip](http://speederpan.uk.to/jenkins/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-lin32.zip),
 [linux-64.zip](http://speederpan.uk.to/jenkins/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-lin64.zip)
 
-\**shipped with Java Runtime Environment*
+\**shipped with oracle java runtime*
 
 ## continuous integration
 latest build available in [Jenkins](https://speederpan.uk.to/jenkins/job/mail-client-distrib%20(continuous))
