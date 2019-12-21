@@ -375,7 +375,7 @@
 							<goal>rpm</goal>
 						</goals>
 						<configuration>
-							<architecture>amd64</architecture>
+							<architecture>x86_64</architecture>
 							<entries>
 								<entry>
 									<name>/opt/FisherMail</name>
@@ -415,7 +415,7 @@
 							<goal>rpm</goal>
 						</goals>
 						<configuration>
-							<architecture>i686</architecture>
+							<architecture>i386</architecture>
 							<entries>
 								<entry>
 									<name>/opt/FisherMail</name>
