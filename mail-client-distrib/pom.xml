@@ -211,13 +211,13 @@
 						</goals>
 						<configuration>
 							<skipPOMs>false</skipPOMs>
-							<deb>target/FisherMail-lin64.deb</deb>
-							<controlDir>src/deploy/deb/control</controlDir>
+							<deb>${project.basedir}/target/FisherMail-lin64.deb</deb>
+							<controlDir>${project.basedir}/src/deploy/deb/control</controlDir>
 							<installDir>/opt/FisherMail</installDir>
 							<dataSet>
 								<data>
 									<type>file</type>
-									<src>target/FisherMail.jar</src>
+									<src>${project.basedir}/target/FisherMail.jar</src>
 									<dst>/opt/FisherMail/FisherMail.jar</dst>
 									<mapper>
 										<type>perm</type>
@@ -226,7 +226,7 @@
 								</data>
 								<data>
 									<type>file</type>
-									<src>src/deploy/bash/FisherMail-deb.sh</src>
+									<src>${project.basedir}/src/deploy/bash/FisherMail-deb.sh</src>
 									<dst>/usr/bin/fishermail</dst>
 									<mapper>
 										<type>perm</type>
@@ -235,7 +235,7 @@
 								</data>
 								<data>
 									<type>directory</type>
-									<src>jre/lin64/jre1.8.0_231</src>
+									<src>${project.basedir}/jre/lin64/jre1.8.0_231</src>
 									<mapper>
 										<type>perm</type>
 										<prefix>/opt/FisherMail/jre</prefix>
@@ -253,13 +253,13 @@
 						</goals>
 						<configuration>
 							<skipPOMs>false</skipPOMs>
-							<deb>target/FisherMail-lin32.deb</deb>
-							<controlDir>src/deploy/deb/control</controlDir>
+							<deb>${project.basedir}/target/FisherMail-lin32.deb</deb>
+							<controlDir>${project.basedir}/src/deploy/deb/control</controlDir>
 							<installDir>/opt/FisherMail</installDir>
 							<dataSet>
 								<data>
 									<type>file</type>
-									<src>target/FisherMail.jar</src>
+									<src>${project.basedir}/target/FisherMail.jar</src>
 									<dst>/opt/FisherMail/FisherMail.jar</dst>
 									<mapper>
 										<type>perm</type>
@@ -268,7 +268,7 @@
 								</data>
 								<data>
 									<type>file</type>
-									<src>src/deploy/bash/FisherMail-deb.sh</src>
+									<src>${project.basedir}/src/deploy/bash/FisherMail-deb.sh</src>
 									<dst>/usr/bin/fishermail</dst>
 									<mapper>
 										<type>perm</type>
@@ -277,7 +277,7 @@
 								</data>
 								<data>
 									<type>directory</type>
-									<src>jre/lin32/jre1.8.0_231</src>
+									<src>${project.basedir}/jre/lin32/jre1.8.0_231</src>
 									<mapper>
 										<type>perm</type>
 										<prefix>/opt/FisherMail/jre</prefix>
