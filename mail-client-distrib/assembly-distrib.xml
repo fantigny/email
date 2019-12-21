@@ -6,29 +6,37 @@
 		<format>dir</format>
 	</formats>
 	<includeBaseDirectory>false</includeBaseDirectory>
+	<files>
+		<file>
+			<source>../mail-client/target/classes/version.txt</source>
+		</file>
+		<file>
+			<source>target/mail-client-distrib-0.0.1-SNAPSHOT-1.0.0.lin32.rpm</source>
+			<destName>FisherMail-lin32.rpm</destName>
+		</file>
+		<file>
+			<source>target/mail-client-distrib-0.0.1-SNAPSHOT-1.0.0.lin64.rpm</source>
+			<destName>FisherMail-lin64.rpm</destName>
+		</file>
+	</files>
 	<fileSets>
-		<fileSet>
-			<directory>../mail-client/target/classes</directory>
-			<outputDirectory></outputDirectory>
-			<includes>
-				<include>version.txt</include>
-			</includes>
-		</fileSet>
 		<fileSet>
 			<directory>target</directory>
 			<outputDirectory></outputDirectory>
 			<includes>
 				<include>FisherMail.jar</include>
-				
+
 				<include>FisherMail-macOs.zip</include>
-				
+
 				<include>FisherMail-win32.exe</include>
 				<include>FisherMail-win64.exe</include>
+				
 				<include>FisherMail-win32.zip</include>
 				<include>FisherMail-win64.zip</include>
-				
+
 				<include>FisherMail-lin32.deb</include>
 				<include>FisherMail-lin64.deb</include>
+				
 				<include>FisherMail-lin32.zip</include>
 				<include>FisherMail-lin64.zip</include>
 			</includes>
