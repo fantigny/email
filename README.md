@@ -33,13 +33,19 @@ java \
 
 ## system specific\*
 
-[win-32](https://speederpan.uk.to/jenkins/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win32.exe),
-[win-64](http://speederpan.uk.to/jenkins/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win64.exe)
+windows install [win-32.exe](https://speederpan.uk.to/jenkins/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win32.exe),
+[win-64.exe](http://speederpan.uk.to/jenkins/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win64.exe)
 
-[macOs-64](http://speederpan.uk.to/jenkins/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-macOs.zip)
+windows portable [win-32.zip](https://speederpan.uk.to/jenkins/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win32.zip),
+[win-64.zip](http://speederpan.uk.to/jenkins/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win64.zip)
 
-[linux-32](http://speederpan.uk.to/jenkins/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-lin32.zip),
-[linux-64](http://speederpan.uk.to/jenkins/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-lin64.zip)
+macOs App [macOs-64.zip](http://speederpan.uk.to/jenkins/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-macOs.zip)
+
+debian flavors [linux-32.deb](http://speederpan.uk.to/jenkins/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-lin32.deb),
+[linux-64.deb](http://speederpan.uk.to/jenkins/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-lin64.deb)
+
+linux portable [linux-32.zip](http://speederpan.uk.to/jenkins/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-lin32.zip),
+[linux-64.zip](http://speederpan.uk.to/jenkins/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-lin64.zip)
 
 \**shipped with Java Runtime Environment*
 
