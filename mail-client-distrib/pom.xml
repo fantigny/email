@@ -41,6 +41,7 @@
 			</activation>
 			<properties>
 				<ISCC.exe>${ISCC.location}</ISCC.exe>
+				<ISCC.arg></ISCC.arg>
 			</properties>
 		</profile>
 		<profile>
@@ -51,7 +52,8 @@
 				</os>
 			</activation>
 			<properties>
-				<ISCC.exe>wine ${ISCC.location}</ISCC.exe>
+				<ISCC.exe>wine</ISCC.exe>
+				<ISCC.arg>${ISCC.location}</ISCC.arg>
 			</properties>
 		</profile>
 	</profiles>
@@ -205,6 +207,7 @@
 						</goals>
 						<configuration>
 							<arguments>
+								<argument>${ISCC.arg}</argument>
 								<argument>innosetup-win32.iss</argument>
 							</arguments>
 						</configuration>
@@ -217,6 +220,7 @@
 						</goals>
 						<configuration>
 							<arguments>
+								<argument>${ISCC.arg}</argument>
 								<argument>innosetup-win64.iss</argument>
 							</arguments>
 						</configuration>
