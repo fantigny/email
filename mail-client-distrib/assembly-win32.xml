@@ -7,7 +7,7 @@
 	</formats>
 	<fileSets>
 		<fileSet>
-			<directory>jre/win32/jre1.8.0_201</directory>
+			<directory>src/deploy/win/jre1.8.0_201-win32</directory>
 			<outputDirectory>jre</outputDirectory>
 		</fileSet>
 	</fileSets>

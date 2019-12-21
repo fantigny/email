@@ -39,7 +39,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "FisherMail.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\jre\win64\jre1.8.0_231\*"; DestDir: "{app}\jre"; Flags: ignoreversion recursesubdirs
+Source: "..\src\deploy\win\jre1.8.0_231-win64\*"; DestDir: "{app}\jre"; Flags: ignoreversion recursesubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
