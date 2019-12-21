@@ -7,7 +7,7 @@
 	</formats>
 	<fileSets>
 		<fileSet>
-			<directory>jre/lin64/jre1.8.0_231</directory>
+			<directory>src/deploy/linux/jre1.8.0_231-lin64</directory>
 			<outputDirectory>jre</outputDirectory>
 		</fileSet>
 	</fileSets>
@@ -18,12 +18,12 @@
 			<fileMode>0755</fileMode>
 		</file>
 		<file>
-			<source>jre/lin64/jre1.8.0_231/bin/java</source>
+			<source>src/deploy/linux/jre1.8.0_231-lin64/bin/java</source>
 			<outputDirectory>jre/bin</outputDirectory>
 			<fileMode>0755</fileMode>
 		</file>
 		<file>
-			<source>src/deploy/bash/FisherMail.sh</source>
+			<source>src/deploy/linux/bash/FisherMail.sh</source>
 			<outputDirectory></outputDirectory>
 			<fileMode>0755</fileMode>
 		</file>

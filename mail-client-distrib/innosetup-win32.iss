@@ -25,7 +25,7 @@ PrivilegesRequired=lowest
 PrivilegesRequiredOverridesAllowed=dialog
 OutputDir=.
 OutputBaseFilename=FisherMail-win32
-SetupIconFile=
+SetupIconFile=../../mail-common/src/main/resources/net/anfoya/mail/img/Mail.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
@@ -39,7 +39,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "FisherMail.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\jre\win32\jre1.8.0_201\*"; DestDir: "{app}\jre"; Flags: ignoreversion recursesubdirs
+Source: "..\src\deploy\win\jre1.8.0_201-win32\*"; DestDir: "{app}\jre"; Flags: ignoreversion recursesubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
