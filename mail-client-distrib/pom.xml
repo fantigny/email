@@ -28,19 +28,30 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<ISCC.exe>src/deploy/win/innosetup_6.0.3-mini/ISCC.exe</ISCC.exe>
+		<ISCC.location>src/deploy/win/innosetup_6.0.3-mini/ISCC.exe</ISCC.location>
 	</properties>
 
 	<profiles>
 		<profile>
-			<id>linux-wine</id>
+			<id>windows</id>
+			<activation>
+				<os>
+					<family>windows</family>
+				</os>
+			</activation>
+			<properties>
+				<ISCC.exe>${ISCC.location}</ISCC.exe>
+			</properties>
+		</profile>
+		<profile>
+			<id>unix</id>
 			<activation>
 				<os>
 					<family>unix</family>
 				</os>
 			</activation>
 			<properties>
-				<ISCC.exe>wine ${ISCC.exe}</ISCC.exe>
+				<ISCC.exe>wine ${ISCC.location}</ISCC.exe>
 			</properties>
 		</profile>
 	</profiles>
