@@ -6,6 +6,7 @@
 	<artifactId>mail-client-distrib</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
+	<description>cross-platform e-mail client</description>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -112,7 +113,7 @@
 				</executions>
 			</plugin>
 
-			<!-- win installer -->
+			<!-- win installers -->
 			<!-- ..needs inno-setup to be installed and available in path -->
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
@@ -195,7 +196,104 @@
 				</executions>
 			</plugin>
 
-			<!-- macOs and linux assemblies -->
+			<!-- deb packages -->
+			<plugin>
+				<artifactId>jdeb</artifactId>
+				<groupId>org.vafer</groupId>
+				<version>1.8</version>
+				<executions>
+					<execution>
+						<id>lin64</id>
+						<phase>package</phase>
+						<goals>
+							<goal>jdeb</goal>
+						</goals>
+						<configuration>
+							<skipPOMs>false</skipPOMs>
+							<skip>${assembly.skipAssembly}</skip>
+
+							<deb>${project.basedir}/target/FisherMail-lin64.deb</deb>
+							<controlDir>${project.basedir}/src/deploy/deb/control</controlDir>
+							<installDir>/opt/FisherMail</installDir>
+							<dataSet>
+								<data>
+									<type>file</type>
+									<src>${project.basedir}/target/FisherMail.jar</src>
+									<dst>/opt/FisherMail/FisherMail.jar</dst>
+									<mapper>
+										<type>perm</type>
+										<filemode>755</filemode>
+									</mapper>
+								</data>
+								<data>
+									<type>file</type>
+									<src>${project.basedir}/src/deploy/bash/FisherMail-deb.sh</src>
+									<dst>/usr/bin/fishermail</dst>
+									<mapper>
+										<type>perm</type>
+										<filemode>755</filemode>
+									</mapper>
+								</data>
+								<data>
+									<type>directory</type>
+									<src>${project.basedir}/jre/lin64/jre1.8.0_231</src>
+									<mapper>
+										<type>perm</type>
+										<prefix>/opt/FisherMail/jre</prefix>
+										<filemode>755</filemode>
+									</mapper>
+								</data>
+							</dataSet>
+						</configuration>
+					</execution>
+					<execution>
+						<id>lin32</id>
+						<phase>package</phase>
+						<goals>
+							<goal>jdeb</goal>
+						</goals>
+						<configuration>
+							<skipPOMs>false</skipPOMs>
+							<skip>${assembly.skipAssembly}</skip>
+
+							<deb>${project.basedir}/target/FisherMail-lin32.deb</deb>
+							<controlDir>${project.basedir}/src/deploy/deb/control</controlDir>
+							<installDir>/opt/FisherMail</installDir>
+							<dataSet>
+								<data>
+									<type>file</type>
+									<src>${project.basedir}/target/FisherMail.jar</src>
+									<dst>/opt/FisherMail/FisherMail.jar</dst>
+									<mapper>
+										<type>perm</type>
+										<filemode>755</filemode>
+									</mapper>
+								</data>
+								<data>
+									<type>file</type>
+									<src>${project.basedir}/src/deploy/bash/FisherMail-deb.sh</src>
+									<dst>/usr/bin/fishermail</dst>
+									<mapper>
+										<type>perm</type>
+										<filemode>755</filemode>
+									</mapper>
+								</data>
+								<data>
+									<type>directory</type>
+									<src>${project.basedir}/jre/lin32/jre1.8.0_231</src>
+									<mapper>
+										<type>perm</type>
+										<prefix>/opt/FisherMail/jre</prefix>
+										<filemode>755</filemode>
+									</mapper>
+								</data>
+							</dataSet>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- zip packages -->
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>3.1.0</version>
@@ -211,6 +309,8 @@
 							<attach>false</attach>
 							<descriptors>
 								<descriptor>assembly-macos.xml</descriptor>
+								<descriptor>assembly-win32.xml</descriptor>
+								<descriptor>assembly-win64.xml</descriptor>
 								<descriptor>assembly-lin32.xml</descriptor>
 								<descriptor>assembly-lin64.xml</descriptor>
 							</descriptors>
