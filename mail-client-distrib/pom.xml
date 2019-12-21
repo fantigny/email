@@ -211,6 +211,8 @@
 						</goals>
 						<configuration>
 							<skipPOMs>false</skipPOMs>
+							<skip>${assembly.skipAssembly}</skip>
+
 							<deb>${project.basedir}/target/FisherMail-lin64.deb</deb>
 							<controlDir>${project.basedir}/src/deploy/deb/control</controlDir>
 							<installDir>/opt/FisherMail</installDir>
@@ -253,6 +255,8 @@
 						</goals>
 						<configuration>
 							<skipPOMs>false</skipPOMs>
+							<skip>${assembly.skipAssembly}</skip>
+
 							<deb>${project.basedir}/target/FisherMail-lin32.deb</deb>
 							<controlDir>${project.basedir}/src/deploy/deb/control</controlDir>
 							<installDir>/opt/FisherMail</installDir>
@@ -290,7 +294,7 @@
 				</executions>
 			</plugin>
 
-			<!-- zip packages for macOs and other linux flavours -->
+			<!-- zip packages -->
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>3.1.0</version>
