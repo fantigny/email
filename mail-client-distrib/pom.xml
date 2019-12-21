@@ -28,7 +28,6 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<ISCC.prefix></ISCC.prefix>
 		<ISCC.exe>src/deploy/win/innosetup_6.0.3-mini/ISCC.exe</ISCC.exe>
 	</properties>
 
@@ -41,7 +40,7 @@
 				</os>
 			</activation>
 			<properties>
-				<ISCC.prefix>wine </ISCC.prefix>
+				<ISCC.exe>wine ${ISCC.exe}</ISCC.exe>
 			</properties>
 		</profile>
 	</profiles>
@@ -182,9 +181,8 @@
 					<!-- skip>${assembly.skipAssembly}</skip -->
 
 					<mainClass>de.audi.analysis.main.Main</mainClass>
-					<workingDirectory></workingDirectory>
 					<executable>
-						${ISCC.prefix}${ISCC.exe}
+						${ISCC.exe}
 					</executable>
 				</configuration>
 				<executions>
