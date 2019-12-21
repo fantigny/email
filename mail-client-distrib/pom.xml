@@ -306,6 +306,8 @@
 							<attach>false</attach>
 							<descriptors>
 								<descriptor>assembly-macos.xml</descriptor>
+								<descriptor>assembly-win32.xml</descriptor>
+								<descriptor>assembly-win64.xml</descriptor>
 								<descriptor>assembly-lin32.xml</descriptor>
 								<descriptor>assembly-lin64.xml</descriptor>
 							</descriptors>
