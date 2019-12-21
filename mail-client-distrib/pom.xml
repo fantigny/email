@@ -17,6 +17,13 @@
 		<module>../mail-client</module>
 	</modules>
 
+	<pluginRepositories>
+		<pluginRepository>
+			<id>oss.sonatype</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+		</pluginRepository>
+	</pluginRepositories>
+
 	<dependencies>
 		<!-- home made -->
 		<dependency>
@@ -29,6 +36,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<ISCC.location>src/deploy/win/innosetup_6.0.3-mini/ISCC.exe</ISCC.location>
+		<ISCC.arg>/Qp</ISCC.arg>
 	</properties>
 
 	<profiles>
@@ -41,7 +49,7 @@
 			</activation>
 			<properties>
 				<ISCC.exe>${ISCC.location}</ISCC.exe>
-				<ISCC.arg></ISCC.arg>
+				<ISCC.exe.arg></ISCC.exe.arg>
 			</properties>
 		</profile>
 		<profile>
@@ -53,7 +61,7 @@
 			</activation>
 			<properties>
 				<ISCC.exe>wine</ISCC.exe>
-				<ISCC.arg>${ISCC.location}</ISCC.arg>
+				<ISCC.exe.arg>${ISCC.location}</ISCC.exe.arg>
 			</properties>
 		</profile>
 	</profiles>
@@ -207,6 +215,7 @@
 						</goals>
 						<configuration>
 							<arguments>
+								<argument>${ISCC.exe.arg}</argument>
 								<argument>${ISCC.arg}</argument>
 								<argument>innosetup-win32.iss</argument>
 							</arguments>
@@ -220,6 +229,7 @@
 						</goals>
 						<configuration>
 							<arguments>
+								<argument>${ISCC.exe.arg}</argument>
 								<argument>${ISCC.arg}</argument>
 								<argument>innosetup-win64.iss</argument>
 							</arguments>
@@ -233,6 +243,13 @@
 				<artifactId>jdeb</artifactId>
 				<groupId>org.vafer</groupId>
 				<version>1.8</version>
+				<configuration>
+					<skip>${assembly.skipAssembly}</skip>
+					<skipPOMs>false</skipPOMs>
+
+					<controlDir>src/deploy/linux/deb</controlDir>
+					<installDir>/opt/FisherMail</installDir>
+				</configuration>
 				<executions>
 					<execution>
 						<id>lin64</id>
@@ -241,24 +258,29 @@
 							<goal>jdeb</goal>
 						</goals>
 						<configuration>
-							<skip>${assembly.skipAssembly}</skip>
-							<skipPOMs>false</skipPOMs>
-
-							<deb>${project.basedir}/target/FisherMail-lin64.deb</deb>
-							<controlDir>${project.basedir}/src/deploy/linux/deb</controlDir>
-							<installDir>/opt/FisherMail</installDir>
+							<deb>target/FisherMail-lin64.deb</deb>
 							<dataSet>
 								<data>
 									<type>directory</type>
-									<src>${project.basedir}/src/deploy/linux/jre1.8.0_231-lin32</src>
+									<src>src/deploy/linux/jre1.8.0_231-lin32</src>
 									<mapper>
 										<type>perm</type>
 										<prefix>/opt/FisherMail/jre</prefix>
 									</mapper>
+									<excludes>**/java</excludes>
 								</data>
 								<data>
 									<type>file</type>
-									<src>${project.basedir}/target/FisherMail.jar</src>
+									<src>src/deploy/linux/jre1.8.0_231-lin64/bin/java</src>
+									<dst>/opt/FisherMail/jre/bin/java</dst>
+									<mapper>
+										<type>perm</type>
+										<filemode>755</filemode>
+									</mapper>
+								</data>
+								<data>
+									<type>file</type>
+									<src>target/FisherMail.jar</src>
 									<dst>/opt/FisherMail/FisherMail.jar</dst>
 									<mapper>
 										<type>perm</type>
@@ -267,17 +289,8 @@
 								</data>
 								<data>
 									<type>file</type>
-									<src>${project.basedir}/src/deploy/linux/bash/FisherMail-deb.sh</src>
+									<src>src/deploy/linux/bash/FisherMail-package.sh</src>
 									<dst>/usr/bin/fishermail</dst>
-									<mapper>
-										<type>perm</type>
-										<filemode>755</filemode>
-									</mapper>
-								</data>
-								<data>
-									<type>file</type>
-									<src>${project.basedir}/src/deploy/linux/jre1.8.0_231-lin32/bin/java</src>
-									<dst>/opt/FisherMail/jre/bin/java</dst>
 									<mapper>
 										<type>perm</type>
 										<filemode>755</filemode>
@@ -293,24 +306,29 @@
 							<goal>jdeb</goal>
 						</goals>
 						<configuration>
-							<skipPOMs>false</skipPOMs>
-							<skip>${assembly.skipAssembly}</skip>
-
-							<deb>${project.basedir}/target/FisherMail-lin32.deb</deb>
-							<controlDir>${project.basedir}/src/deploy/linux/deb</controlDir>
-							<installDir>/opt/FisherMail</installDir>
+							<deb>target/FisherMail-lin32.deb</deb>
 							<dataSet>
 								<data>
 									<type>directory</type>
-									<src>${project.basedir}/src/deploy/linux/jre1.8.0_231-lin64</src>
+									<src>src/deploy/linux/jre1.8.0_231-lin32</src>
 									<mapper>
 										<type>perm</type>
 										<prefix>/opt/FisherMail/jre</prefix>
 									</mapper>
+									<excludes>**/java</excludes>
 								</data>
 								<data>
 									<type>file</type>
-									<src>${project.basedir}/target/FisherMail.jar</src>
+									<src>src/deploy/linux/jre1.8.0_231-lin64/bin/java</src>
+									<dst>/opt/FisherMail/jre/bin/java</dst>
+									<mapper>
+										<type>perm</type>
+										<filemode>755</filemode>
+									</mapper>
+								</data>
+								<data>
+									<type>file</type>
+									<src>target/FisherMail.jar</src>
 									<dst>/opt/FisherMail/FisherMail.jar</dst>
 									<mapper>
 										<type>perm</type>
@@ -319,17 +337,8 @@
 								</data>
 								<data>
 									<type>file</type>
-									<src>${project.basedir}/src/deploy/linux/bash/FisherMail-deb.sh</src>
+									<src>src/deploy/linux/bash/FisherMail-package.sh</src>
 									<dst>/usr/bin/fishermail</dst>
-									<mapper>
-										<type>perm</type>
-										<filemode>755</filemode>
-									</mapper>
-								</data>
-								<data>
-									<type>file</type>
-									<src>${project.basedir}/src/deploy/linux/jre1.8.0_231-lin64/bin/java</src>
-									<dst>/opt/FisherMail/jre/bin/java</dst>
 									<mapper>
 										<type>perm</type>
 										<filemode>755</filemode>
@@ -341,13 +350,114 @@
 				</executions>
 			</plugin>
 
-			<!-- zip portable packages -->
+			<!-- build rpm packages(x86,x64) from self contained jar -->
+			<plugin>
+				<groupId>de.dentrassi.maven</groupId>
+				<artifactId>rpm</artifactId>
+				<version>1.4.0</version>
+				<configuration>
+					<skip>${assembly.skipAssembly}</skip>
+					
+					<attach>true</attach>
+					<group>Application/Misc</group>
+					<release>1.0.0</release>
+					<forceRelease>true</forceRelease>
+					<snapshotBuildId>1</snapshotBuildId>
+					<signature>
+						<skip>true</skip>
+					</signature>
+				</configuration>
+				<executions>
+					<execution>
+						<id>lin64</id>
+						<phase>package</phase>
+						<goals>
+							<goal>rpm</goal>
+						</goals>
+						<configuration>
+							<architecture>lin64</architecture>
+							<entries>
+								<entry>
+									<name>/opt/FisherMail</name>
+									<directory>true</directory>
+								</entry>
+								<entry>
+									<name>/opt/FisherMail/jre</name>
+									<collect>
+										<from>src/deploy/linux/jre1.8.0_231-lin64</from>
+										<excludes>
+											<exclude>**/java</exclude>
+										</excludes>
+									</collect>
+								</entry>
+								<entry>
+									<name>/opt/FisherMail/jre/bin/java</name>
+									<file>src/deploy/linux/jre1.8.0_231-lin64/bin/java</file>
+									<mode>755</mode>
+								</entry>
+								<entry>
+									<name>/opt/FisherMail/FisherMail.jar</name>
+									<file>target/FisherMail.jar</file>
+									<mode>755</mode>
+								</entry>
+								<entry>
+									<name>/usr/bin/fishermail</name>
+									<file>src/deploy/linux/bash/FisherMail-package.sh</file>
+									<mode>755</mode>
+								</entry>
+							</entries>
+						</configuration>
+					</execution>
+					<execution>
+						<id>lin32</id>
+						<phase>package</phase>
+						<goals>
+							<goal>rpm</goal>
+						</goals>
+						<configuration>
+							<architecture>lin32</architecture>
+							<entries>
+								<entry>
+									<name>/opt/FisherMail</name>
+									<directory>true</directory>
+								</entry>
+								<entry>
+									<name>/opt/FisherMail/jre</name>
+									<collect>
+										<from>src/deploy/linux/jre1.8.0_231-lin32</from>
+										<excludes>
+											<exclude>**/java</exclude>
+										</excludes>
+									</collect>
+								</entry>
+								<entry>
+									<name>/opt/FisherMail/jre/bin/java</name>
+									<file>src/deploy/linux/jre1.8.0_231-lin32/bin/java</file>
+									<mode>755</mode>
+								</entry>
+								<entry>
+									<name>/opt/FisherMail/FisherMail.jar</name>
+									<file>target/FisherMail.jar</file>
+									<mode>755</mode>
+								</entry>
+								<entry>
+									<name>/usr/bin/fishermail</name>
+									<file>src/deploy/linux/bash/FisherMail-package.sh</file>
+									<mode>755</mode>
+								</entry>
+							</entries>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- zip portable packages and move all to distrib -->
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>3.1.0</version>
 				<executions>
 					<execution>
-						<id>build-platform-dependent-packages</id>
+						<id>build-portable-packages</id>
 						<phase>install</phase>
 						<goals>
 							<goal>single</goal>
