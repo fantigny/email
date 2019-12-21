@@ -23,6 +23,10 @@
 				<include>FisherMail-macOs.zip</include>
 				<include>FisherMail-win32.exe</include>
 				<include>FisherMail-win64.exe</include>
+				<include>FisherMail-win32.zip</include>
+				<include>FisherMail-win64.zip</include>
+				<include>FisherMail-lin32.deb</include>
+				<include>FisherMail-lin64.deb</include>
 				<include>FisherMail-lin32.zip</include>
 				<include>FisherMail-lin64.zip</include>
 			</includes>
