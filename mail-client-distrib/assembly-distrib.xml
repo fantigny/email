@@ -11,11 +11,11 @@
 			<source>../mail-client/target/classes/version.txt</source>
 		</file>
 		<file>
-			<source>target/mail-client-distrib-0.0.1-SNAPSHOT-1.0.0.x86_32.rpm</source>
+			<source>target/mail-client-distrib-0.0.1-SNAPSHOT-1.0.0.i686.rpm</source>
 			<destName>FisherMail-lin32.rpm</destName>
 		</file>
 		<file>
-			<source>target/mail-client-distrib-0.0.1-SNAPSHOT-1.0.0.x86_64.rpm</source>
+			<source>target/mail-client-distrib-0.0.1-SNAPSHOT-1.0.0.amd64.rpm</source>
 			<destName>FisherMail-lin64.rpm</destName>
 		</file>
 	</files>
