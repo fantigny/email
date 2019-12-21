@@ -191,7 +191,7 @@
 				<artifactId>exec-maven-plugin</artifactId>
 				<version>1.6.0</version>
 				<configuration>
-					<!-- skip>${assembly.skipAssembly}</skip -->
+					<skip>${assembly.skipAssembly}</skip>
 
 					<mainClass>de.audi.analysis.main.Main</mainClass>
 					<executable>
