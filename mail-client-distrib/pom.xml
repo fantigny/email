@@ -386,6 +386,7 @@
 				<artifactId>rpm</artifactId>
 				<version>1.4.0</version>
 				<configuration>
+					<skip>${assembly.skipAssembly}</skip>
 
 					<attach>true</attach>
 					<group>Application/Misc</group>
