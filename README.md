@@ -40,6 +40,7 @@ java \
 --add-exports=javafx.web/com.sun.webkit.network=ALL-UNNAMED \
 --add-exports=javafx.base/com.sun.javafx=ALL-UNNAMED \
 -Djdk.gtk.version=2.2 \
+-client \
 -jar FisherMail.jar
 ```
 
