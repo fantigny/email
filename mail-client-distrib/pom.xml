@@ -262,7 +262,7 @@
 							<dataSet>
 								<data>
 									<type>directory</type>
-									<src>${project.basedir}/src/deploy/linux/jre1.8.0_231-lin32</src>
+									<src>${project.basedir}/src/deploy/linux/jre1.8.0_231-lin64</src>
 									<mapper>
 										<type>perm</type>
 										<prefix>/opt/FisherMail/jre</prefix>
@@ -289,7 +289,7 @@
 								</data>
 								<data>
 									<type>file</type>
-									<src>${project.basedir}/src/deploy/linux/bash/FisherMail-package.sh</src>
+									<src>${project.basedir}/src/deploy/linux/bash/fishermail</src>
 									<dst>/usr/bin/fishermail</dst>
 									<mapper>
 										<type>perm</type>
@@ -319,7 +319,7 @@
 								</data>
 								<data>
 									<type>file</type>
-									<src>${project.basedir}/src/deploy/linux/jre1.8.0_231-lin64/bin/java</src>
+									<src>${project.basedir}/src/deploy/linux/jre1.8.0_231-lin32/bin/java</src>
 									<dst>/opt/FisherMail/jre/bin/java</dst>
 									<mapper>
 										<type>perm</type>
@@ -337,7 +337,7 @@
 								</data>
 								<data>
 									<type>file</type>
-									<src>${project.basedir}/src/deploy/linux/bash/FisherMail-package.sh</src>
+									<src>${project.basedir}/src/deploy/linux/bash/fishermail</src>
 									<dst>/usr/bin/fishermail</dst>
 									<mapper>
 										<type>perm</type>
@@ -402,7 +402,7 @@
 								</entry>
 								<entry>
 									<name>/usr/bin/fishermail</name>
-									<file>src/deploy/linux/bash/FisherMail-package.sh</file>
+									<file>src/deploy/linux/bash/fishermail</file>
 									<mode>755</mode>
 								</entry>
 							</entries>
@@ -442,7 +442,7 @@
 								</entry>
 								<entry>
 									<name>/usr/bin/fishermail</name>
-									<file>src/deploy/linux/bash/FisherMail-package.sh</file>
+									<file>src/deploy/linux/bash/fishermail</file>
 									<mode>755</mode>
 								</entry>
 							</entries>
