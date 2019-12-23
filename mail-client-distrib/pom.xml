@@ -244,7 +244,6 @@
 				<groupId>org.vafer</groupId>
 				<version>1.8</version>
 				<configuration>
-					<skip>${assembly.skipAssembly}</skip>
 					<skipPOMs>false</skipPOMs>
 
 					<controlDir>${project.basedir}/src/deploy/linux/deb</controlDir>
