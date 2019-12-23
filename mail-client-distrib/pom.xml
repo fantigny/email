@@ -244,6 +244,7 @@
 				<groupId>org.vafer</groupId>
 				<version>1.8</version>
 				<configuration>
+					<skip>${assembly.skipAssembly}</skip>
 					<skipPOMs>false</skipPOMs>
 
 					<controlDir>${project.basedir}/src/deploy/linux/deb</controlDir>
@@ -271,9 +272,9 @@
 								</data>
 								<data>
 									<type>file</type>
-									<src>${project.basedir}/src/deploy/linux/deb/FisherMail.desktop</src>
+									<src>${project.basedir}/src/deploy/linux/launcher/FisherMail.desktop</src>
 									<dst>/usr/share/applications/FisherMail.desktop</dst>
-								</data>								
+								</data>
 								<data>
 									<type>directory</type>
 									<src>${project.basedir}/src/deploy/linux/jre1.8.0_231-lin64</src>
@@ -294,8 +295,17 @@
 								</data>
 								<data>
 									<type>file</type>
-									<src>${project.basedir}/src/deploy/linux/bash/fishermail</src>
+									<src>${project.basedir}/src/deploy/linux/launcher/fishermail</src>
 									<dst>/usr/bin/fishermail</dst>
+									<mapper>
+										<type>perm</type>
+										<filemode>755</filemode>
+									</mapper>
+								</data>
+								<data>
+									<type>file</type>
+									<src>${project.basedir}/src/deploy/linux/bash/FisherMail.sh</src>
+									<dst>/opt/FisherMail/FisherMail.sh</dst>
 									<mapper>
 										<type>perm</type>
 										<filemode>755</filemode>
@@ -325,9 +335,9 @@
 								</data>
 								<data>
 									<type>file</type>
-									<src>${project.basedir}/src/deploy/linux/deb/FisherMail.desktop</src>
+									<src>${project.basedir}/src/deploy/linux/launcher/FisherMail.desktop</src>
 									<dst>/usr/share/applications/FisherMail.desktop</dst>
-								</data>								
+								</data>
 								<data>
 									<type>directory</type>
 									<src>${project.basedir}/src/deploy/linux/jre1.8.0_231-lin32</src>
@@ -348,8 +358,17 @@
 								</data>
 								<data>
 									<type>file</type>
-									<src>${project.basedir}/src/deploy/linux/bash/fishermail</src>
+									<src>${project.basedir}/src/deploy/linux/launcher/fishermail</src>
 									<dst>/usr/bin/fishermail</dst>
+									<mapper>
+										<type>perm</type>
+										<filemode>755</filemode>
+									</mapper>
+								</data>
+								<data>
+									<type>file</type>
+									<src>${project.basedir}/src/deploy/linux/bash/FisherMail.sh</src>
+									<dst>/opt/FisherMail/FisherMail.sh</dst>
 									<mapper>
 										<type>perm</type>
 										<filemode>755</filemode>
@@ -367,8 +386,7 @@
 				<artifactId>rpm</artifactId>
 				<version>1.4.0</version>
 				<configuration>
-					<skip>${assembly.skipAssembly}</skip>
-					
+
 					<attach>true</attach>
 					<group>Application/Misc</group>
 					<release>1.0.0</release>
@@ -393,6 +411,18 @@
 									<directory>true</directory>
 								</entry>
 								<entry>
+									<name>/opt/FisherMail/FisherMail.jar</name>
+									<file>target/FisherMail.jar</file>
+								</entry>
+								<entry>
+									<name>/opt/FisherMail/FisherMail64.png</name>
+									<file>../mail-common/src/main/resources/net/anfoya/mail/img/Mail64.png</file>
+								</entry>
+								<entry>
+									<name>/usr/share/applications/FisherMail.desktop</name>
+									<file>src/deploy/linux/launcher/FisherMail.desktop</file>
+								</entry>
+								<entry>
 									<name>/opt/FisherMail/jre</name>
 									<collect>
 										<from>src/deploy/linux/jre1.8.0_231-lin64</from>
@@ -407,13 +437,13 @@
 									<mode>755</mode>
 								</entry>
 								<entry>
-									<name>/opt/FisherMail/FisherMail.jar</name>
-									<file>target/FisherMail.jar</file>
+									<name>/usr/bin/fishermail</name>
+									<file>src/deploy/linux/launcher/fishermail</file>
 									<mode>755</mode>
 								</entry>
 								<entry>
-									<name>/usr/bin/fishermail</name>
-									<file>src/deploy/linux/bash/fishermail</file>
+									<name>/opt/FisherMail/FisherMail.sh</name>
+									<file>src/deploy/linux/bash/FisherMail.sh</file>
 									<mode>755</mode>
 								</entry>
 							</entries>
@@ -433,6 +463,18 @@
 									<directory>true</directory>
 								</entry>
 								<entry>
+									<name>/opt/FisherMail/FisherMail.jar</name>
+									<file>target/FisherMail.jar</file>
+								</entry>
+								<entry>
+									<name>/opt/FisherMail/FisherMail64.png</name>
+									<file>../mail-common/src/main/resources/net/anfoya/mail/img/Mail64.png</file>
+								</entry>
+								<entry>
+									<name>/usr/share/applications/FisherMail.desktop</name>
+									<file>src/deploy/linux/launcher/FisherMail.desktop</file>
+								</entry>
+								<entry>
 									<name>/opt/FisherMail/jre</name>
 									<collect>
 										<from>src/deploy/linux/jre1.8.0_231-lin32</from>
@@ -447,13 +489,13 @@
 									<mode>755</mode>
 								</entry>
 								<entry>
-									<name>/opt/FisherMail/FisherMail.jar</name>
-									<file>target/FisherMail.jar</file>
+									<name>/usr/bin/fishermail</name>
+									<file>src/deploy/linux/launcher/fishermail</file>
 									<mode>755</mode>
 								</entry>
 								<entry>
-									<name>/usr/bin/fishermail</name>
-									<file>src/deploy/linux/bash/fishermail</file>
+									<name>/opt/FisherMail/FisherMail.sh</name>
+									<file>src/deploy/linux/bash/FisherMail.sh</file>
 									<mode>755</mode>
 								</entry>
 							</entries>
