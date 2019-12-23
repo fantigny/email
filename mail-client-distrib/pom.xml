@@ -244,7 +244,6 @@
 				<groupId>org.vafer</groupId>
 				<version>1.8</version>
 				<configuration>
-					<skip>${assembly.skipAssembly}</skip>
 					<skipPOMs>false</skipPOMs>
 
 					<controlDir>${project.basedir}/src/deploy/linux/deb</controlDir>
@@ -265,6 +264,16 @@
 									<src>${project.basedir}/target/FisherMail.jar</src>
 									<dst>/opt/FisherMail/FisherMail.jar</dst>
 								</data>
+								<data>
+									<type>file</type>
+									<src>${project.basedir}/../mail-common/src/main/resources/net/anfoya/mail/img/Mail64.png</src>
+									<dst>/opt/FisherMail/FisherMail64.png</dst>
+								</data>
+								<data>
+									<type>file</type>
+									<src>${project.basedir}/src/deploy/linux/deb/FisherMail.desktop</src>
+									<dst>/usr/share/applications/FisherMail.desktop</dst>
+								</data>								
 								<data>
 									<type>directory</type>
 									<src>${project.basedir}/src/deploy/linux/jre1.8.0_231-lin64</src>
@@ -309,6 +318,16 @@
 									<src>${project.basedir}/target/FisherMail.jar</src>
 									<dst>/opt/FisherMail/FisherMail.jar</dst>
 								</data>
+								<data>
+									<type>file</type>
+									<src>${project.basedir}/../mail-common/src/main/resources/net/anfoya/mail/img/Mail64.png</src>
+									<dst>/opt/FisherMail/FisherMail64.png</dst>
+								</data>
+								<data>
+									<type>file</type>
+									<src>${project.basedir}/src/deploy/linux/deb/FisherMail.desktop</src>
+									<dst>/usr/share/applications/FisherMail.desktop</dst>
+								</data>								
 								<data>
 									<type>directory</type>
 									<src>${project.basedir}/src/deploy/linux/jre1.8.0_231-lin32</src>
