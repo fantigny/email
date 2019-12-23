@@ -244,7 +244,6 @@
 				<groupId>org.vafer</groupId>
 				<version>1.8</version>
 				<configuration>
-					<skip>${assembly.skipAssembly}</skip>
 					<skipPOMs>false</skipPOMs>
 
 					<controlDir>${project.basedir}/src/deploy/linux/deb</controlDir>
@@ -261,6 +260,11 @@
 							<deb>${project.basedir}/target/FisherMail-lin64.deb</deb>
 							<dataSet>
 								<data>
+									<type>file</type>
+									<src>${project.basedir}/target/FisherMail.jar</src>
+									<dst>/opt/FisherMail/FisherMail.jar</dst>
+								</data>
+								<data>
 									<type>directory</type>
 									<src>${project.basedir}/src/deploy/linux/jre1.8.0_231-lin64</src>
 									<mapper>
@@ -273,15 +277,6 @@
 									<type>file</type>
 									<src>${project.basedir}/src/deploy/linux/jre1.8.0_231-lin64/bin/java</src>
 									<dst>/opt/FisherMail/jre/bin/java</dst>
-									<mapper>
-										<type>perm</type>
-										<filemode>755</filemode>
-									</mapper>
-								</data>
-								<data>
-									<type>file</type>
-									<src>${project.basedir}/target/FisherMail.jar</src>
-									<dst>/opt/FisherMail/FisherMail.jar</dst>
 									<mapper>
 										<type>perm</type>
 										<filemode>755</filemode>
@@ -309,6 +304,11 @@
 							<deb>${project.basedir}/target/FisherMail-lin32.deb</deb>
 							<dataSet>
 								<data>
+									<type>file</type>
+									<src>${project.basedir}/target/FisherMail.jar</src>
+									<dst>/opt/FisherMail/FisherMail.jar</dst>
+								</data>
+								<data>
 									<type>directory</type>
 									<src>${project.basedir}/src/deploy/linux/jre1.8.0_231-lin32</src>
 									<mapper>
@@ -321,15 +321,6 @@
 									<type>file</type>
 									<src>${project.basedir}/src/deploy/linux/jre1.8.0_231-lin32/bin/java</src>
 									<dst>/opt/FisherMail/jre/bin/java</dst>
-									<mapper>
-										<type>perm</type>
-										<filemode>755</filemode>
-									</mapper>
-								</data>
-								<data>
-									<type>file</type>
-									<src>${project.basedir}/target/FisherMail.jar</src>
-									<dst>/opt/FisherMail/FisherMail.jar</dst>
 									<mapper>
 										<type>perm</type>
 										<filemode>755</filemode>
