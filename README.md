@@ -44,6 +44,21 @@ java \
 -jar FisherMail.jar
 ```
 
+### fedora
++ download the [latest version](https://www.java.com/en/download/) of Java  
++ install it
+```
+sudo rpm -vih jre-8u231-linux-i586.rpm
+```
++ select it as default java
+```
+sudo alternatives --config java
+```
++ start FisherMail with command
+```
+java -jar FisherMail.jar
+```
+
 ## macOs  
 __*`shipped with Java runtime from Oracle`*__
 
