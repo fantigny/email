@@ -177,30 +177,99 @@
 				</configuration>
 			</plugin>
 
+			<!-- build win installers(x86,x64) from windows exe -->
+			<!-- ..requires wine on linux -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.6.0</version>
+				<configuration>
+					<skip>${assembly.skipAssembly}</skip>
+
+					<mainClass>de.audi.analysis.main.Main</mainClass>
+					<executable>
+						${ISCC.exe}
+					</executable>
+				</configuration>
+				<executions>
+					<execution>
+						<id>win32</id>
+						<phase>package</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<arguments>
+								<argument>${ISCC.exe.arg}</argument>
+								<argument>${ISCC.arg}</argument>
+								<argument>innosetup-win32.iss</argument>
+							</arguments>
+						</configuration>
+					</execution>
+					<execution>
+						<id>win64</id>
+						<phase>package</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<arguments>
+								<argument>${ISCC.exe.arg}</argument>
+								<argument>${ISCC.arg}</argument>
+								<argument>innosetup-win64.iss</argument>
+							</arguments>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
 			<!-- sign exe -->
 			<plugin>
 				<groupId>net.jsign</groupId>
 				<artifactId>jsign-maven-plugin</artifactId>
 				<version>2.1</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>sign</goal>
-						</goals>
-					</execution>
-				</executions>
 				<configuration>
 					<skip>${assembly.skipAssembly}</skip>
 
-					<file>target/FisherMail.exe</file>
 					<name>FisherMail</name>
 					<url>https://speederpan.com</url>
-					
+
 					<keystore>${KEYSTORE_PATH}/speederpan.com.jks</keystore>
 					<alias>speederpan.com</alias>
 					<storepass>speederpan.com</storepass>
 				</configuration>
+				<executions>
+					<execution>
+						<id>sign-exe</id>
+						<phase>package</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+						<configuration>
+							<file>target/FisherMail.exe</file>
+						</configuration>
+					</execution>
+					<execution>
+						<id>sign-install64</id>
+						<phase>package</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+						<configuration>
+							<file>target/FisherMail-win64.exe</file>
+						</configuration>
+					</execution>
+					<execution>
+						<id>sign-install32</id>
+						<phase>package</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+						<configuration>
+							<file>target/FisherMail-win32.exe</file>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 
 			<!-- build macOs App(x64) from self contained jar -->
@@ -226,7 +295,7 @@
 				</executions>
 				<configuration>
 					<skip>${assembly.skipAssembly}</skip>
-
+					
 					<target>
 						<taskdef name="bundleapp"
 							classname="com.oracle.appbundler.AppBundlerTask"
@@ -244,52 +313,6 @@
 						</bundleapp>
 					</target>
 				</configuration>
-			</plugin>
-
-			<!-- build win installers(x86,x64) from windows exe -->
-			<!-- ..requires wine on linux -->
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<version>1.6.0</version>
-				<configuration>
-					<skip>${assembly.skipAssembly}</skip>
-
-					<mainClass>de.audi.analysis.main.Main</mainClass>
-					<executable>
-						${ISCC.exe}
-					</executable>
-				</configuration>
-				<executions>
-					<execution>
-						<id>win32</id>
-						<phase>install</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<arguments>
-								<argument>${ISCC.exe.arg}</argument>
-								<argument>${ISCC.arg}</argument>
-								<argument>innosetup-win32.iss</argument>
-							</arguments>
-						</configuration>
-					</execution>
-					<execution>
-						<id>win64</id>
-						<phase>install</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<arguments>
-								<argument>${ISCC.exe.arg}</argument>
-								<argument>${ISCC.arg}</argument>
-								<argument>innosetup-win64.iss</argument>
-							</arguments>
-						</configuration>
-					</execution>
-				</executions>
 			</plugin>
 
 			<!-- build deb packages(x86,x64) from self contained jar -->
