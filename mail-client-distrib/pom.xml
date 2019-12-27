@@ -50,6 +50,7 @@
 			<properties>
 				<ISCC.exe>${ISCC.location}</ISCC.exe>
 				<ISCC.exe.arg></ISCC.exe.arg>
+				<KEYSTORE_PATH>/users/frede/documents/speederpan.com</KEYSTORE_PATH>
 			</properties>
 		</profile>
 		<profile>
@@ -62,6 +63,7 @@
 			<properties>
 				<ISCC.exe>wine</ISCC.exe>
 				<ISCC.exe.arg>${ISCC.location}</ISCC.exe.arg>
+				<KEYSTORE_PATH>/home/wine/speederpan.com</KEYSTORE_PATH>
 			</properties>
 		</profile>
 	</profiles>
@@ -85,24 +87,50 @@
 				<executions>
 					<execution>
 						<phase>package</phase>
-						<configuration>
-							<outputFile>target/FisherMail.jar</outputFile>
-							<shadedArtifactAttached>true</shadedArtifactAttached>
-							<shadedClassifierName>jar-with-dependencies</shadedClassifierName>
-							<transformers>
-								<transformer
-									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<manifestEntries>
-										<main-class>net.anfoya.mail.client.javafx.entrypoint.MailClient</main-class>
-									</manifestEntries>
-								</transformer>
-							</transformers>
-						</configuration>
 						<goals>
 							<goal>shade</goal>
 						</goals>
 					</execution>
 				</executions>
+				<configuration>
+					<outputFile>target/FisherMail.jar</outputFile>
+					<shadedArtifactAttached>true</shadedArtifactAttached>
+					<shadedClassifierName>jar-with-dependencies</shadedClassifierName>
+					<transformers>
+						<transformer
+							implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+							<manifestEntries>
+								<main-class>net.anfoya.mail.client.javafx.entrypoint.MailClient</main-class>
+							</manifestEntries>
+						</transformer>
+					</transformers>
+				</configuration>
+			</plugin>
+
+			<!-- sign jar -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jarsigner-plugin</artifactId>
+				<version>3.0.0</version>
+				<executions>
+					<execution>
+						<id>sign</id>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<archiveDirectory>${project.build.directory}</archiveDirectory>
+					<includes>
+						<include>FisherMail.jar</include>
+					</includes>
+
+					<keystore>${KEYSTORE_PATH}/speederpan.com.jks</keystore>
+					<alias>speederpan.com</alias>
+					<storepass>speederpan.com</storepass>
+					<keypass></keypass>
+				</configuration>
 			</plugin>
 
 			<!-- build windows executable(x86,x64) from self contained jar -->
@@ -110,6 +138,14 @@
 				<groupId>com.akathist.maven.plugins.launch4j</groupId>
 				<artifactId>launch4j-maven-plugin</artifactId>
 				<version>1.7.25</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>launch4j</goal>
+						</goals>
+					</execution>
+				</executions>
 				<configuration>
 					<skip>${assembly.skipAssembly}</skip>
 
@@ -139,14 +175,31 @@
 						<originalFilename>FisherMail.exe</originalFilename>
 					</versionInfo>
 				</configuration>
+			</plugin>
+
+			<!-- sign exe -->
+			<plugin>
+				<groupId>net.jsign</groupId>
+				<artifactId>jsign-maven-plugin</artifactId>
+				<version>2.1</version>
 				<executions>
 					<execution>
-						<phase>package</phase>
 						<goals>
-							<goal>launch4j</goal>
+							<goal>sign</goal>
 						</goals>
 					</execution>
 				</executions>
+				<configuration>
+					<skip>${assembly.skipAssembly}</skip>
+
+					<file>FisherMail.exe</file>
+					<name>FisherMail</name>
+					<url>https://speederpan.com</url>
+					
+					<keystore>${KEYSTORE_PATH}/speederpan.com.jks</keystore>
+					<alias>speederpan.com</alias>
+					<storepass>speederpan.com</storepass>
+				</configuration>
 			</plugin>
 
 			<!-- build macOs App(x64) from self contained jar -->
@@ -161,6 +214,15 @@
 						<version>1.0.1</version>
 					</dependency>
 				</dependencies>
+				<executions>
+					<execution>
+						<id>macAppBundle</id>
+						<phase>package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
 				<configuration>
 					<skip>${assembly.skipAssembly}</skip>
 
@@ -181,15 +243,6 @@
 						</bundleapp>
 					</target>
 				</configuration>
-				<executions>
-					<execution>
-						<id>macAppBundle</id>
-						<phase>package</phase>
-						<goals>
-							<goal>run</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 
 			<!-- build win installers(x86,x64) from windows exe -->
