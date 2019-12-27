@@ -184,6 +184,7 @@
 				<version>2.1</version>
 				<executions>
 					<execution>
+						<phase>package</phase>
 						<goals>
 							<goal>sign</goal>
 						</goals>
@@ -192,7 +193,7 @@
 				<configuration>
 					<skip>${assembly.skipAssembly}</skip>
 
-					<file>FisherMail.exe</file>
+					<file>target/FisherMail.exe</file>
 					<name>FisherMail</name>
 					<url>https://speederpan.com</url>
 					
@@ -305,7 +306,7 @@
 				</configuration>
 				<executions>
 					<execution>
-						<id>lin64</id>
+						<id>deb64</id>
 						<phase>package</phase>
 						<goals>
 							<goal>jdeb</goal>
@@ -368,7 +369,7 @@
 						</configuration>
 					</execution>
 					<execution>
-						<id>lin32</id>
+						<id>deb32</id>
 						<phase>package</phase>
 						<goals>
 							<goal>jdeb</goal>
@@ -452,7 +453,7 @@
 				</configuration>
 				<executions>
 					<execution>
-						<id>lin64</id>
+						<id>rpm64</id>
 						<phase>package</phase>
 						<goals>
 							<goal>rpm</goal>
@@ -504,7 +505,7 @@
 						</configuration>
 					</execution>
 					<execution>
-						<id>lin32</id>
+						<id>rpm32</id>
 						<phase>package</phase>
 						<goals>
 							<goal>rpm</goal>
