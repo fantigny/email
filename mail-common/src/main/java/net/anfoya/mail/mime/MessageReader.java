@@ -31,17 +31,21 @@ import org.slf4j.LoggerFactory;
 
 import com.sun.mail.util.BASE64DecoderStream;
 
+import net.anfoya.java.io.TmpFileHandler;
+
 public class MessageReader {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessageReader.class);
-	private static final String TEMP = System.getProperty("java.io.tmpdir") + File.separatorChar;
 	private static final String SYS_ICON = "/net/anfoya/mail/sys/%s.png";
 
 	private final Map<String, String> cidUris;
 	private final Set<String> attachmentNames;
 
+	private final TmpFileHandler tmp;
+
 	public MessageReader() {
 		cidUris = new HashMap<>();
 		attachmentNames = new LinkedHashSet<>();
+		tmp = TmpFileHandler.getDefault();
 	}
 
 	public String toHtml(final MimeMessage message) throws IOException, MessagingException {
@@ -87,29 +91,29 @@ public class MessageReader {
 						.append("</pre>");
 			} else {
 				// TODO: printable text encoding
-//				String encoding;
-//				try { encoding = part.getHeader("Content-Transfer-Encoding")[0]; }
-//				catch(final Exception e) { encoding = MimeUtility.getEncoding(part.getDataHandler()); }
-//
-//				LOGGER.info("decode {}, {}", type, encoding);
-//				final byte[] bytes = ((String) content).getBytes();
-//				if (bytes.length > 0) {
-//					try (ByteArrayInputStream byteStream = new ByteArrayInputStream(bytes);
-//							InputStream decodedStream = MimeUtility.decode(byteStream, encoding);
-//							BufferedReader reader = new BufferedReader(new InputStreamReader(decodedStream))) {
-//						reader.lines().forEach(s -> html.append(s));
-//					} catch (final Exception e) {
-//						html.append(content);
-//					}
-//				}
-//				System.out.println(content);
+				//				String encoding;
+				//				try { encoding = part.getHeader("Content-Transfer-Encoding")[0]; }
+				//				catch(final Exception e) { encoding = MimeUtility.getEncoding(part.getDataHandler()); }
+				//
+				//				LOGGER.info("decode {}, {}", type, encoding);
+				//				final byte[] bytes = ((String) content).getBytes();
+				//				if (bytes.length > 0) {
+				//					try (ByteArrayInputStream byteStream = new ByteArrayInputStream(bytes);
+				//							InputStream decodedStream = MimeUtility.decode(byteStream, encoding);
+				//							BufferedReader reader = new BufferedReader(new InputStreamReader(decodedStream))) {
+				//						reader.lines().forEach(s -> html.append(s));
+				//					} catch (final Exception e) {
+				//						html.append(content);
+				//					}
+				//				}
+				//				System.out.println(content);
 				return new StringBuilder().append(content);
 			}
 		}
 		if (part instanceof MimeBodyPart && content instanceof BASE64DecoderStream) {
 			final MimeBodyPart bodyPart = (MimeBodyPart) part;
 			if (part.isMimeType("text/calendar")) {
-				final File file = File.createTempFile("event-", ".ics", new File(TEMP));
+				final File file = tmp.createTempFile("event-", ".ics");
 				LOGGER.info("save inline calendar {}", file);
 				bodyPart.saveFile(file);
 				return buildImgAnchor(file);
@@ -117,7 +121,7 @@ public class MessageReader {
 			if (bodyPart.getContentID() != null
 					&& !MimeBodyPart.ATTACHMENT.equals(bodyPart.getDisposition())) {
 				final String cid = bodyPart.getContentID().replaceAll("[<,>]", "");
-				final File file = new File(TEMP + cid);
+				final File file = tmp.createTempFile(cid);
 				LOGGER.info("save cid {}", file);
 				bodyPart.saveFile(file);
 				cidUris.put(cid, file.toURI().toString());
@@ -126,7 +130,7 @@ public class MessageReader {
 			if (bodyPart.getFileName() != null) {
 				final String filename = MimeUtility.decodeText(bodyPart.getFileName());
 				if (MimeBodyPart.INLINE.equals(bodyPart.getDisposition())) {
-					final File file = new File(TEMP + filename);
+					final File file = tmp.createTempFile(filename);
 					LOGGER.info("save inline file {}", file);
 					bodyPart.saveFile(file);
 					if (part.isMimeType("image/*")) {
@@ -151,13 +155,13 @@ public class MessageReader {
 		return new StringBuilder()
 				.append("<a href='").append(file.toURI()).append("'>")
 				.append("<table><tr><td align='center'>")
-					.append("<img width='32' height='32' title='").append(file.getName()).append("' ")
-					.append("src='data:image/png;base64,").append(getBase64SystemIcon(file)).append("'>")
-					.append("<table><tr><td align='center'>")
+				.append("<img width='32' height='32' title='").append(file.getName()).append("' ")
+				.append("src='data:image/png;base64,").append(getBase64SystemIcon(file)).append("'>")
+				.append("<table><tr><td align='center'>")
 				.append("</td></tr><tr><td>")
-					.append(file.getName())
+				.append(file.getName())
 				.append("</td></tr></table>")
-			.append("</a>");
+				.append("</a>");
 	}
 
 	private String getBase64SystemIcon(final File file) {
@@ -170,8 +174,8 @@ public class MessageReader {
 			} else {
 				final Icon icon = new JFileChooser().getIcon(file);
 				final BufferedImage bi = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TRANSLUCENT);
-		        icon.paintIcon(null, bi.createGraphics(), 0, 0);
-		        final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+				icon.paintIcon(null, bi.createGraphics(), 0, 0);
+				final ByteArrayOutputStream bos = new ByteArrayOutputStream();
 				ImageIO.write(bi, "png", bos);
 				imgBytes = bos.toByteArray();
 			}
