@@ -82,8 +82,8 @@
 			<id>assembly</id>
 			<activation>
 				<property>
-					<name>!assembly.skipAssembly</name>
-					<value>false</value>
+					<name>assembly.skipAssembly</name>
+					<value>!true</value>
 				</property>
 			</activation>
 			<properties>
