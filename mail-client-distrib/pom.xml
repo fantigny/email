@@ -50,6 +50,7 @@
 			<properties>
 				<ISCC.exe>${ISCC.location}</ISCC.exe>
 				<ISCC.exe.arg></ISCC.exe.arg>
+				<KEYSTORE_PATH>/users/frede/documents/speederpan.com</KEYSTORE_PATH>
 			</properties>
 		</profile>
 		<profile>
@@ -62,6 +63,7 @@
 			<properties>
 				<ISCC.exe>wine</ISCC.exe>
 				<ISCC.exe.arg>${ISCC.location}</ISCC.exe.arg>
+				<KEYSTORE_PATH>/home/wine/speederpan.com</KEYSTORE_PATH>
 			</properties>
 		</profile>
 	</profiles>
@@ -105,13 +107,37 @@
 				</executions>
 			</plugin>
 
+			<!-- sign jar -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jarsigner-plugin</artifactId>
+				<version>3.0.0</version>
+				<executions>
+					<execution>
+						<id>sign</id>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<archiveDirectory>${project.build.directory}</archiveDirectory>
+					<includes>
+						<include>FisherMail.jar</include>
+					</includes>
+					<keystore>${KEYSTORE_PATH}/speederpan.com.jks</keystore>
+					<alias>speederpan.com</alias>
+					<storepass>speederpan.com</storepass>
+					<keypass></keypass>
+				</configuration>
+			</plugin>
+
 			<!-- build windows executable(x86,x64) from self contained jar -->
 			<plugin>
 				<groupId>com.akathist.maven.plugins.launch4j</groupId>
 				<artifactId>launch4j-maven-plugin</artifactId>
 				<version>1.7.25</version>
 				<configuration>
-					<skip>${assembly.skipAssembly}</skip>
 
 					<headerType>gui</headerType>
 					<jar>target/FisherMail.jar</jar>
@@ -145,6 +171,28 @@
 						<goals>
 							<goal>launch4j</goal>
 						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- sign exe -->
+			<plugin>
+				<groupId>net.jsign</groupId>
+				<artifactId>jsign-maven-plugin</artifactId>
+				<version>2.1</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+						<configuration>
+							<file>FisherMail.exe</file>
+							<name>FisherMail</name>
+							<url>https://speederpan.com</url>
+							<keystore>${KEYSTORE_PATH}/speederpan.com.jks</keystore>
+							<alias>speederpan.com</alias>
+							<storepass>speederpan.com</storepass>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
