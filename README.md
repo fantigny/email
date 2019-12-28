@@ -2,8 +2,8 @@
 cross-platform e-mail client  
 (only for Gmail just yet)
 
-## downloads
-| usage            | download                             |
+## download
+| type             | link                                 |
 |------------------|--------------------------------------|
 | cross-platform   | [FisherMail.jar](#cross-platform)    |
 | macOs app        | [FisherMail-macOs.zip](#macos-app)   |
