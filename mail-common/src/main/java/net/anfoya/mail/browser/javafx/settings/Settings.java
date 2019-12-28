@@ -82,6 +82,12 @@ public class Settings implements Serializable {
 	private final StringProperty proxyUser;
 	private final StringProperty proxyPasswd;
 
+	private static final int DEFAULT_WINDOW_WIDTH = 1280;
+	private static final int DEFAULT_WINDOW_HEIGHT = 768;
+	private static final int DEFAULT_SECTION_LIST_PANE_WIDTH = 200;
+	private static final int DEFAULT_THREAD_LIST_PANE_WIDTH = 300;
+	private static final int DEFAULT_THREAD_PANE_WIDTH = 400;
+
 	public Settings(MailService<?, ?, ?, ?, ?> mailService) {
 		this.mailService = mailService;
 
@@ -95,11 +101,11 @@ public class Settings implements Serializable {
 		confirmOnSignout = new SimpleBooleanProperty(true);
 		mute = new SimpleBooleanProperty(false);
 		globalSettings = new SimpleBooleanProperty(false);
-		threadPaneWidth = new SimpleDoubleProperty(200);
-		sectionListPaneWidth = new SimpleDoubleProperty(300);
-		threadListPaneWidth = new SimpleDoubleProperty(500);
-		windowWidth = new SimpleDoubleProperty(1400);
-		windowHeight = new SimpleDoubleProperty(800);
+		threadPaneWidth = new SimpleDoubleProperty(DEFAULT_THREAD_PANE_WIDTH);
+		sectionListPaneWidth = new SimpleDoubleProperty(DEFAULT_SECTION_LIST_PANE_WIDTH);
+		threadListPaneWidth = new SimpleDoubleProperty(DEFAULT_THREAD_LIST_PANE_WIDTH);
+		windowWidth = new SimpleDoubleProperty(DEFAULT_WINDOW_WIDTH);
+		windowHeight = new SimpleDoubleProperty(DEFAULT_WINDOW_HEIGHT);
 		browserMode = new SimpleStringProperty("FULL");
 		windowX = new SimpleDoubleProperty(-1);
 		windowY = new SimpleDoubleProperty(-1);
@@ -288,6 +294,10 @@ public class Settings implements Serializable {
 		return threadPaneWidth;
 	}
 
+	public DoubleProperty threadListPaneWidth() {
+		return threadListPaneWidth;
+	}
+
 	public DoubleProperty sectionListPaneWidth() {
 		return sectionListPaneWidth;
 	}
@@ -310,10 +320,6 @@ public class Settings implements Serializable {
 
 	public DoubleProperty windowY() {
 		return windowY;
-	}
-
-	public DoubleProperty threadListPaneWidth() {
-		return threadListPaneWidth;
 	}
 
 	public StringProperty sectionName() {
