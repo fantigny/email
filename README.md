@@ -122,7 +122,7 @@ __*`shipped with Java runtime from Oracle`*__
 + download and unzip FisherMail
 + got to FisherMail unzipped folder and run ```FisherMail.sh```
 
-_executable text files_
+_executable text files_  
 by default most distributions won't run script files but will display their content instead
 to allow FisherMail to start normally, go to Files > Preferences > Behaviour and select Executable Text Files > Run them
 
