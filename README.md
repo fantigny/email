@@ -2,19 +2,21 @@
 cross-platform e-mail client  
 (only for Gmail just yet)
 
-## install
-| type             | link                               |
-|------------------|------------------------------------|
-| cross-platform   | [FisherMail.jar](#cross-platform)  |
-| macOs app        | [FisherMail-mac.zip](#macos-app)   |
-| windows install  | [FisherMail-win.exe](#install-1)   |
-| windows portable | [FisherMail-win.zip](#portable)    |
-| linux deb        | [FisherMail-lin.deb](#deb-install) |
-| linux rpm        | [FisherMail-lin.rpm](#rpm-install) |
-| linux portable   | [FisherMail-lin.zip](#portable-1)  |  
+![FisherMail - Browser - Gmail](www/img/FisherMail.png)
 
-_[ci](#continuous-integration)_  
-_[uninstall](#uninstall)_
+## install
+| type             | link                                 |
+|------------------|--------------------------------------|
+| cross-platform   | [FisherMail.jar](#cross-platform)    |
+| windows install  | [FisherMail-windows.exe](#install-1) |
+| windows portable | [FisherMail-windows.zip](#portable)  |
+| macOs app        | [FisherMail-macOs.zip](#macos-app)   |
+| linux deb        | [FisherMail-linux.deb](#deb-install) |
+| linux rpm        | [FisherMail-linux.rpm](#rpm-install) |
+| linux portable   | [FisherMail-linux.zip](#portable-1)  |  
+
+_[uninstall](#uninstall)_  
+_[continuous integration](#continuous-integration)_  
 
 ## cross-platform 
 __*`Java 8 or newer with JavaFX required`*__
@@ -62,6 +64,22 @@ sudo alternatives --config java
 java -jar FisherMail.jar
 ```
 
+## windows  
+__*`shipped with Java runtime from Oracle`*__
+#### install
+| download | [FisherMail-win64.exe](https://jenkins.speederpan.com/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win64.exe)  |
+|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|          | [FisherMail-win32.exe](https://jenkins.speederpan.com/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win32.exe) |
++ download and run the installation program
++ start FisherMail from windows menu
+
+#### portable
+| download | [FisherMail-win64.zip](https://jenkins.speederpan.com/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win64.zip)  |
+|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|          | [FisherMail-win32.zip](https://jenkins.speederpan.com/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win32.zip) |
++ download and unzip FisherMail
++ got to FisherMail unzipped folder and run ```FisherMail.exe```
+
 ## macOs app  
 __*`shipped with Java runtime from Oracle`*__
 
@@ -80,22 +98,6 @@ _Don’t use Launchpad to do this. Launchpad doesn’t allow you to access the s
 _FisherMail is saved as an exception to your security settings, and you can open it in the future by double-clicking it just as you can any registered app._  
 
 ![macOs first start](www/img/macOs1stStart.png)
-
-## windows  
-__*`shipped with Java runtime from Oracle`*__
-#### install
-| download | [FisherMail-win64.exe](https://jenkins.speederpan.com/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win64.exe)  |
-|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|          | [FisherMail-win32.exe](https://jenkins.speederpan.com/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win32.exe) |
-+ download and run the installation program
-+ start FisherMail from windows menu
-
-#### portable
-| download | [FisherMail-win64.zip](https://jenkins.speederpan.com/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win64.zip)  |
-|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|          | [FisherMail-win32.zip](https://jenkins.speederpan.com/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win32.zip) |
-+ download and unzip FisherMail
-+ got to FisherMail unzipped folder and run ```FisherMail.exe```
 
 ## linux  
 __*`shipped with Java runtime from Oracle`*__
@@ -128,9 +130,6 @@ to allow FisherMail to start normally, go to Files > Preferences > Behaviour and
 
 ![Files - Preferences](www/img/gnomeBehaviour.png)
 
-## continuous integration
-latest build available in [Jenkins](https://jenkins.speederpan.com/job/mail-client-distrib%20(continuous))
-
 ## uninstall
 
 #### windows 10
@@ -149,4 +148,5 @@ latest build available in [Jenkins](https://jenkins.speederpan.com/job/mail-clie
 + open a terminal window
 + execute the command ```sudo dnf -y remove mail-client-distrib```
 
-
+## continuous integration
+latest build available in [Jenkins](https://jenkins.speederpan.com/job/mail-client-distrib%20(continuous))
