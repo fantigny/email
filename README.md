@@ -64,6 +64,19 @@ __*`shipped with Java runtime from Oracle`*__
 
 | download | [FisherMail-macOs.zip](https://jenkins.speederpan.com/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-macOs.zip) |
 |----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
++ download and wait for the file to unzip
++ move FisherMail to the App folder
+
+_security exception_  
+macOs usual issue a warning when starting FisherMail and ultimately it can prevent FisherMail to start at all  
+to avoid that please follow these steps from the [Apple's guide](https://support.apple.com/en-gb/guide/mac-help/mh40616/mac)  
++ In the Finder on your Mac, locate FisherMail.  
+_Don’t use Launchpad to do this. Launchpad doesn’t allow you to access the shortcut menu._
++ Control-click the FisherMail icon, then choose Open from the menu.
++ Click Open.  
+_FisherMail is saved as an exception to your security settings, and you can open it in the future by double-clicking it just as you can any registered app._  
+
+![macOs first start](www/img/macOs1stStart.png)
 
 ## windows  
 __*`shipped with Java runtime from Oracle`*__
