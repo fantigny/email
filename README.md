@@ -2,16 +2,19 @@
 cross-platform e-mail client  
 (only for Gmail just yet)
 
-## download
-| type             | link                                 |
-|------------------|--------------------------------------|
-| cross-platform   | [FisherMail.jar](#cross-platform)    |
-| macOs app        | [FisherMail-macOs.zip](#macos-app)   |
-| windows install  | [FisherMail-win64.exe](#install)     |
-| windows portable | [FisherMail-win64.zip](#portable)    |
-| linux deb        | [FisherMail-lin64.deb](#deb-install) |
-| linux rpm        | [FisherMail-lin64.rpm](#rpm-install) |
-| linux portable   | [FisherMail-lin64.zip](#portable-1)  |  
+## install
+| type             | link                               |
+|------------------|------------------------------------|
+| cross-platform   | [FisherMail.jar](#cross-platform)  |
+| macOs app        | [FisherMail-mac.zip](#macos-app) |
+| windows install  | [FisherMail-win.exe](#install)     |
+| windows portable | [FisherMail-win.zip](#portable)    |
+| linux deb        | [FisherMail-lin.deb](#deb-install) |
+| linux rpm        | [FisherMail-lin.rpm](#rpm-install) |
+| linux portable   | [FisherMail-lin.zip](#portable-1)  |  
+
+_[continuous building](#continuous-building)_  
+_[uninstall](#uninstall)_
 
 ## cross-platform 
 __*`Java 8 or newer with JavaFX required`*__
@@ -92,7 +95,7 @@ __*`shipped with Java runtime from Oracle`*__
 |----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
 |          | [FisherMail-win32.zip](https://jenkins.speederpan.com/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win32.zip) |
 + download and unzip FisherMail
-+ got to the unzip folder and run ```FisherMail.exe```
++ got to FisherMail unzipped folder and run ```FisherMail.exe```
 
 ## linux  
 __*`shipped with Java runtime from Oracle`*__
@@ -108,11 +111,42 @@ __*`shipped with Java runtime from Oracle`*__
 | download | [FisherMail-lin64.rpm](https://jenkins.speederpan.com/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-lin64.rpm) |
 |----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
 |          | [FisherMail-lin32.rpm](https://jenkins.speederpan.com/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-lin32.rpm) |
++ download and open with Software Install
++ click the Install button
++ start FisherMail from the launcher
+
 #### portable
 | download | [FisherMail-lin64.zip](https://jenkins.speederpan.com/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-lin64.zip) |
 |----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
 |          | [FisherMail-lin32.zip](https://jenkins.speederpan.com/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-lin32.zip) |
++ download and unzip FisherMail
++ got to FisherMail unzipped folder and run ```FisherMail.sh```
 
+_executable text files_
+by default most distributions won't run script files but will display their content instead
+to allow FisherMail to start normally, go to Files > Preferences > Behaviour and select Executable Text Files > Run them
+
+![Files - Preferences](www/img/gnomeBehaviour.png)
 
 ## continuous integration
 latest build available in [Jenkins](https://jenkins.speederpan.com/job/mail-client-distrib%20(continuous))
+
+## uninstall
+
+#### windows 10
++ select Windows > Settings > Apps > Apps & features
++ select FisherMail and click Uninstall
+
+#### macOs
++ open the Finder and go to Applications
++ select FisherMail and drop it over the Trash icon
+
+### ubuntu
++ open a terminal window
++ execute the command ```sudo apt -y remove fishermail```
+
+### fedora
++ open a terminal window
++ execute the command ```sudo dnf -y remove mail-client-distrib```
+
+
