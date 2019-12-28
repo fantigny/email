@@ -52,13 +52,13 @@ import net.anfoya.mail.browser.javafx.thread.ThreadPane;
 import net.anfoya.mail.mime.DateHelper;
 import net.anfoya.mail.mime.MessageHelper;
 import net.anfoya.mail.mime.MessageReader;
-import net.anfoya.mail.service.Contact;
+import net.anfoya.mail.model.Contact;
+import net.anfoya.mail.model.Message;
+import net.anfoya.mail.model.Section;
+import net.anfoya.mail.model.Tag;
+import net.anfoya.mail.model.Thread;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
-import net.anfoya.mail.service.Message;
-import net.anfoya.mail.service.Section;
-import net.anfoya.mail.service.Tag;
-import net.anfoya.mail.service.Thread;
 
 public class MessagePane<M extends Message, C extends Contact> extends VBox {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MessagePane.class);

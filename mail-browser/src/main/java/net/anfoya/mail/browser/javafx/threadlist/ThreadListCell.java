@@ -12,7 +12,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import net.anfoya.mail.mime.DateHelper;
-import net.anfoya.mail.service.Thread;
+import net.anfoya.mail.model.Thread;
 
 class ThreadListCell<H extends Thread> extends ListCell<H> {
     private static final Image FLAG = new Image(ThreadListCell.class.getResourceAsStream("/net/anfoya/mail/img/mini_flag.png"));

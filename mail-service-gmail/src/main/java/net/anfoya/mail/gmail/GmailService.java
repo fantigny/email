@@ -50,9 +50,9 @@ import net.anfoya.mail.gmail.service.MessageException;
 import net.anfoya.mail.gmail.service.MessageService;
 import net.anfoya.mail.gmail.service.ThreadException;
 import net.anfoya.mail.gmail.service.ThreadService;
+import net.anfoya.mail.model.Tag;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
-import net.anfoya.mail.service.Tag;
 import net.anfoya.tag.model.SpecialTag;
 
 public class GmailService implements MailService<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact> {
@@ -138,6 +138,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		contactService = new ContactService(contactsService, DEFAULT).init();
 	}
 
+	@Override
 	public GMailException getAuthException() {
 		return authService.getException();
 	}

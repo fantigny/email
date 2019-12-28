@@ -196,16 +196,16 @@ public class AuthenticationService {
 				.setRedirectUri(GoogleOAuthConstants.OOB_REDIRECT_URI)
 				.build();
 
-		// Generate Credential using login token.
-		final String authCode;
+		// Generate Credential using login token
+		final String tokenRequest;
 		try {
-			authCode = new SigninDialog(url).requestAuthCode();
+			tokenRequest = new SigninDialog(url).requestToken();
 		} catch (final Exception e) {
 			exception = new GMailException("getting token from signin dialog", e);
 			return false;
 		}
 
-		if (authCode.isEmpty()) {
+		if (tokenRequest.isEmpty()) {
 			exception = new GMailException("authentication aborted");
 			return false;
 		}
@@ -214,7 +214,7 @@ public class AuthenticationService {
 		final GoogleTokenResponse token;
 		try {
 			token = flow
-					.newTokenRequest(authCode.toString())
+					.newTokenRequest(tokenRequest.toString())
 					.setRedirectUri(GoogleOAuthConstants.OOB_REDIRECT_URI)
 					.execute();
 		} catch (final IOException e) {

@@ -22,9 +22,9 @@ import javafx.util.Duration;
 import net.anfoya.java.util.VoidCallback;
 import net.anfoya.javafx.scene.animation.DelayTimeline;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
-import net.anfoya.mail.model.SimpleThread.SortField;
-import net.anfoya.mail.service.Tag;
-import net.anfoya.mail.service.Thread;
+import net.anfoya.mail.model.Tag;
+import net.anfoya.mail.model.Thread;
+import net.anfoya.mail.model.SimpleThread.SortType;
 
 public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ThreadList.class);
@@ -35,7 +35,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 
 	private final AtomicBoolean unread;
 	private boolean firstLoad;
-	private SortField sortOrder;
+	private SortType sortOrder;
 
 	private Runnable loadCallback;
 	private VoidCallback<Set<H>> archiveCallback;
@@ -49,7 +49,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 
 		selectedThreads = Collections.synchronizedSet(new HashSet<>());
 
-		sortOrder = SortField.DATE;
+		sortOrder = SortType.DATE;
 
 		firstLoad = true;
 
@@ -104,7 +104,7 @@ public class ThreadList<T extends Tag, H extends Thread> extends ListView<H> {
 		archiveCallback = callback;
 	}
 
-	public void sortBy(final SortField order) {
+	public void sortBy(final SortType order) {
 		sortOrder = order;
 		setAll(new HashSet<H>(getItems()), unread.get());
 	}

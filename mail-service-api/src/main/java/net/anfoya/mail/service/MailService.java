@@ -4,6 +4,11 @@ import java.util.Set;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.util.Callback;
+import net.anfoya.mail.model.Contact;
+import net.anfoya.mail.model.Message;
+import net.anfoya.mail.model.Section;
+import net.anfoya.mail.model.Tag;
+import net.anfoya.mail.model.Thread;
 import net.anfoya.tag.model.SpecialTag;
 import net.anfoya.tag.service.TagService;
 
@@ -15,14 +20,15 @@ S extends Section
 , C extends Contact>
 extends TagService<S, T> {
 
-	void authenticate() throws MailException;
-	void signout();
-
-	void setOnAuth(Runnable callback);
-	void setOnAuthFailed(Runnable callback);
-
 	ReadOnlyBooleanProperty connected();
 	void reconnect() throws MailException;
+
+	void authenticate();
+	void setOnAuth(Runnable callback);
+	void setOnAuthFailed(Runnable callback);
+	MailException getAuthException();
+
+	void signout();
 
 	void startListening();
 	void stopListening();

@@ -2,8 +2,8 @@ package net.anfoya.mail.gmail;
 
 import org.junit.Test;
 
+import net.anfoya.mail.model.Tag;
 import net.anfoya.mail.service.MailException;
-import net.anfoya.mail.service.Tag;
 import net.anfoya.tag.service.TagException;
 
 public class GmailTest {

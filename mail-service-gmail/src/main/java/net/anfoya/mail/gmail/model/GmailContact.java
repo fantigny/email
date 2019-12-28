@@ -1,7 +1,7 @@
 package net.anfoya.mail.gmail.model;
 
+import net.anfoya.mail.model.Contact;
 import net.anfoya.mail.model.SimpleContact;
-import net.anfoya.mail.service.Contact;
 
 public class GmailContact extends SimpleContact implements Contact {
 

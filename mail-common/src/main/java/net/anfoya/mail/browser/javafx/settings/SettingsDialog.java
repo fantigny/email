@@ -48,12 +48,12 @@ import net.anfoya.javafx.scene.control.RemoveLabel;
 import net.anfoya.javafx.scene.control.SwitchButton;
 import net.anfoya.mail.browser.javafx.css.CssHelper;
 import net.anfoya.mail.browser.javafx.util.UrlHelper;
-import net.anfoya.mail.service.Contact;
+import net.anfoya.mail.model.Contact;
+import net.anfoya.mail.model.Message;
+import net.anfoya.mail.model.Section;
+import net.anfoya.mail.model.Tag;
+import net.anfoya.mail.model.Thread;
 import net.anfoya.mail.service.MailService;
-import net.anfoya.mail.service.Message;
-import net.anfoya.mail.service.Section;
-import net.anfoya.mail.service.Tag;
-import net.anfoya.mail.service.Thread;
 import net.anfoya.tag.service.TagException;
 
 public class SettingsDialog<S extends Section, T extends Tag> extends Stage {

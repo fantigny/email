@@ -3,7 +3,7 @@ package net.anfoya.mail.gmail.model;
 import com.google.api.services.gmail.model.Label;
 
 import net.anfoya.mail.model.SimpleTag;
-import net.anfoya.mail.service.Tag;
+import net.anfoya.mail.model.Tag;
 
 @SuppressWarnings("serial")
 public class GmailTag extends SimpleTag implements Tag {

@@ -2,8 +2,6 @@ package net.anfoya.mail.model;
 
 import javax.mail.internet.MimeMessage;
 
-import net.anfoya.mail.service.Message;
-
 
 @SuppressWarnings("serial")
 public abstract class SimpleMessage implements Message {

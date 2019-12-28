@@ -32,10 +32,10 @@ import net.anfoya.mail.browser.javafx.BrowserToolBar;
 import net.anfoya.mail.browser.javafx.MailBrowser.Mode;
 import net.anfoya.mail.browser.javafx.thread.ThreadToolBar;
 import net.anfoya.mail.model.SimpleTag;
-import net.anfoya.mail.model.SimpleThread.SortField;
+import net.anfoya.mail.model.Tag;
+import net.anfoya.mail.model.Thread;
+import net.anfoya.mail.model.SimpleThread.SortType;
 import net.anfoya.mail.service.MailException;
-import net.anfoya.mail.service.Tag;
-import net.anfoya.mail.service.Thread;
 import net.anfoya.tag.javafx.scene.dnd.ExtItemDropPane;
 
 public class ThreadListPane<T extends Tag, H extends Thread> extends BorderPane {
@@ -180,13 +180,13 @@ public class ThreadListPane<T extends Tag, H extends Thread> extends BorderPane 
 			}
 		});
 
-		final Label sortLabel = new Label(SortField.DATE.toString().toLowerCase());
+		final Label sortLabel = new Label(SortType.DATE.toString().toLowerCase());
 		sortLabel.setOnMouseClicked(e -> {
-			final SortField field;
-			if (sortLabel.getText().equalsIgnoreCase(SortField.DATE.toString())) {
-				field = SortField.SENDER;
+			final SortType field;
+			if (sortLabel.getText().equalsIgnoreCase(SortType.DATE.toString())) {
+				field = SortType.SENDER;
 			} else {
-				field = SortField.DATE;
+				field = SortType.DATE;
 			}
 			sortLabel.setText(field.toString().toLowerCase());
 			threadList.sortBy(field);

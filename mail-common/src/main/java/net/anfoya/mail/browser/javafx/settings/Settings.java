@@ -21,16 +21,19 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.LongProperty;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleLongProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import net.anfoya.java.io.SerializedFile;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.mail.service.MailService;
+import net.anfoya.mail.service.MailServiceInfo;
 
 @SuppressWarnings("serial")
 public class Settings implements Serializable {
@@ -82,6 +85,8 @@ public class Settings implements Serializable {
 	private final StringProperty proxyUser;
 	private final StringProperty proxyPasswd;
 
+	private final ObjectProperty<MailServiceInfo> mailServiceInfo;
+
 	private static final int DEFAULT_WINDOW_WIDTH = 1280;
 	private static final int DEFAULT_WINDOW_HEIGHT = 768;
 	private static final int DEFAULT_SECTION_LIST_PANE_WIDTH = 200;
@@ -119,6 +124,8 @@ public class Settings implements Serializable {
 		proxyPort = new SimpleIntegerProperty();
 		proxyUser = new SimpleStringProperty();
 		proxyPasswd = new SimpleStringProperty();
+
+		mailServiceInfo = new SimpleObjectProperty<>();
 	}
 
 	public List<?> toList() {
@@ -151,6 +158,7 @@ public class Settings implements Serializable {
 				, proxyUser.get()
 				, proxyPasswd.get()
 				, proxyBasicAuth.get()
+				, mailServiceInfo.get()
 				);
 
 		return list;
@@ -158,33 +166,34 @@ public class Settings implements Serializable {
 
 	public void fromList(List<?> list) {
 		final Iterator<?> i = list.iterator();
-		if (i.hasNext()) { showToolbar			.set((Boolean)	i.next()); }
-		if (i.hasNext()) { showExcludeBox		.set((Boolean)	i.next()); }
-		if (i.hasNext()) { archiveOnDrop		.set((Boolean)	i.next()); }
-		if (i.hasNext()) { popupLifetime		.set((Integer)	i.next()); }
-		if (i.hasNext()) { htmlSignature		.set((String)	i.next()); }
-		if (i.hasNext()) { replyAllDblClick		.set((Boolean)	i.next()); }
-		if (i.hasNext()) { confirmOnQuit		.set((Boolean)	i.next()); }
-		if (i.hasNext()) { confirmOnSignout		.set((Boolean)	i.next()); }
-		if (i.hasNext()) { mute					.set((Boolean)	i.next()); }
-		if (i.hasNext()) { globalSettings		.set((Boolean)	i.next()); }
-		if (i.hasNext()) { threadPaneWidth		.set((Double) 	i.next()); }
-		if (i.hasNext()) { sectionListPaneWidth	.set((Double) 	i.next()); }
-		if (i.hasNext()) { windowWidth			.set((Double) 	i.next()); }
-		if (i.hasNext()) { windowHeight			.set((Double) 	i.next()); }
-		if (i.hasNext()) { browserMode			.set((String) 	i.next()); }
-		if (i.hasNext()) { windowX				.set((Double) 	i.next()); }
-		if (i.hasNext()) { windowY				.set((Double) 	i.next()); }
-		if (i.hasNext()) { date					.set((Long) 	i.next()); }
-		if (i.hasNext()) { threadListPaneWidth	.set((Double) 	i.next()); }
-		if (i.hasNext()) { sectionName			.set((String) 	i.next()); }
-		if (i.hasNext()) { tagName				.set((String) 	i.next()); }
-		if (i.hasNext()) { proxyEnabled			.set((Boolean) 	i.next()); }
-		if (i.hasNext()) { proxyHost			.set((String) 	i.next()); }
-		if (i.hasNext()) { proxyPort			.set((Integer) 	i.next()); }
-		if (i.hasNext()) { proxyUser			.set((String) 	i.next()); }
-		if (i.hasNext()) { proxyPasswd			.set((String) 	i.next()); }
-		if (i.hasNext()) { proxyBasicAuth		.set((Boolean) 	i.next()); }
+		if (i.hasNext()) { showToolbar			.set((Boolean)			i.next()); }
+		if (i.hasNext()) { showExcludeBox		.set((Boolean)			i.next()); }
+		if (i.hasNext()) { archiveOnDrop		.set((Boolean)			i.next()); }
+		if (i.hasNext()) { popupLifetime		.set((Integer)			i.next()); }
+		if (i.hasNext()) { htmlSignature		.set((String)			i.next()); }
+		if (i.hasNext()) { replyAllDblClick		.set((Boolean)			i.next()); }
+		if (i.hasNext()) { confirmOnQuit		.set((Boolean)			i.next()); }
+		if (i.hasNext()) { confirmOnSignout		.set((Boolean)			i.next()); }
+		if (i.hasNext()) { mute					.set((Boolean)			i.next()); }
+		if (i.hasNext()) { globalSettings		.set((Boolean)			i.next()); }
+		if (i.hasNext()) { threadPaneWidth		.set((Double) 			i.next()); }
+		if (i.hasNext()) { sectionListPaneWidth	.set((Double) 			i.next()); }
+		if (i.hasNext()) { windowWidth			.set((Double) 			i.next()); }
+		if (i.hasNext()) { windowHeight			.set((Double) 			i.next()); }
+		if (i.hasNext()) { browserMode			.set((String) 			i.next()); }
+		if (i.hasNext()) { windowX				.set((Double)		 	i.next()); }
+		if (i.hasNext()) { windowY				.set((Double) 			i.next()); }
+		if (i.hasNext()) { date					.set((Long) 			i.next()); }
+		if (i.hasNext()) { threadListPaneWidth	.set((Double) 			i.next()); }
+		if (i.hasNext()) { sectionName			.set((String) 			i.next()); }
+		if (i.hasNext()) { tagName				.set((String) 			i.next()); }
+		if (i.hasNext()) { proxyEnabled			.set((Boolean)		 	i.next()); }
+		if (i.hasNext()) { proxyHost			.set((String) 			i.next()); }
+		if (i.hasNext()) { proxyPort			.set((Integer)		 	i.next()); }
+		if (i.hasNext()) { proxyUser			.set((String) 			i.next()); }
+		if (i.hasNext()) { proxyPasswd			.set((String) 			i.next()); }
+		if (i.hasNext()) { proxyBasicAuth		.set((Boolean) 			i.next()); }
+		if (i.hasNext()) { mailServiceInfo		.set((MailServiceInfo)	i.next()); }
 	}
 
 	public void load() {
@@ -352,5 +361,9 @@ public class Settings implements Serializable {
 
 	public BooleanProperty proxyBasicAuth() {
 		return proxyBasicAuth;
+	}
+
+	public ObjectProperty<MailServiceInfo> getMailServiceInfo() {
+		return mailServiceInfo;
 	}
 }
