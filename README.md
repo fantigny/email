@@ -84,10 +84,15 @@ __*`shipped with Java runtime from Oracle`*__
 | download | [FisherMail-win64.exe](https://jenkins.speederpan.com/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win64.exe)  |
 |----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
 |          | [FisherMail-win32.exe](https://jenkins.speederpan.com/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win32.exe) |
++ download and run the installation program
++ start FisherMail from windows menu
+
 #### portable
 | download | [FisherMail-win64.zip](https://jenkins.speederpan.com/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win64.zip)  |
 |----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
 |          | [FisherMail-win32.zip](https://jenkins.speederpan.com/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win32.zip) |
++ download and unzip FisherMail
++ got to the unzip folder and run ```FisherMail.exe```
 
 ## linux  
 __*`shipped with Java runtime from Oracle`*__
