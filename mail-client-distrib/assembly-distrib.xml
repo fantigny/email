@@ -25,6 +25,7 @@
 			<outputDirectory></outputDirectory>
 			<includes>
 				<include>FisherMail.jar</include>
+				<include>FisherMail.exe</include>
 
 				<include>FisherMail-macOs.zip</include>
 
