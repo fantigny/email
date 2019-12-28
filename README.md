@@ -6,7 +6,7 @@ cross-platform e-mail client
 | usage            | download                             |
 |------------------|--------------------------------------|
 | cross-platform   | [FisherMail.jar](#cross-platform)    |
-| macOs app        | [FisherMail-macOs.zip](#macos-1)     |
+| macOs app        | [FisherMail-macOs.zip](#macos-app)   |
 | windows install  | [FisherMail-win64.exe](#install)     |
 | windows portable | [FisherMail-win64.zip](#portable)    |
 | linux deb        | [FisherMail-lin64.deb](#deb-install) |
@@ -19,15 +19,15 @@ __*`Java 8 or newer with JavaFX required`*__
 | download | [FisherMail.jar](https://jenkins.speederpan.com/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail.jar) |
 |----------|----------------------------------------------------------------------------------------------------------------------------------------------------|
 
-### windows
+#### windows
 + download and install the [latest version](https://www.java.com/en/download/) of Java  
 + double-click on downloaded file `FisherMail.jar`
 
-### macOs
+#### macOs
 + download and install the [latest version](https://www.java.com/en/download/) of Java  
 + double-click on downloaded file `FisherMail.jar`
 
-### ubuntu
+#### ubuntu
 + install Java and JavaFx  
 ```
 sudo apt install default-jre openjfx
@@ -44,7 +44,7 @@ java \
 -jar FisherMail.jar
 ```
 
-### fedora
+#### fedora
 + download the [latest version](https://www.java.com/en/download/) of Java  
 + install it
 ```
@@ -59,7 +59,7 @@ sudo alternatives --config java
 java -jar FisherMail.jar
 ```
 
-## macOs  
+## macOs app  
 __*`shipped with Java runtime from Oracle`*__
 
 | download | [FisherMail-macOs.zip](https://jenkins.speederpan.com/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-macOs.zip) |
@@ -80,26 +80,26 @@ _FisherMail is saved as an exception to your security settings, and you can open
 
 ## windows  
 __*`shipped with Java runtime from Oracle`*__
-### install
+#### install
 | download | [FisherMail-win64.exe](https://jenkins.speederpan.com/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win64.exe)  |
 |----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
 |          | [FisherMail-win32.exe](https://jenkins.speederpan.com/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win32.exe) |
-### portable
+#### portable
 | download | [FisherMail-win64.zip](https://jenkins.speederpan.com/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win64.zip)  |
 |----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
 |          | [FisherMail-win32.zip](https://jenkins.speederpan.com/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win32.zip) |
 
 ## linux  
 __*`shipped with Java runtime from Oracle`*__
-### deb install
+#### deb install
 | download | [FisherMail-lin64.deb](https://jenkins.speederpan.com/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-lin64.deb) |
 |----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
 |          | [FisherMail-lin32.deb](https://jenkins.speederpan.com/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-lin32.deb) |
-### rpm install
+#### rpm install
 | download | [FisherMail-lin64.rpm](https://jenkins.speederpan.com/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-lin64.rpm) |
 |----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
 |          | [FisherMail-lin32.rpm](https://jenkins.speederpan.com/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-lin32.rpm) |
-### portable
+#### portable
 | download | [FisherMail-lin64.zip](https://jenkins.speederpan.com/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-lin64.zip) |
 |----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
 |          | [FisherMail-lin32.zip](https://jenkins.speederpan.com/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-lin32.zip) |
