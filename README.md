@@ -68,8 +68,8 @@ __*`shipped with Java runtime from Oracle`*__
 + move FisherMail to the App folder
 
 _security exception_  
-macOs usual issue a warning when starting FisherMail and ultimately it can prevent FisherMail to start at all  
-to avoid that please follow these steps from the [Apple's guide](https://support.apple.com/en-gb/guide/mac-help/mh40616/mac)  
+macOs usually issue a warning when starting FisherMail and ultimately it can prevent FisherMail to start altogether  
+to avoid this please follow these steps from Apple's [official guide](https://support.apple.com/en-gb/guide/mac-help/mh40616/mac)  
 + In the Finder on your Mac, locate FisherMail.  
 _Don’t use Launchpad to do this. Launchpad doesn’t allow you to access the shortcut menu._
 + Control-click the FisherMail icon, then choose Open from the menu.
