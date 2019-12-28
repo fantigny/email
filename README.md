@@ -13,7 +13,7 @@ cross-platform e-mail client
 | linux rpm        | [FisherMail-lin.rpm](#rpm-install) |
 | linux portable   | [FisherMail-lin.zip](#portable-1)  |  
 
-_[continuous building](#continuous-building)_  
+_[ci](#continuous-integration)_  
 _[uninstall](#uninstall)_
 
 ## cross-platform 
