@@ -6,8 +6,8 @@ cross-platform e-mail client
 | type             | link                               |
 |------------------|------------------------------------|
 | cross-platform   | [FisherMail.jar](#cross-platform)  |
-| macOs app        | [FisherMail-mac.zip](#macos-app) |
-| windows install  | [FisherMail-win.exe](#install)     |
+| macOs app        | [FisherMail-mac.zip](#macos-app)   |
+| windows install  | [FisherMail-win.exe](#install-1)   |
 | windows portable | [FisherMail-win.zip](#portable)    |
 | linux deb        | [FisherMail-lin.deb](#deb-install) |
 | linux rpm        | [FisherMail-lin.rpm](#rpm-install) |
