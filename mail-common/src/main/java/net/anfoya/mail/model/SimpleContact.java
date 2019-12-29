@@ -1,5 +1,6 @@
 package net.anfoya.mail.model;
 
+@SuppressWarnings("serial")
 public class SimpleContact implements Contact {
 
 	private final String email;
