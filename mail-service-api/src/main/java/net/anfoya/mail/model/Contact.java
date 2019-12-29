@@ -1,7 +1,9 @@
 package net.anfoya.mail.model;
 
-public interface Contact {
+import java.io.Serializable;
 
-	public String getEmail();
-	public String getFullname();
+public interface Contact extends Serializable {
+
+	String getEmail();
+	String getFullname();
 }

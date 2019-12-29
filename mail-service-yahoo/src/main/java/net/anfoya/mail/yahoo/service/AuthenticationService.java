@@ -1,6 +1,7 @@
 package net.anfoya.mail.yahoo.service;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -9,7 +10,6 @@ import java.util.Properties;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
-import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.Store;
 
@@ -24,6 +24,7 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
 
 import javafx.concurrent.Task;
+import net.anfoya.java.io.SerializedFile;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.mail.model.SimpleContact;
 import net.anfoya.mail.yahoo.YahooException;
@@ -31,6 +32,8 @@ import net.anfoya.mail.yahoo.YahooMailService;
 import net.anfoya.mail.yahoo.javafx.SigninDialog;
 
 public class AuthenticationService {
+	private static final String CONTACT_FILE_PREFIX = System.getProperty("java.io.tmpdir") + File.separatorChar + "fsm-cache-contact-";
+
 	private static final String CLIENT_ID_PATH = "client_id.txt";
 	private static final String CLIENT_SECRET_PATH = "client_secret.txt";
 
@@ -43,7 +46,8 @@ public class AuthenticationService {
 
 	private static final String REFRESH_TOKEN_SUFFIX = "%s-refresh-token";
 
-	private String prefsTokenName;
+	private final String user;
+	private final String prefsTokenName;
 
 	private Runnable authCallback;
 	private Runnable authFailedCallback;
@@ -55,8 +59,18 @@ public class AuthenticationService {
 	private Store yahooMail;
 	private SimpleContact contact;
 
-	public AuthenticationService(final String appName) {
+	private String clientId;
+
+	public AuthenticationService(final String appName, final String user) {
+		this.user = user;
+
 		prefsTokenName = String.format(REFRESH_TOKEN_SUFFIX, appName);
+
+		try {
+			contact = new SerializedFile<SimpleContact>(CONTACT_FILE_PREFIX).load();
+		} catch (Exception e) {
+			contact = new SimpleContact("", "");
+		}
 	}
 
 	public void setOnAuth(Runnable callback) {
@@ -68,18 +82,21 @@ public class AuthenticationService {
 					return null;
 				}
 			};
-			task.setOnSucceeded((e) -> callback.run());
-			task.setOnFailed((e) -> authFailedCallback.run());
+			task.setOnSucceeded(e -> callback.run());
+			task.setOnFailed(e -> authFailedCallback.run());
 			ThreadPool.getDefault().mustRun("refreshToken", task);
 		};
 	}
 
 	protected void finaliseAuth() {
-		// finalize contact
+		// finalise contact and save
 		try {
-			contact = new SimpleContact(contact.getEmail(), getFullName());
+			contact = new SimpleContact(contact == null? "": contact.getEmail(), getFullName());
+			new SerializedFile<SimpleContact>(CONTACT_FILE_PREFIX + user).save(contact);
 		} catch (IOException e) {
 			exception = new YahooException("building contact", e);
+			authFailedCallback.run();
+			return;
 		}
 
 		// connect to yahoo store
@@ -92,9 +109,11 @@ public class AuthenticationService {
 		try {
 			Session session = Session.getDefaultInstance(props, null);
 			yahooMail = session.getStore("imaps");
-			yahooMail.connect("imap.mail.yahoo.com", contact.getEmail(), accessToken);
-		} catch (MessagingException e) {
+			yahooMail.connect("imap.mail.yahoo.com", clientId, accessToken);
+		} catch (Exception e) {
 			exception = new YahooException("build session", e);
+			authFailedCallback.run();
+			return;
 		}
 
 		// save refresh token
@@ -104,11 +123,13 @@ public class AuthenticationService {
 			prefs.flush();
 		} catch (final Exception e) {
 			exception = new YahooException("save refresh token", e);
+			authFailedCallback.run();
+			return;
 		}
 	}
 
 	public void authenticate() {
-		final String clientId, clientSecret;
+		final String clientSecret;
 		try {
 			try (final BufferedReader reader = new BufferedReader(
 					new InputStreamReader(getClass().getResourceAsStream(CLIENT_ID_PATH)))) {
@@ -167,6 +188,7 @@ public class AuthenticationService {
 			prefs.flush();
 		} catch (final BackingStoreException e) {
 			exception = new YahooException("remove authentication token", e);
+			authFailedCallback.run();
 			return false;
 		}
 
@@ -209,6 +231,7 @@ public class AuthenticationService {
 			return true;
 		} catch (Exception e) {
 			exception = new YahooException("refreshing token", e);
+			authFailedCallback.run();
 			return false;
 		}
 	}
@@ -242,6 +265,7 @@ public class AuthenticationService {
 			return true;
 		} catch (Exception e) {
 			exception = new YahooException("signing in", e);
+			authFailedCallback.run();
 			return false;
 		}
 	}

@@ -1,5 +1,6 @@
 package net.anfoya.mail.yahoo;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -7,9 +8,6 @@ import javax.mail.Folder;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Store;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
@@ -28,7 +26,7 @@ import net.anfoya.tag.model.SpecialTag;
 
 public class YahooMailService
 implements MailService<SimpleSection, SimpleTag, SimpleThread, SimpleMessage, SimpleContact> {
-	private static final Logger LOGGER = LoggerFactory.getLogger(YahooMailService.class);
+	private static final String USER = "me";
 
 	private final ReadOnlyBooleanWrapper connected;
 
@@ -38,7 +36,7 @@ implements MailService<SimpleSection, SimpleTag, SimpleThread, SimpleMessage, Si
 	private SimpleContact contact;
 
 	public YahooMailService(String appName) {
-		authService = new AuthenticationService(appName);
+		authService = new AuthenticationService(appName, USER);
 		connected = new ReadOnlyBooleanWrapper(true);
 	}
 
@@ -292,14 +290,13 @@ implements MailService<SimpleSection, SimpleTag, SimpleThread, SimpleMessage, Si
 
 	@Override
 	public Set<SimpleTag> getTags(SimpleSection section) throws MailException {
-		// TODO Auto-generated method stub
-		return null;
+		return Collections.singleton(new SimpleTag("Inbox", "Inbox", "Inbox", true));
 	}
 
 	@Override
 	public Set<SimpleTag> getTags(String pattern) throws MailException {
 		// TODO Auto-generated method stub
-		return null;
+		return Collections.emptySet();
 	}
 
 	@Override
@@ -311,7 +308,7 @@ implements MailService<SimpleSection, SimpleTag, SimpleThread, SimpleMessage, Si
 	@Override
 	public Set<SimpleTag> getHiddenTags() throws MailException {
 		// TODO Auto-generated method stub
-		return null;
+		return Collections.emptySet();
 	}
 
 	@Override
