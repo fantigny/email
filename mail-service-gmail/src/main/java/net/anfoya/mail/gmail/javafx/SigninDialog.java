@@ -12,11 +12,11 @@ import com.sun.webkit.network.CookieManager;
 
 import javafx.concurrent.Worker.State;
 import javafx.scene.Scene;
-import javafx.scene.image.Image;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import net.anfoya.mail.gmail.GmailServiceInfo;
 
 public class SigninDialog {
 	private static final String LOADING = " Please wait, page is loading...";
@@ -67,7 +67,7 @@ public class SigninDialog {
 			stage.setTitle(title);
 		});
 
-		stage.getIcons().add(new Image(getClass().getResourceAsStream("googlemail-64.png")));
+		stage.getIcons().add(new GmailServiceInfo().getIcon());
 		stage.setScene(new Scene(webView, 550, 800));
 		stage.setTitle(LOADING);
 		stage.showAndWait();

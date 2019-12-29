@@ -3,6 +3,7 @@ package net.anfoya.mail.model;
 import javafx.scene.image.Image;
 import net.anfoya.mail.service.MailServiceInfo;
 
+@SuppressWarnings("serial")
 public abstract class SimpleInfo implements MailServiceInfo {
 	private final String name;
 	private final String iconPath;

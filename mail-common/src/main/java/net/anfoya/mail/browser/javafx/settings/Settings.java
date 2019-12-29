@@ -363,7 +363,7 @@ public class Settings implements Serializable {
 		return proxyBasicAuth;
 	}
 
-	public ObjectProperty<MailServiceInfo> getMailServiceInfo() {
+	public ObjectProperty<MailServiceInfo> mailServiceInfo() {
 		return mailServiceInfo;
 	}
 }

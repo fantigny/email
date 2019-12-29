@@ -20,6 +20,6 @@ public class OutlookServiceInfo extends SimpleInfo implements MailServiceInfo {
 
 	@Override
 	public MailService<? extends Section, ? extends Tag, ? extends Thread, ? extends Message, ? extends Contact> getMailService(String appName) {
-		return null;
+		throw new UnsupportedOperationException();
 	}
 }

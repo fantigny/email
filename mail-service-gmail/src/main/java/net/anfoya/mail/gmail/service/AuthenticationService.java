@@ -34,9 +34,10 @@ import net.anfoya.mail.gmail.javafx.ConnectionProgress;
 import net.anfoya.mail.gmail.javafx.SigninDialog;
 
 public class AuthenticationService {
+	private static final Logger LOGGER = LoggerFactory.getLogger(AuthenticationService.class);
+
 	private static final String URL_REVOKE_TOKEN = "https://accounts.google.com/o/oauth2/revoke?token=%s";
 	private static final boolean GUI = !GraphicsEnvironment.isHeadless();
-	private static final Logger LOGGER = LoggerFactory.getLogger(AuthenticationService.class);
 
 	private static final List<String> SCOPE = Arrays.asList(new String[] {
 			"https://www.googleapis.com/auth/gmail.modify",

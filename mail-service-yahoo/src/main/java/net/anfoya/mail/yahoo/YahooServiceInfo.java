@@ -20,6 +20,6 @@ public class YahooServiceInfo extends SimpleInfo implements MailServiceInfo {
 
 	@Override
 	public MailService<? extends Section, ? extends Tag, ? extends Thread, ? extends Message, ? extends Contact> getMailService(String appName) {
-		return null;
+		return new YahooMailService(appName);
 	}
 }

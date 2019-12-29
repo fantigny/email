@@ -74,9 +74,9 @@ public class MailClient extends Application {
 	///////////////////
 
 
-	private Settings settings;
 	private MailService<? extends Section, ? extends Tag, ? extends Thread, ? extends Message, ? extends Contact> mailService;
 	private NotificationService notificationService;
+	private Settings settings;
 
 	@Override
 	public void init() throws Exception {
@@ -91,19 +91,21 @@ public class MailClient extends Application {
 	public void start(final Stage primaryStage) {
 		primaryStage.initStyle(StageStyle.DECORATED);
 
-		MailServiceInfo info = getMailServiceInfo();
-		if (info == null) {
+		final MailServiceInfo info;
+		if (settings.mailServiceInfo().isNotNull().get()) {
+			info = settings.mailServiceInfo().get();
+		} else {
 			info = new MailChoice().getMailServiceInfo();
+			if (info == null) {
+				LOGGER.error("no mail provider selected");
+				Platform.exit();
+				return;
+			}
 		}
-		if (info == null) {
-			LOGGER.error("no mail provider selected");
-			Platform.exit();
-			return;
-		}
-		setMailServiceInfo(info);
 
 		mailService = info.getMailService(App.getName());
 		mailService.setOnAuth(() -> {
+			settings.mailServiceInfo().set(info);
 			Platform.runLater(() -> {
 				initNewThreadNotifier(primaryStage);
 				showBrowser(primaryStage);
@@ -111,8 +113,8 @@ public class MailClient extends Application {
 			});
 		});
 		mailService.setOnAuthFailed(() -> {
+			settings.mailServiceInfo().set(null);
 			LOGGER.error(mailService.getAuthException().getMessage());
-			setMailServiceInfo(null);
 			Platform.exit();
 		});
 
@@ -204,7 +206,7 @@ public class MailClient extends Application {
 			}
 			stage.hide();
 			mailService.signout();
-			settings.getMailServiceInfo().set(null);
+			settings.mailServiceInfo().set(null);
 
 			start(new Stage());
 		});
@@ -339,13 +341,5 @@ public class MailClient extends Application {
 				}
 			});
 		}
-	}
-
-	private MailServiceInfo getMailServiceInfo() {
-		return settings.getMailServiceInfo().get();
-	}
-
-	private void setMailServiceInfo(MailServiceInfo info) {
-		settings.getMailServiceInfo().set(info);
 	}
 }

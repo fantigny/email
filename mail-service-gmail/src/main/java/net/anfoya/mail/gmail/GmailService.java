@@ -175,11 +175,7 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 
 	@Override
 	public ReadOnlyBooleanProperty connected() {
-		try {
-			return connected.getReadOnlyProperty();
-		} catch (final Exception e) {
-			return new ReadOnlyBooleanWrapper(true);
-		}
+		return connected.getReadOnlyProperty();
 	}
 
 	@Override
