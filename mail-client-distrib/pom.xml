@@ -10,14 +10,11 @@
 
 	<modules>
 		<module>../mail-service-api</module>
+		<module>../mail-service-gmail</module>
 		<module>../mail-common</module>
 		<module>../mail-composer</module>
 		<module>../mail-browser</module>
 		<module>../mail-client</module>
-		
-		<module>../mail-service-gmail</module>
-		<module>../mail-service-yahoo</module>
-		<module>../mail-service-outlook</module>
 	</modules>
 
 	<pluginRepositories>
