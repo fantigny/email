@@ -1,5 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.anfoya</groupId>
@@ -55,10 +54,6 @@
 					<groupId>com.google.oauth-client</groupId>
 					<artifactId>google-oauth-client-java6</artifactId>
 				</exclusion>
-				<exclusion>
-					<groupId>javax.mail</groupId>
-					<artifactId>mail</artifactId>
-				</exclusion>
 			</exclusions>
 		</dependency>
 		<dependency>
@@ -79,10 +74,10 @@
 		</dependency>
 		<dependency>
 			<groupId>javax.mail</groupId>
-			<artifactId>javax.mail-api</artifactId>
-			<version>1.6.0</version>
+			<artifactId>mail</artifactId>
+			<version>1.4</version>
 		</dependency>
-
+		
 		<!-- provided -->
 		<dependency>
 			<groupId>org.openjfx</groupId>
