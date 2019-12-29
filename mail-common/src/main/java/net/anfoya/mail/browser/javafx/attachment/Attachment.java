@@ -14,6 +14,8 @@ import javax.mail.internet.MimeUtility;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sun.xml.internal.messaging.saaj.packaging.mime.util.BASE64DecoderStream;
+
 import net.anfoya.mail.model.Contact;
 import net.anfoya.mail.model.Message;
 import net.anfoya.mail.model.Section;
@@ -70,7 +72,7 @@ public class Attachment<M extends Message> {
 			}
 			return path;
 		} else if (part instanceof MimeBodyPart
-				//				&& part.getContent() instanceof BASE64DecoderStream
+				&& part.getContent() instanceof BASE64DecoderStream
 				&& part.getDisposition() == null || MimeBodyPart.ATTACHMENT.equalsIgnoreCase(part.getDisposition())) {
 			final MimeBodyPart bodyPart = (MimeBodyPart) part;
 			final String filename = MimeUtility.decodeText(bodyPart.getFileName());
