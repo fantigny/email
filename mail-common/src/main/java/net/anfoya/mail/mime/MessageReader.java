@@ -29,8 +29,6 @@ import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sun.xml.internal.messaging.saaj.packaging.mime.util.BASE64DecoderStream;
-
 import net.anfoya.java.io.TmpFileHandler;
 
 public class MessageReader {
@@ -110,7 +108,8 @@ public class MessageReader {
 				return new StringBuilder().append(content);
 			}
 		}
-		if (part instanceof MimeBodyPart && content instanceof BASE64DecoderStream) {
+		if (part instanceof MimeBodyPart
+				/*&& content instanceof BASE64DecoderStream*/) {
 			final MimeBodyPart bodyPart = (MimeBodyPart) part;
 			if (part.isMimeType("text/calendar")) {
 				final File file = tmp.createTempFile("event-", ".ics");
