@@ -37,7 +37,6 @@ import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
 import net.anfoya.mail.browser.javafx.util.UrlHelper;
 import net.anfoya.mail.composer.javafx.MailComposer;
 import net.anfoya.mail.gmail.model.GmailMoreThreads;
-import net.anfoya.mail.gmail.model.GmailSection;
 import net.anfoya.mail.model.Contact;
 import net.anfoya.mail.model.Message;
 import net.anfoya.mail.model.Section;
@@ -46,6 +45,7 @@ import net.anfoya.mail.model.Thread;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.tag.javafx.scene.section.SectionListPane;
+import net.anfoya.tag.model.SpecialSection;
 import net.anfoya.tag.model.SpecialTag;
 
 public class Controller<S extends Section, T extends Tag, H extends Thread, M extends Message, C extends Contact> {
@@ -99,7 +99,7 @@ public class Controller<S extends Section, T extends Tag, H extends Thread, M ex
 		String section = settings.sectionName().get();
 		String tag = settings.tagName().get();
 		if (section.isEmpty() || tag.isEmpty()) {
-			section = GmailSection.SYSTEM.getName();
+			section = mailService.getSpecialSection(SpecialSection.SYSTEM).getName();
 			tag = mailService.getSpecialTag(SpecialTag.INBOX).getName();
 		}
 		sectionListPane.init(section, tag);

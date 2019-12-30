@@ -7,12 +7,12 @@ import net.anfoya.mail.model.Tag;
 
 @SuppressWarnings("serial")
 public class GmailTag extends SimpleTag implements Tag {
+	public static final GmailTag INBOX = new GmailTag("INBOX", "inbox", "Inbox", true);
+	public static final GmailTag UNREAD = new GmailTag("UNREAD", "unread", "UNREAD", true);
+	public static final GmailTag STARRED = new GmailTag("STARRED", "flagged", "STARRED", true);
 	public static final GmailTag DRAFT = new GmailTag("DRAFT", "draft", "DRAFT", true);
 	public static final GmailTag ALL = new GmailTag("ALL", "all", "ALL", true);
-	public static final GmailTag UNREAD = new GmailTag("UNREAD", "unread", "UNREAD", true);
-	public static final GmailTag INBOX = new GmailTag("INBOX", "inbox", "INBOX", true);
 	public static final GmailTag SENT = new GmailTag("SENT", "sent", "SENT", true);
-	public static final GmailTag STARRED = new GmailTag("STARRED", "flagged", "STARRED", true);
 	public static final GmailTag SPAM = new GmailTag("SPAM", "spam", "SPAM", true);
 	public static final GmailTag TRASH = new GmailTag("TRASH", "trash", "TRASH", true);
 	public static final GmailTag CHAT = new GmailTag("CHAT", "chat", "CHAT", true);

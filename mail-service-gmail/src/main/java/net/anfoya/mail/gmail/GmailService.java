@@ -53,6 +53,7 @@ import net.anfoya.mail.gmail.service.ThreadService;
 import net.anfoya.mail.model.Tag;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
+import net.anfoya.tag.model.SpecialSection;
 import net.anfoya.tag.model.SpecialTag;
 
 public class GmailService implements MailService<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact> {
@@ -270,6 +271,14 @@ public class GmailService implements MailService<GmailSection, GmailTag, GmailTh
 		} catch (final MessageException | MessagingException e) {
 			throw new GMailException("create draft", e);
 		}
+	}
+
+	@Override
+	public GmailSection getSpecialSection(SpecialSection section) {
+		switch(section) {
+		case SYSTEM: return GmailSection.SYSTEM;
+		}
+		return null;
 	}
 
 	@Override
