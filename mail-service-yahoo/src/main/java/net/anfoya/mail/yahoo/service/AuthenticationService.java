@@ -22,6 +22,8 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javafx.concurrent.Task;
 import net.anfoya.java.io.SerializedFile;
@@ -32,6 +34,8 @@ import net.anfoya.mail.yahoo.YahooMailService;
 import net.anfoya.mail.yahoo.javafx.SigninDialog;
 
 public class AuthenticationService {
+	private static final Logger LOGGER = LoggerFactory.getLogger(AuthenticationService.class);
+
 	private static final String CONTACT_FILE_PREFIX = System.getProperty("java.io.tmpdir") + File.separatorChar + "fsm-cache-contact-";
 
 	private static final String CLIENT_ID_PATH = "client_id.txt";
@@ -45,6 +49,8 @@ public class AuthenticationService {
 	private static final String USER_INFO_URL = "https://api.login.yahoo.com/openid/v1/userinfo";
 
 	private static final String REFRESH_TOKEN_SUFFIX = "%s-refresh-token";
+
+	private static final boolean DEBUG = true;
 
 	private final String user;
 	private final String prefsTokenName;
@@ -60,6 +66,7 @@ public class AuthenticationService {
 	private SimpleContact contact;
 
 	private String clientId;
+	@SuppressWarnings("unused") private String guid;
 
 	public AuthenticationService(final String appName, final String user) {
 		this.user = user;
@@ -89,6 +96,10 @@ public class AuthenticationService {
 	}
 
 	protected void finaliseAuth() {
+		if (DEBUG) {
+			saveRefreshToken();
+		}
+
 		// finalise contact and save
 		try {
 			contact = new SimpleContact(contact == null? "": contact.getEmail(), getFullName());
@@ -99,32 +110,40 @@ public class AuthenticationService {
 			return;
 		}
 
-		// connect to yahoo store
 		Properties props = new Properties();
-		props.setProperty("mail.store.protocol", "imaps");
-		props.setProperty("mail.imaps.auth.mechanisms", "XOAUTH2");
-		props.setProperty("mail.imaps.sasl.enable", "true");
-		props.setProperty("mail.imaps.ssl.enable", "true");
-		props.setProperty("mail.imaps.port", "993");
+		props.setProperty("mail.debug", "" + DEBUG);
+		props.setProperty("mail.debug.quote", "" + DEBUG);
+		props.setProperty("mail.debug.auth", "" + DEBUG);
+		props.setProperty("mail.debug.auth.username", "" + DEBUG);
+		props.setProperty("mail.debug.auth.password", "" + DEBUG);
+
+		props.put("mail.imap.ssl.enable", "true");
+		props.put("mail.imap.auth.mechanisms", "XOAUTH2");
+		
 		try {
-			Session session = Session.getDefaultInstance(props, null);
-			yahooMail = session.getStore("imaps");
-			yahooMail.connect("imap.mail.yahoo.com", clientId, accessToken);
+			// create data store connection
+			Session session = Session.getInstance(props);
+			session.setDebug(DEBUG);
+			Store store = session.getStore("imap");
+			store.connect("imap.mail.yahoo.com", contact.getEmail(), accessToken);
 		} catch (Exception e) {
-			exception = new YahooException("build session", e);
+			exception = new YahooException("buildind session " + e.getMessage(), e);
 			authFailedCallback.run();
 			return;
 		}
 
+		saveRefreshToken();
+	}
+
+	private void saveRefreshToken() {
 		// save refresh token
 		try {
 			final Preferences prefs = Preferences.userNodeForPackage(YahooMailService.class);
 			prefs.put(prefsTokenName, refreshToken);
 			prefs.flush();
 		} catch (final Exception e) {
-			exception = new YahooException("save refresh token", e);
+			exception = new YahooException("save refresh token " + e.getMessage(), e);
 			authFailedCallback.run();
-			return;
 		}
 	}
 
@@ -140,7 +159,7 @@ public class AuthenticationService {
 				clientSecret = reader.readLine();
 			}
 		} catch (final Exception e) {
-			exception = new YahooException("loading client id & secret", e);
+			exception = new YahooException("loading client id & secret " + e.getMessage(), e);
 			authFailedCallback.run();
 			return;
 		}
@@ -187,7 +206,7 @@ public class AuthenticationService {
 		try {
 			prefs.flush();
 		} catch (final BackingStoreException e) {
-			exception = new YahooException("remove authentication token", e);
+			exception = new YahooException("remove authentication token " + e.getMessage(), e);
 			authFailedCallback.run();
 			return false;
 		}
@@ -227,11 +246,13 @@ public class AuthenticationService {
 
 			accessToken = json.getString("access_token");
 			refreshToken = json.getString("refresh_token");
+			guid = json.getString("xoauth_yahoo_guid");
+
+			LOGGER.info("token refreshed");
 
 			return true;
 		} catch (Exception e) {
-			exception = new YahooException("refreshing token", e);
-			authFailedCallback.run();
+			exception = new YahooException("refreshing token " + e.getMessage(), e);
 			return false;
 		}
 	}
@@ -261,10 +282,13 @@ public class AuthenticationService {
 
 			accessToken = json.getString("access_token");
 			refreshToken = json.getString("refresh_token");
+			guid = json.getString("xoauth_yahoo_guid");
+
+			LOGGER.info("new token available");
 
 			return true;
 		} catch (Exception e) {
-			exception = new YahooException("signing in", e);
+			exception = new YahooException("signing in " + e.getMessage(), e);
 			authFailedCallback.run();
 			return false;
 		}
