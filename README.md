@@ -21,7 +21,7 @@ _[continuous integration](#continuous-integration)_
 ## cross-platform 
 __*`Java 8 or newer with JavaFX required`*__
 
-| download | [FisherMail.jar](https://jenkins.speederpan.com/view/mail%20client/job/mail-client-distrib%20(master)/lastSuccessfulBuild/artifact/mail-client-distrib/target/FisherMail.jar) |
+| download | [FisherMail.jar](https://jenkins.speederpan.com/job/mail-client-distrib%20(master)/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail.jar) |
 |----------|----------------------------------------------------------------------------------------------------------------------------------------------------|
 
 #### windows
