@@ -32,9 +32,9 @@
 
 		<!-- others -->
 		<dependency>
-			<groupId>javax.mail</groupId>
-			<artifactId>mail</artifactId>
-			<version>1.4</version>
+			<groupId>com.sun.mail</groupId>
+			<artifactId>javax.mail</artifactId>
+			<version>1.6.2</version>
 		</dependency>
 
 		<!-- provided -->
