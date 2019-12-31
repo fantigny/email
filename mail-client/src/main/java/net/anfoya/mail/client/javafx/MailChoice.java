@@ -50,6 +50,7 @@ public class MailChoice {
 
 		final ListView<MailServiceInfo> services = new ListView<>();
 		services.setCellFactory(l -> buildCell());
+		services.setFocusTraversable(false);
 		Arrays.stream(SERVICES).forEach(s -> services.getItems().add(s));
 
 		final MultipleSelectionModel<MailServiceInfo> selectionModel = services.getSelectionModel();
@@ -65,7 +66,7 @@ public class MailChoice {
 		Button cancel = new Button("cancel");
 		cancel.setOnAction(e -> stage.close());
 
-		HBox footer = new HBox(10, select, cancel);
+		HBox footer = new HBox(10, cancel, select);
 		footer.setPadding(new Insets(20));
 		footer.setAlignment(Pos.CENTER_RIGHT);
 
