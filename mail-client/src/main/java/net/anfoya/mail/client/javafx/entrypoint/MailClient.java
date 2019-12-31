@@ -115,10 +115,14 @@ public class MailClient extends Application {
 		mailService.setOnAuthFailed(() -> {
 			settings.mailServiceInfo().set(null);
 			LOGGER.error(mailService.getAuthException().getMessage());
-			Platform.exit();
+			restart();
 		});
 
 		mailService.authenticate();
+	}
+
+	protected void restart() {
+		start(new Stage());
 	}
 
 	@Override
@@ -208,7 +212,7 @@ public class MailClient extends Application {
 			mailService.signout();
 			settings.mailServiceInfo().set(null);
 
-			start(new Stage());
+			restart();
 		});
 
 		stage.getIcons().add(App.getIcon());
