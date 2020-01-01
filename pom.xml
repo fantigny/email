@@ -61,7 +61,7 @@
 			<dependency>
 				<groupId>net.anfoya</groupId>
 				<artifactId>anfoya-tag</artifactId>
-				<version>0.0.1-SNAPSHOT</version>
+				<version>${anfoya.libs.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
