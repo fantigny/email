@@ -2,23 +2,9 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>net.anfoya</groupId>
 	<artifactId>mail-client-distrib</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<description>cross-platform e-mail client</description>
-
-	<modules>
-		<module>../mail-service-api</module>
-		<module>../mail-common</module>
-		<module>../mail-composer</module>
-		<module>../mail-browser</module>
-		<module>../mail-client</module>
-
-		<module>../mail-service-gmail</module>
-		<module>../mail-service-outlook</module>
-		<module>../mail-service-yahoomail</module>
-	</modules>
 
 	<pluginRepositories>
 		<pluginRepository>
@@ -27,20 +13,16 @@
 		</pluginRepository>
 	</pluginRepositories>
 
-	<dependencies>
-		<!-- home made -->
-		<dependency>
-			<groupId>net.anfoya</groupId>
-			<artifactId>mail-client</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
-	</dependencies>
-
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<ISCC.location>src/deploy/win/innosetup_6.0.3-mini/ISCC.exe</ISCC.location>
+		<ISCC.location>mail-client-distrib/src/deploy/win/innosetup_6.0.3-mini/ISCC.exe</ISCC.location>
 		<ISCC.arg>/Qp</ISCC.arg>
 	</properties>
+	<parent>
+		<groupId>net.anfoya</groupId>
+		<artifactId>mail-client-pom</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
 
 	<profiles>
 		<profile>
@@ -69,31 +51,15 @@
 				<KEYSTORE_PATH>/home/wine/speederpan.com</KEYSTORE_PATH>
 			</properties>
 		</profile>
-		<profile>
-			<id>skipAssembly</id>
-			<activation>
-				<property>
-					<name>assembly.skipAssembly</name>
-					<value>true</value>
-				</property>
-			</activation>
-			<properties>
-				<skipPackage>skip</skipPackage>
-			</properties>
-		</profile>
-		<profile>
-			<id>assembly</id>
-			<activation>
-				<property>
-					<name>assembly.skipAssembly</name>
-					<value>!true</value>
-				</property>
-			</activation>
-			<properties>
-				<skipPackage>package</skipPackage>
-			</properties>
-		</profile>
 	</profiles>
+
+	<dependencies>
+		<dependency>
+			<groupId>net.anfoya</groupId>
+			<artifactId>mail-client</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+	</dependencies>
 
 	<build>
 		<plugins>
@@ -322,7 +288,7 @@
 				</executions>
 				<configuration>
 					<skip>${assembly.skipAssembly}</skip>
-					
+
 					<target>
 						<taskdef name="bundleapp"
 							classname="com.oracle.appbundler.AppBundlerTask"

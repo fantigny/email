@@ -1,12 +1,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>net.anfoya</groupId>
 	<artifactId>mail-composer</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
+	<parent>
+		<groupId>net.anfoya</groupId>
+		<artifactId>mail-client-pom</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
 	
 	<build>
 		<plugins>
@@ -27,12 +27,10 @@
 		<dependency>
 			<groupId>net.anfoya</groupId>
 			<artifactId>anfoya-tools</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>net.anfoya</groupId>
 			<artifactId>anfoya-javafx</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>net.anfoya</groupId>
