@@ -149,4 +149,4 @@ to allow FisherMail to start normally, go to Files > Preferences > Behaviour and
 + execute the command ```sudo dnf -y remove mail-client-distrib```
 
 ## continuous integration
-latest build available in [Jenkins](https://jenkins.speederpan.com/job/mail-client-distrib%20(continuous))
+latest build available in [Jenkins](https://jenkins.speederpan.com/job/mail-client-distrib%20(dev))
