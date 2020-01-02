@@ -23,7 +23,7 @@ import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.javafx.scene.control.ComboField;
 import net.anfoya.javafx.scene.control.RemoveLabel;
 import net.anfoya.javafx.util.LabelHelper;
-import net.anfoya.mail.service.Contact;
+import net.anfoya.mail.model.Contact;
 
 public class RecipientListPane<C extends Contact> extends HBox {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RecipientListPane.class);

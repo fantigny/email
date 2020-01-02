@@ -4,6 +4,12 @@ import java.util.Set;
 
 import javafx.beans.property.ReadOnlyBooleanProperty;
 import javafx.util.Callback;
+import net.anfoya.mail.model.Contact;
+import net.anfoya.mail.model.Message;
+import net.anfoya.mail.model.Section;
+import net.anfoya.mail.model.Tag;
+import net.anfoya.mail.model.Thread;
+import net.anfoya.tag.model.SpecialSection;
 import net.anfoya.tag.model.SpecialTag;
 import net.anfoya.tag.service.TagService;
 
@@ -15,14 +21,15 @@ S extends Section
 , C extends Contact>
 extends TagService<S, T> {
 
-	void authenticate() throws MailException;
-	void signout();
-
-	void setOnAuth(Runnable callback);
-	void setOnAuthFailed(Runnable callback);
-
 	ReadOnlyBooleanProperty connected();
 	void reconnect() throws MailException;
+
+	void authenticate();
+	void setOnAuth(Runnable callback);
+	void setOnAuthFailed(Runnable callback);
+	MailException getAuthException();
+
+	void signout();
 
 	void startListening();
 	void stopListening();
@@ -56,7 +63,7 @@ extends TagService<S, T> {
 	void persistBytes(String id, byte[] bytes) throws MailException;
 	byte[] readBytes(String id) throws MailException;
 
-	@Override Set<S> getSections() throws MailException;
+	@Override S getSpecialSection(SpecialSection section);
 	@Override long getCountForSection(S section, Set<T> includes, Set<T> excludes, String itemPattern) throws MailException;
 
 	@Override S addSection(String name) throws MailException;
@@ -67,12 +74,12 @@ extends TagService<S, T> {
 
 	@Override T findTag(String name) throws MailException;
 	@Override T getTag(String id) throws MailException;
-	@Override Set<T> getTags(S section) throws MailException;
-	@Override Set<T> getTags(String pattern) throws MailException;
-	@Override long getCountForTags(Set<T> includes, Set<T> excludes, String pattern) throws MailException;
-
-	@Override Set<T> getHiddenTags() throws MailException;
 	@Override T getSpecialTag(SpecialTag specialTag);
+
+	@Override Set<T> getTags(String pattern) throws MailException;
+	@Override Set<T> getTags(S section) throws MailException;
+	@Override long getCountForTags(Set<T> includes, Set<T> excludes, String pattern) throws MailException;
+	@Override Set<T> getHiddenTags() throws MailException;
 
 	@Override T addTag(String name) throws MailException;
 	@Override void remove(T tag) throws MailException;

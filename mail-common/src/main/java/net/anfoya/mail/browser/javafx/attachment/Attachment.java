@@ -16,13 +16,13 @@ import org.slf4j.LoggerFactory;
 
 import com.sun.mail.util.BASE64DecoderStream;
 
-import net.anfoya.mail.service.Contact;
+import net.anfoya.mail.model.Contact;
+import net.anfoya.mail.model.Message;
+import net.anfoya.mail.model.Section;
+import net.anfoya.mail.model.Tag;
+import net.anfoya.mail.model.Thread;
 import net.anfoya.mail.service.MailException;
 import net.anfoya.mail.service.MailService;
-import net.anfoya.mail.service.Message;
-import net.anfoya.mail.service.Section;
-import net.anfoya.mail.service.Tag;
-import net.anfoya.mail.service.Thread;
 
 public class Attachment<M extends Message> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Attachment.class);

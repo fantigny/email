@@ -2,14 +2,13 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>net.anfoya</groupId>
 	<artifactId>mail-client</artifactId>
 	<packaging>jar</packaging>
-	<version>0.0.1-SNAPSHOT</version>
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<fishermail.version>1.0.191227-beta</fishermail.version>
-	</properties>
+	<parent>
+		<groupId>net.anfoya</groupId>
+		<artifactId>mail-client-pom</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
 
 	<build>
 		<resources>
@@ -47,6 +46,22 @@
 			<artifactId>mail-browser</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+			<groupId>net.anfoya</groupId>
+			<artifactId>mail-service-gmail</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>net.anfoya</groupId>
+			<artifactId>mail-service-yahoo</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>net.anfoya</groupId>
+			<artifactId>mail-service-outlook</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		
 
 		<!-- others -->
 		<dependency>

@@ -49,9 +49,9 @@ import net.anfoya.mail.browser.javafx.css.CssHelper;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.mime.MessageHelper;
 import net.anfoya.mail.mime.MessageReader;
-import net.anfoya.mail.service.Contact;
+import net.anfoya.mail.model.Contact;
+import net.anfoya.mail.model.Message;
 import net.anfoya.mail.service.MailService;
-import net.anfoya.mail.service.Message;
 
 public class MailComposer<M extends Message, C extends Contact> extends Stage {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailComposer.class);

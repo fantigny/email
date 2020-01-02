@@ -1,12 +1,16 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>net.anfoya</groupId>
 	<artifactId>mail-service-gmail</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
+	<parent>
+		<groupId>net.anfoya</groupId>
+		<artifactId>mail-client-pom</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
 
 	<build>
 		<plugins>
@@ -27,11 +31,15 @@
 		<dependency>
 			<groupId>net.anfoya</groupId>
 			<artifactId>anfoya-tools</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>net.anfoya</groupId>
 			<artifactId>mail-service-api</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>net.anfoya</groupId>
+			<artifactId>mail-common</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 
@@ -48,6 +56,10 @@
 				<exclusion>
 					<groupId>com.google.oauth-client</groupId>
 					<artifactId>google-oauth-client-java6</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>javax.mail</groupId>
+					<artifactId>mail</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -68,11 +80,11 @@
 			<version>1.7.10</version>
 		</dependency>
 		<dependency>
-			<groupId>javax.mail</groupId>
-			<artifactId>mail</artifactId>
-			<version>1.4</version>
+			<groupId>com.sun.mail</groupId>
+			<artifactId>javax.mail</artifactId>
+			<version>1.6.2</version>
 		</dependency>
-		
+
 		<!-- provided -->
 		<dependency>
 			<groupId>org.openjfx</groupId>

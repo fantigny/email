@@ -17,7 +17,6 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
-import javafx.scene.image.Image;
 import javafx.scene.media.AudioClip;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -33,16 +32,16 @@ import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.settings.VersionHelper;
 import net.anfoya.mail.browser.javafx.util.UrlHelper;
 import net.anfoya.mail.client.App;
-import net.anfoya.mail.gmail.GmailService;
-import net.anfoya.mail.gmail.model.GmailContact;
-import net.anfoya.mail.gmail.model.GmailMessage;
-import net.anfoya.mail.gmail.model.GmailSection;
-import net.anfoya.mail.gmail.model.GmailTag;
-import net.anfoya.mail.gmail.model.GmailThread;
+import net.anfoya.mail.client.javafx.MailChoice;
 import net.anfoya.mail.mime.MessageHelper;
-import net.anfoya.mail.service.Contact;
+import net.anfoya.mail.model.Contact;
+import net.anfoya.mail.model.Message;
+import net.anfoya.mail.model.Section;
+import net.anfoya.mail.model.Tag;
+import net.anfoya.mail.model.Thread;
 import net.anfoya.mail.service.MailException;
-import net.anfoya.mail.service.Message;
+import net.anfoya.mail.service.MailService;
+import net.anfoya.mail.service.MailServiceInfo;
 
 public class MailClient extends Application {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailClient.class);
@@ -54,11 +53,13 @@ public class MailClient extends Application {
 			{ "sun.net.http.allowRestrictedHeaders"	, "true"	}	// allows restricted headers for Google sign in
 	};
 
-
+	///////////////////
+	///////////////////
+	///////////////////
 
 	public static void main(final String[] args) {
 		if (PlatformUtil.isWindows()) {
-			WinShell32.setExplicitAppUserModelId(App.MAIL_CLIENT);
+			WinShell32.setExplicitAppUserModelId(App.getName());
 			LOGGER.info("app user model id is set to {}", WinShell32.getCurrentProcessExplicitAppUserModelID());
 		}
 
@@ -68,10 +69,14 @@ public class MailClient extends Application {
 		launch(args);
 	}
 
+	///////////////////
+	///////////////////
+	///////////////////
 
-	private Settings settings;
-	private GmailService gmail;
+
+	private MailService<? extends Section, ? extends Tag, ? extends Thread, ? extends Message, ? extends Contact> mailService;
 	private NotificationService notificationService;
+	private Settings settings;
 
 	@Override
 	public void init() throws Exception {
@@ -80,26 +85,52 @@ public class MailClient extends Application {
 		initThreadPool();
 		initSettings();
 		initProxy();
-		initGmail();
 	}
 
 	@Override
 	public void start(final Stage primaryStage) {
 		primaryStage.initStyle(StageStyle.DECORATED);
 
-		gmail.setOnAuth(() -> {
+		final MailServiceInfo info;
+		if (settings.mailServiceInfo().isNotNull().get()) {
+			info = settings.mailServiceInfo().get();
+		} else {
+			info = new MailChoice().getMailServiceInfo();
+			if (info == null) {
+				LOGGER.error("no mail provider selected");
+				Platform.exit();
+				return;
+			}
+		}
+
+		mailService = info.getMailService(App.getName());
+		mailService.setOnAuth(() -> {
+			settings.mailServiceInfo().set(info);
+			settings.saveNow();
 			Platform.runLater(() -> {
 				initNewThreadNotifier(primaryStage);
 				showBrowser(primaryStage);
 				checkVersion();
 			});
 		});
-		gmail.setOnAuthFailed(() -> {
-			LOGGER.error(gmail.getAuthException().getMessage());
-			Platform.exit();
+		mailService.setOnAuthFailed(() -> {
+			settings.mailServiceInfo().set(null);
+			LOGGER.error(mailService.getAuthException().getMessage());
+			restart();
 		});
 
-		gmail.authenticate();
+		mailService.authenticate();
+	}
+
+	protected void restart() {
+		start(new Stage());
+	}
+
+	@Override
+	public void stop() throws Exception {
+		super.stop();
+
+		settings.saveNow();
 	}
 
 	private boolean confirmClose(final Stage stage) {
@@ -142,13 +173,13 @@ public class MailClient extends Application {
 
 	private void initThreadPool() {
 		ThreadPool.setDefault(
-				ObservableExecutors.newCachedThreadPool("min", Thread.MIN_PRIORITY)
+				ObservableExecutors.newCachedThreadPool("min", java.lang.Thread.MIN_PRIORITY)
 				,  null
-				,  ObservableExecutors.newCachedThreadPool("max", Thread.MAX_PRIORITY));
+				,  ObservableExecutors.newCachedThreadPool("max", java.lang.Thread.MAX_PRIORITY));
 	}
 
 	private void initSettings() {
-		settings = new Settings(gmail);
+		settings = new Settings(mailService);
 		settings.load();
 	}
 
@@ -166,9 +197,9 @@ public class MailClient extends Application {
 	}
 
 	private void showBrowser(final Stage stage) {
-		MailBrowser<GmailSection, GmailTag, GmailThread, GmailMessage, GmailContact> mailBrowser;
+		MailBrowser<? extends Section, ? extends Tag, ? extends Thread, ? extends Message, ? extends Contact> mailBrowser;
 		try {
-			mailBrowser = new MailBrowser<>(gmail, notificationService, settings);
+			mailBrowser = new MailBrowser<>(mailService, notificationService, settings);
 		} catch (final MailException e) {
 			LOGGER.error("load mail browser", e);
 			return;
@@ -179,12 +210,14 @@ public class MailClient extends Application {
 				return;
 			}
 			stage.hide();
-			gmail.signout();
-			gmail.authenticate();
+			mailService.signout();
+			settings.mailServiceInfo().set(null);
+			settings.saveNow();
+
+			restart();
 		});
 
-		final Image icon = new Image(getClass().getResourceAsStream("/net/anfoya/mail/img/Mail.png"));
-		stage.getIcons().add(icon);
+		stage.getIcons().add(App.getIcon());
 		stage.setScene(mailBrowser);
 		stage.setOnCloseRequest(e -> {
 			if (!confirmClose(stage)) {
@@ -194,19 +227,18 @@ public class MailClient extends Application {
 			}
 		});
 		stage.setOnHiding(e -> ThreadPool.getDefault().mustRun("save global settings", () -> {
-			gmail.stopListening();
+			mailService.stopListening();
 			mailBrowser.saveSettings();
 			settings.windowX().set(stage.getX());
 			settings.windowY().set(stage.getY());
 			settings.windowWidth().set(stage.getWidth());
 			settings.windowHeight().set(stage.getHeight());
-			settings.saveNow();
 		}));
 
 		initSize(stage);
 		stage.show();
 
-		gmail.startListening();
+		mailService.startListening();
 	}
 
 	private void refreshTitle(final Stage stage, MailBrowser<?, ?, ?, ?, ?> browser) {
@@ -214,7 +246,7 @@ public class MailClient extends Application {
 			@Override
 			protected String call() throws Exception {
 				final Mode mode = browser.modeProperty().get();
-				final Contact contact = gmail.getContact();
+				final Contact contact = mailService.getContact();
 				if (contact.getFullname().isEmpty() || mode != Mode.FULL) {
 					return contact.getEmail();
 				} else {
@@ -261,14 +293,14 @@ public class MailClient extends Application {
 		notificationService = new NotificationService(stage);
 		notificationService.popupLifeTime().bind(settings.popupLifetime());
 
-		gmail.addOnNewMessage(threads -> {
+		mailService.addOnNewMessage(threads -> {
 			LOGGER.info("notify new thread");
 			new AudioClip(Settings.MP3_NEW_MAIL).play();
 			threads.forEach(t -> {
 				final Task<String> task = new Task<String>() {
 					@Override
 					protected String call() throws Exception {
-						final Message m = gmail.getMessage(t.getLastMessageId());
+						final Message m = mailService.getMessage(t.getLastMessageId());
 						return String.format("from %s\r\n%s"
 								, String.join(", ", MessageHelper.getNames(m.getMimeMessage().getFrom()))
 								, m.getSnippet());
@@ -291,10 +323,6 @@ public class MailClient extends Application {
 
 			return null;
 		});
-	}
-
-	private void initGmail() {
-		gmail = new GmailService(App.MAIL_CLIENT);
 	}
 
 	private void initProxy() {

@@ -34,9 +34,10 @@ import net.anfoya.mail.gmail.javafx.ConnectionProgress;
 import net.anfoya.mail.gmail.javafx.SigninDialog;
 
 public class AuthenticationService {
+	private static final Logger LOGGER = LoggerFactory.getLogger(AuthenticationService.class);
+
 	private static final String URL_REVOKE_TOKEN = "https://accounts.google.com/o/oauth2/revoke?token=%s";
 	private static final boolean GUI = !GraphicsEnvironment.isHeadless();
-	private static final Logger LOGGER = LoggerFactory.getLogger(AuthenticationService.class);
 
 	private static final List<String> SCOPE = Arrays.asList(new String[] {
 			"https://www.googleapis.com/auth/gmail.modify",
@@ -196,16 +197,16 @@ public class AuthenticationService {
 				.setRedirectUri(GoogleOAuthConstants.OOB_REDIRECT_URI)
 				.build();
 
-		// Generate Credential using login token.
-		final String authCode;
+		// Generate Credential using login token
+		final String tokenRequest;
 		try {
-			authCode = new SigninDialog(url).requestAuthCode();
+			tokenRequest = new SigninDialog(url).requestToken();
 		} catch (final Exception e) {
 			exception = new GMailException("getting token from signin dialog", e);
 			return false;
 		}
 
-		if (authCode.isEmpty()) {
+		if (tokenRequest.isEmpty()) {
 			exception = new GMailException("authentication aborted");
 			return false;
 		}
@@ -214,7 +215,7 @@ public class AuthenticationService {
 		final GoogleTokenResponse token;
 		try {
 			token = flow
-					.newTokenRequest(authCode.toString())
+					.newTokenRequest(tokenRequest.toString())
 					.setRedirectUri(GoogleOAuthConstants.OOB_REDIRECT_URI)
 					.execute();
 		} catch (final IOException e) {

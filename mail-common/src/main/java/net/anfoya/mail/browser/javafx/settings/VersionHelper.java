@@ -1,6 +1,6 @@
 package net.anfoya.mail.browser.javafx.settings;
 
-import static net.anfoya.mail.browser.javafx.settings.Settings.VERSION_TXT_RESOURCE;
+import static net.anfoya.mail.browser.javafx.settings.Settings.VERSION_TXT_RSC;
 import static net.anfoya.mail.browser.javafx.settings.Settings.VERSION_TXT_URL;
 
 import java.io.BufferedReader;
@@ -65,11 +65,11 @@ public class VersionHelper {
 
 	public void refresh() throws VersionException {
 		if (myVersion.isEmpty()) {
-			try (final InputStream in = getClass().getResourceAsStream(VERSION_TXT_RESOURCE);
+			try (final InputStream in = getClass().getResourceAsStream(VERSION_TXT_RSC);
 					final BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
 				reader.lines().forEach(l -> myVersion = l);
 			} catch (final Exception e) {
-				throw new VersionException("error read version from " + VERSION_TXT_RESOURCE, e);
+				throw new VersionException("error read version from " + VERSION_TXT_RSC, e);
 			}
 		}
 		try (final InputStream in = new URL(VERSION_TXT_URL).openStream();

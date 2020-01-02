@@ -2,8 +2,8 @@ package net.anfoya.mail.browser.controller.vo;
 
 import java.util.Set;
 
-import net.anfoya.mail.service.Tag;
-import net.anfoya.mail.service.Thread;
+import net.anfoya.mail.model.Tag;
+import net.anfoya.mail.model.Thread;
 
 public class TagForThreadsVo<T extends Tag, H extends Thread> {
 
