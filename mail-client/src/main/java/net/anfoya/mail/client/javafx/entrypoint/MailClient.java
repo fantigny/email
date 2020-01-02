@@ -106,6 +106,7 @@ public class MailClient extends Application {
 		mailService = info.getMailService(App.getName());
 		mailService.setOnAuth(() -> {
 			settings.mailServiceInfo().set(info);
+			settings.saveNow();
 			Platform.runLater(() -> {
 				initNewThreadNotifier(primaryStage);
 				showBrowser(primaryStage);
@@ -211,6 +212,7 @@ public class MailClient extends Application {
 			stage.hide();
 			mailService.signout();
 			settings.mailServiceInfo().set(null);
+			settings.saveNow();
 
 			restart();
 		});
