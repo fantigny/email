@@ -43,7 +43,7 @@ public class MailChoice {
 	}
 
 	public MailServiceInfo getMailServiceInfo() {
-		Label header = new Label(TEXT);
+		final Label header = new Label(TEXT);
 		header.setPadding(new Insets(20, 20, 30, 20));
 		header.setStyle("-fx-font-size:14px;");
 		header.setWrapText(true);
@@ -56,21 +56,21 @@ public class MailChoice {
 		final MultipleSelectionModel<MailServiceInfo> selectionModel = services.getSelectionModel();
 		selectionModel.setSelectionMode(SelectionMode.SINGLE);
 
-		Button select = new Button("select");
+		final Button select = new Button("select");
 		select.setOnAction(e -> {
 			info = selectionModel.getSelectedItem();
 			stage.close();
 		});
 		select.disableProperty().bind(services.getSelectionModel().selectedItemProperty().isNull());
 
-		Button cancel = new Button("cancel");
+		final Button cancel = new Button("cancel");
 		cancel.setOnAction(e -> stage.close());
 
-		HBox footer = new HBox(10, cancel, select);
+		final HBox footer = new HBox(10, cancel, select);
 		footer.setPadding(new Insets(20));
 		footer.setAlignment(Pos.CENTER_RIGHT);
 
-		BorderPane pane = new BorderPane(services, header, null, footer, null);
+		final BorderPane pane = new BorderPane(services, header, null, footer, null);
 
 		stage.setScene(new Scene(pane, 300, 400));
 		stage.getIcons().add(App.getIcon());
@@ -101,7 +101,7 @@ public class MailChoice {
 				setStyle("-fx-font-size:20px; -fx-padding:14px 10px 14px 50px;");
 				setText("   " + info.getName());
 
-				ImageView icon = new ImageView(info.getIcon());
+				final ImageView icon = new ImageView(info.getIcon());
 				icon.setPreserveRatio(true);
 				icon.setFitWidth(ICON_SIZE);
 				icon.setFitHeight(ICON_SIZE);
@@ -109,6 +109,12 @@ public class MailChoice {
 				icon.setSmooth(true);
 				icon.setCache(true);
 				setGraphic(icon);
+
+				if ("yahoo!".equalsIgnoreCase(info.getName())
+						|| "outlook".equalsIgnoreCase(info.getName())) {
+					setDisable(true);
+					setOpacity(.5);
+				}
 			}
 		};
 	}
