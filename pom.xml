@@ -10,6 +10,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<fishermail.version>1.0.191227-beta</fishermail.version>
+		<skipTests>true</skipTests> <!-- TODO remove -->
 	</properties>
 
 	<profiles>
@@ -18,6 +19,7 @@
 			<properties>
 				<anfoya.libs.version>0.0.1-SNAPSHOT</anfoya.libs.version>
 
+				<skipTests>true</skipTests>
 				<assembly.skipAssembly>true</assembly.skipAssembly>
 				<skipPackage>skip</skipPackage>
 			</properties>
