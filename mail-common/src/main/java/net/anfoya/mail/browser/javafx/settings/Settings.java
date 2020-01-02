@@ -39,8 +39,8 @@ import net.anfoya.mail.service.MailServiceInfo;
 public class Settings implements Serializable {
 	public static final String DOWNLOAD_URL = "https://github.com/fantigny/email";
 
-	public static final String VERSION_TXT_RESOURCE = "/version.txt";
-	public static final String VERSION_TXT_URL = "https://jenkins.speederpan.com/job/mail-client-distrib/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/version.txt";
+	public static final String VERSION_TXT_RSC = "/version.txt";
+	public static final String VERSION_TXT_URL = "https://jenkins.speederpan.com/job/mail-client-distrib%20(master)/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/version.txt";
 
 	private static final String SND_PATH = "/net/anfoya/mail/snd/";
 	public static final String MP3_NEW_MAIL = Settings.class.getResource(SND_PATH + "new_mail.mp3").toExternalForm();
