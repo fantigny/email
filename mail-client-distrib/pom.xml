@@ -15,7 +15,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<ISCC.location>mail-client-distrib/src/deploy/win/innosetup_6.0.3-mini/ISCC.exe</ISCC.location>
+		<ISCC.location>src/deploy/win/innosetup_6.0.3-mini/ISCC.exe</ISCC.location>
 		<ISCC.arg>/Qp</ISCC.arg>
 	</properties>
 	<parent>
