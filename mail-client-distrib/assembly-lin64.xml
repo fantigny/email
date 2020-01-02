@@ -21,12 +21,12 @@
 			<fileMode>0755</fileMode>
 		</file>
 		<file>
-			<source>src/deploy/linux/bash/FisherMail.sh</source>
+			<source>src/deploy/linux/bash/${app.name}.sh</source>
 			<outputDirectory></outputDirectory>
 			<fileMode>0755</fileMode>
 		</file>
 		<file>
-			<source>target/FisherMail.jar</source>
+			<source>target/${app.name}.jar</source>
 			<outputDirectory></outputDirectory>
 		</file>
 	</files>

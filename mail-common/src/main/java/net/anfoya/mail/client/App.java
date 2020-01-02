@@ -3,7 +3,7 @@ package net.anfoya.mail.client;
 import javafx.scene.image.Image;
 
 public class App {
-	private static final String MAIL_CLIENT = "FisherMail";
+	private static final String NAME = "FisherMail";
 
 	private static final Image icon;
 
@@ -12,7 +12,7 @@ public class App {
 	}
 
 	public static String getName() {
-		return MAIL_CLIENT;
+		return NAME;
 	}
 
 	public static Image getIcon() {

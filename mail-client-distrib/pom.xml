@@ -14,6 +14,7 @@
 	</pluginRepositories>
 
 	<properties>
+		<app.name>FisherMail</app.name>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<ISCC.location>src/deploy/win/innosetup_6.0.3-mini/ISCC.exe</ISCC.location>
 		<ISCC.arg>/Qp</ISCC.arg>
@@ -86,7 +87,7 @@
 					</execution>
 				</executions>
 				<configuration>
-					<outputFile>target/FisherMail.jar</outputFile>
+					<outputFile>target/${app.name}.jar</outputFile>
 					<shadedArtifactAttached>true</shadedArtifactAttached>
 					<shadedClassifierName>jar-with-dependencies</shadedClassifierName>
 					<transformers>
@@ -116,7 +117,7 @@
 				<configuration>
 					<archiveDirectory>${project.build.directory}</archiveDirectory>
 					<includes>
-						<include>FisherMail.jar</include>
+						<include>${app.name}.jar</include>
 					</includes>
 
 					<keystore>${KEYSTORE_PATH}/speederpan.com.jks</keystore>
@@ -143,9 +144,9 @@
 					<skip>${assembly.skipAssembly}</skip> <!-- doesn't work, need hack -->
 
 					<headerType>gui</headerType>
-					<jar>target/FisherMail.jar</jar>
-					<outfile>target/FisherMail.exe</outfile>
-					<errTitle>FisherMail Error</errTitle>
+					<jar>target/${app.name}.jar</jar>
+					<outfile>target/${app.name}.exe</outfile>
+					<errTitle>${app.name} Error</errTitle>
 					<classPath>
 						<mainClass>net.anfoya.mail.client.javafx.entrypoint.MailClient</mainClass>
 					</classPath>
@@ -159,13 +160,13 @@
 					<versionInfo>
 						<fileVersion>1.0.0.0</fileVersion>
 						<txtFileVersion>1.0.0.0</txtFileVersion>
-						<fileDescription>FisherMail</fileDescription>
+						<fileDescription>${app.name}</fileDescription>
 						<copyright>speederpan.com</copyright>
 						<productVersion>1.0.0.0</productVersion>
 						<txtProductVersion>1.0.0.0</txtProductVersion>
-						<productName>FisherMail</productName>
-						<internalName>FisherMail</internalName>
-						<originalFilename>FisherMail.exe</originalFilename>
+						<productName>${app.name}</productName>
+						<internalName>${app.name}</internalName>
+						<originalFilename>${app.name}.exe</originalFilename>
 					</versionInfo>
 				</configuration>
 			</plugin>
@@ -224,7 +225,7 @@
 				<configuration>
 					<skip>${assembly.skipAssembly}</skip> <!-- doesn't work, need hack -->
 
-					<name>FisherMail</name>
+					<name>${app.name}</name>
 					<url>https://speederpan.com</url>
 
 					<keystore>${KEYSTORE_PATH}/speederpan.com.jks</keystore>
@@ -239,7 +240,7 @@
 							<goal>sign</goal>
 						</goals>
 						<configuration>
-							<file>target/FisherMail.exe</file>
+							<file>target/${app.name}.exe</file>
 						</configuration>
 					</execution>
 					<execution>
@@ -249,7 +250,7 @@
 							<goal>sign</goal>
 						</goals>
 						<configuration>
-							<file>target/FisherMail-win64.exe</file>
+							<file>target/${app.name}-win64.exe</file>
 						</configuration>
 					</execution>
 					<execution>
@@ -259,7 +260,7 @@
 							<goal>sign</goal>
 						</goals>
 						<configuration>
-							<file>target/FisherMail-win32.exe</file>
+							<file>target/${app.name}-win32.exe</file>
 						</configuration>
 					</execution>
 				</executions>
@@ -293,13 +294,13 @@
 						<taskdef name="bundleapp"
 							classname="com.oracle.appbundler.AppBundlerTask"
 							classpathref="maven.plugin.classpath" />
-						<bundleapp outputdirectory="target" name="FisherMail"
-							displayname="FisherMail"
+						<bundleapp outputdirectory="target" name="${app.name}"
+							displayname="${app.name}"
 							icon="../mail-common/src/main/resources/net/anfoya/mail/img/Mail.icns"
 							identifier="net.anfoya.mail-client" shortversion="2.0"
 							copyright="speederpan.com"
 							mainclassname="net.anfoya.mail.client.javafx.entrypoint.MailClient">
-							<classpath file="target/FisherMail.jar" />
+							<classpath file="target/${app.name}.jar" />
 							<option value="-Xmx1g" />
 							<runtime
 								dir="src/deploy/macOs/jdk1.8.0_162.jdk/Contents/Home" />
@@ -318,7 +319,7 @@
 					<skipPOMs>false</skipPOMs>
 
 					<controlDir>${project.basedir}/src/deploy/linux/deb</controlDir>
-					<installDir>/opt/FisherMail</installDir>
+					<installDir>/opt/${app.name}</installDir>
 				</configuration>
 				<executions>
 					<execution>
@@ -328,36 +329,36 @@
 							<goal>jdeb</goal>
 						</goals>
 						<configuration>
-							<deb>${project.basedir}/target/FisherMail-lin64.deb</deb>
+							<deb>${project.basedir}/target/${app.name}-lin64.deb</deb>
 							<dataSet>
 								<data>
 									<type>file</type>
-									<src>${project.basedir}/target/FisherMail.jar</src>
-									<dst>/opt/FisherMail/FisherMail.jar</dst>
+									<src>${project.basedir}/target/${app.name}.jar</src>
+									<dst>/opt/${app.name}/${app.name}.jar</dst>
 								</data>
 								<data>
 									<type>file</type>
 									<src>${project.basedir}/../mail-common/src/main/resources/net/anfoya/mail/img/Mail64.png</src>
-									<dst>/opt/FisherMail/FisherMail64.png</dst>
+									<dst>/opt/${app.name}/${app.name}64.png</dst>
 								</data>
 								<data>
 									<type>file</type>
-									<src>${project.basedir}/src/deploy/linux/launcher/FisherMail.desktop</src>
-									<dst>/usr/share/applications/FisherMail.desktop</dst>
+									<src>${project.basedir}/src/deploy/linux/launcher/${app.name}.desktop</src>
+									<dst>/usr/share/applications/${app.name}.desktop</dst>
 								</data>
 								<data>
 									<type>directory</type>
 									<src>${project.basedir}/src/deploy/linux/jre1.8.0_231-lin64</src>
 									<mapper>
 										<type>perm</type>
-										<prefix>/opt/FisherMail/jre</prefix>
+										<prefix>/opt/${app.name}/jre</prefix>
 									</mapper>
 									<excludes>**/java</excludes>
 								</data>
 								<data>
 									<type>file</type>
 									<src>${project.basedir}/src/deploy/linux/jre1.8.0_231-lin64/bin/java</src>
-									<dst>/opt/FisherMail/jre/bin/java</dst>
+									<dst>/opt/${app.name}/jre/bin/java</dst>
 									<mapper>
 										<type>perm</type>
 										<filemode>755</filemode>
@@ -365,8 +366,8 @@
 								</data>
 								<data>
 									<type>file</type>
-									<src>${project.basedir}/src/deploy/linux/launcher/fishermail</src>
-									<dst>/usr/bin/fishermail</dst>
+									<src>${project.basedir}/src/deploy/linux/launcher/${app.name}</src>
+									<dst>/usr/bin/${app.name}</dst>
 									<mapper>
 										<type>perm</type>
 										<filemode>755</filemode>
@@ -374,8 +375,8 @@
 								</data>
 								<data>
 									<type>file</type>
-									<src>${project.basedir}/src/deploy/linux/bash/FisherMail.sh</src>
-									<dst>/opt/FisherMail/FisherMail.sh</dst>
+									<src>${project.basedir}/src/deploy/linux/bash/${app.name}.sh</src>
+									<dst>/opt/${app.name}/${app.name}.sh</dst>
 									<mapper>
 										<type>perm</type>
 										<filemode>755</filemode>
@@ -391,36 +392,36 @@
 							<goal>jdeb</goal>
 						</goals>
 						<configuration>
-							<deb>${project.basedir}/target/FisherMail-lin32.deb</deb>
+							<deb>${project.basedir}/target/${app.name}-lin32.deb</deb>
 							<dataSet>
 								<data>
 									<type>file</type>
-									<src>${project.basedir}/target/FisherMail.jar</src>
-									<dst>/opt/FisherMail/FisherMail.jar</dst>
+									<src>${project.basedir}/target/${app.name}.jar</src>
+									<dst>/opt/${app.name}/${app.name}.jar</dst>
 								</data>
 								<data>
 									<type>file</type>
 									<src>${project.basedir}/../mail-common/src/main/resources/net/anfoya/mail/img/Mail64.png</src>
-									<dst>/opt/FisherMail/FisherMail64.png</dst>
+									<dst>/opt/${app.name}/${app.name}64.png</dst>
 								</data>
 								<data>
 									<type>file</type>
-									<src>${project.basedir}/src/deploy/linux/launcher/FisherMail.desktop</src>
-									<dst>/usr/share/applications/FisherMail.desktop</dst>
+									<src>${project.basedir}/src/deploy/linux/launcher/${app.name}.desktop</src>
+									<dst>/usr/share/applications/${app.name}.desktop</dst>
 								</data>
 								<data>
 									<type>directory</type>
 									<src>${project.basedir}/src/deploy/linux/jre1.8.0_231-lin32</src>
 									<mapper>
 										<type>perm</type>
-										<prefix>/opt/FisherMail/jre</prefix>
+										<prefix>/opt/${app.name}/jre</prefix>
 									</mapper>
 									<excludes>**/java</excludes>
 								</data>
 								<data>
 									<type>file</type>
 									<src>${project.basedir}/src/deploy/linux/jre1.8.0_231-lin32/bin/java</src>
-									<dst>/opt/FisherMail/jre/bin/java</dst>
+									<dst>/opt/${app.name}/jre/bin/java</dst>
 									<mapper>
 										<type>perm</type>
 										<filemode>755</filemode>
@@ -428,8 +429,8 @@
 								</data>
 								<data>
 									<type>file</type>
-									<src>${project.basedir}/src/deploy/linux/launcher/fishermail</src>
-									<dst>/usr/bin/fishermail</dst>
+									<src>${project.basedir}/src/deploy/linux/launcher/${app.name}</src>
+									<dst>/usr/bin/${app.name}</dst>
 									<mapper>
 										<type>perm</type>
 										<filemode>755</filemode>
@@ -437,8 +438,8 @@
 								</data>
 								<data>
 									<type>file</type>
-									<src>${project.basedir}/src/deploy/linux/bash/FisherMail.sh</src>
-									<dst>/opt/FisherMail/FisherMail.sh</dst>
+									<src>${project.basedir}/src/deploy/linux/bash/${app.name}.sh</src>
+									<dst>/opt/${app.name}/${app.name}.sh</dst>
 									<mapper>
 										<type>perm</type>
 										<filemode>755</filemode>
@@ -478,23 +479,23 @@
 							<architecture>x86_64</architecture>
 							<entries>
 								<entry>
-									<name>/opt/FisherMail</name>
+									<name>/opt/${app.name}</name>
 									<directory>true</directory>
 								</entry>
 								<entry>
-									<name>/opt/FisherMail/FisherMail.jar</name>
-									<file>target/FisherMail.jar</file>
+									<name>/opt/${app.name}/${app.name}.jar</name>
+									<file>target/${app.name}.jar</file>
 								</entry>
 								<entry>
-									<name>/opt/FisherMail/FisherMail64.png</name>
+									<name>/opt/${app.name}/${app.name}64.png</name>
 									<file>../mail-common/src/main/resources/net/anfoya/mail/img/Mail64.png</file>
 								</entry>
 								<entry>
-									<name>/usr/share/applications/FisherMail.desktop</name>
-									<file>src/deploy/linux/launcher/FisherMail.desktop</file>
+									<name>/usr/share/applications/${app.name}.desktop</name>
+									<file>src/deploy/linux/launcher/${app.name}.desktop</file>
 								</entry>
 								<entry>
-									<name>/opt/FisherMail/jre</name>
+									<name>/opt/${app.name}/jre</name>
 									<collect>
 										<from>src/deploy/linux/jre1.8.0_231-lin64</from>
 										<excludes>
@@ -503,18 +504,18 @@
 									</collect>
 								</entry>
 								<entry>
-									<name>/opt/FisherMail/jre/bin/java</name>
+									<name>/opt/${app.name}/jre/bin/java</name>
 									<file>src/deploy/linux/jre1.8.0_231-lin64/bin/java</file>
 									<mode>755</mode>
 								</entry>
 								<entry>
-									<name>/usr/bin/fishermail</name>
-									<file>src/deploy/linux/launcher/fishermail</file>
+									<name>/usr/bin/${app.name}</name>
+									<file>src/deploy/linux/launcher/${app.name}</file>
 									<mode>755</mode>
 								</entry>
 								<entry>
-									<name>/opt/FisherMail/FisherMail.sh</name>
-									<file>src/deploy/linux/bash/FisherMail.sh</file>
+									<name>/opt/${app.name}/${app.name}.sh</name>
+									<file>src/deploy/linux/bash/${app.name}.sh</file>
 									<mode>755</mode>
 								</entry>
 							</entries>
@@ -530,23 +531,23 @@
 							<architecture>i386</architecture>
 							<entries>
 								<entry>
-									<name>/opt/FisherMail</name>
+									<name>/opt/${app.name}</name>
 									<directory>true</directory>
 								</entry>
 								<entry>
-									<name>/opt/FisherMail/FisherMail.jar</name>
-									<file>target/FisherMail.jar</file>
+									<name>/opt/${app.name}/${app.name}.jar</name>
+									<file>target/${app.name}.jar</file>
 								</entry>
 								<entry>
-									<name>/opt/FisherMail/FisherMail64.png</name>
+									<name>/opt/${app.name}/${app.name}64.png</name>
 									<file>../mail-common/src/main/resources/net/anfoya/mail/img/Mail64.png</file>
 								</entry>
 								<entry>
-									<name>/usr/share/applications/FisherMail.desktop</name>
-									<file>src/deploy/linux/launcher/FisherMail.desktop</file>
+									<name>/usr/share/applications/${app.name}.desktop</name>
+									<file>src/deploy/linux/launcher/${app.name}.desktop</file>
 								</entry>
 								<entry>
-									<name>/opt/FisherMail/jre</name>
+									<name>/opt/${app.name}/jre</name>
 									<collect>
 										<from>src/deploy/linux/jre1.8.0_231-lin32</from>
 										<excludes>
@@ -555,18 +556,18 @@
 									</collect>
 								</entry>
 								<entry>
-									<name>/opt/FisherMail/jre/bin/java</name>
+									<name>/opt/${app.name}/jre/bin/java</name>
 									<file>src/deploy/linux/jre1.8.0_231-lin32/bin/java</file>
 									<mode>755</mode>
 								</entry>
 								<entry>
-									<name>/usr/bin/fishermail</name>
-									<file>src/deploy/linux/launcher/fishermail</file>
+									<name>/usr/bin/${app.name}</name>
+									<file>src/deploy/linux/launcher/${app.name}</file>
 									<mode>755</mode>
 								</entry>
 								<entry>
-									<name>/opt/FisherMail/FisherMail.sh</name>
-									<file>src/deploy/linux/bash/FisherMail.sh</file>
+									<name>/opt/${app.name}/${app.name}.sh</name>
+									<file>src/deploy/linux/bash/${app.name}.sh</file>
 									<mode>755</mode>
 								</entry>
 							</entries>
@@ -587,7 +588,7 @@
 							<goal>single</goal>
 						</goals>
 						<configuration>
-							<finalName>FisherMail</finalName>
+							<finalName>${app.name}</finalName>
 							<attach>false</attach>
 							<descriptors>
 								<descriptor>assembly-macos.xml</descriptor>

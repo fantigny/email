@@ -25,7 +25,7 @@ import net.anfoya.mail.yahoo.YahooServiceInfo;
 
 public class MailChoice {
 	private static final String TITLE = "New connection";
-	private static final String TEXT = "Welcome to FisherMail, please select the email provider you want to use";
+	private static final String TEXT = "Welcome to %s, please select the email provider you want to use";
 	private static final double ICON_SIZE = 56;
 
 	private static final MailServiceInfo[] SERVICES = new MailServiceInfo[] {
@@ -43,7 +43,7 @@ public class MailChoice {
 	}
 
 	public MailServiceInfo getMailServiceInfo() {
-		final Label header = new Label(TEXT);
+		final Label header = new Label(String.format(TEXT, App.getName()));
 		header.setPadding(new Insets(20, 20, 30, 20));
 		header.setStyle("-fx-font-size:14px;");
 		header.setWrapText(true);

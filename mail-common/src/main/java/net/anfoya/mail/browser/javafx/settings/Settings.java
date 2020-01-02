@@ -32,6 +32,7 @@ import javafx.beans.property.StringProperty;
 import net.anfoya.java.io.SerializedFile;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
+import net.anfoya.mail.client.App;
 import net.anfoya.mail.service.MailService;
 import net.anfoya.mail.service.MailServiceInfo;
 
@@ -49,7 +50,7 @@ public class Settings implements Serializable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Settings.class);
 	private static final String FILENAME = System.getProperty("java.io.tmpdir") + File.separatorChar + "fsm-settings";
 
-	private static final String PERSISTENT_ID = "FisherMail ## global settings ##";
+	private static final String PERSISTENT_ID = String.format("%s ## global settings ##", App.getName());
 
 	private final MailService<?, ?, ?, ?, ?> mailService;
 
