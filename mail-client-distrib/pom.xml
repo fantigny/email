@@ -309,6 +309,41 @@
 				</configuration>
 			</plugin>
 
+			<!-- prepare java runtime for linux -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>truezip-maven-plugin</artifactId>
+				<version>1.2</version>
+				<executions>
+					<execution>
+						<id>unzip-lin64</id>
+						<goals>
+							<goal>copy</goal>
+						</goals>
+						<phase>package</phase>
+						<configuration>
+							<fileset>
+								<directory>src/deploy/linux/lin64.zip</directory>
+								<outputDirectory>${project.build.directory}</outputDirectory>
+							</fileset>
+						</configuration>
+					</execution>
+					<execution>
+						<id>unzip-lin32</id>
+						<goals>
+							<goal>copy</goal>
+						</goals>
+						<phase>package</phase>
+						<configuration>
+							<fileset>
+								<directory>src/deploy/linux/lin32.zip</directory>
+								<outputDirectory>${project.build.directory}</outputDirectory>
+							</fileset>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			
 			<!-- build deb packages(x86,x64) from self contained jar -->
 			<plugin>
 				<artifactId>jdeb</artifactId>
@@ -329,11 +364,11 @@
 							<goal>jdeb</goal>
 						</goals>
 						<configuration>
-							<deb>${project.basedir}/target/${app.name}-lin64.deb</deb>
+							<deb>${project.build.directory}/${app.name}-lin64.deb</deb>
 							<dataSet>
 								<data>
 									<type>file</type>
-									<src>${project.basedir}/target/${app.name}.jar</src>
+									<src>${project.build.directory}/${app.name}.jar</src>
 									<dst>/opt/${app.name}/${app.name}.jar</dst>
 								</data>
 								<data>
@@ -348,7 +383,7 @@
 								</data>
 								<data>
 									<type>directory</type>
-									<src>${project.basedir}/src/deploy/linux/lin64/openjdk11</src>
+									<src>${project.build.directory}/lin64/openjdk11</src>
 									<mapper>
 										<type>perm</type>
 										<prefix>/opt/${app.name}/openjdk</prefix>
@@ -357,7 +392,7 @@
 								</data>
 								<data>
 									<type>directory</type>
-									<src>${project.basedir}/src/deploy/linux/lin64/openjfx11</src>
+									<src>${project.build.directory}/lin64/openjfx11</src>
 									<mapper>
 										<type>perm</type>
 										<prefix>/opt/${app.name}/openjfx</prefix>
@@ -365,7 +400,7 @@
 								</data>
 								<data>
 									<type>file</type>
-									<src>${project.basedir}/src/deploy/linux/lin64/openjdk11/bin/java</src>
+									<src>${project.build.directory}/lin64/openjdk11/bin/java</src>
 									<dst>/opt/${app.name}/openjdk/bin/java</dst>
 									<mapper>
 										<type>perm</type>
@@ -400,11 +435,11 @@
 							<goal>jdeb</goal>
 						</goals>
 						<configuration>
-							<deb>${project.basedir}/target/${app.name}-lin32.deb</deb>
+							<deb>${project.build.directory}/${app.name}-lin32.deb</deb>
 							<dataSet>
 								<data>
 									<type>file</type>
-									<src>${project.basedir}/target/${app.name}.jar</src>
+									<src>${project.build.directory}/${app.name}.jar</src>
 									<dst>/opt/${app.name}/${app.name}.jar</dst>
 								</data>
 								<data>
@@ -419,7 +454,7 @@
 								</data>
 								<data>
 									<type>directory</type>
-									<src>${project.basedir}/src/deploy/linux/lin32/openjdk11</src>
+									<src>${project.build.directory}/lin32/openjdk11</src>
 									<mapper>
 										<type>perm</type>
 										<prefix>/opt/${app.name}/openjdk</prefix>
@@ -428,7 +463,7 @@
 								</data>
 								<data>
 									<type>directory</type>
-									<src>${project.basedir}/src/deploy/linux/lin32/openjfx11</src>
+									<src>${project.build.directory}/lin32/openjfx11</src>
 									<mapper>
 										<type>perm</type>
 										<prefix>/opt/${app.name}/openjfx</prefix>
@@ -436,7 +471,7 @@
 								</data>
 								<data>
 									<type>file</type>
-									<src>${project.basedir}/src/deploy/linux/lin32/openjdk11/bin/java</src>
+									<src>${project.build.directory}/lin32/openjdk11/bin/java</src>
 									<dst>/opt/${app.name}/openjdk/bin/java</dst>
 									<mapper>
 										<type>perm</type>
@@ -495,49 +530,49 @@
 							<architecture>x86_64</architecture>
 							<entries>
 								<entry>
-									<name>/opt/${app.name}</name>
 									<directory>true</directory>
+									<name>/opt/${app.name}</name>
 								</entry>
 								<entry>
-									<name>/opt/${app.name}/${app.name}.jar</name>
 									<file>target/${app.name}.jar</file>
+									<name>/opt/${app.name}/${app.name}.jar</name>
 								</entry>
 								<entry>
-									<name>/opt/${app.name}/${app.name}64.png</name>
 									<file>../mail-common/src/main/resources/net/anfoya/mail/img/Mail64.png</file>
+									<name>/opt/${app.name}/${app.name}64.png</name>
 								</entry>
 								<entry>
-									<name>/usr/share/applications/${app.name}.desktop</name>
 									<file>src/deploy/linux/launcher/${app.name}.desktop</file>
+									<name>/usr/share/applications/${app.name}.desktop</name>
 								</entry>
 								<entry>
-									<name>/opt/${app.name}/openjdk</name>
 									<collect>
-										<from>src/deploy/linux/lin64/openjdk11</from>
+										<from>target/lin64/openjdk11</from>
 										<excludes>
 											<exclude>**/java</exclude>
 										</excludes>
 									</collect>
+									<name>/opt/${app.name}/openjdk</name>
 								</entry>
 								<entry>
-									<name>/opt/${app.name}/openjfx</name>
 									<collect>
-										<from>src/deploy/linux/lin64/openjfx11</from>
+										<from>target/lin64/openjfx11</from>
 									</collect>
+									<name>/opt/${app.name}/openjfx</name>
 								</entry>
 								<entry>
+									<file>target/lin64/openjdk11/bin/java</file>
 									<name>/opt/${app.name}/openjdk/bin/java</name>
-									<file>src/deploy/linux/lin64/openjdk11/bin/java</file>
 									<mode>755</mode>
 								</entry>
 								<entry>
-									<name>/usr/bin/${app.name}</name>
 									<file>src/deploy/linux/launcher/${app.name}</file>
+									<name>/usr/bin/${app.name}</name>
 									<mode>755</mode>
 								</entry>
 								<entry>
-									<name>/opt/${app.name}/${app.name}.sh</name>
 									<file>src/deploy/linux/bash/${app.name}.sh</file>
+									<name>/opt/${app.name}/${app.name}.sh</name>
 									<mode>755</mode>
 								</entry>
 							</entries>
@@ -553,39 +588,39 @@
 							<architecture>i386</architecture>
 							<entries>
 								<entry>
-									<name>/opt/${app.name}</name>
 									<directory>true</directory>
+									<name>/opt/${app.name}</name>
 								</entry>
 								<entry>
-									<name>/opt/${app.name}/${app.name}.jar</name>
 									<file>target/${app.name}.jar</file>
+									<name>/opt/${app.name}/${app.name}.jar</name>
 								</entry>
 								<entry>
-									<name>/opt/${app.name}/${app.name}64.png</name>
 									<file>../mail-common/src/main/resources/net/anfoya/mail/img/Mail64.png</file>
+									<name>/opt/${app.name}/${app.name}64.png</name>
 								</entry>
 								<entry>
-									<name>/usr/share/applications/${app.name}.desktop</name>
 									<file>src/deploy/linux/launcher/${app.name}.desktop</file>
+									<name>/usr/share/applications/${app.name}.desktop</name>
 								</entry>
 								<entry>
-									<name>/opt/${app.name}/openjdk</name>
 									<collect>
-										<from>src/deploy/linux/lin32/openjdk11</from>
+										<from>target/lin32/openjdk11</from>
 										<excludes>
 											<exclude>**/java</exclude>
 										</excludes>
 									</collect>
+									<name>/opt/${app.name}/openjdk</name>
 								</entry>
 								<entry>
-									<name>/opt/${app.name}/openjfx</name>
 									<collect>
-										<from>src/deploy/linux/lin32/openjfx11</from>
+										<from>target/lin32/openjfx11</from>
 									</collect>
+									<name>/opt/${app.name}/openjfx</name>
 								</entry>
 								<entry>
+									<file>target/lin32/openjdk11/bin/java</file>
 									<name>/opt/${app.name}/openjdk/bin/java</name>
-									<file>src/deploy/linux/lin32/openjdk11/bin/java</file>
 									<mode>755</mode>
 								</entry>
 								<entry>

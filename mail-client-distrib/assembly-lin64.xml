@@ -7,20 +7,20 @@
 	</formats>
 	<fileSets>
 		<fileSet>
-			<directory>src/deploy/linux/lin64/openjdk11</directory>
+			<directory>${project.build.directory}/lin64/openjdk11</directory>
 			<outputDirectory>openjdk</outputDirectory>
 			<excludes>
 				<exclude>**/java</exclude>
 			</excludes>
 		</fileSet>
 		<fileSet>
-			<directory>src/deploy/linux/lin64/openjfx11</directory>
+			<directory>${project.build.directory}/lin64/openjfx11</directory>
 			<outputDirectory>openjfx</outputDirectory>
 		</fileSet>
 	</fileSets>
 	<files>
 		<file>
-			<source>src/deploy/linux/lin64/openjdk11/bin/java</source>
+			<source>${project.build.directory}/lin64/openjdk11/bin/java</source>
 			<outputDirectory>openjdk/bin</outputDirectory>
 			<fileMode>0755</fileMode>
 		</file>
