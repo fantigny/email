@@ -348,17 +348,25 @@
 								</data>
 								<data>
 									<type>directory</type>
-									<src>${project.basedir}/src/deploy/linux/jre1.8.0_231-lin64</src>
+									<src>${project.basedir}/src/deploy/linux/lin64/openjdk11</src>
 									<mapper>
 										<type>perm</type>
-										<prefix>/opt/${app.name}/jre</prefix>
+										<prefix>/opt/${app.name}/openjdk</prefix>
 									</mapper>
 									<excludes>**/java</excludes>
 								</data>
 								<data>
+									<type>directory</type>
+									<src>${project.basedir}/src/deploy/linux/lin64/openjfx11</src>
+									<mapper>
+										<type>perm</type>
+										<prefix>/opt/${app.name}/openjfx</prefix>
+									</mapper>
+								</data>
+								<data>
 									<type>file</type>
-									<src>${project.basedir}/src/deploy/linux/jre1.8.0_231-lin64/bin/java</src>
-									<dst>/opt/${app.name}/jre/bin/java</dst>
+									<src>${project.basedir}/src/deploy/linux/lin64/openjdk11/bin/java</src>
+									<dst>/opt/${app.name}/openjdk/bin/java</dst>
 									<mapper>
 										<type>perm</type>
 										<filemode>755</filemode>
@@ -411,17 +419,25 @@
 								</data>
 								<data>
 									<type>directory</type>
-									<src>${project.basedir}/src/deploy/linux/jre1.8.0_231-lin32</src>
+									<src>${project.basedir}/src/deploy/linux/lin32/openjdk11</src>
 									<mapper>
 										<type>perm</type>
-										<prefix>/opt/${app.name}/jre</prefix>
+										<prefix>/opt/${app.name}/openjdk</prefix>
 									</mapper>
 									<excludes>**/java</excludes>
 								</data>
 								<data>
+									<type>directory</type>
+									<src>${project.basedir}/src/deploy/linux/lin32/openjfx11</src>
+									<mapper>
+										<type>perm</type>
+										<prefix>/opt/${app.name}/openjfx</prefix>
+									</mapper>
+								</data>
+								<data>
 									<type>file</type>
-									<src>${project.basedir}/src/deploy/linux/jre1.8.0_231-lin32/bin/java</src>
-									<dst>/opt/${app.name}/jre/bin/java</dst>
+									<src>${project.basedir}/src/deploy/linux/lin32/openjdk11/bin/java</src>
+									<dst>/opt/${app.name}/openjdk/bin/java</dst>
 									<mapper>
 										<type>perm</type>
 										<filemode>755</filemode>
@@ -495,17 +511,23 @@
 									<file>src/deploy/linux/launcher/${app.name}.desktop</file>
 								</entry>
 								<entry>
-									<name>/opt/${app.name}/jre</name>
+									<name>/opt/${app.name}/openjdk</name>
 									<collect>
-										<from>src/deploy/linux/jre1.8.0_231-lin64</from>
+										<from>src/deploy/linux/lin64/openjdk11</from>
 										<excludes>
 											<exclude>**/java</exclude>
 										</excludes>
 									</collect>
 								</entry>
 								<entry>
-									<name>/opt/${app.name}/jre/bin/java</name>
-									<file>src/deploy/linux/jre1.8.0_231-lin64/bin/java</file>
+									<name>/opt/${app.name}/openjfx</name>
+									<collect>
+										<from>src/deploy/linux/lin64/openjfx11</from>
+									</collect>
+								</entry>
+								<entry>
+									<name>/opt/${app.name}/openjdk/bin/java</name>
+									<file>src/deploy/linux/lin64/openjdk11/bin/java</file>
 									<mode>755</mode>
 								</entry>
 								<entry>
@@ -547,17 +569,23 @@
 									<file>src/deploy/linux/launcher/${app.name}.desktop</file>
 								</entry>
 								<entry>
-									<name>/opt/${app.name}/jre</name>
+									<name>/opt/${app.name}/openjdk</name>
 									<collect>
-										<from>src/deploy/linux/jre1.8.0_231-lin32</from>
+										<from>src/deploy/linux/lin32/openjdk11</from>
 										<excludes>
 											<exclude>**/java</exclude>
 										</excludes>
 									</collect>
 								</entry>
 								<entry>
-									<name>/opt/${app.name}/jre/bin/java</name>
-									<file>src/deploy/linux/jre1.8.0_231-lin32/bin/java</file>
+									<name>/opt/${app.name}/openjfx</name>
+									<collect>
+										<from>src/deploy/linux/lin32/openjfx11</from>
+									</collect>
+								</entry>
+								<entry>
+									<name>/opt/${app.name}/openjdk/bin/java</name>
+									<file>src/deploy/linux/lin32/openjdk11/bin/java</file>
 									<mode>755</mode>
 								</entry>
 								<entry>
