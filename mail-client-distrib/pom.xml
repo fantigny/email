@@ -15,6 +15,7 @@
 
 	<properties>
 		<app.name>FisherMail</app.name>
+		<app.name.lowercase>fishermail</app.name.lowercase>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<ISCC.location>src/deploy/win/innosetup_6.0.3-mini/ISCC.exe</ISCC.location>
 		<ISCC.arg>/Qp</ISCC.arg>
@@ -115,6 +116,8 @@
 					</execution>
 				</executions>
 				<configuration>
+					<skip>${sign.skip}</skip>
+
 					<archiveDirectory>${project.build.directory}</archiveDirectory>
 					<includes>
 						<include>${app.name}.jar</include>
@@ -235,7 +238,7 @@
 				<executions>
 					<execution>
 						<id>sign-exe</id>
-						<phase>${skipPackage}</phase> <!-- hack to skip execution during continuous building -->
+						<phase>${skipSign}</phase> <!-- hack to skip execution during continuous building -->
 						<goals>
 							<goal>sign</goal>
 						</goals>
@@ -245,7 +248,7 @@
 					</execution>
 					<execution>
 						<id>sign-install64</id>
-						<phase>${skipPackage}</phase> <!-- hack to skip execution during continuous building -->
+						<phase>${skipSign}</phase> <!-- hack to skip execution during continuous building -->
 						<goals>
 							<goal>sign</goal>
 						</goals>
@@ -255,7 +258,7 @@
 					</execution>
 					<execution>
 						<id>sign-install32</id>
-						<phase>${skipPackage}</phase> <!-- hack to skip execution during continuous building -->
+						<phase>${skipSign}</phase> <!-- hack to skip execution during continuous building -->
 						<goals>
 							<goal>sign</goal>
 						</goals>
@@ -314,6 +317,9 @@
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>truezip-maven-plugin</artifactId>
 				<version>1.2</version>
+				<configuration>
+					<skip>${assembly.skipAssembly}</skip>
+				</configuration>
 				<executions>
 					<execution>
 						<id>unzip-lin64</id>
@@ -409,8 +415,8 @@
 								</data>
 								<data>
 									<type>file</type>
-									<src>${project.basedir}/src/deploy/linux/launcher/${app.name}</src>
-									<dst>/usr/bin/${app.name}</dst>
+									<src>${project.basedir}/src/deploy/linux/launcher/${app.name.lowercase}</src>
+									<dst>/usr/bin/${app.name.lowercase}</dst>
 									<mapper>
 										<type>perm</type>
 										<filemode>755</filemode>
@@ -480,8 +486,8 @@
 								</data>
 								<data>
 									<type>file</type>
-									<src>${project.basedir}/src/deploy/linux/launcher/${app.name}</src>
-									<dst>/usr/bin/${app.name}</dst>
+									<src>${project.basedir}/src/deploy/linux/launcher/${app.name.lowercase}</src>
+									<dst>/usr/bin/${app.name.lowercase}</dst>
 									<mapper>
 										<type>perm</type>
 										<filemode>755</filemode>
@@ -566,8 +572,8 @@
 									<mode>755</mode>
 								</entry>
 								<entry>
-									<file>src/deploy/linux/launcher/${app.name}</file>
-									<name>/usr/bin/${app.name}</name>
+									<file>src/deploy/linux/launcher/${app.name.lowercase}</file>
+									<name>/usr/bin/${app.name.lowercase}</name>
 									<mode>755</mode>
 								</entry>
 								<entry>
@@ -624,8 +630,8 @@
 									<mode>755</mode>
 								</entry>
 								<entry>
-									<name>/usr/bin/${app.name}</name>
-									<file>src/deploy/linux/launcher/${app.name}</file>
+									<name>/usr/bin/${app.name.lowercase}</name>
+									<file>src/deploy/linux/launcher/${app.name.lowercase}</file>
 									<mode>755</mode>
 								</entry>
 								<entry>
