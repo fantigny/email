@@ -308,7 +308,7 @@
 						<configuration>
 							<fileset>
 								<directory>src/deploy/linux/lin64.zip</directory>
-								<outputDirectory>${project.build.directory}</outputDirectory>
+								<outputDirectory>${project.build.directory}/lin64</outputDirectory>
 							</fileset>
 						</configuration>
 					</execution>
@@ -321,7 +321,7 @@
 						<configuration>
 							<fileset>
 								<directory>src/deploy/linux/lin32.zip</directory>
-								<outputDirectory>${project.build.directory}</outputDirectory>
+								<outputDirectory>${project.build.directory}/lin32</outputDirectory>
 							</fileset>
 						</configuration>
 					</execution>
