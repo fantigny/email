@@ -19,12 +19,13 @@
 			<properties>
 				<anfoya.libs.version>0.0.1-SNAPSHOT</anfoya.libs.version>
 
-				<skipTests>true</skipTests>
-				<assembly.skipAssembly>false</assembly.skipAssembly>
-				<skipPackage>package</skipPackage>
+				<skipTests>true</skipTests> <!-- TODO remove -->
+				
+				<assembly.skipAssembly>true</assembly.skipAssembly>
+				<assembly.skipPhaseHack>none</assembly.skipPhaseHack>
 
 				<sign.skip>true</sign.skip>
-				<skipSign>skip</skipSign>
+				<sign.skipPhaseHack>none</sign.skipPhaseHack>
 			</properties>
 		</profile>
 		<profile>
@@ -32,8 +33,13 @@
 			<properties>
 				<anfoya.libs.version>1.0.0-191231</anfoya.libs.version>
 
-				<skipPackage>package</skipPackage>
-				<skipSign>package</skipSign>
+				<skipTests>true</skipTests> <!-- TODO remove -->
+
+				<assembly.skipAssembly>false</assembly.skipAssembly>
+				<assembly.skipPhaseHack>package</assembly.skipPhaseHack>
+
+				<sign.skip>false</sign.skip>
+				<sign.skipPhaseHack>package</sign.skipPhaseHack>
 			</properties>
 		</profile>
 	</profiles>

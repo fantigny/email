@@ -137,7 +137,7 @@
 				<version>1.7.25</version>
 				<executions>
 					<execution>
-						<phase>${skipPackage}</phase> <!-- hack to skip execution during continuous building -->
+						<phase>${assembly.skipPhaseHack}</phase> <!-- hack to skip execution during continuous building -->
 						<goals>
 							<goal>launch4j</goal>
 						</goals>
@@ -172,6 +172,33 @@
 						<originalFilename>${app.name}.exe</originalFilename>
 					</versionInfo>
 				</configuration>
+			</plugin>
+
+			<!-- sign exe -->
+			<plugin>
+				<groupId>net.jsign</groupId>
+				<artifactId>jsign-maven-plugin</artifactId>
+				<version>2.1</version>
+				<configuration>
+					<skip>${sign.skip}</skip> <!-- doesn't work, need hack -->
+
+					<file>target/${app.name}.exe</file>
+					<name>${app.name}</name>
+					<url>https://speederpan.com</url>
+
+					<keystore>${KEYSTORE_PATH}/speederpan.com.jks</keystore>
+					<alias>speederpan.com</alias>
+					<storepass>speederpan.com</storepass>
+				</configuration>
+				<executions>
+					<execution>
+						<id>sign-exe</id>
+						<phase>${sign.skipPhaseHack}</phase> <!-- hack to skip execution during continuous building -->
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 
 			<!-- build win installers(x86,x64) from windows exe -->
@@ -226,7 +253,7 @@
 				<artifactId>jsign-maven-plugin</artifactId>
 				<version>2.1</version>
 				<configuration>
-					<skip>${assembly.skipAssembly}</skip> <!-- doesn't work, need hack -->
+					<skip>${sign.skip}</skip> <!-- doesn't work, need hack -->
 
 					<name>${app.name}</name>
 					<url>https://speederpan.com</url>
@@ -238,7 +265,7 @@
 				<executions>
 					<execution>
 						<id>sign-exe</id>
-						<phase>${skipSign}</phase> <!-- hack to skip execution during continuous building -->
+						<phase>${sign.skipPhaseHack}</phase> <!-- hack to skip execution during continuous building -->
 						<goals>
 							<goal>sign</goal>
 						</goals>
@@ -248,7 +275,7 @@
 					</execution>
 					<execution>
 						<id>sign-install64</id>
-						<phase>${skipSign}</phase> <!-- hack to skip execution during continuous building -->
+						<phase>${sign.skipPhaseHack}</phase> <!-- hack to skip execution during continuous building -->
 						<goals>
 							<goal>sign</goal>
 						</goals>
@@ -258,7 +285,7 @@
 					</execution>
 					<execution>
 						<id>sign-install32</id>
-						<phase>${skipSign}</phase> <!-- hack to skip execution during continuous building -->
+						<phase>${sign.skipPhaseHack}</phase> <!-- hack to skip execution during continuous building -->
 						<goals>
 							<goal>sign</goal>
 						</goals>
@@ -660,11 +687,11 @@
 							<finalName>${app.name}</finalName>
 							<attach>false</attach>
 							<descriptors>
-								<descriptor>assembly-macos.xml</descriptor>
-								<descriptor>assembly-win32.xml</descriptor>
-								<descriptor>assembly-win64.xml</descriptor>
-								<descriptor>assembly-lin32.xml</descriptor>
-								<descriptor>assembly-lin64.xml</descriptor>
+								<descriptor>src/assembly/assembly-macos.xml</descriptor>
+								<descriptor>src/assembly/assembly-win32.xml</descriptor>
+								<descriptor>src/assembly/assembly-win64.xml</descriptor>
+								<descriptor>src/assembly/assembly-lin32.xml</descriptor>
+								<descriptor>src/assembly/assembly-lin64.xml</descriptor>
 							</descriptors>
 						</configuration>
 					</execution>
