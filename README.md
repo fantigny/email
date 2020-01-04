@@ -19,7 +19,7 @@ _[uninstall](#uninstall)_
 _[continuous integration](#continuous-integration)_  
 
 ## cross-platform 
-__*`Java 8 or newer with JavaFX required`*__
+>__Java 8 or newer with JavaFX required__
 
 | download | [FisherMail.jar](https://jenkins.speederpan.com/job/mail-client-distrib%20(master)/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail.jar) |
 |----------|----------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -65,7 +65,7 @@ java -jar FisherMail.jar
 ```
 
 ## windows  
-__*`shipped with Java runtime from Oracle`*__
+>__shipped with Java 8 from Oracle__
 #### install
 | download | [FisherMail-win64.exe](https://jenkins.speederpan.com/job/mail-client-distrib%20(master)/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win64.exe)  |
 |----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -81,7 +81,7 @@ __*`shipped with Java runtime from Oracle`*__
 + got to FisherMail unzipped folder and run ```FisherMail.exe```
 
 ## macOs app  
-__*`shipped with Java runtime from Oracle`*__
+>__shipped with Java 8 from Oracle__
 
 | download | [FisherMail-macOs.zip](https://jenkins.speederpan.com/job/mail-client-distrib%20(master)/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-macOs.zip) |
 |----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -100,7 +100,7 @@ _FisherMail is saved as an exception to your security settings, and you can open
 ![macOs first start](www/img/macOs1stStart.png)
 
 ## linux  
-__*`shipped with [OpenJDK 11](https://openjdk.java.net/) & [OpenJFX 11](https://wiki.openjdk.java.net/display/OpenJFX/Main)`*__
+>__shipped with [OpenJDK](https://openjdk.java.net/) & [OpenJFX](https://wiki.openjdk.java.net/display/OpenJFX/Main) version 11__
 #### deb install
 | download | [FisherMail-lin64.deb](https://jenkins.speederpan.com/job/mail-client-distrib%20(master)/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-lin64.deb) |
 |----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
