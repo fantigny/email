@@ -2,6 +2,8 @@
 echo FisherMail is starting...
 execPath="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 $execPath/jre/bin/java \
+$execPath/jre/bin/java \
+	-Djdk.gtk.version=2 \
 	-client \
 	-jar \
 	$execPath/FisherMail.jar \
