@@ -12,11 +12,11 @@
 		</file>
 		<file>
 			<source>target/mail-client-distrib-0.0.1-SNAPSHOT-1.0.0.i386.rpm</source>
-			<destName>FisherMail-lin32.rpm</destName>
+			<destName>${app.name}-lin32.rpm</destName>
 		</file>
 		<file>
 			<source>target/mail-client-distrib-0.0.1-SNAPSHOT-1.0.0.x86_64.rpm</source>
-			<destName>FisherMail-lin64.rpm</destName>
+			<destName>${app.name}-lin64.rpm</destName>
 		</file>
 	</files>
 	<fileSets>
@@ -24,22 +24,22 @@
 			<directory>target</directory>
 			<outputDirectory></outputDirectory>
 			<includes>
-				<include>FisherMail.jar</include>
-				<include>FisherMail.exe</include>
+				<include>${app.name}.jar</include>
+				<include>${app.name}.exe</include>
 
-				<include>FisherMail-macOs.zip</include>
+				<include>${app.name}-macOs.zip</include>
 
-				<include>FisherMail-win32.exe</include>
-				<include>FisherMail-win64.exe</include>
+				<include>${app.name}-win32.exe</include>
+				<include>${app.name}-win64.exe</include>
 				
-				<include>FisherMail-win32.zip</include>
-				<include>FisherMail-win64.zip</include>
+				<include>${app.name}-win32.zip</include>
+				<include>${app.name}-win64.zip</include>
 
-				<include>FisherMail-lin32.deb</include>
-				<include>FisherMail-lin64.deb</include>
+				<include>${app.name}-lin32.deb</include>
+				<include>${app.name}-lin64.deb</include>
 				
-				<include>FisherMail-lin32.zip</include>
-				<include>FisherMail-lin64.zip</include>
+				<include>${app.name}-lin32.zip</include>
+				<include>${app.name}-lin64.zip</include>
 			</includes>
 		</fileSet>
 	</fileSets>

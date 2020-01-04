@@ -7,26 +7,30 @@
 	</formats>
 	<fileSets>
 		<fileSet>
-			<directory>src/deploy/linux/jre1.8.0_231-lin32</directory>
-			<outputDirectory>jre</outputDirectory>
+			<directory>${project.build.directory}/lin32/openjdk11</directory>
+			<outputDirectory>openjdk</outputDirectory>
 			<excludes>
 				<exclude>**/java</exclude>
 			</excludes>
 		</fileSet>
+		<fileSet>
+			<directory>${project.build.directory}/lin32/openjfx11</directory>
+			<outputDirectory>openjfx</outputDirectory>
+		</fileSet>
 	</fileSets>
 	<files>
 		<file>
-			<source>src/deploy/linux/jre1.8.0_231-lin32/bin/java</source>
-			<outputDirectory>jre/bin</outputDirectory>
+			<source>${project.build.directory}/lin32/openjdk11/bin/java</source>
+			<outputDirectory>openjdk/bin</outputDirectory>
 			<fileMode>0755</fileMode>
 		</file>
 		<file>
-			<source>src/deploy/linux/bash/FisherMail.sh</source>
+			<source>src/deploy/linux/bash/${app.name}.sh</source>
 			<outputDirectory></outputDirectory>
 			<fileMode>0755</fileMode>
 		</file>
 		<file>
-			<source>target/FisherMail.jar</source>
+			<source>target/${app.name}.jar</source>
 			<outputDirectory></outputDirectory>
 		</file>
 	</files>

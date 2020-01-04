@@ -18,6 +18,7 @@ import net.anfoya.mail.browser.javafx.css.CssHelper;
 import net.anfoya.mail.browser.javafx.settings.Settings;
 import net.anfoya.mail.browser.javafx.thread.ThreadPane;
 import net.anfoya.mail.browser.javafx.threadlist.ThreadListPane;
+import net.anfoya.mail.client.App;
 import net.anfoya.mail.model.Contact;
 import net.anfoya.mail.model.Message;
 import net.anfoya.mail.model.Section;
@@ -58,7 +59,7 @@ public class MailBrowser<S extends Section, T extends Tag, H extends Thread, M e
 		splitPane = (FixedSplitPane) getRoot();
 		splitPane.getStyleClass().add("background");
 
-		sectionListPane = new SectionListPane<>(mailService, undoService, settings.showExcludeBox().get());
+		sectionListPane = new SectionListPane<>(App.getName(), mailService, undoService, settings.showExcludeBox().get());
 		sectionListPane.setPrefWidth(Math.max(MIN_COLUMN_WIDTH, settings.sectionListPaneWidth().get()));
 		sectionListPane.setFocusTraversable(false);
 		sectionListPane.setSectionDisableWhenZero(false);

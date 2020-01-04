@@ -47,6 +47,7 @@ import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
 import net.anfoya.mail.browser.javafx.css.CssHelper;
 import net.anfoya.mail.browser.javafx.settings.Settings;
+import net.anfoya.mail.client.App;
 import net.anfoya.mail.mime.MessageHelper;
 import net.anfoya.mail.mime.MessageReader;
 import net.anfoya.mail.model.Contact;
@@ -88,7 +89,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 
 	public MailComposer(final MailService<?, ?, ?, M, C> mailService, final Settings settings) {
 		super(StageStyle.UNIFIED);
-		setTitle("FisherMail");
+		setTitle(App.getName());
 
 		myAddress = mailService.getContact().getEmail();
 		editedProperty = new SimpleBooleanProperty(false);
@@ -128,7 +129,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 
 		final Label subject = new Label("subject:");
 		subject.setStyle("-fx-text-fill: gray");
-		subjectField = new TextField("FisherMail - test");
+		subjectField = new TextField(App.getName() + " - test");
 		subjectField.setStyle("-fx-background-color: transparent");
 		subjectField.textProperty().addListener((ov, o, n) -> editedProperty.set(editedProperty.get() || !n.equals(o)));
 		final HBox subjectBox = new HBox(0, subject, subjectField);
@@ -207,7 +208,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 				setTitle(getTitle() + " - " + contact.getEmail());
 			} else {
 				setTitle(getTitle() + " - " + contact.getFullname() + " (" + contact.getEmail() + ")");
-				//				setTitle("FisherMail - Fred A. (abc.xyz@gmail.com)");
+				//				setTitle(App.getName() + " - Fred A. (abc.xyz@gmail.com)");
 			}
 		});
 		contactTask.setOnFailed(e -> LOGGER.error("load contacts", e.getSource().getException()));

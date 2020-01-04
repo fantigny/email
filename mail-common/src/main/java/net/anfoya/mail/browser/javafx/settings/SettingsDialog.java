@@ -48,6 +48,7 @@ import net.anfoya.javafx.scene.control.RemoveLabel;
 import net.anfoya.javafx.scene.control.SwitchButton;
 import net.anfoya.mail.browser.javafx.css.CssHelper;
 import net.anfoya.mail.browser.javafx.util.UrlHelper;
+import net.anfoya.mail.client.App;
 import net.anfoya.mail.model.Contact;
 import net.anfoya.mail.model.Message;
 import net.anfoya.mail.model.Section;
@@ -58,13 +59,13 @@ import net.anfoya.tag.service.TagException;
 
 public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SettingsDialog.class);
-    private static final String DEFAULT_CSS = SettingsDialog.class.getResource("/net/anfoya/mail/css/default_browser.css").toExternalForm();
-    private static final String HELP_HTML = SettingsDialog.class.getResource("/net/anfoya/mail/help.html").toExternalForm();
+	private static final String DEFAULT_CSS = SettingsDialog.class.getResource("/net/anfoya/mail/css/default_browser.css").toExternalForm();
+	private static final String HELP_HTML = SettingsDialog.class.getResource("/net/anfoya/mail/help.html").toExternalForm();
 
-    private final MailService<S, T, ? extends Thread, ? extends Message, ? extends Contact> mailService;
-    private final UndoService undoService;
+	private final MailService<S, T, ? extends Thread, ? extends Message, ? extends Contact> mailService;
+	private final UndoService undoService;
 
-    private final Settings settings;
+	private final Settings settings;
 	private final TabPane tabPane;
 
 	private FlowPane hiddenSectionsPane;
@@ -76,7 +77,7 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 			, final UndoService undoService
 			, final Settings settings) {
 		initStyle(StageStyle.UNIFIED);
-		setTitle("FisherMail - preferences");
+		setTitle(App.getName() + " - preferences");
 		setOnCloseRequest(e -> settings.saveLater());
 
 		this.mailService = mailService;
@@ -129,9 +130,9 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 	private Tab buildAboutTab() {
 		final ImageView image = new ImageView(new Image(getClass().getResourceAsStream("/net/anfoya/mail/img/Mail.png")));
 
-		final Text fishermail = new Text("FisherMail                         ");
-		fishermail.setFont(Font.font("Amble Cn", FontWeight.BOLD, 32));
-		fishermail.setFill(Color.web("#555555"));
+		final Text appName = new Text(App.getName() + "                         ");
+		appName.setFont(Font.font("Amble Cn", FontWeight.BOLD, 32));
+		appName.setFill(Color.web("#555555"));
 
 		final Text version = new Text();
 		version.setFont(Font.font("Amble Cn", FontWeight.NORMAL, 18));
@@ -141,7 +142,7 @@ public class SettingsDialog<S extends Section, T extends Tag> extends Stage {
 		author.setFont(Font.font("Amble Cn", FontWeight.BOLD, 18));
 		author.setFill(Color.web("#555555"));
 
-		final FlowPane textPane = new FlowPane(new VBox(8, fishermail, version, author));
+		final FlowPane textPane = new FlowPane(new VBox(8, appName, version, author));
 		textPane.setAlignment(Pos.CENTER_LEFT);
 
 		final GridPane gridPane = new GridPane();

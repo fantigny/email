@@ -45,6 +45,9 @@ import net.anfoya.mail.service.MailServiceInfo;
 
 public class MailClient extends Application {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MailClient.class);
+	private static final String APP_NAME = App.getName();
+	private static final String CONFIRM_CLOSE = "you are about to close %s\rnew e-mail notification will be stopped";
+	private static final String CONFIMR_SIGNOUT = "sign out from your e-mail account\rthis will close the mail browser";
 
 	private static final String OPTION_LOG = "option: {} = {}";
 	private static final String[][] OPTIONS = {
@@ -59,7 +62,7 @@ public class MailClient extends Application {
 
 	public static void main(final String[] args) {
 		if (PlatformUtil.isWindows()) {
-			WinShell32.setExplicitAppUserModelId(App.getName());
+			WinShell32.setExplicitAppUserModelId(APP_NAME);
 			LOGGER.info("app user model id is set to {}", WinShell32.getCurrentProcessExplicitAppUserModelID());
 		}
 
@@ -103,7 +106,7 @@ public class MailClient extends Application {
 			}
 		}
 
-		mailService = info.getMailService(App.getName());
+		mailService = info.getMailService(APP_NAME);
 		mailService.setOnAuth(() -> {
 			settings.mailServiceInfo().set(info);
 			settings.saveNow();
@@ -140,8 +143,8 @@ public class MailClient extends Application {
 
 			final Alert alert = new Alert(AlertType.CONFIRMATION);
 			alert.initOwner(stage);
-			alert.setTitle("FisherMail");
-			alert.setHeaderText("you are about to close FisherMail\rnew e-mail notification will be stopped");
+			alert.setTitle(APP_NAME);
+			alert.setHeaderText(String.format(CONFIRM_CLOSE, APP_NAME));
 			alert.getDialogPane().contentProperty().set(checkBox);
 			return alert
 					.showAndWait()
@@ -159,8 +162,8 @@ public class MailClient extends Application {
 
 			final Alert alert = new Alert(AlertType.CONFIRMATION);
 			alert.initOwner(stage);
-			alert.setTitle("FisherMail");
-			alert.setHeaderText("sign out from your e-mail account\rthis will close the mail browser");
+			alert.setTitle(APP_NAME);
+			alert.setHeaderText(CONFIMR_SIGNOUT);
 			alert.getDialogPane().contentProperty().set(checkBox);
 			return alert
 					.showAndWait()
@@ -188,7 +191,7 @@ public class MailClient extends Application {
 		version.isLastest().addListener((ov, o, n) -> {
 			if (!n) {
 				notificationService.notifySuccess(
-						"FisherMail - " + version.getLatestVersion()
+						APP_NAME +" - " + version.getLatestVersion()
 						, "click here to download"
 						, () -> UrlHelper.open(Settings.DOWNLOAD_URL));
 			}
@@ -250,7 +253,7 @@ public class MailClient extends Application {
 				if (contact.getFullname().isEmpty() || mode != Mode.FULL) {
 					return contact.getEmail();
 				} else {
-					return "FisherMail - " + contact.getFullname();
+					return APP_NAME + " - " + contact.getFullname();
 				}
 			}
 		};

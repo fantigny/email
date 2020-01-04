@@ -20,8 +20,11 @@
 				<anfoya.libs.version>0.0.1-SNAPSHOT</anfoya.libs.version>
 
 				<skipTests>true</skipTests>
-				<assembly.skipAssembly>true</assembly.skipAssembly>
-				<skipPackage>skip</skipPackage>
+				<assembly.skipAssembly>false</assembly.skipAssembly>
+				<skipPackage>package</skipPackage>
+
+				<sign.skip>true</sign.skip>
+				<skipSign>skip</skipSign>
 			</properties>
 		</profile>
 		<profile>
@@ -30,6 +33,7 @@
 				<anfoya.libs.version>1.0.0-191231</anfoya.libs.version>
 
 				<skipPackage>package</skipPackage>
+				<skipSign>package</skipSign>
 			</properties>
 		</profile>
 	</profiles>

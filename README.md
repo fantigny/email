@@ -100,7 +100,7 @@ _FisherMail is saved as an exception to your security settings, and you can open
 ![macOs first start](www/img/macOs1stStart.png)
 
 ## linux  
-__*`shipped with Java runtime from Oracle`*__
+__*`shipped with [OpenJDK 11](https://openjdk.java.net/) & [OpenJFX 11](https://wiki.openjdk.java.net/display/OpenJFX/Main)`*__
 #### deb install
 | download | [FisherMail-lin64.deb](https://jenkins.speederpan.com/job/mail-client-distrib%20(master)/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-lin64.deb) |
 |----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|

@@ -8,8 +8,8 @@
 	<includeBaseDirectory>false</includeBaseDirectory>
 	<fileSets>
 		<fileSet>
-			<directory>target/FisherMail.app</directory>
-			<outputDirectory>FisherMail.app</outputDirectory>
+			<directory>target/${app.name}.app</directory>
+			<outputDirectory>${app.name}.app</outputDirectory>
 		</fileSet>
 	</fileSets>
 </assembly>
