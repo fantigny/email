@@ -707,7 +707,7 @@
 							<appendAssemblyId>false</appendAssemblyId>
 							<attach>false</attach>
 							<descriptors>
-								<descriptor>assembly-distrib.xml</descriptor>
+								<descriptor>src/assembly/assembly-distrib.xml</descriptor>
 							</descriptors>
 						</configuration>
 					</execution>
