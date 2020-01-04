@@ -416,25 +416,17 @@
 								</data>
 								<data>
 									<type>directory</type>
-									<src>${project.build.directory}/lin64/openjdk11</src>
+									<src>${project.build.directory}/lin64/jre1.8.0_231</src>
 									<mapper>
 										<type>perm</type>
-										<prefix>/opt/${app.name}/openjdk</prefix>
+										<prefix>/opt/${app.name}/jre</prefix>
 									</mapper>
 									<excludes>**/java</excludes>
 								</data>
 								<data>
-									<type>directory</type>
-									<src>${project.build.directory}/lin64/openjfx11</src>
-									<mapper>
-										<type>perm</type>
-										<prefix>/opt/${app.name}/openjfx</prefix>
-									</mapper>
-								</data>
-								<data>
 									<type>file</type>
-									<src>${project.build.directory}/lin64/openjdk11/bin/java</src>
-									<dst>/opt/${app.name}/openjdk/bin/java</dst>
+									<src>${project.build.directory}/lin64/jre1.8.0_231/bin/java</src>
+									<dst>/opt/${app.name}/jre/bin/java</dst>
 									<mapper>
 										<type>perm</type>
 										<filemode>755</filemode>
@@ -487,25 +479,17 @@
 								</data>
 								<data>
 									<type>directory</type>
-									<src>${project.build.directory}/lin32/openjdk11</src>
+									<src>${project.build.directory}/lin32/jre1.8.0_231</src>
 									<mapper>
 										<type>perm</type>
-										<prefix>/opt/${app.name}/openjdk</prefix>
+										<prefix>/opt/${app.name}/jre</prefix>
 									</mapper>
 									<excludes>**/java</excludes>
 								</data>
 								<data>
-									<type>directory</type>
-									<src>${project.build.directory}/lin32/openjfx11</src>
-									<mapper>
-										<type>perm</type>
-										<prefix>/opt/${app.name}/openjfx</prefix>
-									</mapper>
-								</data>
-								<data>
 									<type>file</type>
-									<src>${project.build.directory}/lin32/openjdk11/bin/java</src>
-									<dst>/opt/${app.name}/openjdk/bin/java</dst>
+									<src>${project.build.directory}/lin32/jre1.8.0_231/bin/java</src>
+									<dst>/opt/${app.name}/jre/bin/java</dst>
 									<mapper>
 										<type>perm</type>
 										<filemode>755</filemode>
@@ -580,22 +564,16 @@
 								</entry>
 								<entry>
 									<collect>
-										<from>target/lin64/openjdk11</from>
+										<from>target/lin64/jre1.8.0_231</from>
 										<excludes>
 											<exclude>**/java</exclude>
 										</excludes>
 									</collect>
-									<name>/opt/${app.name}/openjdk</name>
+									<name>/opt/${app.name}/jre</name>
 								</entry>
 								<entry>
-									<collect>
-										<from>target/lin64/openjfx11</from>
-									</collect>
-									<name>/opt/${app.name}/openjfx</name>
-								</entry>
-								<entry>
-									<file>target/lin64/openjdk11/bin/java</file>
-									<name>/opt/${app.name}/openjdk/bin/java</name>
+									<file>target/lin64/jre1.8.0_231/bin/java</file>
+									<name>/opt/${app.name}/jre/bin/java</name>
 									<mode>755</mode>
 								</entry>
 								<entry>
@@ -638,22 +616,16 @@
 								</entry>
 								<entry>
 									<collect>
-										<from>target/lin32/openjdk11</from>
+										<from>target/lin32/jre1.8.0_231</from>
 										<excludes>
 											<exclude>**/java</exclude>
 										</excludes>
 									</collect>
-									<name>/opt/${app.name}/openjdk</name>
+									<name>/opt/${app.name}/jre</name>
 								</entry>
 								<entry>
-									<collect>
-										<from>target/lin32/openjfx11</from>
-									</collect>
-									<name>/opt/${app.name}/openjfx</name>
-								</entry>
-								<entry>
-									<file>target/lin32/openjdk11/bin/java</file>
-									<name>/opt/${app.name}/openjdk/bin/java</name>
+									<file>target/lin32/jre1.8.0_231/bin/java</file>
+									<name>/opt/${app.name}/jre/bin/java</name>
 									<mode>755</mode>
 								</entry>
 								<entry>
