@@ -247,55 +247,6 @@
 				</executions>
 			</plugin>
 
-			<!-- sign exe -->
-			<plugin>
-				<groupId>net.jsign</groupId>
-				<artifactId>jsign-maven-plugin</artifactId>
-				<version>2.1</version>
-				<configuration>
-					<skip>${sign.skip}</skip> <!-- doesn't work, need hack -->
-
-					<name>${app.name}</name>
-					<url>https://speederpan.com</url>
-
-					<keystore>${KEYSTORE_PATH}/speederpan.com.jks</keystore>
-					<alias>speederpan.com</alias>
-					<storepass>speederpan.com</storepass>
-				</configuration>
-				<executions>
-					<execution>
-						<id>sign-exe</id>
-						<phase>${sign.skipPhaseHack}</phase> <!-- hack to skip execution during continuous building -->
-						<goals>
-							<goal>sign</goal>
-						</goals>
-						<configuration>
-							<file>target/${app.name}.exe</file>
-						</configuration>
-					</execution>
-					<execution>
-						<id>sign-install64</id>
-						<phase>${sign.skipPhaseHack}</phase> <!-- hack to skip execution during continuous building -->
-						<goals>
-							<goal>sign</goal>
-						</goals>
-						<configuration>
-							<file>target/${app.name}-win64.exe</file>
-						</configuration>
-					</execution>
-					<execution>
-						<id>sign-install32</id>
-						<phase>${sign.skipPhaseHack}</phase> <!-- hack to skip execution during continuous building -->
-						<goals>
-							<goal>sign</goal>
-						</goals>
-						<configuration>
-							<file>target/${app.name}-win32.exe</file>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
 			<!-- build macOs App(x64) from self contained jar -->
 			<!-- ..only works on *nix systems -->
 			<plugin>
@@ -357,7 +308,7 @@
 						<configuration>
 							<fileset>
 								<directory>src/deploy/linux/lin64.zip</directory>
-								<outputDirectory>${project.build.directory}</outputDirectory>
+								<outputDirectory>${project.build.directory}/lin64</outputDirectory>
 							</fileset>
 						</configuration>
 					</execution>
@@ -370,7 +321,7 @@
 						<configuration>
 							<fileset>
 								<directory>src/deploy/linux/lin32.zip</directory>
-								<outputDirectory>${project.build.directory}</outputDirectory>
+								<outputDirectory>${project.build.directory}/lin32</outputDirectory>
 							</fileset>
 						</configuration>
 					</execution>
