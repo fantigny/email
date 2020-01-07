@@ -68,17 +68,16 @@
 			<!-- compiling Java 8 for now -->
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.7.0</version>
+				<version>3.8.1</version>
 				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
+					<release>11</release>
 				</configuration>
 			</plugin>
 
 			<!-- build self contained executable jar -->
 			<plugin>
 				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.1.0</version>
+				<version>3.2.1</version>
 				<executions>
 					<execution>
 						<phase>package</phase>
@@ -178,7 +177,7 @@
 			<plugin>
 				<groupId>net.jsign</groupId>
 				<artifactId>jsign-maven-plugin</artifactId>
-				<version>2.1</version>
+				<version>3.0</version>
 				<configuration>
 					<skip>${sign.skip}</skip> <!-- doesn't work, need hack -->
 
@@ -242,55 +241,6 @@
 								<argument>${ISCC.arg}</argument>
 								<argument>innosetup-win64.iss</argument>
 							</arguments>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
-			<!-- sign exe -->
-			<plugin>
-				<groupId>net.jsign</groupId>
-				<artifactId>jsign-maven-plugin</artifactId>
-				<version>2.1</version>
-				<configuration>
-					<skip>${sign.skip}</skip> <!-- doesn't work, need hack -->
-
-					<name>${app.name}</name>
-					<url>https://speederpan.com</url>
-
-					<keystore>${KEYSTORE_PATH}/speederpan.com.jks</keystore>
-					<alias>speederpan.com</alias>
-					<storepass>speederpan.com</storepass>
-				</configuration>
-				<executions>
-					<execution>
-						<id>sign-exe</id>
-						<phase>${sign.skipPhaseHack}</phase> <!-- hack to skip execution during continuous building -->
-						<goals>
-							<goal>sign</goal>
-						</goals>
-						<configuration>
-							<file>target/${app.name}.exe</file>
-						</configuration>
-					</execution>
-					<execution>
-						<id>sign-install64</id>
-						<phase>${sign.skipPhaseHack}</phase> <!-- hack to skip execution during continuous building -->
-						<goals>
-							<goal>sign</goal>
-						</goals>
-						<configuration>
-							<file>target/${app.name}-win64.exe</file>
-						</configuration>
-					</execution>
-					<execution>
-						<id>sign-install32</id>
-						<phase>${sign.skipPhaseHack}</phase> <!-- hack to skip execution during continuous building -->
-						<goals>
-							<goal>sign</goal>
-						</goals>
-						<configuration>
-							<file>target/${app.name}-win32.exe</file>
 						</configuration>
 					</execution>
 				</executions>
@@ -675,7 +625,7 @@
 			<!-- zip portable packages and move all to distrib -->
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
-				<version>3.1.0</version>
+				<version>3.2.0</version>
 				<executions>
 					<execution>
 						<id>build-portable-packages</id>
