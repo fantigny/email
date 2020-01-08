@@ -6,6 +6,7 @@
 		<maven>3.3</maven>
 	</prerequisites>
 
+	<description>cross-platform e-mail client</description>
 	<packaging>pom</packaging>
 	<groupId>net.anfoya</groupId>
 	<artifactId>mail-client-pom</artifactId>
@@ -25,11 +26,11 @@
 
 				<skipTests>true</skipTests> <!-- TODO remove -->
 
-				<assembly.skipAssembly>true</assembly.skipAssembly>
-				<assembly.skipPhaseHack>none</assembly.skipPhaseHack>
+				<assembly.skipAssembly>false</assembly.skipAssembly>
+				<assembly.skipPhaseHack>package</assembly.skipPhaseHack>
 
-				<sign.skip>true</sign.skip>
-				<sign.skipPhaseHack>none</sign.skipPhaseHack>
+				<sign.skip>false</sign.skip>
+				<sign.skipPhaseHack>package</sign.skipPhaseHack>
 			</properties>
 		</profile>
 		<profile>
