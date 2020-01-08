@@ -14,7 +14,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<fishermail.version>1.0.191227-beta</fishermail.version>
+		<app.version>1.0.191227-beta</app.version>
 		<skipTests>true</skipTests> <!-- TODO remove -->
 	</properties>
 

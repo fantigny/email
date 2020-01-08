@@ -1,1 +1,1 @@
-${fishermail.version}
+${app.version}
