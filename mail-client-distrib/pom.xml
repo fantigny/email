@@ -189,19 +189,76 @@
 				<version>1.0.5</version>
 				<executions>
 					<execution>
-						<id>cache-jdk-11</id>
+						<id>jre.win64</id>
 						<phase>package</phase>
 						<goals>
 							<goal>cache-jdk</goal>
 						</goals>
 						<configuration>
 							<jdkPathProperty>jre.win64</jdkPathProperty>
-							<jdkCachePath>${project.build.directory}/jdkCache</jdkCachePath>
+							<jdkCachePath>target/jreCache</jdkCachePath>
 							<provider>BELLSOFT</provider>
 							<providerConfig>
 								<version>11.0.5+11</version>
 								<os>windows</os>
 								<arch>amd64</arch>
+								<type>jre</type>
+								<ext>zip</ext>
+							</providerConfig>
+						</configuration>
+					</execution>
+					<execution>
+						<id>jre.win32</id>
+						<phase>package</phase>
+						<goals>
+							<goal>cache-jdk</goal>
+						</goals>
+						<configuration>
+							<jdkPathProperty>jre.win32</jdkPathProperty>
+							<jdkCachePath>target/jreCache</jdkCachePath>
+							<provider>BELLSOFT</provider>
+							<providerConfig>
+								<version>11.0.5+11</version>
+								<os>windows</os>
+								<arch>i586</arch>
+								<type>jre</type>
+								<ext>zip</ext>
+							</providerConfig>
+						</configuration>
+					</execution>
+					<execution>
+						<id>jre.lin64</id>
+						<phase>package</phase>
+						<goals>
+							<goal>cache-jdk</goal>
+						</goals>
+						<configuration>
+							<jdkPathProperty>jre.lin64</jdkPathProperty>
+							<jdkCachePath>target/jreCache</jdkCachePath>
+							<provider>BELLSOFT</provider>
+							<providerConfig>
+								<version>11.0.5+11</version>
+								<os>linux</os>
+								<arch>amd64</arch>
+								<type>jre</type>
+								<ext>zip</ext>
+							</providerConfig>
+						</configuration>
+					</execution>
+					<execution>
+						<id>jre.lin32</id>
+						<phase>package</phase>
+						<goals>
+							<goal>cache-jdk</goal>
+						</goals>
+						<configuration>
+							<jdkPathProperty>jre.lin32</jdkPathProperty>
+							<jdkCachePath>target/jreCache</jdkCachePath>
+							<provider>BELLSOFT</provider>
+							<providerConfig>
+								<version>11.0.5+11</version>
+								<os>linux</os>
+								<arch>i586</arch>
 								<type>jre</type>
 								<ext>zip</ext>
 							</providerConfig>
@@ -225,7 +282,11 @@
 							<finalName>${app.name}</finalName>
 							<attach>false</attach>
 							<descriptors>
+								<descriptor>src/assembly/assembly-macos.xml</descriptor>
 								<descriptor>src/assembly/assembly-win64.xml</descriptor>
+								<descriptor>src/assembly/assembly-win32.xml</descriptor>
+								<descriptor>src/assembly/assembly-lin64.xml</descriptor>
+								<descriptor>src/assembly/assembly-lin32.xml</descriptor>
 							</descriptors>
 						</configuration>
 					</execution>
