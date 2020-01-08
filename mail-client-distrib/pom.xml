@@ -72,7 +72,7 @@
 					</execution>
 				</executions>
 				<configuration>
-					<outputFile>target/${app.name}.jar</outputFile>
+					<outputFile>${project.build.directory}/${app.name}.jar</outputFile>
 					<shadedArtifactAttached>true</shadedArtifactAttached>
 					<shadedClassifierName>jar-with-dependencies</shadedClassifierName>
 					<transformers>
@@ -102,7 +102,7 @@
 				<configuration>
 					<skip>${sign.skip}</skip>
 
-					<archive>target/${app.name}.jar</archive>
+					<archive>${project.build.directory}/${app.name}.jar</archive>
 
 					<keystore>${KEYSTORE_PATH}/speederpan.com.jks</keystore>
 					<alias>speederpan.com</alias>
@@ -128,8 +128,8 @@
 					<skip>${assembly.skipAssembly}</skip> <!-- doesn't work, need hack -->
 
 					<headerType>gui</headerType>
-					<jar>target/${app.name}.jar</jar>
-					<outfile>target/${app.name}.exe</outfile>
+					<jar>${project.build.directory}/${app.name}.jar</jar>
+					<outfile>${project.build.directory}/${app.name}.exe</outfile>
 					<errTitle>${app.name} Error</errTitle>
 					<classPath>
 						<mainClass>net.anfoya.mail.client.javafx.entrypoint.MailClient</mainClass>
@@ -172,7 +172,7 @@
 				<configuration>
 					<skip>${sign.skip}</skip> <!-- doesn't work, need hack -->
 
-					<file>target/${app.name}.exe</file>
+					<file>${project.build.directory}/${app.name}.exe</file>
 					<name>${app.name}</name>
 					<url>https://speederpan.com</url>
 
@@ -196,7 +196,7 @@
 						</goals>
 						<configuration>
 							<jdkPathProperty>jre.win64</jdkPathProperty>
-							<jdkCachePath>target/jreCache</jdkCachePath>
+							<jdkCachePath>${project.build.directory}/jreCache</jdkCachePath>
 							<provider>BELLSOFT</provider>
 							<providerConfig>
 								<version>11.0.5+11</version>
@@ -215,7 +215,7 @@
 						</goals>
 						<configuration>
 							<jdkPathProperty>jre.win32</jdkPathProperty>
-							<jdkCachePath>target/jreCache</jdkCachePath>
+							<jdkCachePath>${project.build.directory}/jreCache</jdkCachePath>
 							<provider>BELLSOFT</provider>
 							<providerConfig>
 								<version>11.0.5+11</version>
@@ -234,7 +234,7 @@
 						</goals>
 						<configuration>
 							<jdkPathProperty>jre.lin64</jdkPathProperty>
-							<jdkCachePath>target/jreCache</jdkCachePath>
+							<jdkCachePath>${project.build.directory}/jreCache</jdkCachePath>
 							<provider>BELLSOFT</provider>
 							<providerConfig>
 								<version>11.0.5+11</version>
@@ -253,7 +253,7 @@
 						</goals>
 						<configuration>
 							<jdkPathProperty>jre.lin32</jdkPathProperty>
-							<jdkCachePath>target/jreCache</jdkCachePath>
+							<jdkCachePath>${project.build.directory}/jreCache</jdkCachePath>
 							<provider>BELLSOFT</provider>
 							<providerConfig>
 								<version>11.0.5+11</version>
