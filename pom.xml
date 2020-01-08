@@ -26,11 +26,11 @@
 
 				<skipTests>true</skipTests> <!-- TODO remove -->
 
-				<assembly.skipAssembly>false</assembly.skipAssembly>
-				<assembly.skipPhaseHack>package</assembly.skipPhaseHack>
+				<assembly.skipAssembly>true</assembly.skipAssembly>
+				<assembly.skipPhaseHack>none</assembly.skipPhaseHack>
 
-				<sign.skip>false</sign.skip>
-				<sign.skipPhaseHack>package</sign.skipPhaseHack>
+				<sign.skip>true</sign.skip>
+				<sign.skipPhaseHack>none</sign.skipPhaseHack>
 			</properties>
 		</profile>
 		<profile>

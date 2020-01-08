@@ -282,7 +282,6 @@
 							<finalName>${app.name}</finalName>
 							<attach>false</attach>
 							<descriptors>
-								<descriptor>src/assembly/assembly-macos.xml</descriptor>
 								<descriptor>src/assembly/assembly-win64.xml</descriptor>
 								<descriptor>src/assembly/assembly-win32.xml</descriptor>
 								<descriptor>src/assembly/assembly-lin64.xml</descriptor>
