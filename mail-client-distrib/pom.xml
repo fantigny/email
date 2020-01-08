@@ -189,6 +189,25 @@
 				<version>1.0.5</version>
 				<executions>
 					<execution>
+						<id>jre.mac64</id>
+						<phase>package</phase>
+						<goals>
+							<goal>cache-jdk</goal>
+						</goals>
+						<configuration>
+							<jdkPathProperty>jre.mac64</jdkPathProperty>
+							<jdkCachePath>${project.build.directory}/jreCache</jdkCachePath>
+							<provider>BELLSOFT</provider>
+							<providerConfig>
+								<version>11.0.5+11</version>
+								<os>macOs</os>
+								<arch>amd64</arch>
+								<type>jre</type>
+								<ext>zip</ext>
+							</providerConfig>
+						</configuration>
+					</execution>
+					<execution>
 						<id>jre.win64</id>
 						<phase>package</phase>
 						<goals>
@@ -624,6 +643,22 @@
 								<descriptor>src/assembly/assembly-win32.xml</descriptor>
 								<descriptor>src/assembly/assembly-lin64.xml</descriptor>
 								<descriptor>src/assembly/assembly-lin32.xml</descriptor>
+							</descriptors>
+						</configuration>
+					</execution>
+					<execution>
+						<id>move-to-distrib</id>
+						<phase>install</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<finalName>distrib</finalName>
+							<outputDirectory>${project.basedir}</outputDirectory>
+							<appendAssemblyId>false</appendAssemblyId>
+							<attach>false</attach>
+							<descriptors>
+								<descriptor>src/assembly/assembly-distrib.xml</descriptor>
 							</descriptors>
 						</configuration>
 					</execution>
