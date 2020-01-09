@@ -182,73 +182,7 @@
 				</configuration>
 			</plugin>
 
-			<!-- prepare openJdk (macOs) -->
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>truezip-maven-plugin</artifactId>
-				<version>1.2</version>
-				<configuration>
-					<skip>${assembly.skipAssembly}</skip>
-				</configuration>
-				<executions>
-					<execution>
-						<id>unzip-jre-macOs</id>
-						<goals>
-							<goal>copy</goal>
-						</goals>
-						<phase>package</phase>
-						<configuration>
-							<fileset>
-								<directory>src/deploy/macOs/openJdk11.zip</directory>
-								<outputDirectory>${project.build.directory}/macOs/openJdk</outputDirectory>
-							</fileset>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
-			<!-- build macOs App(x64) from self contained jar -->
-			<!-- ..only works on *nix systems -->
-			<plugin>
-				<artifactId>maven-antrun-plugin</artifactId>
-				<version>1.8</version>
-				<dependencies>
-					<dependency>
-						<groupId>com.panayotis</groupId>
-						<artifactId>appbundler</artifactId>
-						<version>1.1.0</version>
-					</dependency>
-				</dependencies>
-				<executions>
-					<execution>
-						<id>macAppBundle</id>
-						<phase>package</phase>
-						<goals>
-							<goal>run</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<skip>false</skip>
-					<target>
-						<taskdef name="bundleapp"
-							classname="com.oracle.appbundler.AppBundlerTask"
-							classpathref="maven.plugin.classpath" />
-						<bundleapp outputdirectory="target" name="${app.name}"
-							displayname="${app.name}"
-							icon="../mail-common/src/main/resources/net/anfoya/mail/img/Mail.icns"
-							identifier="net.anfoya.mail-client" shortversion="2.0"
-							copyright="speederpan.com"
-							mainclassname="net.anfoya.mail.client.javafx.entrypoint.MailClient">
-							<classpath file="target/${app.name}.jar" />
-							<option value="-client" />
-							<runtime dir="target/macOs/openJdk/Contents/Home" />
-						</bundleapp>
-					</target>
-				</configuration>
-			</plugin>
-
-			<!-- prepare openJdk (win32,64 and lin32,64) -->
+			<!-- prepare openJdk (win64, lin64) -->
 			<plugin>
 				<groupId>com.igormaznitsa</groupId>
 				<artifactId>mvn-jlink-wrapper</artifactId>
@@ -280,20 +214,6 @@
 						</configuration>
 					</execution>
 					<execution>
-						<id>jre.win32</id>
-						<phase>package</phase>
-						<goals>
-							<goal>cache-jdk</goal>
-						</goals>
-						<configuration>
-							<jdkPathProperty>jre.win32</jdkPathProperty>
-							<providerConfig>
-								<os>windows</os>
-								<arch>i586</arch>
-							</providerConfig>
-						</configuration>
-					</execution>
-					<execution>
 						<id>jre.lin64</id>
 						<phase>package</phase>
 						<goals>
@@ -307,21 +227,87 @@
 							</providerConfig>
 						</configuration>
 					</execution>
+				</executions>
+			</plugin>
+
+			<!-- prepare openJdk (macOs, win32) -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>truezip-maven-plugin</artifactId>
+				<version>1.2</version>
+				<configuration>
+					<skip>${assembly.skipAssembly}</skip>
+				</configuration>
+				<executions>
 					<execution>
-						<id>jre.lin32</id>
-						<phase>package</phase>
+						<id>unzip-jre-macOs</id>
 						<goals>
-							<goal>cache-jdk</goal>
+							<goal>copy</goal>
 						</goals>
+						<phase>package</phase>
 						<configuration>
-							<jdkPathProperty>jre.lin32</jdkPathProperty>
-							<providerConfig>
-								<os>linux</os>
-								<arch>i586</arch>
-							</providerConfig>
+							<fileset>
+								<directory>src/deploy/macOs/jre/openJdk11.zip</directory>
+								<outputDirectory>${project.build.directory}/jreCache/openJdkMacOs</outputDirectory>
+							</fileset>
+						</configuration>
+					</execution>
+					<execution>
+						<id>unzip-jre-win32</id>
+						<goals>
+							<goal>copy</goal>
+						</goals>
+						<phase>package</phase>
+						<configuration>
+							<fileset>
+								<directory>src/deploy/win/jre/zulu11.35.15-ca-fx-jre11.0.5-win_i686.zip</directory>
+								<outputDirectory>${project.build.directory}/jreCache/openJdkWin32</outputDirectory>
+							</fileset>
 						</configuration>
 					</execution>
 				</executions>
+			</plugin>
+
+			<!-- build macOs App(x64) from self contained jar -->
+			<!-- ..only works on *nix systems -->
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.8</version>
+				<dependencies>
+					<dependency>
+						<groupId>com.panayotis</groupId>
+						<artifactId>appbundler</artifactId>
+						<version>1.1.0</version>
+					</dependency>
+				</dependencies>
+				<executions>
+					<execution>
+						<id>macAppBundle</id>
+						<phase>package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<skip>${assembly.skipAssembly}</skip>
+					
+					<target>
+						<taskdef name="bundleapp"
+							classname="com.oracle.appbundler.AppBundlerTask"
+							classpathref="maven.plugin.classpath" />
+						<bundleapp outputdirectory="target" name="${app.name}"
+							displayname="${app.name}"
+							icon="../mail-common/src/main/resources/net/anfoya/mail/img/Mail.icns"
+							identifier="net.anfoya.mail-client" shortversion="2.0"
+							copyright="speederpan.com"
+							mainclassname="net.anfoya.mail.client.javafx.entrypoint.MailClient">
+							<classpath file="target/${app.name}.jar" />
+							<option value="-client" />
+							<runtime dir="target/jreCache/openJdkMacOs/Contents/Home" />
+						</bundleapp>
+					</target>
+				</configuration>
 			</plugin>
 
 			<plugin>
@@ -329,7 +315,7 @@
 				<version>3.1.0</version>
 				<executions>
 					<execution>
-						<!-- finalise mac bundle JRE -->
+			<!-- finalise mac bundle JRE -->
 						<id>copy-mac-bundle-jre</id>
 						<phase>package</phase>
 						<goals>
@@ -340,14 +326,14 @@
 							
 							<resources>
 								<resource>
-									<directory>target/macOs/openJdk</directory>
+									<directory>target/jreCache/openJdkMacOs</directory>
 								</resource>
 							</resources>
 							<outputDirectory>target/${app.name}.app/Contents/PlugIns/openJdk</outputDirectory>
 						</configuration>
 					</execution>
 					<execution>
-						<!-- prepare win install scripts -->
+			<!-- prepare win install scripts -->
 						<id>copy-iss</id>
 						<phase>package</phase>
 						<goals>
@@ -417,7 +403,7 @@
 				</executions>
 			</plugin>
 
-			<!-- build deb packages(x86,x64) from self contained jar -->
+			<!-- build deb packages(x64) from self contained jar -->
 			<plugin>
 				<artifactId>jdeb</artifactId>
 				<groupId>org.vafer</groupId>
@@ -466,69 +452,6 @@
 								<data>
 									<type>file</type>
 									<src>${jre.lin64}/bin/java</src>
-									<dst>/opt/${app.name}/jre/bin/java</dst>
-									<mapper>
-										<type>perm</type>
-										<filemode>755</filemode>
-									</mapper>
-								</data>
-								<data>
-									<type>file</type>
-									<src>${project.basedir}/src/deploy/linux/launcher/${app.name.lowercase}</src>
-									<dst>/usr/bin/${app.name.lowercase}</dst>
-									<mapper>
-										<type>perm</type>
-										<filemode>755</filemode>
-									</mapper>
-								</data>
-								<data>
-									<type>file</type>
-									<src>${project.basedir}/src/deploy/linux/bash/${app.name}.sh</src>
-									<dst>/opt/${app.name}/${app.name}.sh</dst>
-									<mapper>
-										<type>perm</type>
-										<filemode>755</filemode>
-									</mapper>
-								</data>
-							</dataSet>
-						</configuration>
-					</execution>
-					<execution>
-						<id>deb32</id>
-						<phase>package</phase>
-						<goals>
-							<goal>jdeb</goal>
-						</goals>
-						<configuration>
-							<deb>${project.build.directory}/${app.name}-lin32.deb</deb>
-							<dataSet>
-								<data>
-									<type>file</type>
-									<src>${project.build.directory}/${app.name}.jar</src>
-									<dst>/opt/${app.name}/${app.name}.jar</dst>
-								</data>
-								<data>
-									<type>file</type>
-									<src>${project.basedir}/../mail-common/src/main/resources/net/anfoya/mail/img/Mail64.png</src>
-									<dst>/opt/${app.name}/${app.name}64.png</dst>
-								</data>
-								<data>
-									<type>file</type>
-									<src>${project.basedir}/src/deploy/linux/launcher/${app.name}.desktop</src>
-									<dst>/usr/share/applications/${app.name}.desktop</dst>
-								</data>
-								<data>
-									<type>directory</type>
-									<src>${jre.lin32}</src>
-									<mapper>
-										<type>perm</type>
-										<prefix>/opt/${app.name}/jre</prefix>
-									</mapper>
-									<excludes>**/java</excludes>
-								</data>
-								<data>
-									<type>file</type>
-									<src>${jre.lin32}/bin/java</src>
 									<dst>/opt/${app.name}/jre/bin/java</dst>
 									<mapper>
 										<type>perm</type>
@@ -629,58 +552,6 @@
 							</entries>
 						</configuration>
 					</execution>
-					<execution>
-						<id>rpm32</id>
-						<phase>package</phase>
-						<goals>
-							<goal>rpm</goal>
-						</goals>
-						<configuration>
-							<architecture>i386</architecture>
-							<entries>
-								<entry>
-									<directory>true</directory>
-									<name>/opt/${app.name}</name>
-								</entry>
-								<entry>
-									<file>target/${app.name}.jar</file>
-									<name>/opt/${app.name}/${app.name}.jar</name>
-								</entry>
-								<entry>
-									<file>../mail-common/src/main/resources/net/anfoya/mail/img/Mail64.png</file>
-									<name>/opt/${app.name}/${app.name}64.png</name>
-								</entry>
-								<entry>
-									<file>src/deploy/linux/launcher/${app.name}.desktop</file>
-									<name>/usr/share/applications/${app.name}.desktop</name>
-								</entry>
-								<entry>
-									<collect>
-										<from>${jre.lin32}</from>
-										<excludes>
-											<exclude>**/java</exclude>
-										</excludes>
-									</collect>
-									<name>/opt/${app.name}/jre</name>
-								</entry>
-								<entry>
-									<file>${jre.lin32}/bin/java</file>
-									<name>/opt/${app.name}/jre/bin/java</name>
-									<mode>755</mode>
-								</entry>
-								<entry>
-									<name>/usr/bin/${app.name.lowercase}</name>
-									<file>src/deploy/linux/launcher/${app.name.lowercase}</file>
-									<mode>755</mode>
-								</entry>
-								<entry>
-									<name>/opt/${app.name}/${app.name}.sh</name>
-									<file>src/deploy/linux/bash/${app.name}.sh</file>
-									<mode>755</mode>
-								</entry>
-							</entries>
-						</configuration>
-					</execution>
 				</executions>
 			</plugin>
 
@@ -703,7 +574,6 @@
 								<descriptor>src/assembly/assembly-win64.xml</descriptor>
 								<descriptor>src/assembly/assembly-win32.xml</descriptor>
 								<descriptor>src/assembly/assembly-lin64.xml</descriptor>
-								<descriptor>src/assembly/assembly-lin32.xml</descriptor>
 							</descriptors>
 						</configuration>
 					</execution>
