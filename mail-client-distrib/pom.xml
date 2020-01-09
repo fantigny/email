@@ -652,7 +652,7 @@
 									<name>/opt/${app.name}/jre</name>
 								</entry>
 								<entry>
-									<file>${jre.lin32}/jre1.8.0_231/bin/java</file>
+									<file>${jre.lin32}/bin/java</file>
 									<name>/opt/${app.name}/jre/bin/java</name>
 									<mode>755</mode>
 								</entry>
