@@ -182,7 +182,55 @@
 				</configuration>
 			</plugin>
 
-			<!-- prepare openJdk (macOs) -->
+			<!-- prepare openJdk (win64, lin64) -->
+			<plugin>
+				<groupId>com.igormaznitsa</groupId>
+				<artifactId>mvn-jlink-wrapper</artifactId>
+				<version>1.0.5</version>
+				<configuration>
+					<skip>${assembly.skipAssembly}</skip>
+
+					<jdkCachePath>${project.build.directory}/jreCache</jdkCachePath>
+					<provider>BELLSOFT</provider>
+					<providerConfig>
+						<version>11.0.5+11</version>
+						<type>jre</type>
+						<ext>zip</ext>
+					</providerConfig>
+				</configuration>
+				<executions>
+					<execution>
+						<id>jre.win64</id>
+						<phase>package</phase>
+						<goals>
+							<goal>cache-jdk</goal>
+						</goals>
+						<configuration>
+							<jdkPathProperty>jre.win64</jdkPathProperty>
+							<providerConfig>
+								<os>windows</os>
+								<arch>amd64</arch>
+							</providerConfig>
+						</configuration>
+					</execution>
+					<execution>
+						<id>jre.lin64</id>
+						<phase>package</phase>
+						<goals>
+							<goal>cache-jdk</goal>
+						</goals>
+						<configuration>
+							<jdkPathProperty>jre.lin64</jdkPathProperty>
+							<providerConfig>
+								<os>linux</os>
+								<arch>amd64</arch>
+							</providerConfig>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- prepare openJdk (macOs, win32) -->
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>truezip-maven-plugin</artifactId>
@@ -199,8 +247,21 @@
 						<phase>package</phase>
 						<configuration>
 							<fileset>
-								<directory>src/deploy/macOs/openJdk11.zip</directory>
-								<outputDirectory>${project.build.directory}/macOs/openJdk</outputDirectory>
+								<directory>src/deploy/macOs/jre/openJdk11.zip</directory>
+								<outputDirectory>${project.build.directory}/jreCache/openJdkMacOs</outputDirectory>
+							</fileset>
+						</configuration>
+					</execution>
+					<execution>
+						<id>unzip-jre-win32</id>
+						<goals>
+							<goal>copy</goal>
+						</goals>
+						<phase>package</phase>
+						<configuration>
+							<fileset>
+								<directory>src/deploy/win/jre/zulu11.35.15-ca-fx-jre11.0.5-win_i686.zip</directory>
+								<outputDirectory>${project.build.directory}/jreCache/openJdkWin32</outputDirectory>
 							</fileset>
 						</configuration>
 					</execution>
@@ -243,86 +304,10 @@
 							mainclassname="net.anfoya.mail.client.javafx.entrypoint.MailClient">
 							<classpath file="target/${app.name}.jar" />
 							<option value="-client" />
-							<runtime dir="target/macOs/openJdk/Contents/Home" />
+							<runtime dir="target/jreCache/openJdkMacOs/Contents/Home" />
 						</bundleapp>
 					</target>
 				</configuration>
-			</plugin>
-
-			<!-- prepare openJdk (win32,64 and lin32,64) -->
-			<plugin>
-				<groupId>com.igormaznitsa</groupId>
-				<artifactId>mvn-jlink-wrapper</artifactId>
-				<version>1.0.5</version>
-				<configuration>
-					<skip>${assembly.skipAssembly}</skip>
-
-					<jdkCachePath>${project.build.directory}/jreCache</jdkCachePath>
-					<provider>BELLSOFT</provider>
-					<providerConfig>
-						<version>11.0.5+11</version>
-						<type>jre</type>
-						<ext>zip</ext>
-					</providerConfig>
-				</configuration>
-				<executions>
-					<execution>
-						<id>jre.win64</id>
-						<phase>package</phase>
-						<goals>
-							<goal>cache-jdk</goal>
-						</goals>
-						<configuration>
-							<jdkPathProperty>jre.win64</jdkPathProperty>
-							<providerConfig>
-								<os>windows</os>
-								<arch>amd64</arch>
-							</providerConfig>
-						</configuration>
-					</execution>
-					<execution>
-						<id>jre.win32</id>
-						<phase>package</phase>
-						<goals>
-							<goal>cache-jdk</goal>
-						</goals>
-						<configuration>
-							<jdkPathProperty>jre.win32</jdkPathProperty>
-							<providerConfig>
-								<os>windows</os>
-								<arch>i586</arch>
-							</providerConfig>
-						</configuration>
-					</execution>
-					<execution>
-						<id>jre.lin64</id>
-						<phase>package</phase>
-						<goals>
-							<goal>cache-jdk</goal>
-						</goals>
-						<configuration>
-							<jdkPathProperty>jre.lin64</jdkPathProperty>
-							<providerConfig>
-								<os>linux</os>
-								<arch>amd64</arch>
-							</providerConfig>
-						</configuration>
-					</execution>
-					<execution>
-						<id>jre.lin32</id>
-						<phase>package</phase>
-						<goals>
-							<goal>cache-jdk</goal>
-						</goals>
-						<configuration>
-							<jdkPathProperty>jre.lin32</jdkPathProperty>
-							<providerConfig>
-								<os>linux</os>
-								<arch>i586</arch>
-							</providerConfig>
-						</configuration>
-					</execution>
-				</executions>
 			</plugin>
 
 			<plugin>
@@ -341,7 +326,7 @@
 							
 							<resources>
 								<resource>
-									<directory>target/macOs/openJdk</directory>
+									<directory>target/jreCache/openJdkMacOs</directory>
 								</resource>
 							</resources>
 							<outputDirectory>target/${app.name}.app/Contents/PlugIns/openJdk</outputDirectory>
