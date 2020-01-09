@@ -315,7 +315,7 @@
 				<version>3.1.0</version>
 				<executions>
 					<execution>
-						<!-- finalise mac bundle JRE -->
+			<!-- finalise mac bundle JRE -->
 						<id>copy-mac-bundle-jre</id>
 						<phase>package</phase>
 						<goals>
@@ -333,7 +333,7 @@
 						</configuration>
 					</execution>
 					<execution>
-						<!-- prepare win install scripts -->
+			<!-- prepare win install scripts -->
 						<id>copy-iss</id>
 						<phase>package</phase>
 						<goals>
@@ -403,7 +403,7 @@
 				</executions>
 			</plugin>
 
-			<!-- build deb packages(x86,x64) from self contained jar -->
+			<!-- build deb packages(x64) from self contained jar -->
 			<plugin>
 				<artifactId>jdeb</artifactId>
 				<groupId>org.vafer</groupId>
@@ -452,69 +452,6 @@
 								<data>
 									<type>file</type>
 									<src>${jre.lin64}/bin/java</src>
-									<dst>/opt/${app.name}/jre/bin/java</dst>
-									<mapper>
-										<type>perm</type>
-										<filemode>755</filemode>
-									</mapper>
-								</data>
-								<data>
-									<type>file</type>
-									<src>${project.basedir}/src/deploy/linux/launcher/${app.name.lowercase}</src>
-									<dst>/usr/bin/${app.name.lowercase}</dst>
-									<mapper>
-										<type>perm</type>
-										<filemode>755</filemode>
-									</mapper>
-								</data>
-								<data>
-									<type>file</type>
-									<src>${project.basedir}/src/deploy/linux/bash/${app.name}.sh</src>
-									<dst>/opt/${app.name}/${app.name}.sh</dst>
-									<mapper>
-										<type>perm</type>
-										<filemode>755</filemode>
-									</mapper>
-								</data>
-							</dataSet>
-						</configuration>
-					</execution>
-					<execution>
-						<id>deb32</id>
-						<phase>package</phase>
-						<goals>
-							<goal>jdeb</goal>
-						</goals>
-						<configuration>
-							<deb>${project.build.directory}/${app.name}-lin32.deb</deb>
-							<dataSet>
-								<data>
-									<type>file</type>
-									<src>${project.build.directory}/${app.name}.jar</src>
-									<dst>/opt/${app.name}/${app.name}.jar</dst>
-								</data>
-								<data>
-									<type>file</type>
-									<src>${project.basedir}/../mail-common/src/main/resources/net/anfoya/mail/img/Mail64.png</src>
-									<dst>/opt/${app.name}/${app.name}64.png</dst>
-								</data>
-								<data>
-									<type>file</type>
-									<src>${project.basedir}/src/deploy/linux/launcher/${app.name}.desktop</src>
-									<dst>/usr/share/applications/${app.name}.desktop</dst>
-								</data>
-								<data>
-									<type>directory</type>
-									<src>${jre.lin32}</src>
-									<mapper>
-										<type>perm</type>
-										<prefix>/opt/${app.name}/jre</prefix>
-									</mapper>
-									<excludes>**/java</excludes>
-								</data>
-								<data>
-									<type>file</type>
-									<src>${jre.lin32}/bin/java</src>
 									<dst>/opt/${app.name}/jre/bin/java</dst>
 									<mapper>
 										<type>perm</type>
@@ -615,58 +552,6 @@
 							</entries>
 						</configuration>
 					</execution>
-					<execution>
-						<id>rpm32</id>
-						<phase>package</phase>
-						<goals>
-							<goal>rpm</goal>
-						</goals>
-						<configuration>
-							<architecture>i386</architecture>
-							<entries>
-								<entry>
-									<directory>true</directory>
-									<name>/opt/${app.name}</name>
-								</entry>
-								<entry>
-									<file>target/${app.name}.jar</file>
-									<name>/opt/${app.name}/${app.name}.jar</name>
-								</entry>
-								<entry>
-									<file>../mail-common/src/main/resources/net/anfoya/mail/img/Mail64.png</file>
-									<name>/opt/${app.name}/${app.name}64.png</name>
-								</entry>
-								<entry>
-									<file>src/deploy/linux/launcher/${app.name}.desktop</file>
-									<name>/usr/share/applications/${app.name}.desktop</name>
-								</entry>
-								<entry>
-									<collect>
-										<from>${jre.lin32}</from>
-										<excludes>
-											<exclude>**/java</exclude>
-										</excludes>
-									</collect>
-									<name>/opt/${app.name}/jre</name>
-								</entry>
-								<entry>
-									<file>${jre.lin32}/bin/java</file>
-									<name>/opt/${app.name}/jre/bin/java</name>
-									<mode>755</mode>
-								</entry>
-								<entry>
-									<name>/usr/bin/${app.name.lowercase}</name>
-									<file>src/deploy/linux/launcher/${app.name.lowercase}</file>
-									<mode>755</mode>
-								</entry>
-								<entry>
-									<name>/opt/${app.name}/${app.name}.sh</name>
-									<file>src/deploy/linux/bash/${app.name}.sh</file>
-									<mode>755</mode>
-								</entry>
-							</entries>
-						</configuration>
-					</execution>
 				</executions>
 			</plugin>
 
@@ -689,7 +574,6 @@
 								<descriptor>src/assembly/assembly-win64.xml</descriptor>
 								<descriptor>src/assembly/assembly-win32.xml</descriptor>
 								<descriptor>src/assembly/assembly-lin64.xml</descriptor>
-								<descriptor>src/assembly/assembly-lin32.xml</descriptor>
 							</descriptors>
 						</configuration>
 					</execution>
