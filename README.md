@@ -65,7 +65,7 @@ java -jar FisherMail.jar
 ```
 
 ## windows  
->__shipped with openJdk Java 11__
+>__shipped with Java 11 - openJdk & openJfx__
 #### install
 | download | [FisherMail-win64.exe](https://jenkins.speederpan.com/job/mail-client-all%20(master)/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win64.exe)  |
 |----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -81,7 +81,7 @@ java -jar FisherMail.jar
 + got to FisherMail unzipped folder and run ```FisherMail.exe```
 
 ## macOs app  
->__shipped with openJdk Java 11__
+>__shipped with Java 11 - openJdk & openJfx__
 
 | download | [FisherMail-macOs.zip](https://jenkins.speederpan.com/job/mail-client-all%20(master)/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-macOs.zip) |
 |----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -100,11 +100,10 @@ _FisherMail is saved as an exception to your security settings, and you can open
 ![macOs first start](www/img/macOs1stStart.png)
 
 ## linux  
->__shipped with openJdk Java 11__
+>__shipped with Java 11 - openJdk & openJfx__
 #### deb install
 | download | [FisherMail-lin64.deb](https://jenkins.speederpan.com/job/mail-client-all%20(master)/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-lin64.deb) |
 |----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|          | [FisherMail-lin32.deb](https://jenkins.speederpan.com/job/mail-client-all%20(master)/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-lin32.deb) |
 + download and open with Software Install
 + click the Install button
 + start FisherMail from the launcher
@@ -112,7 +111,6 @@ _FisherMail is saved as an exception to your security settings, and you can open
 #### rpm install
 | download | [FisherMail-lin64.rpm](https://jenkins.speederpan.com/job/mail-client-all%20(master)/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-lin64.rpm) |
 |----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|          | [FisherMail-lin32.rpm](https://jenkins.speederpan.com/job/mail-client-all%20(master)/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-lin32.rpm) |
 + download and open with Software Install
 + click the Install button
 + start FisherMail from the launcher
@@ -120,7 +118,6 @@ _FisherMail is saved as an exception to your security settings, and you can open
 #### portable
 | download | [FisherMail-lin64.zip](https://jenkins.speederpan.com/job/mail-client-all%20(master)/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-lin64.zip) |
 |----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|          | [FisherMail-lin32.zip](https://jenkins.speederpan.com/job/mail-client-all%20(master)/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-lin32.zip) |
 + download and unzip FisherMail
 + got to FisherMail unzipped folder and run ```FisherMail.sh```
 
