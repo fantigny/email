@@ -256,7 +256,7 @@
 				<configuration>
 					<skip>${assembly.skipAssembly}</skip>
 
-					<jdkCachePath>${project.build.directory}/jreCache</jdkCachePath>
+					<jdkCachePath>/tmp/jreCache</jdkCachePath>
 					<provider>BELLSOFT</provider>
 					<providerConfig>
 						<version>11.0.5+11</version>
@@ -273,14 +273,9 @@
 						</goals>
 						<configuration>
 							<jdkPathProperty>jre.win64</jdkPathProperty>
-							<jdkCachePath>${project.build.directory}/jreCache</jdkCachePath>
-							<provider>BELLSOFT</provider>
 							<providerConfig>
-								<version>11.0.5+11</version>
 								<os>windows</os>
 								<arch>amd64</arch>
-								<type>jre</type>
-								<ext>zip</ext>
 							</providerConfig>
 						</configuration>
 					</execution>
@@ -292,14 +287,9 @@
 						</goals>
 						<configuration>
 							<jdkPathProperty>jre.win32</jdkPathProperty>
-							<jdkCachePath>${project.build.directory}/jreCache</jdkCachePath>
-							<provider>BELLSOFT</provider>
 							<providerConfig>
-								<version>11.0.5+11</version>
 								<os>windows</os>
 								<arch>i586</arch>
-								<type>jre</type>
-								<ext>zip</ext>
 							</providerConfig>
 						</configuration>
 					</execution>
@@ -311,14 +301,9 @@
 						</goals>
 						<configuration>
 							<jdkPathProperty>jre.lin64</jdkPathProperty>
-							<jdkCachePath>${project.build.directory}/jreCache</jdkCachePath>
-							<provider>BELLSOFT</provider>
 							<providerConfig>
-								<version>11.0.5+11</version>
 								<os>linux</os>
 								<arch>amd64</arch>
-								<type>jre</type>
-								<ext>zip</ext>
 							</providerConfig>
 						</configuration>
 					</execution>
@@ -330,14 +315,9 @@
 						</goals>
 						<configuration>
 							<jdkPathProperty>jre.lin32</jdkPathProperty>
-							<jdkCachePath>${project.build.directory}/jreCache</jdkCachePath>
-							<provider>BELLSOFT</provider>
 							<providerConfig>
-								<version>11.0.5+11</version>
 								<os>linux</os>
 								<arch>i586</arch>
-								<type>jre</type>
-								<ext>zip</ext>
 							</providerConfig>
 						</configuration>
 					</execution>
