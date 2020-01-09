@@ -7,7 +7,7 @@
 #define MyAppURL "http://speederpan.com"
 #define MyAppExeName "${app.name}.exe"
 
-#define JrePath "jreCache\LIBERICA_jre11.0.5+11_linux_amd64"
+#define JrePath "jreCache\LIBERICA_jre11.0.5+11_windows_amd64"
 
 [Setup]
 AppId={{97A38B2F-861C-4C9B-A79A-CBBDA6157A71}
