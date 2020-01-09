@@ -182,31 +182,79 @@
 				</configuration>
 			</plugin>
 
-			<!-- prepare openJdk -->
+			<!-- prepare openJdk (macOs) -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>truezip-maven-plugin</artifactId>
+				<version>1.2</version>
+				<configuration>
+					<skip>${assembly.skipAssembly}</skip>
+				</configuration>
+				<executions>
+					<execution>
+						<id>unzip-jre-macOs</id>
+						<goals>
+							<goal>copy</goal>
+						</goals>
+						<phase>package</phase>
+						<configuration>
+							<fileset>
+								<directory>src/deploy/macOs/openJdk11.zip</directory>
+								<outputDirectory>${project.build.directory}/macOs</outputDirectory>
+							</fileset>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+            
+			<!-- build macOs App(x64) from self contained jar -->
+			<!-- ..only works on *nix systems -->
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.8</version>
+				<dependencies>
+					<dependency>
+						<groupId>com.panayotis</groupId>
+						<artifactId>appbundler</artifactId>
+						<version>1.0.1</version>
+					</dependency>
+				</dependencies>
+				<executions>
+					<execution>
+						<id>macAppBundle</id>
+						<phase>package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<skip>${assembly.skipAssembly}</skip>
+
+					<target>
+						<taskdef name="bundleapp"
+							classname="com.oracle.appbundler.AppBundlerTask"
+							classpathref="maven.plugin.classpath" />
+						<bundleapp outputdirectory="target" name="${app.name}"
+							displayname="${app.name}"
+							icon="../mail-common/src/main/resources/net/anfoya/mail/img/Mail.icns"
+							identifier="net.anfoya.mail-client" shortversion="2.0"
+							copyright="speederpan.com"
+							mainclassname="net.anfoya.mail.client.javafx.entrypoint.MailClient">
+							<classpath file="target/${app.name}.jar" />
+							<option value="-Xmx1g" />
+							<runtime dir="target/macOs/openJdk11/Contents/Home" />
+						</bundleapp>
+					</target>
+				</configuration>
+			</plugin>
+
+			<!-- prepare openJdk (win32,64 and lin32,64) -->
 			<plugin>
 				<groupId>com.igormaznitsa</groupId>
 				<artifactId>mvn-jlink-wrapper</artifactId>
 				<version>1.0.5</version>
 				<executions>
-					<execution>
-						<id>jre.mac64</id>
-						<phase>package</phase>
-						<goals>
-							<goal>cache-jdk</goal>
-						</goals>
-						<configuration>
-							<jdkPathProperty>jre.mac64</jdkPathProperty>
-							<jdkCachePath>${project.build.directory}/jreCache</jdkCachePath>
-							<provider>BELLSOFT</provider>
-							<providerConfig>
-								<version>11.0.5+11</version>
-								<os>macOs</os>
-								<arch>amd64</arch>
-								<type>jre</type>
-								<ext>zip</ext>
-							</providerConfig>
-						</configuration>
-					</execution>
 					<execution>
 						<id>jre.win64</id>
 						<phase>package</phase>
