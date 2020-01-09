@@ -200,7 +200,7 @@
 						<configuration>
 							<fileset>
 								<directory>src/deploy/macOs/openJdk11.zip</directory>
-								<outputDirectory>${project.build.directory}/macOs</outputDirectory>
+								<outputDirectory>${project.build.directory}/macOs/openJdk</outputDirectory>
 							</fileset>
 						</configuration>
 					</execution>
@@ -243,7 +243,7 @@
 							mainclassname="net.anfoya.mail.client.javafx.entrypoint.MailClient">
 							<classpath file="target/${app.name}.jar" />
 							<option value="-Xmx1g" />
-							<runtime dir="target/macOs/openJdk11/Contents/Home" />
+							<runtime dir="target/macOs/openJdk/Contents/Home" />
 						</bundleapp>
 					</target>
 				</configuration>
