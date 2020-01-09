@@ -229,7 +229,8 @@
 					</execution>
 				</executions>
 				<configuration>
-					<skip>false</skip>
+					<skip>${assembly.skipAssembly}</skip>
+					
 					<target>
 						<taskdef name="bundleapp"
 							classname="com.oracle.appbundler.AppBundlerTask"
