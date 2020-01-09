@@ -69,14 +69,12 @@ java -jar FisherMail.jar
 #### install
 | download | [FisherMail-win64.exe](https://jenkins.speederpan.com/job/mail-client-all%20(master)/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win64.exe)  |
 |----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|          | [FisherMail-win32.exe](https://jenkins.speederpan.com/job/mail-client-all%20(master)/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win32.exe) |
 + download and run the installation program
 + start FisherMail from windows menu
 
 #### portable
 | download | [FisherMail-win64.zip](https://jenkins.speederpan.com/job/mail-client-all%20(master)/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win64.zip)  |
 |----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|          | [FisherMail-win32.zip](https://jenkins.speederpan.com/job/mail-client-all%20(master)/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win32.zip) |
 + download and unzip FisherMail
 + got to FisherMail unzipped folder and run ```FisherMail.exe```
 
