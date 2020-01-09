@@ -7,8 +7,6 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sun.javafx.PlatformUtil;
-
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
@@ -24,6 +22,8 @@ import javafx.stage.StageStyle;
 import net.anfoya.java.util.concurrent.ObservableExecutors;
 import net.anfoya.java.util.concurrent.ThreadPool;
 import net.anfoya.java.util.concurrent.ThreadPool.PoolPriority;
+import net.anfoya.java.util.system.OperatingSystem;
+import net.anfoya.java.util.system.OperatingSystem.Family;
 import net.anfoya.javafx.notification.NotificationService;
 import net.anfoya.javafx.util.WinShell32;
 import net.anfoya.mail.browser.javafx.MailBrowser;
@@ -61,7 +61,7 @@ public class MailClient extends Application {
 	///////////////////
 
 	public static void main(final String[] args) {
-		if (PlatformUtil.isWindows()) {
+		if (OperatingSystem.getInstance().getFamily() == Family.WIN) {
 			WinShell32.setExplicitAppUserModelId(APP_NAME);
 			LOGGER.info("app user model id is set to {}", WinShell32.getCurrentProcessExplicitAppUserModelID());
 		}

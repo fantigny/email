@@ -7,7 +7,7 @@
 	</formats>
 	<fileSets>
 		<fileSet>
-			<directory>${project.build.directory}/lin64/jre1.8.0_231</directory>
+			<directory>${jre.lin64}</directory>
 			<outputDirectory>jre</outputDirectory>
 			<excludes>
 				<exclude>**/java</exclude>
@@ -16,7 +16,7 @@
 	</fileSets>
 	<files>
 		<file>
-			<source>${project.build.directory}/lin64/jre1.8.0_231/bin/java</source>
+			<source>${jre.lin64}/bin/java</source>
 			<outputDirectory>jre/bin</outputDirectory>
 			<fileMode>0755</fileMode>
 		</file>

@@ -2,29 +2,23 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<artifactId>mail-client-distrib</artifactId>
-	<packaging>pom</packaging>
-	<description>cross-platform e-mail client</description>
 
-	<pluginRepositories>
-		<pluginRepository>
-			<id>oss.sonatype</id>
-			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-		</pluginRepository>
-	</pluginRepositories>
-
-	<properties>
-		<app.name>FisherMail</app.name>
-		<app.name.lowercase>fishermail</app.name.lowercase>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<ISCC.location>src/deploy/win/innosetup_6.0.3-mini/ISCC.exe</ISCC.location>
-		<ISCC.arg>/Qp</ISCC.arg>
-	</properties>
 	<parent>
 		<groupId>net.anfoya</groupId>
 		<artifactId>mail-client-pom</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
+
+	<artifactId>mail-client-distrib</artifactId>
+	<packaging>jar</packaging>
+
+	<properties>
+		<app.name>FisherMail</app.name>
+		<app.name.lowercase>fishermail</app.name.lowercase>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<ISCC.location>src/deploy/win/iss/innosetup_6.0.3-mini/ISCC.exe</ISCC.location>
+		<ISCC.arg>/Qp</ISCC.arg>
+	</properties>
 
 	<profiles>
 		<profile>
@@ -65,20 +59,10 @@
 
 	<build>
 		<plugins>
-			<!-- compiling Java 8 for now -->
-			<plugin>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.7.0</version>
-				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
-				</configuration>
-			</plugin>
-
 			<!-- build self contained executable jar -->
 			<plugin>
 				<artifactId>maven-shade-plugin</artifactId>
-				<version>3.1.0</version>
+				<version>3.2.1</version>
 				<executions>
 					<execution>
 						<phase>package</phase>
@@ -88,7 +72,7 @@
 					</execution>
 				</executions>
 				<configuration>
-					<outputFile>target/${app.name}.jar</outputFile>
+					<outputFile>${project.build.directory}/${app.name}.jar</outputFile>
 					<shadedArtifactAttached>true</shadedArtifactAttached>
 					<shadedClassifierName>jar-with-dependencies</shadedClassifierName>
 					<transformers>
@@ -109,7 +93,7 @@
 				<version>3.0.0</version>
 				<executions>
 					<execution>
-						<id>sign</id>
+						<phase>package</phase>
 						<goals>
 							<goal>sign</goal>
 						</goals>
@@ -118,10 +102,7 @@
 				<configuration>
 					<skip>${sign.skip}</skip>
 
-					<archiveDirectory>${project.build.directory}</archiveDirectory>
-					<includes>
-						<include>${app.name}.jar</include>
-					</includes>
+					<archive>${project.build.directory}/${app.name}.jar</archive>
 
 					<keystore>${KEYSTORE_PATH}/speederpan.com.jks</keystore>
 					<alias>speederpan.com</alias>
@@ -147,8 +128,8 @@
 					<skip>${assembly.skipAssembly}</skip> <!-- doesn't work, need hack -->
 
 					<headerType>gui</headerType>
-					<jar>target/${app.name}.jar</jar>
-					<outfile>target/${app.name}.exe</outfile>
+					<jar>${project.build.directory}/${app.name}.jar</jar>
+					<outfile>${project.build.directory}/${app.name}.exe</outfile>
 					<errTitle>${app.name} Error</errTitle>
 					<classPath>
 						<mainClass>net.anfoya.mail.client.javafx.entrypoint.MailClient</mainClass>
@@ -156,7 +137,7 @@
 					<icon>../mail-common/src/main/resources/net/anfoya/mail/img/Mail.ico</icon>
 					<jre>
 						<path>jre</path>
-						<minVersion>1.8.0</minVersion>
+						<minVersion>1.11.0</minVersion>
 						<initialHeapSize>128</initialHeapSize>
 						<maxHeapSize>1024</maxHeapSize>
 					</jre>
@@ -179,17 +160,6 @@
 				<groupId>net.jsign</groupId>
 				<artifactId>jsign-maven-plugin</artifactId>
 				<version>2.1</version>
-				<configuration>
-					<skip>${sign.skip}</skip> <!-- doesn't work, need hack -->
-
-					<file>target/${app.name}.exe</file>
-					<name>${app.name}</name>
-					<url>https://speederpan.com</url>
-
-					<keystore>${KEYSTORE_PATH}/speederpan.com.jks</keystore>
-					<alias>speederpan.com</alias>
-					<storepass>speederpan.com</storepass>
-				</configuration>
 				<executions>
 					<execution>
 						<id>sign-exe</id>
@@ -199,10 +169,230 @@
 						</goals>
 					</execution>
 				</executions>
+				<configuration>
+					<skip>${sign.skip}</skip> <!-- doesn't work, need hack -->
+
+					<file>${project.build.directory}/${app.name}.exe</file>
+					<name>${app.name}</name>
+					<url>https://speederpan.com</url>
+
+					<keystore>${KEYSTORE_PATH}/speederpan.com.jks</keystore>
+					<alias>speederpan.com</alias>
+					<storepass>speederpan.com</storepass>
+				</configuration>
+			</plugin>
+
+			<!-- prepare openJdk (macOs) -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>truezip-maven-plugin</artifactId>
+				<version>1.2</version>
+				<configuration>
+					<skip>${assembly.skipAssembly}</skip>
+				</configuration>
+				<executions>
+					<execution>
+						<id>unzip-jre-macOs</id>
+						<goals>
+							<goal>copy</goal>
+						</goals>
+						<phase>package</phase>
+						<configuration>
+							<fileset>
+								<directory>src/deploy/macOs/openJdk11.zip</directory>
+								<outputDirectory>${project.build.directory}/macOs/openJdk</outputDirectory>
+							</fileset>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- build macOs App(x64) from self contained jar -->
+			<!-- ..only works on *nix systems -->
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>1.8</version>
+				<dependencies>
+					<dependency>
+						<groupId>com.panayotis</groupId>
+						<artifactId>appbundler</artifactId>
+						<version>1.1.0</version>
+					</dependency>
+				</dependencies>
+				<executions>
+					<execution>
+						<id>macAppBundle</id>
+						<phase>package</phase>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<skip>false</skip>
+					<target>
+						<taskdef name="bundleapp"
+							classname="com.oracle.appbundler.AppBundlerTask"
+							classpathref="maven.plugin.classpath" />
+						<bundleapp outputdirectory="target" name="${app.name}"
+							displayname="${app.name}"
+							icon="../mail-common/src/main/resources/net/anfoya/mail/img/Mail.icns"
+							identifier="net.anfoya.mail-client" shortversion="2.0"
+							copyright="speederpan.com"
+							mainclassname="net.anfoya.mail.client.javafx.entrypoint.MailClient">
+							<classpath file="target/${app.name}.jar" />
+							<option value="-client" />
+							<runtime dir="target/macOs/openJdk/Contents/Home" />
+						</bundleapp>
+					</target>
+				</configuration>
+			</plugin>
+
+			<!-- prepare openJdk (win32,64 and lin32,64) -->
+			<plugin>
+				<groupId>com.igormaznitsa</groupId>
+				<artifactId>mvn-jlink-wrapper</artifactId>
+				<version>1.0.5</version>
+				<configuration>
+					<skip>${assembly.skipAssembly}</skip>
+
+					<jdkCachePath>${project.build.directory}/jreCache</jdkCachePath>
+					<provider>BELLSOFT</provider>
+					<providerConfig>
+						<version>11.0.5+11</version>
+						<type>jre</type>
+						<ext>zip</ext>
+					</providerConfig>
+				</configuration>
+				<executions>
+					<execution>
+						<id>jre.win64</id>
+						<phase>package</phase>
+						<goals>
+							<goal>cache-jdk</goal>
+						</goals>
+						<configuration>
+							<jdkPathProperty>jre.win64</jdkPathProperty>
+							<jdkCachePath>${project.build.directory}/jreCache</jdkCachePath>
+							<provider>BELLSOFT</provider>
+							<providerConfig>
+								<version>11.0.5+11</version>
+								<os>windows</os>
+								<arch>amd64</arch>
+								<type>jre</type>
+								<ext>zip</ext>
+							</providerConfig>
+						</configuration>
+					</execution>
+					<execution>
+						<id>jre.win32</id>
+						<phase>package</phase>
+						<goals>
+							<goal>cache-jdk</goal>
+						</goals>
+						<configuration>
+							<jdkPathProperty>jre.win32</jdkPathProperty>
+							<jdkCachePath>${project.build.directory}/jreCache</jdkCachePath>
+							<provider>BELLSOFT</provider>
+							<providerConfig>
+								<version>11.0.5+11</version>
+								<os>windows</os>
+								<arch>i586</arch>
+								<type>jre</type>
+								<ext>zip</ext>
+							</providerConfig>
+						</configuration>
+					</execution>
+					<execution>
+						<id>jre.lin64</id>
+						<phase>package</phase>
+						<goals>
+							<goal>cache-jdk</goal>
+						</goals>
+						<configuration>
+							<jdkPathProperty>jre.lin64</jdkPathProperty>
+							<jdkCachePath>${project.build.directory}/jreCache</jdkCachePath>
+							<provider>BELLSOFT</provider>
+							<providerConfig>
+								<version>11.0.5+11</version>
+								<os>linux</os>
+								<arch>amd64</arch>
+								<type>jre</type>
+								<ext>zip</ext>
+							</providerConfig>
+						</configuration>
+					</execution>
+					<execution>
+						<id>jre.lin32</id>
+						<phase>package</phase>
+						<goals>
+							<goal>cache-jdk</goal>
+						</goals>
+						<configuration>
+							<jdkPathProperty>jre.lin32</jdkPathProperty>
+							<jdkCachePath>${project.build.directory}/jreCache</jdkCachePath>
+							<provider>BELLSOFT</provider>
+							<providerConfig>
+								<version>11.0.5+11</version>
+								<os>linux</os>
+								<arch>i586</arch>
+								<type>jre</type>
+								<ext>zip</ext>
+							</providerConfig>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<!-- finalise mac bundle JRE -->
+						<id>copy-mac-bundle-jre</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<skip>${assembly.skipAssembly}</skip>
+							
+							<resources>
+								<resource>
+									<directory>target/macOs/openJdk</directory>
+								</resource>
+							</resources>
+							<outputDirectory>target/${app.name}.app/Contents/PlugIns/openJdk</outputDirectory>
+						</configuration>
+					</execution>
+					<execution>
+						<!-- prepare win install scripts -->
+						<id>copy-iss</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<skip>${assembly.skipAssembly}</skip>
+
+							<outputDirectory>target</outputDirectory>
+							<resources>
+								<resource>
+									<directory>src/deploy/win/iss</directory>
+									<includes>
+										<include>innosetup-win*.iss</include>
+									</includes>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 
 			<!-- build win installers(x86,x64) from windows exe -->
-			<!-- ..requires wine on linux -->
+			<!-- ..requires wine on linux (winehq.org) -->
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
@@ -226,7 +416,7 @@
 							<arguments>
 								<argument>${ISCC.exe.arg}</argument>
 								<argument>${ISCC.arg}</argument>
-								<argument>innosetup-win32.iss</argument>
+								<argument>target/innosetup-win32.iss</argument>
 							</arguments>
 						</configuration>
 					</execution>
@@ -240,94 +430,13 @@
 							<arguments>
 								<argument>${ISCC.exe.arg}</argument>
 								<argument>${ISCC.arg}</argument>
-								<argument>innosetup-win64.iss</argument>
+								<argument>target/innosetup-win64.iss</argument>
 							</arguments>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
 
-			<!-- build macOs App(x64) from self contained jar -->
-			<!-- ..only works on *nix systems -->
-			<plugin>
-				<artifactId>maven-antrun-plugin</artifactId>
-				<version>1.8</version>
-				<dependencies>
-					<dependency>
-						<groupId>com.panayotis</groupId>
-						<artifactId>appbundler</artifactId>
-						<version>1.0.1</version>
-					</dependency>
-				</dependencies>
-				<executions>
-					<execution>
-						<id>macAppBundle</id>
-						<phase>package</phase>
-						<goals>
-							<goal>run</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<skip>${assembly.skipAssembly}</skip>
-
-					<target>
-						<taskdef name="bundleapp"
-							classname="com.oracle.appbundler.AppBundlerTask"
-							classpathref="maven.plugin.classpath" />
-						<bundleapp outputdirectory="target" name="${app.name}"
-							displayname="${app.name}"
-							icon="../mail-common/src/main/resources/net/anfoya/mail/img/Mail.icns"
-							identifier="net.anfoya.mail-client" shortversion="2.0"
-							copyright="speederpan.com"
-							mainclassname="net.anfoya.mail.client.javafx.entrypoint.MailClient">
-							<classpath file="target/${app.name}.jar" />
-							<option value="-Xmx1g" />
-							<runtime
-								dir="src/deploy/macOs/jdk1.8.0_162.jdk/Contents/Home" />
-						</bundleapp>
-					</target>
-				</configuration>
-			</plugin>
-
-			<!-- prepare java runtime for linux -->
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>truezip-maven-plugin</artifactId>
-				<version>1.2</version>
-				<configuration>
-					<skip>${assembly.skipAssembly}</skip>
-				</configuration>
-				<executions>
-					<execution>
-						<id>unzip-lin64</id>
-						<goals>
-							<goal>copy</goal>
-						</goals>
-						<phase>package</phase>
-						<configuration>
-							<fileset>
-								<directory>src/deploy/linux/lin64.zip</directory>
-								<outputDirectory>${project.build.directory}/lin64</outputDirectory>
-							</fileset>
-						</configuration>
-					</execution>
-					<execution>
-						<id>unzip-lin32</id>
-						<goals>
-							<goal>copy</goal>
-						</goals>
-						<phase>package</phase>
-						<configuration>
-							<fileset>
-								<directory>src/deploy/linux/lin32.zip</directory>
-								<outputDirectory>${project.build.directory}/lin32</outputDirectory>
-							</fileset>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			
 			<!-- build deb packages(x86,x64) from self contained jar -->
 			<plugin>
 				<artifactId>jdeb</artifactId>
@@ -367,7 +476,7 @@
 								</data>
 								<data>
 									<type>directory</type>
-									<src>${project.build.directory}/lin64/jre1.8.0_231</src>
+									<src>${jre.lin64}</src>
 									<mapper>
 										<type>perm</type>
 										<prefix>/opt/${app.name}/jre</prefix>
@@ -376,7 +485,7 @@
 								</data>
 								<data>
 									<type>file</type>
-									<src>${project.build.directory}/lin64/jre1.8.0_231/bin/java</src>
+									<src>${jre.lin64}/bin/java</src>
 									<dst>/opt/${app.name}/jre/bin/java</dst>
 									<mapper>
 										<type>perm</type>
@@ -430,7 +539,7 @@
 								</data>
 								<data>
 									<type>directory</type>
-									<src>${project.build.directory}/lin32/jre1.8.0_231</src>
+									<src>${jre.lin32}</src>
 									<mapper>
 										<type>perm</type>
 										<prefix>/opt/${app.name}/jre</prefix>
@@ -439,7 +548,7 @@
 								</data>
 								<data>
 									<type>file</type>
-									<src>${project.build.directory}/lin32/jre1.8.0_231/bin/java</src>
+									<src>${jre.lin32}/bin/java</src>
 									<dst>/opt/${app.name}/jre/bin/java</dst>
 									<mapper>
 										<type>perm</type>
@@ -515,7 +624,7 @@
 								</entry>
 								<entry>
 									<collect>
-										<from>target/lin64/jre1.8.0_231</from>
+										<from>${jre.lin64}</from>
 										<excludes>
 											<exclude>**/java</exclude>
 										</excludes>
@@ -523,7 +632,7 @@
 									<name>/opt/${app.name}/jre</name>
 								</entry>
 								<entry>
-									<file>target/lin64/jre1.8.0_231/bin/java</file>
+									<file>${jre.lin64}/bin/java</file>
 									<name>/opt/${app.name}/jre/bin/java</name>
 									<mode>755</mode>
 								</entry>
@@ -567,7 +676,7 @@
 								</entry>
 								<entry>
 									<collect>
-										<from>target/lin32/jre1.8.0_231</from>
+										<from>${jre.lin32}</from>
 										<excludes>
 											<exclude>**/java</exclude>
 										</excludes>
@@ -575,7 +684,7 @@
 									<name>/opt/${app.name}/jre</name>
 								</entry>
 								<entry>
-									<file>target/lin32/jre1.8.0_231/bin/java</file>
+									<file>${jre.lin32}/bin/java</file>
 									<name>/opt/${app.name}/jre/bin/java</name>
 									<mode>755</mode>
 								</entry>
@@ -595,10 +704,10 @@
 				</executions>
 			</plugin>
 
-			<!-- zip portable packages and move all to distrib -->
+			<!-- zip portable packages -->
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
-				<version>3.1.0</version>
+				<version>3.2.0</version>
 				<executions>
 					<execution>
 						<id>build-portable-packages</id>
@@ -611,10 +720,10 @@
 							<attach>false</attach>
 							<descriptors>
 								<descriptor>src/assembly/assembly-macos.xml</descriptor>
-								<descriptor>src/assembly/assembly-win32.xml</descriptor>
 								<descriptor>src/assembly/assembly-win64.xml</descriptor>
-								<descriptor>src/assembly/assembly-lin32.xml</descriptor>
+								<descriptor>src/assembly/assembly-win32.xml</descriptor>
 								<descriptor>src/assembly/assembly-lin64.xml</descriptor>
+								<descriptor>src/assembly/assembly-lin32.xml</descriptor>
 							</descriptors>
 						</configuration>
 					</execution>
@@ -639,3 +748,4 @@
 		</plugins>
 	</build>
 </project>
+

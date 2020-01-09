@@ -7,13 +7,13 @@
 	</formats>
 	<fileSets>
 		<fileSet>
-			<directory>src/deploy/win/jre1.8.0_231-win64</directory>
+			<directory>${jre.win64}</directory>
 			<outputDirectory>jre</outputDirectory>
 		</fileSet>
 	</fileSets>
 	<files>
 		<file>
-			<source>target/${app.name}.exe</source>
+			<source>${project.build.directory}/${app.name}.exe</source>
 			<outputDirectory></outputDirectory>
 		</file>
 	</files>
