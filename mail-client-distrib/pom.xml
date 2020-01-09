@@ -256,7 +256,7 @@
 				<configuration>
 					<skip>${assembly.skipAssembly}</skip>
 
-					<jdkCachePath>/tmp/jreCache</jdkCachePath>
+					<jdkCachePath>${project.build.directory}/jreCache</jdkCachePath>
 					<provider>BELLSOFT</provider>
 					<providerConfig>
 						<version>11.0.5+11</version>
