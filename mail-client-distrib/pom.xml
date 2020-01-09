@@ -137,7 +137,7 @@
 					<icon>../mail-common/src/main/resources/net/anfoya/mail/img/Mail.ico</icon>
 					<jre>
 						<path>jre</path>
-						<minVersion>1.11.0</minVersion>
+						<minVersion>11</minVersion>
 						<initialHeapSize>128</initialHeapSize>
 						<maxHeapSize>1024</maxHeapSize>
 					</jre>
