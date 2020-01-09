@@ -242,7 +242,7 @@
 							mainclassname="net.anfoya.mail.client.javafx.entrypoint.MailClient">
 							<classpath file="target/${app.name}.jar" />
 							<option value="-client" />
-							<runtime dir="target/macOs/openjdk/Contents/Home" />
+							<runtime dir="target/macOs/openJdk/Contents/Home" />
 						</bundleapp>
 					</target>
 				</configuration>
@@ -356,6 +356,8 @@
 							<goal>copy-resources</goal>
 						</goals>
 						<configuration>
+							<skip>${assembly.skipAssembly}</skip>
+							
 							<resources>
 								<resource>
 									<directory>target/macOs/openJdk</directory>
@@ -746,3 +748,4 @@
 		</plugins>
 	</build>
 </project>
+
