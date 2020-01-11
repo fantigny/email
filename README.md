@@ -16,8 +16,59 @@ cross-platform e-mail client
 | linux portable   | [FisherMail-linux.zip](#portable-1)  |  
 
 _[uninstall](#uninstall)_  
-_[continuous integration](#continuous-integration)_  
-_[to do](#to-do)_
+
+## continuous integration
+latest build available in [Jenkins](https://jenkins.speederpan.com/job/mail-client-all%20(dev))
+
+## to do list
+
+#### bug fixing
+- [ ] draft opens in reader
+- [ ] composer slow start
+
+#### system integration
+- [ ] respond to mailto events
+  - [x] java11 migration
+    - [x] remove restricted api calls
+    - [x] migrate to openJdk/fx
+
+- [ ] x32 builds
+  - [ ] create windows install
+  - [ ] create linux install
+  - [ ] __create java8 branch__
+
+- [x] allow pin to taskbar in windows
+  - [x] create windows install
+- [x] allow pin to launcher in linux
+  - [x] create deb/rpm packages
+
+#### cosmetic
+- [ ] change name
+  - [x] finalise name injection
+
+- [ ] dark mode
+  - [ ] finalise style injection
+
+- [ ] optional minimise on close
+
+#### feature
+- [ ] add gmail
+  - [ ] get verified api access
+  - [x] fix cookie manager reset
+
+- [ ] add yahoo! mail
+  - [ ] get api access
+  - [ ] finalise system's section/label
+  - [x] create provider screen
+  - [x] finalise loading/login dialogs  
+
+- [ ] add outlook
+  - [ ] get api access
+
+- [ ] add smtp
+
+#### others
+- [ ] refactor controller
 
 ## cross-platform 
 >__Java 11 or newer with JavaFX required__
@@ -66,7 +117,7 @@ java -jar FisherMail.jar
 ```
 
 ## windows  
->__shipped with Java 11 - openJdk & openJfx__
+>__shipped with Java 11 - [openJdk/fx](https://bell-sw.com/pages/java-11.0.5/)__
 #### install
 | download | [FisherMail-win64.exe](https://jenkins.speederpan.com/job/mail-client-all%20(master)/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-win64.exe)  |
 |----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -80,7 +131,7 @@ java -jar FisherMail.jar
 + got to FisherMail unzipped folder and run ```FisherMail.exe```
 
 ## macOs app  
->__shipped with Java 11 - openJdk & openJfx__
+>__shipped with Java 11 - [openJdk/fx](https://bell-sw.com/pages/java-11.0.5/)__
 
 | download | [FisherMail-macOs.zip](https://jenkins.speederpan.com/job/mail-client-all%20(master)/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-macOs.zip) |
 |----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -99,7 +150,7 @@ _FisherMail is saved as an exception to your security settings, and you can open
 ![macOs first start](www/img/macOs1stStart.png)
 
 ## linux  
->__shipped with Java 11 - openJdk & openJfx__
+>__shipped with Java 11 - [openJdk/fx](https://bell-sw.com/pages/java-11.0.5/)__
 #### deb install
 | download | [FisherMail-lin64.deb](https://jenkins.speederpan.com/job/mail-client-all%20(master)/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/FisherMail-lin64.deb) |
 |----------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -144,11 +195,3 @@ to allow FisherMail to start normally, go to Files > Preferences > Behaviour and
 + open a terminal window
 + execute the command ```sudo dnf -y remove mail-client-distrib```
 
-## continuous integration
-latest build available in [Jenkins](https://jenkins.speederpan.com/job/mail-client-all%20(dev))
-
-## to do
-- [ ] change name
-- [ ] create java8 branch for x32 distrib
-- [ ] dark mode
-- [ ] respond to mailto events
