@@ -187,11 +187,11 @@ to allow FisherMail to start normally, go to Files > Preferences > Behaviour and
 + open the Finder and go to Applications
 + select FisherMail and drop it over the Trash icon
 
-### ubuntu
+#### ubuntu
 + open a terminal window
 + execute the command ```sudo apt -y remove fishermail```
 
-### fedora
+#### fedora
 + open a terminal window
 + execute the command ```sudo dnf -y remove mail-client-distrib```
 
