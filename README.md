@@ -68,7 +68,8 @@ latest build available in [Jenkins](https://jenkins.speederpan.com/job/mail-clie
 - [ ] add smtp
 
 #### others
-- [ ] refactor controller
+- [ ] remove jre binaries from source
+- [ ] finalise controller
 
 ## cross-platform 
 >__Java 11 or newer with JavaFX required__
