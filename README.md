@@ -17,6 +17,7 @@ cross-platform e-mail client
 
 _[uninstall](#uninstall)_  
 _[continuous integration](#continuous-integration)_  
+_[to do](#todo)_
 
 ## cross-platform 
 >__Java 11 or newer with JavaFX required__
@@ -145,3 +146,9 @@ to allow FisherMail to start normally, go to Files > Preferences > Behaviour and
 
 ## continuous integration
 latest build available in [Jenkins](https://jenkins.speederpan.com/job/mail-client-all%20(dev))
+
+## to do
+- [ ] change name
+- [ ] create java8 branch for x32 distrib
+- [ ] dark mode
+- [ ] respond to mailto events
