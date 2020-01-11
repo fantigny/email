@@ -1,5 +1,5 @@
 # FisherMail
-cross-platform e-mail client  
+cross-platform e-mail reader and composer  
 (only for Gmail just yet)
 
 ![FisherMail - Browser - Gmail](www/img/FisherMail.png)
