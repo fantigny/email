@@ -17,7 +17,7 @@ cross-platform e-mail client
 
 _[uninstall](#uninstall)_  
 _[continuous integration](#continuous-integration)_  
-_[to do](#todo)_
+_[to do](#to-do)_
 
 ## cross-platform 
 >__Java 11 or newer with JavaFX required__
