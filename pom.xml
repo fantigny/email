@@ -60,7 +60,7 @@
 		<module>mail-service-outlook</module>
 		<module>mail-service-yahoo</module>
 
-		<module>mail-client-distrib</module>
+		<module>mail-client-distrib-x32</module>
 	</modules>
 
 	<dependencyManagement>

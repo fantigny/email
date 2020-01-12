@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Name=FisherMail   
+Exec=/usr/bin/fishermail
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=Application;
+Icon=/opt/FisherMail/FisherMail64.png

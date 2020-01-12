@@ -1,0 +1,35 @@
+<assembly xmlns="http://maven.apache.org/ASSEMBLY/2.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.0.0 http://maven.apache.org/xsd/assembly-2.0.0.xsd">
+	<id>distrib</id>
+	<formats>
+		<format>dir</format>
+	</formats>
+	<includeBaseDirectory>false</includeBaseDirectory>
+	<files>
+		<file>
+			<source>../mail-client/target/classes/version.txt</source>
+		</file>
+		<file>
+			<source>target/mail-client-distrib_x32-0.0.1-SNAPSHOT-1.0.0.i386.rpm</source>
+			<destName>${app.name}-lin32.rpm</destName>
+		</file>
+	</files>
+	<fileSets>
+		<fileSet>
+			<directory>target</directory>
+			<outputDirectory></outputDirectory>
+			<includes>
+				<include>${app.name}.jar</include>
+				<include>${app.name}.exe</include>
+
+				<include>${app.name}-win32.exe</include>
+				<include>${app.name}-win32.zip</include>
+
+				<include>${app.name}-lin32.deb</include>
+				<include>${app.name}-lin32.rpm</include>
+				<include>${app.name}-lin32.zip</include>
+			</includes>
+		</fileSet>
+	</fileSets>
+</assembly>
