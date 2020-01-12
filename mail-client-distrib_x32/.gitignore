@@ -1,3 +1,5 @@
 /target/
 /bin/
 /distrib/
+/.classpath
+/.settings/
