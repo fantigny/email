@@ -182,13 +182,13 @@
 				</configuration>
 			</plugin>
 
-			<!-- prepare openJdk (win64, lin64) -->
+			<!-- prepare openJdk -->
 			<plugin>
 				<groupId>com.igormaznitsa</groupId>
 				<artifactId>mvn-jlink-wrapper</artifactId>
 				<version>1.0.5</version>
 				<configuration>
-					<skip>${assembly.skipAssembly}</skip>
+					<skip>false</skip>
 
 					<jdkCachePath>${project.build.directory}/jreCache</jdkCachePath>
 					<provider>BELLSOFT</provider>
@@ -227,42 +227,18 @@
 							</providerConfig>
 						</configuration>
 					</execution>
-				</executions>
-			</plugin>
-
-			<!-- prepare openJdk (macOs, win32) -->
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>truezip-maven-plugin</artifactId>
-				<version>1.2</version>
-				<configuration>
-					<skip>${assembly.skipAssembly}</skip>
-				</configuration>
-				<executions>
 					<execution>
-						<id>unzip-jre-macOs</id>
-						<goals>
-							<goal>copy</goal>
-						</goals>
+						<id>jre.mac64</id>
 						<phase>package</phase>
-						<configuration>
-							<fileset>
-								<directory>src/deploy/macOs/jre/openJdk11.zip</directory>
-								<outputDirectory>${project.build.directory}/jreCache/openJdkMacOs</outputDirectory>
-							</fileset>
-						</configuration>
-					</execution>
-					<execution>
-						<id>unzip-jre-win32</id>
 						<goals>
-							<goal>copy</goal>
+							<goal>cache-jdk</goal>
 						</goals>
-						<phase>package</phase>
 						<configuration>
-							<fileset>
-								<directory>src/deploy/win/jre/zulu11.35.15-ca-fx-jre11.0.5-win_i686.zip</directory>
-								<outputDirectory>${project.build.directory}/jreCache/openJdkWin32</outputDirectory>
-							</fileset>
+							<jdkPathProperty>jre.mac64</jdkPathProperty>
+							<providerConfig>
+								<os>macos</os>
+								<arch>amd64</arch>
+							</providerConfig>
 						</configuration>
 					</execution>
 				</executions>
@@ -304,7 +280,7 @@
 							mainclassname="net.anfoya.mail.client.javafx.entrypoint.MailClient">
 							<classpath file="target/${app.name}.jar" />
 							<option value="-client" />
-							<runtime dir="target/jreCache/openJdkMacOs/Contents/Home" />
+							<runtime dir="${jre.mac64}" />
 						</bundleapp>
 					</target>
 				</configuration>
