@@ -137,7 +137,7 @@
 					<icon>../mail-common/src/main/resources/net/anfoya/mail/img/Mail.ico</icon>
 					<jre>
 						<path>jre</path>
-						<minVersion>11</minVersion>
+						<minVersion>8</minVersion>
 						<initialHeapSize>128</initialHeapSize>
 						<maxHeapSize>1024</maxHeapSize>
 					</jre>
@@ -190,7 +190,7 @@
 				<configuration>
 					<skip>${assembly.skipAssembly}</skip>
 
-					<jdkCachePath>/tmp/jreCache</jdkCachePath>
+					<jdkCachePath>${project.build.directory}/jreCache</jdkCachePath>
 					<provider>BELLSOFT</provider>
 					<providerConfig>
 						<version>8u232+10</version>
