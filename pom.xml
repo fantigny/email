@@ -47,6 +47,32 @@
 				<sign.skipPhaseHack>package</sign.skipPhaseHack>
 			</properties>
 		</profile>
+		<profile>
+			<id>x64</id>
+			<activation>
+				<property>
+					<name>arch</name>
+					<value>!x32</value>
+				</property>
+			</activation>
+			<properties>
+				<compiler.release>11</compiler.release>
+				<anfoya.libs.arch />
+			</properties>
+		</profile>
+		<profile>
+			<id>x32</id>
+			<activation>
+				<property>
+					<name>arch</name>
+					<value>x32</value>
+				</property>
+			</activation>
+			<properties>
+				<compiler.release>8</compiler.release>
+				<anfoya.libs.arch>_x32</anfoya.libs.arch>
+			</properties>
+		</profile>
 	</profiles>
 
 	<modules>
@@ -60,7 +86,7 @@
 		<module>mail-service-outlook</module>
 		<module>mail-service-yahoo</module>
 
-		<module>mail-client-distrib-x32</module>
+		<module>mail-client-distrib_x32</module>
 	</modules>
 
 	<dependencyManagement>
@@ -68,17 +94,17 @@
 			<dependency>
 				<groupId>net.anfoya</groupId>
 				<artifactId>anfoya-tools</artifactId>
-				<version>${anfoya.libs.version}</version>
+				<version>${anfoya.libs.version}${anfoya.libs.arch}</version>
 			</dependency>
 			<dependency>
 				<groupId>net.anfoya</groupId>
 				<artifactId>anfoya-javafx</artifactId>
-				<version>${anfoya.libs.version}</version>
+				<version>${anfoya.libs.version}${anfoya.libs.arch}</version>
 			</dependency>
 			<dependency>
 				<groupId>net.anfoya</groupId>
 				<artifactId>anfoya-tag</artifactId>
-				<version>${anfoya.libs.version}</version>
+				<version>${anfoya.libs.version}${anfoya.libs.arch}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -88,12 +114,25 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.1</version>
-				<configuration>
-					<release>11</release>
-				</configuration>
+					<configuration>
+						<release>${compiler.release}</release>
+					</configuration>
 			</plugin>
 		</plugins>
+
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<version>3.8.1</version>
+					<configuration>
+						<release>${compiler.release}</release>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+
 	</build>
 
 </project>

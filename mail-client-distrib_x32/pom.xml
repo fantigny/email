@@ -190,7 +190,7 @@
 				<configuration>
 					<skip>${assembly.skipAssembly}</skip>
 
-					<jdkCachePath>${project.build.directory}/jreCache</jdkCachePath>
+					<jdkCachePath>/tmp/jreCache</jdkCachePath>
 					<provider>BELLSOFT</provider>
 					<providerConfig>
 						<version>8u232+10</version>
@@ -212,8 +212,6 @@
 							</providerConfig>
 						</configuration>
 					</execution>
-
-
 					<execution>
 						<id>jre.lin32</id>
 						<phase>package</phase>
@@ -267,7 +265,7 @@
 				<artifactId>exec-maven-plugin</artifactId>
 				<version>1.6.0</version>
 				<configuration>
-					<skip>true</skip>
+					<skip>${assembly.skipAssembly}</skip>
 
 					<mainClass>de.audi.analysis.main.Main</mainClass>
 					<executable>
