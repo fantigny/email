@@ -32,10 +32,10 @@ latest build available in [Jenkins](https://jenkins.speederpan.com/job/mail-clie
     - [x] remove restricted api calls
     - [x] migrate to openJdk/fx
 
-- [ ] x32 builds
+- [ ] compatibility with x32 systems
   - [ ] create windows install
   - [ ] create linux install
-  - [ ] __create java8 branch__
+  - [x] build anfoya libs
 
 - [x] allow pin to taskbar in windows
   - [x] create windows install
