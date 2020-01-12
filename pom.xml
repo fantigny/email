@@ -6,22 +6,27 @@
 		<maven>3.3</maven>
 	</prerequisites>
 
-	<description>cross-platform e-mail client</description>
-	<packaging>pom</packaging>
+	<description>cross-platform e-mail reader and composer</description>
 	<groupId>net.anfoya</groupId>
 	<artifactId>mail-client-pom</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>${revision}${sha1}${changelist}</version>
+	<packaging>pom</packaging>
 
 	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<app.version>1.0.191227-beta</app.version>
+		<revision>0.0.1-SNAPSHOT</revision>
+		<changelist />
+		<sha1 />
+
 		<skipTests>true</skipTests> <!-- TODO remove -->
+
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
 	<profiles>
 		<profile>
 			<id>DEV</id>
 			<properties>
+				<revision>0.0.1-SNAPSHOT</revision>
 				<anfoya.libs.version>0.0.1-SNAPSHOT</anfoya.libs.version>
 
 				<skipTests>true</skipTests> <!-- TODO remove -->
@@ -36,7 +41,8 @@
 		<profile>
 			<id>PROD</id>
 			<properties>
-				<anfoya.libs.version>1.0.0-191231</anfoya.libs.version>
+				<revision>1.0.0-200112-beta</revision>
+				<anfoya.libs.version>1.0.0-200112</anfoya.libs.version>
 
 				<skipTests>true</skipTests> <!-- TODO remove -->
 
@@ -59,6 +65,9 @@
 				<compiler.release>11</compiler.release>
 				<anfoya.libs.arch />
 			</properties>
+			<modules>
+				<module>mail-client-distrib</module>
+			</modules>
 		</profile>
 		<profile>
 			<id>x32</id>
@@ -70,8 +79,12 @@
 			</activation>
 			<properties>
 				<compiler.release>8</compiler.release>
+				<changelist>_x32</changelist>
 				<anfoya.libs.arch>_x32</anfoya.libs.arch>
 			</properties>
+			<modules>
+				<module>mail-client-distrib_x32</module>
+			</modules>
 		</profile>
 	</profiles>
 
@@ -85,8 +98,6 @@
 		<module>mail-service-gmail</module>
 		<module>mail-service-outlook</module>
 		<module>mail-service-yahoo</module>
-
-		<module>mail-client-distrib_x32</module>
 	</modules>
 
 	<dependencyManagement>
@@ -106,29 +117,122 @@
 				<artifactId>anfoya-tag</artifactId>
 				<version>${anfoya.libs.version}${anfoya.libs.arch}</version>
 			</dependency>
+
+			<dependency>
+				<groupId>net.anfoya</groupId>
+				<artifactId>mail-browser</artifactId>
+				<version>${revision}${sha1}${changelist}</version>
+			</dependency>
+			<dependency>
+				<groupId>net.anfoya</groupId>
+				<artifactId>mail-client</artifactId>
+				<version>${revision}${sha1}${changelist}</version>
+			</dependency>
+			<dependency>
+				<groupId>net.anfoya</groupId>
+				<artifactId>mail-common</artifactId>
+				<version>${revision}${sha1}${changelist}</version>
+			</dependency>
+			<dependency>
+				<groupId>net.anfoya</groupId>
+				<artifactId>mail-composer</artifactId>
+				<version>${revision}${sha1}${changelist}</version>
+			</dependency>
+			<dependency>
+				<groupId>net.anfoya</groupId>
+				<artifactId>mail-service-api</artifactId>
+				<version>${revision}${sha1}${changelist}</version>
+			</dependency>
+			<dependency>
+				<groupId>net.anfoya</groupId>
+				<artifactId>mail-service-gmail</artifactId>
+				<version>${revision}${sha1}${changelist}</version>
+			</dependency>
+			<dependency>
+				<groupId>net.anfoya</groupId>
+				<artifactId>mail-service-outlook</artifactId>
+				<version>${revision}${sha1}${changelist}</version>
+			</dependency>
+			<dependency>
+				<groupId>net.anfoya</groupId>
+				<artifactId>mail-service-yahoo</artifactId>
+				<version>${revision}${sha1}${changelist}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
 	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<release>${compiler.release}</release>
-				</configuration>
-			</plugin>
-		</plugins>
-
 		<pluginManagement>
 			<plugins>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
 					<version>3.8.1</version>
+					<configuration>
+						<release>${compiler.release}</release>
+					</configuration>
+				</plugin>
+
+				<!--This plugin's configuration is used to store Eclipse m2e settings 
+					only. It has no influence on the Maven build itself. -->
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											org.codehaus.mojo
+										</groupId>
+										<artifactId>
+											flatten-maven-plugin
+										</artifactId>
+										<versionRange>
+											[1.1.0,)
+										</versionRange>
+										<goals>
+											<goal>flatten</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
 				</plugin>
 			</plugins>
 		</pluginManagement>
+
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>flatten-maven-plugin</artifactId>
+				<version>1.1.0</version>
+				<configuration>
+				</configuration>
+				<executions>
+					<execution>
+						<id>flatten</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>flatten</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>flatten.clean</id>
+						<phase>clean</phase>
+						<goals>
+							<goal>clean</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
 
 	</build>
 

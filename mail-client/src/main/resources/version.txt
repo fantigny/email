@@ -1,1 +1,1 @@
-${app.version}
+${revision}${sha1}

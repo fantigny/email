@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "${app.name}"
-#define MyAppVersion "${app.version}"
+#define MyAppVersion "${version}"
 #define MyAppPublisher "SpeederPan Service Ltd"
 #define MyAppURL "http://speederpan.com"
 #define MyAppExeName "${app.name}.exe"

@@ -2,3 +2,4 @@
 /.project
 /target/
 /distrib
+/.flattened-pom.xml

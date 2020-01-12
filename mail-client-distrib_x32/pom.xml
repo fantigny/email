@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>net.anfoya</groupId>
 		<artifactId>mail-client-pom</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>${revision}${sha1}${changelist}</version>
 	</parent>
 
 	<artifactId>mail-client-distrib_x32</artifactId>
@@ -55,7 +55,6 @@
 		<dependency>
 			<groupId>net.anfoya</groupId>
 			<artifactId>mail-client</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 
