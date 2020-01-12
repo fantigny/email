@@ -31,6 +31,7 @@
 			<properties>
 				<ISCC.exe>${ISCC.location}</ISCC.exe>
 				<ISCC.exe.arg></ISCC.exe.arg>
+				<ISCC.jre.drive />
 				<KEYSTORE_PATH>/users/frede/documents/speederpan.com</KEYSTORE_PATH>
 			</properties>
 		</profile>
@@ -44,6 +45,7 @@
 			<properties>
 				<ISCC.exe>wine</ISCC.exe>
 				<ISCC.exe.arg>${ISCC.location}</ISCC.exe.arg>
+				<ISCC.jre.drive>z:</ISCC.jre.drive>
 				<KEYSTORE_PATH>/home/wine/speederpan.com</KEYSTORE_PATH>
 			</properties>
 		</profile>

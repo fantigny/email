@@ -7,7 +7,7 @@
 #define MyAppURL "http://speederpan.com"
 #define MyAppExeName "${app.name}.exe"
 
-#define JrePath "${jre.win64}"
+#define JrePath "${ISCC.jre.drive}${jre.win64}"
 
 [Setup]
 AppId={{97A38B2F-861C-4C9B-A79A-CBBDA6157A71}
