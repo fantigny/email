@@ -28,9 +28,6 @@
 				<include>${app.name}-win64.exe</include>			
 				<include>${app.name}-win64.zip</include>
 
-				<include>${app.name}-win32.exe</include>
-				<include>${app.name}-win32.zip</include>
-
 				<include>${app.name}-lin64.deb</include>
 				<include>${app.name}-lin64.rpm</include>
 				<include>${app.name}-lin64.zip</include>
