@@ -11,7 +11,7 @@
 			<source>../mail-client/target/classes/version.txt</source>
 		</file>
 		<file>
-			<source>target/mail-client-distrib-0.0.1-SNAPSHOT-1.0.0.x86_64.rpm</source>
+			<source>target/mail-client-distrib-${version}-1.0.0.x86_64.rpm</source>
 			<destName>${app.name}-lin64.rpm</destName>
 		</file>
 	</files>
