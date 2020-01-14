@@ -49,7 +49,6 @@
 			<artifactId>mail-service-outlook</artifactId>
 		</dependency>
 
-
 		<!-- others -->
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
