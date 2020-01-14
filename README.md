@@ -33,10 +33,11 @@ latest builds available in [Jenkins](https://jenkins.speederpan.com/job/mail-cli
     - [x] remove restricted api calls
     - [x] migrate to openJdk/fx
 
-- [x] compatibility with x32 systems
-  - [x] create windows install
-  - [x] create linux install
-  - [x] build anfoya libs
+- [x] x32 distribs
+  - [x] pre-processor
+  - [x] windows install
+  - [x] linux install
+  - [x] anfoya libs
 
 - [x] allow pin to taskbar in windows
   - [x] create windows install
@@ -50,7 +51,7 @@ latest builds available in [Jenkins](https://jenkins.speederpan.com/job/mail-cli
 - [ ] dark mode
   - [ ] finalise style injection
 
-- [ ] optional minimise on close
+- [ ] optional 'minimise on close'
 
 #### feature
 - [ ] add gmail
