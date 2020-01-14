@@ -62,7 +62,8 @@
 				</property>
 			</activation>
 			<properties>
-				<compiler.release>11</compiler.release>
+				<maven.compiler.source>11</maven.compiler.source>
+				<maven.compiler.target>11</maven.compiler.target>
 				<anfoya.libs.arch />
 			</properties>
 			<modules>
@@ -78,7 +79,8 @@
 				</property>
 			</activation>
 			<properties>
-				<compiler.release>8</compiler.release>
+				<maven.compiler.source>8</maven.compiler.source>
+				<maven.compiler.target>8</maven.compiler.target>
 				<changelist>_x32</changelist>
 				<anfoya.libs.arch>_x32</anfoya.libs.arch>
 			</properties>
@@ -168,9 +170,6 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-compiler-plugin</artifactId>
 					<version>3.8.1</version>
-					<configuration>
-						<release>${compiler.release}</release>
-					</configuration>
 				</plugin>
 
 				<!--This plugin's configuration is used to store Eclipse m2e settings 
@@ -201,6 +200,23 @@
 										<ignore></ignore>
 									</action>
 								</pluginExecution>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											com.igormaznitsa
+										</groupId>
+										<artifactId>jcp</artifactId>
+										<versionRange>
+											[7.0.2,)
+										</versionRange>
+										<goals>
+											<goal>preprocess</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
 							</pluginExecutions>
 						</lifecycleMappingMetadata>
 					</configuration>
@@ -209,6 +225,24 @@
 		</pluginManagement>
 
 		<plugins>
+			<plugin>
+				<groupId>com.igormaznitsa</groupId>
+				<artifactId>jcp</artifactId>
+				<version>7.0.2</version>
+				<executions>
+					<execution>
+						<id>preprocess-sources</id>
+						<goals>
+							<goal>preprocess</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<vars>
+						<jdk.version>${maven.compiler.source}</jdk.version>
+					</vars>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>flatten-maven-plugin</artifactId>
