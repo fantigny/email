@@ -236,15 +236,6 @@
 							<goal>preprocess</goal>
 						</goals>
 					</execution>
-					<execution>
-						<id>preprocess-test-sources</id>
-						<goals>
-							<goal>preprocess</goal>
-						</goals>
-						<configuration>
-							<useTestSources>true</useTestSources>
-						</configuration>
-					</execution>
 				</executions>
 				<configuration>
 					<vars>
