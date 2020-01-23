@@ -34,7 +34,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -90,26 +89,21 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 	public MailComposer(final MailService<?, ?, ?, M, C> mailService, final Settings settings) {
 		super(StageStyle.UNIFIED);
 		setTitle(App.getName());
+		getIcons().add(App.getIcon());
+
+		this.mailService = mailService;
+		this.settings = settings;
 
 		myAddress = mailService.getContact().getEmail();
 		editedProperty = new SimpleBooleanProperty(false);
 		autosaveTimer = null;
-		sendCallback = discardCallback = m -> {};
-
-		final Image icon = new Image(getClass().getResourceAsStream("/net/anfoya/mail/img/Mail.png"));
-		getIcons().add(icon);
+		sendCallback = discardCallback = m -> {
+		};
 
 		final Scene scene = new Scene(new BorderPane(), 800, 600, Color.TRANSPARENT);
 		CssHelper.addCommonCss(scene);
 		CssHelper.addCss(scene, "/net/anfoya/javafx/scene/control/combo_noarrow.css");
 		setScene(scene);
-
-		this.mailService = mailService;
-		this.settings = settings;
-
-		// load contacts from server
-		addressContacts = new ConcurrentHashMap<>();
-		initContacts();
 
 		mainPane = (BorderPane) getScene().getRoot();
 		mainPane.setPadding(new Insets(3));
@@ -164,6 +158,11 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		buttonBox.setPadding(new Insets(8, 5, 5, 5));
 		mainPane.setBottom(buttonBox);
 
+		// load contacts from server
+		addressContacts = new ConcurrentHashMap<>();
+		initContacts();
+
+		// listen for user input
 		editedProperty.addListener((ov, o, n) -> {
 			saveButton.setText(n? "save": "saved");
 			editor.editedProperty().set(n);
@@ -191,12 +190,13 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 
 	private void initContacts() {
 		final Task<Set<C>> contactTask = new Task<Set<C>>() {
-			@Override protected Set<C> call() throws Exception {
+			@Override
+			protected Set<C> call() throws Exception {
 				return mailService.getContacts();
 			}
 		};
 		contactTask.setOnSucceeded(e -> {
-			for(final C c: contactTask.getValue()) {
+			for (final C c : contactTask.getValue()) {
 				addressContacts.put(c.getEmail(), c);
 			}
 			toListBox.setAddressContacts(addressContacts);
@@ -208,10 +208,9 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 				setTitle(getTitle() + " - " + contact.getEmail());
 			} else {
 				setTitle(getTitle() + " - " + contact.getFullname() + " (" + contact.getEmail() + ")");
-				//				setTitle(App.getName() + " - Fred A. (abc.xyz@gmail.com)");
 			}
 		});
-		contactTask.setOnFailed(e -> LOGGER.error("load contacts", e.getSource().getException()));
+		contactTask.setOnFailed(e -> LOGGER.error("loading contacts", e.getSource().getException()));
 		ThreadPool.getDefault().submit(PoolPriority.MAX, "load contacts", contactTask);
 	}
 
@@ -233,7 +232,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 			}
 			message.saveChanges();
 		} catch (final MessagingException e) {
-			LOGGER.error("compose", e);
+			LOGGER.error("composing", e);
 		}
 		draft.setMimeDraft(message);
 		initComposer(false, true);
@@ -256,7 +255,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 			MessageHelper.removeMyselfFromRecipient(myAddress, reply);
 			draft.setMimeDraft(reply);
 		} catch (final IOException | MessagingException e) {
-			LOGGER.error("reply", e);
+			LOGGER.error("replying", e);
 		}
 
 		initComposer(true, true);
@@ -273,7 +272,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 			forward.saveChanges();
 			draft.setMimeDraft(forward);
 		} catch (final IOException | MessagingException e) {
-			LOGGER.error("forward", e);
+			LOGGER.error("forwarding", e);
 		}
 
 		initComposer(true, true);
@@ -283,30 +282,31 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		final MimeMessage message = draft.getMimeMessage();
 
 		try {
-			for(final String a: MessageHelper.getMailAddresses(message.getRecipients(MimeMessage.RecipientType.TO))) {
+			for (final String a : MessageHelper.getMailAddresses(message.getRecipients(MimeMessage.RecipientType.TO))) {
 				toListBox.addRecipient(a);
 			}
 		} catch (final MessagingException e) {
-			LOGGER.error("read recipients");
+			LOGGER.error("reading recipients");
 		}
 
 		boolean displayCC = false;
 		try {
-			for(final String a: MessageHelper.getMailAddresses(message.getRecipients(MimeMessage.RecipientType.CC))) {
+			for (final String a : MessageHelper.getMailAddresses(message.getRecipients(MimeMessage.RecipientType.CC))) {
 				ccListBox.addRecipient(a);
 				displayCC = true;
 			}
 		} catch (final MessagingException e) {
-			LOGGER.error("read cc list");
+			LOGGER.error("reading cc list");
 		}
 
 		try {
-			for(final String a: MessageHelper.getMailAddresses(message.getRecipients(MimeMessage.RecipientType.BCC))) {
+			for (final String a : MessageHelper
+					.getMailAddresses(message.getRecipients(MimeMessage.RecipientType.BCC))) {
 				bccListBox.addRecipient(a);
 				displayCC = true;
 			}
 		} catch (final MessagingException e) {
-			LOGGER.error("read bcc list");
+			LOGGER.error("reading bcc list");
 		}
 
 		if (displayCC) {
@@ -326,7 +326,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 			html = new MessageReader().toHtml(message);
 		} catch (IOException | MessagingException e) {
 			html = "";
-			LOGGER.error("get html content", e);
+			LOGGER.error("getting html content", e);
 		}
 		if (quote && !html.isEmpty()) {
 			try {
@@ -337,7 +337,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 				}
 				html = MessageHelper.quote(srcMess.getSentDate(), sender, html);
 			} catch (final MessagingException e) {
-				LOGGER.error("quote older content", e);
+				LOGGER.error("quoting original content", e);
 			}
 		}
 		if (signature) {
@@ -358,29 +358,37 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 	}
 
 	private synchronized void startAutosave() {
-		if (autosaveTimer == null) {
-			LOGGER.info("start auto save ({}s)", AUTO_SAVE_DELAY);
-			autosaveTimer = new Timer("autosave-draft-timer", true);
-			autosaveTimer.schedule(new TimerTask() {
-				@Override
-				public void run() {
-					save();
-				}
-			}, AUTO_SAVE_DELAY * 1000);
+		if (autosaveTimer != null) {
+			// already started
+			return;
 		}
+
+		autosaveTimer = new Timer("autosave-draft-timer", true);
+		autosaveTimer.schedule(new TimerTask() {
+			@Override
+			public void run() {
+				save();
+			}
+		}, AUTO_SAVE_DELAY * 1000);
+
+		LOGGER.info("auto save started ({}s)", AUTO_SAVE_DELAY);
 	}
 
 	private synchronized void stopAutosave() {
-		if (autosaveTimer != null) {
-			LOGGER.info("stop auto save");
-			autosaveTimer.cancel();
-			autosaveTimer = null;
+		if (autosaveTimer == null) {
+			// not started
+			return;
 		}
+
+		autosaveTimer.cancel();
+		autosaveTimer = null;
+
+		LOGGER.info("auto save stopped");
 	}
 
 	private void save() {
 		stopAutosave();
-		LOGGER.info("save draft");
+
 		Platform.runLater(() -> saveButton.setText("saving"));
 
 		final Task<Void> task = new Task<Void>() {
@@ -393,11 +401,12 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		};
 		task.setOnFailed(e -> {
 			editedProperty.set(true);
-			LOGGER.error("save  draft", e.getSource().getException());
+			LOGGER.error("saving draft", e.getSource().getException());
 		});
 		task.setOnSucceeded(e -> {
 			editedProperty.set(false);
 			saveButton.setText("saved");
+			LOGGER.info("draft saved");
 		});
 		ThreadPool.getDefault().submit(PoolPriority.MAX, "save  draft", task);
 	}
@@ -420,7 +429,7 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 				part.setFileName(MimeUtility.encodeText(f.getName()));
 				multipart.addBodyPart(part);
 			} catch (final Exception e) {
-				LOGGER.error("add attachment {}", f);
+				LOGGER.error("adding attachment {}", f);
 			}
 		});
 
@@ -438,13 +447,14 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 			}
 			message.setFrom(from);
 		} catch (final UnsupportedEncodingException e) {
-			LOGGER.error("load user data", e);
+			LOGGER.error("loading user data", e);
 		}
 
-		for(final String address: toListBox.getRecipients()) {
+		for (final String address : toListBox.getRecipients()) {
 			if (addressContacts.containsKey(address)) {
 				try {
-					message.addRecipient(RecipientType.TO, new InternetAddress(address, addressContacts.get(address).getFullname()));
+					message.addRecipient(RecipientType.TO,
+							new InternetAddress(address, addressContacts.get(address).getFullname()));
 				} catch (final UnsupportedEncodingException e) {
 					message.addRecipient(RecipientType.TO, new InternetAddress(address));
 				}
@@ -452,10 +462,11 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 				message.addRecipient(RecipientType.TO, new InternetAddress(address));
 			}
 		}
-		for(final String address: ccListBox.getRecipients()) {
+		for (final String address : ccListBox.getRecipients()) {
 			if (addressContacts.containsKey(address)) {
 				try {
-					message.addRecipient(RecipientType.CC, new InternetAddress(address, addressContacts.get(address).getFullname()));
+					message.addRecipient(RecipientType.CC,
+							new InternetAddress(address, addressContacts.get(address).getFullname()));
 				} catch (final UnsupportedEncodingException e) {
 					message.addRecipient(RecipientType.CC, new InternetAddress(address));
 				}
@@ -463,10 +474,11 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 				message.addRecipient(RecipientType.CC, new InternetAddress(address));
 			}
 		}
-		for(final String address: bccListBox.getRecipients()) {
+		for (final String address : bccListBox.getRecipients()) {
 			if (addressContacts.containsKey(address)) {
 				try {
-					message.addRecipient(RecipientType.BCC, new InternetAddress(address, addressContacts.get(address).getFullname()));
+					message.addRecipient(RecipientType.BCC,
+							new InternetAddress(address, addressContacts.get(address).getFullname()));
 				} catch (final UnsupportedEncodingException e) {
 					message.addRecipient(RecipientType.BCC, new InternetAddress(address));
 				}
@@ -482,8 +494,8 @@ public class MailComposer<M extends Message, C extends Contact> extends Stage {
 		try {
 			draft.setMimeDraft(buildMessage());
 		} catch (final MessagingException e) {
-			//TODO display error message
-			LOGGER.error("build message", e);
+			// TODO display error message
+			LOGGER.error("building message", e);
 		}
 
 		sendCallback.call(draft);
