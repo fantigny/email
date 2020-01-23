@@ -41,7 +41,7 @@ public class Settings implements Serializable {
 	public static final String DOWNLOAD_URL = "https://github.com/fantigny/email";
 
 	public static final String VERSION_TXT_RSC = "/version.txt";
-	public static final String VERSION_TXT_URL = "https://jenkins.speederpan.com/job/mail-client-all%20(master)/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/version.txt";
+	public static final String VERSION_TXT_URL = "https://jenkins.speederpan.com/job/mail-client-distrib%20(master)/lastSuccessfulBuild/artifact/mail-client-distrib/distrib/version.txt";
 
 	private static final String SND_PATH = "/net/anfoya/mail/snd/";
 	public static final String MP3_NEW_MAIL = Settings.class.getResource(SND_PATH + "new_mail.mp3").toExternalForm();
@@ -131,70 +131,102 @@ public class Settings implements Serializable {
 
 	public List<?> toList() {
 		final List<Object> list = new ArrayList<>();
-		Collections.addAll(list
-				, showToolbar.get()
-				, showExcludeBox.get()
-				, archiveOnDrop.get()
-				, popupLifetime.get()
-				, htmlSignature.get()
-				, replyAllDblClick.get()
-				, confirmOnQuit.get()
-				, confirmOnSignout.get()
-				, mute.get()
-				, globalSettings.get()
-				, threadPaneWidth.get()
-				, sectionListPaneWidth.get()
-				, windowWidth.get()
-				, windowHeight.get()
-				, browserMode.get()
-				, windowX.get()
-				, windowY.get()
-				, date.get()
-				, threadListPaneWidth.get()
-				, sectionName.get()
-				, tagName.get()
-				, proxyEnabled.get()
-				, proxyHost.get()
-				, proxyPort.get()
-				, proxyUser.get()
-				, proxyPasswd.get()
-				, proxyBasicAuth.get()
-				, mailServiceInfo.get()
-				);
+		Collections.addAll(list, showToolbar.get(), showExcludeBox.get(), archiveOnDrop.get(), popupLifetime.get(),
+				htmlSignature.get(), replyAllDblClick.get(), confirmOnQuit.get(), confirmOnSignout.get(), mute.get(),
+				globalSettings.get(), threadPaneWidth.get(), sectionListPaneWidth.get(), windowWidth.get(),
+				windowHeight.get(), browserMode.get(), windowX.get(), windowY.get(), date.get(),
+				threadListPaneWidth.get(), sectionName.get(), tagName.get(), proxyEnabled.get(), proxyHost.get(),
+				proxyPort.get(), proxyUser.get(), proxyPasswd.get(), proxyBasicAuth.get(), mailServiceInfo.get());
 
 		return list;
 	}
 
 	public void fromList(List<?> list) {
 		final Iterator<?> i = list.iterator();
-		if (i.hasNext()) { showToolbar			.set((Boolean)			i.next()); }
-		if (i.hasNext()) { showExcludeBox		.set((Boolean)			i.next()); }
-		if (i.hasNext()) { archiveOnDrop		.set((Boolean)			i.next()); }
-		if (i.hasNext()) { popupLifetime		.set((Integer)			i.next()); }
-		if (i.hasNext()) { htmlSignature		.set((String)			i.next()); }
-		if (i.hasNext()) { replyAllDblClick		.set((Boolean)			i.next()); }
-		if (i.hasNext()) { confirmOnQuit		.set((Boolean)			i.next()); }
-		if (i.hasNext()) { confirmOnSignout		.set((Boolean)			i.next()); }
-		if (i.hasNext()) { mute					.set((Boolean)			i.next()); }
-		if (i.hasNext()) { globalSettings		.set((Boolean)			i.next()); }
-		if (i.hasNext()) { threadPaneWidth		.set((Double) 			i.next()); }
-		if (i.hasNext()) { sectionListPaneWidth	.set((Double) 			i.next()); }
-		if (i.hasNext()) { windowWidth			.set((Double) 			i.next()); }
-		if (i.hasNext()) { windowHeight			.set((Double) 			i.next()); }
-		if (i.hasNext()) { browserMode			.set((String) 			i.next()); }
-		if (i.hasNext()) { windowX				.set((Double)		 	i.next()); }
-		if (i.hasNext()) { windowY				.set((Double) 			i.next()); }
-		if (i.hasNext()) { date					.set((Long) 			i.next()); }
-		if (i.hasNext()) { threadListPaneWidth	.set((Double) 			i.next()); }
-		if (i.hasNext()) { sectionName			.set((String) 			i.next()); }
-		if (i.hasNext()) { tagName				.set((String) 			i.next()); }
-		if (i.hasNext()) { proxyEnabled			.set((Boolean)		 	i.next()); }
-		if (i.hasNext()) { proxyHost			.set((String) 			i.next()); }
-		if (i.hasNext()) { proxyPort			.set((Integer)		 	i.next()); }
-		if (i.hasNext()) { proxyUser			.set((String) 			i.next()); }
-		if (i.hasNext()) { proxyPasswd			.set((String) 			i.next()); }
-		if (i.hasNext()) { proxyBasicAuth		.set((Boolean) 			i.next()); }
-		if (i.hasNext()) { mailServiceInfo		.set((MailServiceInfo)	i.next()); }
+		if (i.hasNext()) {
+			showToolbar.set((Boolean) i.next());
+		}
+		if (i.hasNext()) {
+			showExcludeBox.set((Boolean) i.next());
+		}
+		if (i.hasNext()) {
+			archiveOnDrop.set((Boolean) i.next());
+		}
+		if (i.hasNext()) {
+			popupLifetime.set((Integer) i.next());
+		}
+		if (i.hasNext()) {
+			htmlSignature.set((String) i.next());
+		}
+		if (i.hasNext()) {
+			replyAllDblClick.set((Boolean) i.next());
+		}
+		if (i.hasNext()) {
+			confirmOnQuit.set((Boolean) i.next());
+		}
+		if (i.hasNext()) {
+			confirmOnSignout.set((Boolean) i.next());
+		}
+		if (i.hasNext()) {
+			mute.set((Boolean) i.next());
+		}
+		if (i.hasNext()) {
+			globalSettings.set((Boolean) i.next());
+		}
+		if (i.hasNext()) {
+			threadPaneWidth.set((Double) i.next());
+		}
+		if (i.hasNext()) {
+			sectionListPaneWidth.set((Double) i.next());
+		}
+		if (i.hasNext()) {
+			windowWidth.set((Double) i.next());
+		}
+		if (i.hasNext()) {
+			windowHeight.set((Double) i.next());
+		}
+		if (i.hasNext()) {
+			browserMode.set((String) i.next());
+		}
+		if (i.hasNext()) {
+			windowX.set((Double) i.next());
+		}
+		if (i.hasNext()) {
+			windowY.set((Double) i.next());
+		}
+		if (i.hasNext()) {
+			date.set((Long) i.next());
+		}
+		if (i.hasNext()) {
+			threadListPaneWidth.set((Double) i.next());
+		}
+		if (i.hasNext()) {
+			sectionName.set((String) i.next());
+		}
+		if (i.hasNext()) {
+			tagName.set((String) i.next());
+		}
+		if (i.hasNext()) {
+			proxyEnabled.set((Boolean) i.next());
+		}
+		if (i.hasNext()) {
+			proxyHost.set((String) i.next());
+		}
+		if (i.hasNext()) {
+			proxyPort.set((Integer) i.next());
+		}
+		if (i.hasNext()) {
+			proxyUser.set((String) i.next());
+		}
+		if (i.hasNext()) {
+			proxyPasswd.set((String) i.next());
+		}
+		if (i.hasNext()) {
+			proxyBasicAuth.set((Boolean) i.next());
+		}
+		if (i.hasNext()) {
+			mailServiceInfo.set((MailServiceInfo) i.next());
+		}
 	}
 
 	public void load() {
